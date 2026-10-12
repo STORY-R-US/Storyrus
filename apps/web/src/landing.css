@@ -499,31 +499,23 @@ a.kcat-group-name.is-chip:focus-visible {
   margin-top: 8px;
   padding: 14px 0 16px;
   box-sizing: border-box;
-  container-type: inline-size;
 }
 .hero-carousel-track {
   display: flex;
   align-items: center;
   width: max-content;
+  background: #0b1226;
   animation: rev-marquee 360s linear infinite;
 }
-.hero-slide {
+.hero-shot {
   height: 240px;
   width: auto;
   flex: 0 0 auto;
-  margin: 0 12px 0 0;
-  display: flex;
-}
-.hero-slide.is-lead { margin-left: max(12px, calc(50cqw - 362px)); }
-.hero-shot {
-  height: 100%;
-  width: auto;
-  flex: 0 0 auto;
-  margin: 0;
-  border: 1px solid #fff;
+  margin: 0 2px 0 0;
+  border: 0;
   border-radius: 0;
   padding: 0;
-  background: none;
+  background: #0b1226;
   box-shadow: none;
   color: inherit;
   font: inherit;
@@ -532,29 +524,14 @@ a.kcat-group-name.is-chip:focus-visible {
   overflow: hidden;
 }
 .hero-shot:hover:not(:disabled) { transform: none; box-shadow: none; }
-.hero-shot.on { box-shadow: none; }
-.hero-slide.on .hero-slide-frame {
+.hero-shot.on {
   box-shadow:
     0 0 0 1px #fff,
     0 0 12px rgba(255,255,255,.9),
     0 10px 22px rgba(0,0,0,.22);
+  z-index: 1;
 }
-.hero-slide-frame {
-  display: flex;
-  align-items: stretch;
-  gap: 2px;
-  height: 100%;
-  line-height: 0;
-  box-sizing: border-box;
-  border: 1px solid #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #0b1226;
-  box-shadow:
-    0 0 0 1px #fff,
-    0 8px 18px rgba(0,0,0,.16);
-}
-.hero-slide-frame img {
+.hero-shot img {
   display: block;
   height: 100%;
   width: auto;
@@ -806,7 +783,7 @@ a.kcat-group-name.is-chip:focus-visible {
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 12px; gap: 14px; }
   .khero-intro { gap: 32px; }
-  .hero-slide { height: min(180px, 52vw); width: auto; flex-basis: auto; }
+  .hero-shot { height: min(180px, 52vw); width: auto; flex-basis: auto; }
   .khero-flipbook .fb-board { gap: 0; }
   .khero-flipbook .fb-nav {
     position: absolute; z-index: 4; width: 40px; height: 40px; font-size: 1.4rem;
@@ -1508,7 +1485,7 @@ img.ex-tab-cover {
     justify-content: center;
   }
   .rev-carousel .rev-photo { width: min(168px, 42vw); flex-basis: min(168px, 42vw); }
-  .hero-slide { height: min(180px, 52vw); width: auto; flex-basis: auto; }
+  .hero-shot { height: min(180px, 52vw); width: auto; flex-basis: auto; }
 }
 .rev-photo {
   margin: 0;
