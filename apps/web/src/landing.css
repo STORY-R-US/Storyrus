@@ -505,14 +505,7 @@ a.kcat-group-name.is-chip:focus-visible {
   display: flex;
   align-items: center;
   width: max-content;
-  animation: rev-marquee 180s linear infinite;
-}
-/* No toque, :hover e o foco do botão ficam presos e travavam a faixa. */
-@media (hover: hover) and (pointer: fine) {
-  .hero-carousel:hover .hero-carousel-track,
-  .hero-carousel:focus-within .hero-carousel-track {
-    animation-play-state: paused;
-  }
+  animation: rev-marquee 360s linear infinite;
 }
 .hero-slide {
   height: 240px;
@@ -1494,13 +1487,7 @@ img.ex-tab-cover {
 .rev-carousel-track {
   display: flex;
   width: max-content;
-  animation: rev-marquee 90s linear infinite;
-}
-@media (hover: hover) and (pointer: fine) {
-  .rev-carousel:hover .rev-carousel-track,
-  .rev-carousel:focus-within .rev-carousel-track {
-    animation-play-state: paused;
-  }
+  animation: rev-marquee 180s linear infinite;
 }
 .rev-carousel .rev-photo {
   width: 168px;
