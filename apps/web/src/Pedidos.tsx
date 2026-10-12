@@ -108,7 +108,7 @@ export function Pedidos() {
     setError(null);
     setLastStatus(undefined);
     try {
-      const report = await api.usage(apiOwnerPassword(secret));
+      const report = await api.usage(apiOwnerPassword(secret), undefined, undefined, "orders");
       const list = report.orders ?? [];
       setOrders(list);
       setStats({

@@ -109,6 +109,7 @@ def register_order_ticket(
     client_phone: str = "",
     client_address: str = "",
     client_notes: str = "",
+    prepare: bool = True,
 ) -> OrderTicket:
     """Cria ou atualiza o pedido do projeto (um por projeto)."""
     lang = (language or "").strip() or (project.language or "pt-BR")
@@ -156,12 +157,15 @@ def register_order_ticket(
         db.flush()
     from app.printkit.service import open_print_order
 
-    open_print_order(db, project, requested=False)
+    open_print_order(db, project, requested=False, prepare=prepare)
     return ticket
 
 
-def backfill_order_tickets(db: Session) -> int:
-    """Abre pedidos faltantes para projetos que já têm foto (mobile/presign/falha)."""
+def backfill_order_tickets(db: Session, *, prepare: bool = False) -> int:
+    """Abre pedidos faltantes para projetos que já têm foto (mobile/presign/falha).
+
+    Não gera PDF: quem lista o painel não pode ficar lendo cada imagem.
+    """
     ticketed = select(OrderTicket.project_id)
     photo_projects = db.scalars(
         select(Project)
@@ -200,6 +204,7 @@ def backfill_order_tickets(db: Session) -> int:
             client_phone=buyer["phone"],
             client_address=buyer["address"],
             client_notes=buyer["notes"],
+            prepare=prepare,
         )
         created += 1
     if created:

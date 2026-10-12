@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from app.config import settings
 from app.database import get_db
-from app.models import Job, JobStatus, Project, UsageEvent, User
+from app.models import Asset, Job, JobStatus, PrintOrder, Project, UsageEvent, User
 
 
 def _session(client):
@@ -39,12 +39,13 @@ def _seed_job(client, *, cost_usd, job_type="EBOOK", child="Matteo"):
         db.close()
 
 
-def test_usage_without_password_configured_is_503(client, monkeypatch):
+def test_usage_without_password_still_rejects_anonymous(client, monkeypatch):
+    """Sem senha compartilhada o painel segue aberto para a conta do dono."""
     monkeypatch.setattr(settings, "usage_dashboard_password", None)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "owner_emails", "")
     r = client.get("/v1/usage")
-    assert r.status_code == 503
+    assert r.status_code == 401
 
 
 def test_usage_wrong_password_is_401(client, monkeypatch):
@@ -205,3 +206,76 @@ def test_usage_lists_named_image_events(auth_client, monkeypatch):
     assert "Página 1 — geração" in labels
     assert "Página 1 — refine" in labels
     assert not any("sem extrato" in lb for lb in labels)
+
+
+def test_orders_scope_skips_spend_scan_and_print_files(auth_client, monkeypatch):
+    """Listar Pedidos não pode ler imagens nem varrer os jobs de gasto."""
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    calls = {"prepare": 0, "bytes": 0}
+
+    def _prepare(*_args, **_kwargs):
+        calls["prepare"] += 1
+
+    def _bytes(*_args, **_kwargs):
+        calls["bytes"] += 1
+        return b""
+
+    monkeypatch.setattr("app.printkit.service.prepare_files", _prepare)
+    monkeypatch.setattr("app.storage.get_bytes", _bytes)
+
+    db = _session(auth_client)
+    try:
+        user = db.query(User).filter(User.email == "auth@example.com").one()
+        project = Project(
+            user_id=user.id,
+            status="EBOOK_READY",
+            child_name="Lia",
+            book_size="M",
+            cover_type="soft",
+        )
+        db.add(project)
+        db.flush()
+        db.add(Asset(project_id=project.id, kind="photo", storage_key="photos/lia.jpg"))
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind="page_image",
+                storage_key="pages/1.png",
+                meta={"page": 1},
+            )
+        )
+        db.commit()
+        project_id = project.id
+    finally:
+        db.close()
+
+    scoped = auth_client.get(
+        "/v1/usage?scope=orders",
+        headers={"X-Usage-Password": "segredo"},
+    )
+    assert scoped.status_code == 200, scoped.text
+    assert scoped.headers["cache-control"] == "private, no-store"
+    body = scoped.json()
+    assert body["today_usd"] == 0
+    assert body["events"] == []
+    assert body["recent_jobs"] == []
+    assert len(body["orders"]) == 1
+    assert body["orders"][0]["print_code"].startswith("SR-")
+    assert calls == {"prepare": 0, "bytes": 0}
+
+    db = _session(auth_client)
+    try:
+        printed = db.query(PrintOrder).filter(PrintOrder.project_id == project_id).one()
+        printed.status = "awaiting_pages"
+        db.add(printed)
+        db.commit()
+    finally:
+        db.close()
+
+    again = auth_client.get("/v1/usage?scope=orders", headers={"X-Usage-Password": "segredo"})
+    full = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert again.status_code == 200, again.text
+    assert full.status_code == 200, full.text
+    assert full.headers["cache-control"] == "private, no-store"
+    assert calls == {"prepare": 0, "bytes": 0}
