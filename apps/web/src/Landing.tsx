@@ -171,6 +171,8 @@ const CARTOON_REVIEW_PHOTOS = [
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
+const PASSO_IMGS = ["dica-boa.png", "dica-multi.png", "pagina-mamaepapaimatteo.jpg"];
+const PASSO_CARTOON_IMGS = ["dica-boa.png", "dica-multi.png", "cartoon-pagina-matteo.jpg"];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -788,6 +790,12 @@ const I18N = {
       { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
+    passo_title: "Passo a Passo",
+    passo: [
+      { t: "Envie a Foto do Protagonista", p: "Envie fotos nítidas de quem é o herói da história. Com elas, mantemos o rosto, o cabelo, os olhos e os traços da criança." },
+      { t: "Envie Fotos dos Outros Personagens", p: "Adicione fotos de familiares, animais ou de quem mais aparece na história." },
+      { t: "Revise e Aprove", p: "Confira a prévia, a capa e as páginas. Quando você aprovar, o livro segue para produção." },
+    ],
     hiw_foot: [
       { t: "Envie a Foto e Defina os Detalhes", p: "Escolha o tema e o formato do livro." },
       { t: "Criamos o Personagem e a História", p: "História, capa e páginas com o mesmo rosto da criança." },
@@ -1008,6 +1016,12 @@ const I18N = {
       { t: "Follow The Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
       { t: "Review And Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
+    passo_title: "Step By Step",
+    passo: [
+      { t: "Send The Hero Photo", p: "Send clear photos of the child who stars in the story. We use them to keep the face, hair, eyes, and features." },
+      { t: "Send Photos Of Other Characters", p: "Add photos of relatives, pets, or anyone else who appears in the story." },
+      { t: "Review And Approve", p: "Check the preview, the cover, and the pages. After you approve, the book goes to production." },
+    ],
     hiw_foot: [
       { t: "Send The Photo And Set The Details", p: "Choose the theme and the book format." },
       { t: "We Create The Character And The Story", p: "Story, cover, and pages with the same face as the child." },
@@ -1227,6 +1241,12 @@ const I18N = {
       { t: "Completa Los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
       { t: "Acompaña La Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
       { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+    ],
+    passo_title: "Paso a Paso",
+    passo: [
+      { t: "Envía La Foto Del Protagonista", p: "Envía fotos nítidas de quien es el héroe de la historia. Con ellas conservamos el rostro, el cabello, los ojos y los rasgos del niño." },
+      { t: "Envía Fotos De Otros Personajes", p: "Agrega fotos de familiares, animales o de quien más aparece en la historia." },
+      { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas. Cuando apruebes, el libro pasa a producción." },
     ],
     hiw_foot: [
       { t: "Envía La Foto Y Define Los Detalles", p: "Elige el tema y el formato del libro." },
@@ -1857,6 +1877,7 @@ export function catalogPageCopy(lang: Lang) {
     empty: t.cat_empty,
     cats: t.cats_label,
     hiw: t.hiw_title,
+    passo: t.passo_title,
     videos: t.videos_link,
     reviews: t.reviews_link,
     cartoon: t.cartoon_link,
@@ -1992,6 +2013,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
   const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
+  const passoImgs = variant === "cartoon" ? PASSO_CARTOON_IMGS : PASSO_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
     if (variant !== "cartoon") return [book];
@@ -2305,6 +2327,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
                   {t.hiw_title}
                 </a>
+                <a href="#passo" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#f08a4b", boxShadow: "0 0 10px rgba(240,138,75,.9)" }} />
+                  {t.passo_title}
+                </a>
                 <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
                   {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
@@ -2498,6 +2524,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
+            <a className="kmobile-link" href="#passo" onClick={closeNav}>{t.passo_title}</a>
             <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
@@ -2637,6 +2664,31 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               </Fragment>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="ksection ksection-como" id="passo">
+        <div className="como-panel reveal">
+          <h2 className="ktitle">{t.passo_title}</h2>
+          <div className="howex">
+            {t.passo.map((h, i) => (
+              <Fragment key={h.t}>
+                <figure className="howex-card howex-card-scene">
+                  <div className="howex-lead">
+                    <h3>{h.t}</h3>
+                  </div>
+                  <div className="howex-media">
+                    <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" />
+                    <span className="howex-num">{i + 1}</span>
+                  </div>
+                  <figcaption>
+                    <p>{h.p}</p>
+                  </figcaption>
+                </figure>
+                {i < t.passo.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+              </Fragment>
+            ))}
           </div>
         </div>
       </section>

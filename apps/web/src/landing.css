@@ -1356,7 +1356,7 @@ a.kcat-group-name.is-chip:focus-visible {
   justify-content: flex-start;
   box-sizing: border-box;
 }
-.howex-card .howex-lead h3 { margin: 0; color: #fff; font-size: 1.08rem; line-height: 1.25; min-height: 0; }
+.howex-card .howex-lead h3 { margin: 0; color: #fff; font-size: 1.08rem; line-height: 1.25; min-height: 0; text-wrap: balance; }
 .howex-card .howex-lead p { margin: 0; color: #b9c2dc; font-weight: 600; font-size: .92rem; line-height: 1.4; }
 .howex-arrow { color: var(--yellow); align-self: center; animation: nudge 1.5s ease-in-out infinite; }
 .howex-arrow svg { width: 34px; height: 20px; }
@@ -1950,8 +1950,8 @@ img.ex-tab-cover {
 @media (max-width: 900px) {
   .cat-note-grid { grid-template-columns: 1fr; }
   .howex { grid-template-columns: 1fr; grid-template-rows: none; justify-items: stretch; }
-  .howex > .howex-card,
-  .howex > .howex-arrow { grid-column: auto; grid-row: auto; }
+  .howex > .howex-card:nth-child(n),
+  .howex > .howex-arrow:nth-child(n) { grid-column: auto; grid-row: auto; }
   .howex-card { display: flex; flex-direction: column; grid-template-rows: none; }
   .howex-arrow { transform: rotate(90deg); justify-self: center; animation-name: nudgeDown; }
   .fmt-grid { grid-template-columns: 1fr; max-width: 100%; }
