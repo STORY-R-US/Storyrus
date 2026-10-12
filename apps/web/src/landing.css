@@ -505,7 +505,7 @@ a.kcat-group-name.is-chip:focus-visible {
   align-items: center;
   width: max-content;
   background: #0b1226;
-  animation: rev-marquee 360s linear infinite;
+  animation: rev-marquee 180s linear infinite;
 }
 .hero-shot {
   height: 240px;
