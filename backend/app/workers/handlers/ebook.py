@@ -122,7 +122,9 @@ async def _store_preview_bytes(key: str, data: bytes, mime: str) -> None:
     await asyncio.to_thread(storage.put_bytes, key, data, mime)
 
 
-async def _save_preview_image(db: Session, project, *, kind: str, result: ImageResult, page: int | None = None) -> None:
+async def _save_preview_image(
+    db: Session, project, *, kind: str, result: ImageResult, page: int | None = None
+) -> None:
     """Grava a figura e só então substitui a anterior. Falha de storage não apaga o que já está no banco."""
     mime = result.mime_type or "image/png"
     ext = "png" if "png" in mime else "jpg"
@@ -270,7 +272,13 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         blob = await asyncio.to_thread(
             ebook_builder.build_pdf,
             title,
-            [{"text": page_text[:400], "image": page_for_pdf.image_bytes, "mime": page_for_pdf.mime_type}],
+            [
+                {
+                    "text": page_text[:400],
+                    "image": page_for_pdf.image_bytes,
+                    "mime": page_for_pdf.mime_type,
+                }
+            ],
             cover_bytes,
             (project.dedication or None),
             char_bytes,
