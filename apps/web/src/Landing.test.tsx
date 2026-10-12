@@ -498,10 +498,13 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-amordebisavo.jpg"));
     expect(screen.queryByRole("button", { name: "Nano" })).not.toBeInTheDocument();
 
-    const firstFrame = cover.closest(".hero-slide-frame") as HTMLElement;
-    expect(firstFrame).toContainElement(screen.getByTestId("landing-hero-slide-1"));
-    expect(firstFrame).toContainElement(screen.getByTestId("landing-hero-slide-2"));
-    expect(firstFrame).not.toContainElement(screen.getByTestId("landing-hero-slide-3"));
+    const track = cover.closest(".hero-carousel-track") as HTMLElement;
+    expect(track.querySelector(".hero-slide, .hero-slide-frame")).toBeNull();
+    const shot = (n: number) => screen.getByTestId(`landing-hero-slide-${n}`).parentElement;
+    expect(shot(0)?.parentElement).toBe(track);
+    expect(shot(0)?.nextElementSibling).toBe(shot(1));
+    expect(shot(1)?.nextElementSibling).toBe(shot(2));
+    expect(shot(2)?.nextElementSibling).toBe(shot(3));
 
     const carousel = cover.closest(".hero-carousel") as HTMLElement;
     const natalCovers = [...carousel.querySelectorAll("img")].filter((img) => {
