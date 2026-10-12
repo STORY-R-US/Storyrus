@@ -791,9 +791,9 @@ const I18N = {
     ],
     passo_title: "Passo a Passo",
     passo: [
-      { t: "Envie Foto do Protagonista", p: "Envie fotos nítidas do personagem, protagonista da sua história. Essas imagens servem de referência para preservar rostos, cabelos, olhos e características da criança, de familiares, animais ou outros personagens." },
-      { t: "Envie Fotos do Personagem Adicional", p: "Adicione fotos de um ou mais personagens relacionadas à história que deseja criar." },
-      { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
+      { t: "Envie a Foto do Protagonista", p: "Envie fotos nítidas de quem é o herói da história. Com elas, mantemos o rosto, o cabelo, os olhos e os traços da criança." },
+      { t: "Envie Fotos dos Outros Personagens", p: "Adicione fotos de familiares, animais ou de quem mais aparece na história." },
+      { t: "Revise e Aprove", p: "Confira a prévia, a capa e as páginas. Quando você aprovar, o livro segue para produção." },
     ],
     hiw_foot: [
       { t: "Envie a Foto e Defina os Detalhes", p: "Escolha o tema e o formato do livro." },
@@ -1017,9 +1017,9 @@ const I18N = {
     ],
     passo_title: "Step By Step",
     passo: [
-      { t: "Send The Hero Photo", p: "Send clear photos of the character, the hero of your story. These images keep faces, hair, eyes, and the features of the child, relatives, animals, or other characters." },
-      { t: "Send Photos Of An Extra Character", p: "Add photos of one or more characters related to the story you want to create." },
-      { t: "Review And Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
+      { t: "Send The Hero Photo", p: "Send clear photos of the child who stars in the story. We use them to keep the face, hair, eyes, and features." },
+      { t: "Send Photos Of Other Characters", p: "Add photos of relatives, pets, or anyone else who appears in the story." },
+      { t: "Review And Approve", p: "Check the preview, the cover, and the pages. After you approve, the book goes to production." },
     ],
     hiw_foot: [
       { t: "Send The Photo And Set The Details", p: "Choose the theme and the book format." },
@@ -1243,9 +1243,9 @@ const I18N = {
     ],
     passo_title: "Paso a Paso",
     passo: [
-      { t: "Envía La Foto Del Protagonista", p: "Envía fotos nítidas del personaje, protagonista de tu historia. Esas imágenes sirven de referencia para preservar rostros, cabellos, ojos y las características del niño, de familiares, animales u otros personajes." },
-      { t: "Envía Fotos Del Personaje Adicional", p: "Agrega fotos de uno o más personajes relacionadas con la historia que quieres crear." },
-      { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+      { t: "Envía La Foto Del Protagonista", p: "Envía fotos nítidas de quien es el héroe de la historia. Con ellas conservamos el rostro, el cabello, los ojos y los rasgos del niño." },
+      { t: "Envía Fotos De Otros Personajes", p: "Agrega fotos de familiares, animales o de quien más aparece en la historia." },
+      { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas. Cuando apruebes, el libro pasa a producción." },
     ],
     hiw_foot: [
       { t: "Envía La Foto Y Define Los Detalles", p: "Elige el tema y el formato del libro." },
