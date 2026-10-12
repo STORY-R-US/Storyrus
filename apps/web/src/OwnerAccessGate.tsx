@@ -109,7 +109,10 @@ export function OwnerAccessGate({
             Senha do painel
             <input
               type="password"
-              autoComplete="current-password"
+              name="panel-secret"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
               value={draft}
               onChange={(e) => onDraftChange(e.target.value)}
             />

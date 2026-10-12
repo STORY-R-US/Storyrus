@@ -754,6 +754,25 @@
   margin: 0 0 1rem;
 }
 
+.studio-app .field-error {
+  margin: 0.4rem 0 0;
+  color: #ff9a8f;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.studio-app label.studio-field input.is-invalid,
+.studio-app label.studio-field textarea.is-invalid,
+.studio-app .studio-drop.is-invalid,
+.studio-app .studio-choice.is-invalid {
+  border-color: #ff8b7d;
+}
+
+.studio-app .studio-consent.is-invalid {
+  color: #ff9a8f;
+}
+
 .studio-app .demo-banner {
   display: flex;
   flex-wrap: wrap;
@@ -876,7 +895,9 @@
   color: #4a5880;
 }
 
-[data-theme="light"] .studio-app .studio-error {
+[data-theme="light"] .studio-app .studio-error,
+[data-theme="light"] .studio-app .field-error,
+[data-theme="light"] .studio-app .studio-consent.is-invalid {
   color: #c44d3f;
 }
 

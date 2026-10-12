@@ -38,8 +38,10 @@ describe("catálogo no sitemap", () => {
   const books = parsePtCatalog(source);
 
   it("acompanha as fichas públicas de livro", () => {
+    expect(catalogEntry("pt", 10)).toBeNull();
     expect(catalogEntry("pt", 13)).toBeNull();
     expect(catalogEntry("pt", 32)).toBeNull();
+    expect(books.some((book) => book.index === 10 || book.title === "Nano E Suas Aventuras")).toBe(false);
     expect(books.some((book) => book.index === 13)).toBe(false);
     expect(books.some((book) => book.index === 32 || book.title === "Nossa Família")).toBe(false);
     for (const book of books) {
@@ -63,6 +65,7 @@ describe("catálogo no sitemap", () => {
     expect(xml).toContain("https://storyrus.ai/livro/20");
     expect(xml).toContain("https://storyrus.ai/privacidade");
     expect(xml).toContain("https://storyrus.ai/exemplos");
+    expect(xml).not.toContain("https://storyrus.ai/livro/10");
     expect(xml).not.toContain("https://storyrus.ai/livro/13");
     expect(xml).not.toContain("/gastos");
     expect(xml).not.toContain("/pedidos");

@@ -77,6 +77,15 @@ export type StudioCopy = {
   errClient: string;
   createProject: string;
   errMissingFields: string;
+  errName: string;
+  errAge: string;
+  errTitle: string;
+  errTheme: string;
+  errAlsoName: string;
+  errClientName: string;
+  errClientEmail: string;
+  errClientPhone: string;
+  errClientAddress: string;
   errPhotoRequired: string;
   metaBookTitle: string;
   howTitle: string;
@@ -401,6 +410,15 @@ const pt: StudioCopy = {
   errClient: "Preencha nome, e-mail, telefone e endereço.",
   createProject: "Gerar o livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
+  errName: "Preencha o nome.",
+  errAge: "Preencha a idade.",
+  errTitle: "Preencha o título.",
+  errTheme: "Preencha o tema.",
+  errAlsoName: "Preencha o nome.",
+  errClientName: "Preencha o nome.",
+  errClientEmail: "Preencha um e-mail válido.",
+  errClientPhone: "Preencha o telefone.",
+  errClientAddress: "Preencha o endereço.",
   errPhotoRequired: "Selecione a foto do protagonista.",
   metaBookTitle: "Título",
   howTitle: "Como Funciona",
@@ -641,6 +659,15 @@ const en: StudioCopy = {
   errClient: "Fill in name, email, phone, and address.",
   createProject: "Generate the book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
+  errName: "Fill in the name.",
+  errAge: "Fill in the age.",
+  errTitle: "Fill in the title.",
+  errTheme: "Fill in the theme.",
+  errAlsoName: "Fill in the name.",
+  errClientName: "Fill in the name.",
+  errClientEmail: "Enter a valid email.",
+  errClientPhone: "Fill in the phone.",
+  errClientAddress: "Fill in the address.",
   errPhotoRequired: "Select the hero photo.",
   metaBookTitle: "Title",
   howTitle: "How It Works",
@@ -881,6 +908,15 @@ const es: StudioCopy = {
   errClient: "Completa nombre, correo, teléfono y dirección.",
   createProject: "Generar el libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
+  errName: "Completa el nombre.",
+  errAge: "Completa la edad.",
+  errTitle: "Completa el título.",
+  errTheme: "Completa el tema.",
+  errAlsoName: "Completa el nombre.",
+  errClientName: "Completa el nombre.",
+  errClientEmail: "Completa un correo válido.",
+  errClientPhone: "Completa el teléfono.",
+  errClientAddress: "Completa la dirección.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
   metaBookTitle: "Título",
   howTitle: "Cómo Funciona",

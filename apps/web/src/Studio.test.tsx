@@ -113,6 +113,78 @@ describe("Studio — ordem dos campos", () => {
   });
 });
 
+describe("Studio — avisos nos campos", () => {
+  async function fillStory(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+  }
+
+  it("marca cada campo vazio no próprio campo", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    await user.click(screen.getByTestId("studio-generate-book"));
+
+    expect(
+      screen.queryByText(/preencha nome, título, tema e idade antes de continuar/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("studio-error-name")).toHaveTextContent(/preencha o nome/i);
+    expect(screen.getByTestId("studio-error-age")).toHaveTextContent(/preencha a idade/i);
+    expect(screen.getByTestId("studio-error-title")).toHaveTextContent(/preencha o título/i);
+    expect(screen.getByTestId("studio-error-theme")).toHaveTextContent(/preencha o tema/i);
+    expect(screen.getByTestId("studio-error-photo")).toHaveTextContent(/selecione a foto/i);
+    expect(screen.getByTestId("studio-error-consent")).toHaveTextContent(/consentimento/i);
+    expect(screen.getByLabelText(/nome do protagonista/i)).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText(/título do livro/i)).toHaveAttribute("aria-invalid", "true");
+    expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
+  });
+
+  it("gera o livro depois que os campos vazios são preenchidos", async () => {
+    state.credits = 10;
+    const preview = vi.spyOn(api, "startPreview");
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    await user.click(screen.getByTestId("studio-generate-book"));
+    expect(screen.getByTestId("studio-error-name")).toBeInTheDocument();
+
+    await fillStory(user);
+    expect(screen.queryByTestId("studio-error-name")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("studio-error-photo")).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("studio-generate-book"));
+
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(preview).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ brief: expect.stringMatching(/Lila|estrelas|espaço/i) }),
+    );
+  });
+
+  it("mantém gerar o livro disponível se o envio da foto falhar", async () => {
+    state.credits = 10;
+    vi.spyOn(api, "uploadPhoto").mockRejectedValue(new Error("500: falha no upload"));
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    await fillStory(user);
+    await user.click(screen.getByTestId("studio-generate-book"));
+
+    expect(await screen.findByText(/falha no upload/i)).toBeInTheDocument();
+    expect(screen.getByTestId("studio-generate-book")).toBeEnabled();
+    expect(screen.getByLabelText(/nome do protagonista/i)).toBeEnabled();
+    expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
+  });
+});
+
 describe("Studio — tema do banner", () => {
   it("preenche título e história e troca o nome do exemplo pelo da criança", async () => {
     window.history.replaceState(

@@ -7,7 +7,7 @@ from datetime import UTC, date, datetime, time
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -134,13 +134,121 @@ def _event_rows(
     return out[:400]
 
 
+def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
+    """Pedidos do painel, sem ler arquivos no storage."""
+    backfill_order_tickets(db, prepare=False)
+    projects_total = int(db.scalar(select(func.count()).select_from(Project)) or 0)
+    users_total = int(db.scalar(select(func.count()).select_from(User)) or 0)
+    ticketed_ids = select(OrderTicket.project_id)
+    projects_awaiting_photo = int(
+        db.scalar(select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids)))
+        or 0
+    )
+    order_rows = db.scalars(
+        select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
+    ).all()
+    attach_service_orders(
+        db,
+        [ticket.project for ticket in order_rows if ticket.project is not None],
+        prepare=False,
+    )
+    project_ids = [ticket.project_id for ticket in order_rows]
+    photo_rows = (
+        db.scalars(
+            select(Asset)
+            .where(
+                Asset.project_id.in_(project_ids),
+                Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
+            )
+            .order_by(Asset.created_at.asc())
+        ).all()
+        if project_ids
+        else []
+    )
+    photos_by_project: dict = defaultdict(list)
+    for asset in photo_rows:
+        try:
+            url = storage.presign_get(asset.storage_key)
+        except Exception:
+            continue
+        if url:
+            photos_by_project[asset.project_id].append(url)
+    print_rows = (
+        db.scalars(select(PrintOrder).where(PrintOrder.project_id.in_(project_ids))).all()
+        if project_ids
+        else []
+    )
+    print_by_project = {row.project_id: row for row in print_rows}
+    stored_files = (
+        db.scalars(
+            select(Asset)
+            .where(
+                Asset.project_id.in_(project_ids),
+                Asset.kind.in_(_BOOK_KINDS),
+            )
+            .order_by(Asset.created_at.asc())
+        ).all()
+        if project_ids
+        else []
+    )
+    books_by_project: dict = defaultdict(list)
+    for asset in stored_files:
+        label = _BOOK_LABELS.get(asset.kind, asset.kind)
+        if asset.kind == AssetKind.PAGE_IMAGE.value:
+            page = (asset.meta or {}).get("page")
+            if page:
+                label = f"Página {page}"
+        url = _signed(asset.storage_key)
+        if url:
+            books_by_project[asset.project_id].append(OrderFileOut(label=label, url=url))
+    orders: list[OrderTicketOut] = []
+    for ticket in order_rows:
+        project = ticket.project
+        printed = print_by_project.get(ticket.project_id)
+        files = list(books_by_project.get(ticket.project_id, []))
+        if project is not None:
+            ref = project.character_ref if isinstance(project.character_ref, dict) else {}
+            character_url = _signed(ref.get("storage_key"))
+            if character_url:
+                files.insert(0, OrderFileOut(label="Personagem", url=character_url))
+            ebook_url = _signed(project.ebook_url)
+            if ebook_url and not any(item.label == "PDF do livro" for item in files):
+                files.append(OrderFileOut(label="PDF do livro", url=ebook_url))
+        orders.append(
+            OrderTicketOut(
+                id=ticket.id,
+                project_id=ticket.project_id,
+                summary=ticket.summary,
+                created_at=_aware(ticket.created_at),
+                child_age=project.child_age if project else None,
+                book_size=project.book_size if project else None,
+                cover_type=project.cover_type if project else None,
+                style=project.style if project else None,
+                photo_urls=photos_by_project.get(ticket.project_id, []),
+                has_story=bool(project and (project.story_text or "").strip()),
+                book_files=files,
+                print_order_id=printed.id if printed else None,
+                print_code=printed.code if printed else None,
+                print_status=printed.status if printed else None,
+                block_reason=printed.block_reason if printed else None,
+                tracking_code=printed.tracking_code if printed else None,
+                payment_status=printed.payment_status if printed else None,
+                amount_cents=printed.amount_cents if printed else None,
+            )
+        )
+    return orders, users_total, projects_total, projects_awaiting_photo
+
+
 @router.get("", response_model=UsageOut)
 def get_usage(
     _: Annotated[None, Depends(require_owner_password)],
     db: Annotated[Session, Depends(get_db)],
+    response: Response,
     from_date: Annotated[date | None, Query(alias="from")] = None,
     to_date: Annotated[date | None, Query(alias="to")] = None,
+    scope: Annotated[str | None, Query()] = None,
 ) -> UsageOut:
+    response.headers["Cache-Control"] = "private, no-store"
     now_local = datetime.now(_TZ)
     today_start = datetime.combine(now_local.date(), time.min, tzinfo=_TZ).astimezone(UTC)
     today_end = datetime.combine(now_local.date(), time.max, tzinfo=_TZ).astimezone(UTC)
@@ -152,6 +260,28 @@ def get_usage(
     range_end = _parse_day(to_date, end=True) or today_end
     if range_end < range_start:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Intervalo invalido")
+
+    # Pedidos só precisa da lista. O relatório de 2000 jobs deixa o painel em "Abrindo…".
+    if (scope or "").strip().lower() == "orders":
+        orders, users_total, projects_total, awaiting = _collect_orders(db)
+        return UsageOut(
+            timezone="America/Sao_Paulo",
+            from_at=range_start,
+            to_at=range_end,
+            today_usd=0.0,
+            month_usd=0.0,
+            range_usd=0.0,
+            books_count=0,
+            avg_book_usd=None,
+            by_type=[],
+            by_provider=[],
+            books=[],
+            recent_jobs=[],
+            orders=orders,
+            users_total=users_total,
+            projects_total=projects_total,
+            projects_awaiting_photo=awaiting,
+        )
 
     rows = db.execute(
         select(Job, Project)
@@ -236,104 +366,7 @@ def get_usage(
     )
 
     event_rows = _event_rows(db, range_start, range_end, rows)
-    backfill_order_tickets(db)
-    projects_total = int(db.scalar(select(func.count()).select_from(Project)) or 0)
-    users_total = int(db.scalar(select(func.count()).select_from(User)) or 0)
-    ticketed_ids = select(OrderTicket.project_id)
-    projects_awaiting_photo = int(
-        db.scalar(select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids)))
-        or 0
-    )
-    order_rows = db.scalars(
-        select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
-    ).all()
-    attach_service_orders(
-        db, [ticket.project for ticket in order_rows if ticket.project is not None]
-    )
-    project_ids = [ticket.project_id for ticket in order_rows]
-    photo_rows = (
-        db.scalars(
-            select(Asset)
-            .where(
-                Asset.project_id.in_(project_ids),
-                Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
-            )
-            .order_by(Asset.created_at.asc())
-        ).all()
-        if project_ids
-        else []
-    )
-    photos_by_project: dict = defaultdict(list)
-    for asset in photo_rows:
-        try:
-            url = storage.presign_get(asset.storage_key)
-        except Exception:
-            continue
-        if url:
-            photos_by_project[asset.project_id].append(url)
-    print_rows = (
-        db.scalars(select(PrintOrder).where(PrintOrder.project_id.in_(project_ids))).all()
-        if project_ids
-        else []
-    )
-    print_by_project = {row.project_id: row for row in print_rows}
-    stored_files = (
-        db.scalars(
-            select(Asset)
-            .where(
-                Asset.project_id.in_(project_ids),
-                Asset.kind.in_(_BOOK_KINDS),
-            )
-            .order_by(Asset.created_at.asc())
-        ).all()
-        if project_ids
-        else []
-    )
-    books_by_project: dict = defaultdict(list)
-    for asset in stored_files:
-        label = _BOOK_LABELS.get(asset.kind, asset.kind)
-        if asset.kind == AssetKind.PAGE_IMAGE.value:
-            page = (asset.meta or {}).get("page")
-            if page:
-                label = f"Página {page}"
-        url = _signed(asset.storage_key)
-        if url:
-            books_by_project[asset.project_id].append(OrderFileOut(label=label, url=url))
-    orders = []
-    for ticket in order_rows:
-        project = ticket.project
-        printed = print_by_project.get(ticket.project_id)
-        files = list(books_by_project.get(ticket.project_id, []))
-        if project is not None:
-            ref = project.character_ref if isinstance(project.character_ref, dict) else {}
-            character_url = _signed(ref.get("storage_key"))
-            if character_url:
-                files.insert(0, OrderFileOut(label="Personagem", url=character_url))
-            ebook_url = _signed(project.ebook_url)
-            if ebook_url and not any(item.label == "PDF do livro" for item in files):
-                files.append(OrderFileOut(label="PDF do livro", url=ebook_url))
-        orders.append(
-            OrderTicketOut(
-                id=ticket.id,
-                project_id=ticket.project_id,
-                summary=ticket.summary,
-                created_at=_aware(ticket.created_at),
-                child_age=project.child_age if project else None,
-                book_size=project.book_size if project else None,
-                cover_type=project.cover_type if project else None,
-                style=project.style if project else None,
-                photo_urls=photos_by_project.get(ticket.project_id, []),
-                has_story=bool(project and (project.story_text or "").strip()),
-                book_files=files,
-                print_order_id=printed.id if printed else None,
-                print_code=printed.code if printed else None,
-                print_status=printed.status if printed else None,
-                block_reason=printed.block_reason if printed else None,
-                tracking_code=printed.tracking_code if printed else None,
-                payment_status=printed.payment_status if printed else None,
-                amount_cents=printed.amount_cents if printed else None,
-            )
-        )
+    orders, users_total, projects_total, projects_awaiting_photo = _collect_orders(db)
 
     day = spend_guard.day_spend(db)
     flags = spend_guard.anomalies(db, today_usd=today_usd)

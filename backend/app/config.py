@@ -102,8 +102,9 @@ class Settings(BaseSettings):
     cost_video_credits: int = 5
     cost_narrated_video_credits: int = 8
 
-    # Painel admin (USD real). Sem senha, sem is_admin e sem OWNER_EMAILS,
-    # e com o fallback ligado, /v1/usage responde 503.
+    # Painel admin (USD real). A conta do dono entra com o JWT mesmo se
+    # OWNER_EMAILS no Render estiver vazio. Sem senha e sem e-mail de dono,
+    # /v1/usage responde 503.
     usage_dashboard_password: str | None = None
     # Senha anterior aceita durante rotacao (grace). Vazio = so a atual.
     usage_dashboard_password_previous: str | None = None

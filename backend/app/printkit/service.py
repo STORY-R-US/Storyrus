@@ -184,8 +184,18 @@ def _seed_delivery(order: PrintOrder, project: Project) -> None:
         order.state = state
 
 
-def open_print_order(db: Session, project: Project, *, requested: bool = True) -> PrintOrder:
-    """Abre a OS do livro. `requested` marca o impresso pedido pela família."""
+def open_print_order(
+    db: Session,
+    project: Project,
+    *,
+    requested: bool = True,
+    prepare: bool = True,
+) -> PrintOrder:
+    """Abre a OS do livro. `requested` marca o impresso pedido pela família.
+
+    `prepare` gera os PDFs. A listagem do painel passa False: senão cada
+    página vira uma leitura no storage e o Pedidos fica em "Abrindo…".
+    """
     order = get_print_order(db, project.id)
     if order is None:
         order_id = uuid.uuid4()
@@ -202,21 +212,27 @@ def open_print_order(db: Session, project: Project, *, requested: bool = True) -
     if requested and project.print_requested_at is None:
         project.print_requested_at = _now()
     _seed_delivery(order, project)
-    prepare_files(db, project, order)
+    if prepare:
+        prepare_files(db, project, order)
     _sync(project, order)
     return order
 
 
-def attach_service_orders(db: Session, projects: list[Project]) -> None:
-    """Garante uma OS por pedido e atualiza o pacote quando as páginas chegam."""
+def attach_service_orders(
+    db: Session,
+    projects: list[Project],
+    *,
+    prepare: bool = True,
+) -> None:
+    """Garante uma OS por pedido. `prepare` monta o PDF quando as páginas chegam."""
     changed = False
     for project in projects:
         order = get_print_order(db, project.id)
         if order is None:
-            open_print_order(db, project, requested=False)
+            open_print_order(db, project, requested=False, prepare=prepare)
             changed = True
             continue
-        if order.status == "awaiting_pages":
+        if prepare and order.status == "awaiting_pages":
             prepare_files(db, project, order)
             changed = True
     if changed:
