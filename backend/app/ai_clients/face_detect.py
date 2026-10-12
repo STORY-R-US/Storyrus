@@ -7,6 +7,7 @@ geometrico de `face_ref` (offline). Nenhum avatar deixa de sair por causa disto.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from io import BytesIO
 
@@ -70,8 +71,12 @@ def detect_face_box(photo: bytes) -> tuple[int, int, int, int] | None:
 
 
 async def face_reference(photo: bytes) -> bytes:
-    """Recorte do rosto para lock de identidade: detectado, ou heuristico."""
-    box = detect_face_box(photo)
+    """Recorte do rosto para lock de identidade: detectado, ou heuristico.
+
+    InsightFace carrega o modelo na primeira foto. Fora da thread isso
+    trava o event loop da API (health check e o pump da prévia).
+    """
+    box = await asyncio.to_thread(detect_face_box, photo)
     if box is None:
         logger.info("Sem caixa de rosto; usando o recorte geometrico de fallback")
         return try_face_crop(photo)

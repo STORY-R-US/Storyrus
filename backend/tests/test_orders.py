@@ -144,6 +144,16 @@ def _create(auth_client, **extra):
     return r.json()["id"]
 
 
+def _jpeg() -> bytes:
+    from io import BytesIO
+
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (8, 8), (20, 40, 60)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
 def _photo(auth_client, pid, **fields):
     data = {
         "language": "pt-BR",
@@ -157,7 +167,7 @@ def _photo(auth_client, pid, **fields):
     data.update(fields)
     return auth_client.post(
         f"/v1/projects/{pid}/photo",
-        files={"file": ("foto.jpg", b"\xff\xd8\xff\xd9", "image/jpeg")},
+        files={"file": ("foto.jpg", _jpeg(), "image/jpeg")},
         data=data,
     )
 
@@ -255,7 +265,7 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
     pid = _create(client)
     up = client.post(
         f"/v1/projects/{pid}/photo",
-        files={"file": ("foto.jpg", b"\xff\xd8\xff\xd9", "image/jpeg")},
+        files={"file": ("foto.jpg", _jpeg(), "image/jpeg")},
         data={"language": "pt-BR", "theme_label": "Papai herói"},
     )
     assert up.status_code == 201, up.text
@@ -289,7 +299,7 @@ def test_several_photos_count_together_on_one_order(auth_client, monkeypatch):
     assert "Fotos anexadas: 1" in waiting.json()["orders"][0]["summary"]
     second = auth_client.post(
         f"/v1/projects/{pid}/photo",
-        files={"file": ("lado.jpg", b"\xff\xd8\xff\xd9", "image/jpeg")},
+        files={"file": ("lado.jpg", _jpeg(), "image/jpeg")},
         data={
             "language": "pt-BR",
             "theme_label": "Papai herói",
@@ -305,6 +315,30 @@ def test_several_photos_count_together_on_one_order(auth_client, monkeypatch):
     assert len(orders) == 1
     assert "Fotos anexadas: 2 (arquivos recebidos)" in orders[0]["summary"]
     assert len(orders[0]["photo_urls"]) == 2
+
+
+def test_unreadable_photo_is_rejected(auth_client, monkeypatch):
+    def _forbid_put(*_args, **_kwargs):
+        raise AssertionError("nao grava")
+
+    monkeypatch.setattr("app.storage.put_bytes", _forbid_put)
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    pid = _create(auth_client)
+    up = auth_client.post(
+        f"/v1/projects/{pid}/photo",
+        files={"file": ("foto.heic", b"not-a-photo", "image/heic")},
+        data={
+            "client_name": "Ana Souza",
+            "client_email": "ana@email.com",
+            "client_phone": "11999999999",
+            "client_address": "Rua A, 10",
+        },
+    )
+    assert up.status_code == 400
+    assert "HEIC" in up.json()["detail"]
+    owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert owner.json()["orders"] == []
 
 
 def test_empty_photo_does_not_open_an_order(auth_client, monkeypatch):
@@ -357,3 +391,42 @@ def test_novo_pedido_avisa_o_time_uma_vez(auth_client, monkeypatch):
     second = _photo(auth_client, pid, extra_names="outra pessoa")
     assert second.status_code == 201, second.text
     assert len(calls) == 1
+
+
+def test_photo_upload_sobrevive_a_falha_de_pedido(auth_client, monkeypatch):
+    """Pedido/impresso quebrando não pode virar 500 "Erro interno" no clique.
+
+    A foto precisa ficar salva e a geração (prévia) tem que conseguir seguir
+    mesmo que o bookkeeping do dono falhe — ele é recuperável por backfill.
+    """
+    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("tabela de pedidos quebrada")
+
+    monkeypatch.setattr("app.routers.projects.photos.register_order_ticket", boom)
+    pid = _create(auth_client)
+
+    up = _photo(auth_client, pid)
+    assert up.status_code == 201, up.text
+    assert up.json()["asset_id"]
+
+    # A foto existe, então a prévia é aceita (start_preview exige foto).
+    preview = auth_client.post(f"/v1/projects/{pid}/preview", json={})
+    assert preview.status_code == 202, preview.text
+
+
+def test_presign_sobrevive_a_falha_de_pedido(auth_client, monkeypatch):
+    """O mesmo vale para o fluxo antigo de URL assinada (/photos)."""
+    def boom(*args, **kwargs):
+        raise RuntimeError("tabela de pedidos quebrada")
+
+    monkeypatch.setattr("app.routers.projects.photos.register_order_ticket", boom)
+    pid = _create(auth_client)
+
+    r = auth_client.post(
+        f"/v1/projects/{pid}/photos",
+        json={"ext": "jpg", "content_type": "image/jpeg"},
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["asset_id"]

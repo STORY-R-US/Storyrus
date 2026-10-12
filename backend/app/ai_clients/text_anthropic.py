@@ -263,7 +263,7 @@ def _age_rules(age: int | None, lang: str) -> str:
 class AnthropicTextProvider:
     name = "claude"
 
-    def __init__(self, api_key: str | None = None, timeout: float = 60.0):
+    def __init__(self, api_key: str | None = None, timeout: float = 180.0):
         self._api_key = api_key or settings.anthropic_api_key
         self._timeout = timeout
         self.last_cost_usd: float | None = None
