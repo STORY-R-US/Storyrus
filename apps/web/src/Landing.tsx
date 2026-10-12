@@ -169,8 +169,7 @@ const CARTOON_REVIEW_PHOTOS = [
 ] as const;
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
-const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
+const HOW_STEP_IMGS = ["como-protagonista.jpg", "como-adicional.jpg", "como-capa.jpg"];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -784,8 +783,8 @@ const I18N = {
       { t: "O Livro Fica Pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Preencha os Dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
-      { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
+      { t: "Envie Foto do Protagonista", p: "Envie fotos nítidas do personagem, protagonista da sua história. Essas imagens servem de referência para preservar rostos, cabelos, olhos e características da criança, de familiares, animais ou outros personagens." },
+      { t: "Envie Fotos do Personagem Adicional", p: "Adicione fotos de um ou mais personagens relacionadas à história que deseja criar." },
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
     hiw_foot: [
@@ -1004,8 +1003,8 @@ const I18N = {
       { t: "The Book Is Ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Fill In The Details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
-      { t: "Follow The Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
+      { t: "Send The Hero Photo", p: "Send clear photos of the character, the hero of your story. These images keep faces, hair, eyes, and the features of the child, relatives, animals, or other characters." },
+      { t: "Send Photos Of An Extra Character", p: "Add photos of one or more characters related to the story you want to create." },
       { t: "Review And Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
     hiw_foot: [
@@ -1224,8 +1223,8 @@ const I18N = {
       { t: "El Libro Queda Listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Completa Los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
-      { t: "Acompaña La Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
+      { t: "Envía La Foto Del Protagonista", p: "Envía fotos nítidas del personaje, protagonista de tu historia. Esas imágenes sirven de referencia para preservar rostros, cabellos, ojos y las características del niño, de familiares, animales u otros personajes." },
+      { t: "Envía Fotos Del Personaje Adicional", p: "Agrega fotos de uno o más personajes relacionadas con la historia que quieres crear." },
       { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     hiw_foot: [
@@ -1991,7 +1990,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const headerCtaLabel = signedIn ? t.hero_cta : t.cta_play;
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
-  const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
+  const howImgs = HOW_STEP_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
     if (variant !== "cartoon") return [book];
