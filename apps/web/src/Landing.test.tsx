@@ -686,7 +686,8 @@ describe("Landing — CTAs e links", () => {
       expect.stringContaining("capa-meupai-heroi"),
     );
     expect(within(videos).queryByRole("heading", { name: /lia/i })).not.toBeInTheDocument();
-    expect(within(videos).getAllByRole("heading", { level: 3 })).toHaveLength(4);
+    expect(within(videos).queryByRole("heading", { name: /sofia/i })).not.toBeInTheDocument();
+    expect(within(videos).getAllByRole("heading", { level: 3 })).toHaveLength(3);
   });
 
   it("ordena as seções e aponta o Instagram para storyr.us", async () => {

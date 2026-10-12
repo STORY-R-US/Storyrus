@@ -377,11 +377,10 @@ function catalogCoverChoice(cover?: string): CatalogCoverChoice {
 function catalogSizeChoice(size?: string): CatalogSizeChoice {
   return size === "P" ? "P" : "M";
 }
-const VIDEO_IMGS = ["capa-enzo-primo.png", "capa-meupai-heroi.png", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_IMGS = ["capa-enzo-primo.png", "capa-meupai-heroi.png", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = [
   "video-enzo-primo-kling.mp4",
   "video-meupai-heroi-kling.mp4",
-  "video-flor.mp4",
   "video-dino.mp4",
 ];
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
@@ -818,7 +817,6 @@ const I18N = {
     videos: [
       { t: "Enzo, Meu Primo Predileto", p: "Dois primos, praia e carinho — cada página ganha movimento suave." },
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
-      { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
     ],
     vid_soon: "Em Breve",
@@ -1045,7 +1043,6 @@ const I18N = {
     videos: [
       { t: "Enzo, My Favorite Cousin", p: "Two cousins, beach days and warmth — each page comes gently to life." },
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
-      { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
     ],
     vid_soon: "Coming Soon",
@@ -1272,7 +1269,6 @@ const I18N = {
     videos: [
       { t: "Enzo, Mi Primo Favorito", p: "Dos primos, playa y cariño — cada página cobra movimiento suave." },
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
-      { t: "Sofia Y El Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
       { t: "Matteo Y El Mundo De Los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
     ],
     vid_soon: "Pronto",
