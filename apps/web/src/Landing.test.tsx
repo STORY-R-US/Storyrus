@@ -667,19 +667,26 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
   });
 
-  it("mostra Meu Pai na seção de vídeos", async () => {
+  it("mostra Enzo e Meu Pai na seção de vídeos", async () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
     const videos = document.getElementById("videos") as HTMLElement;
     expect(videos).toBeTruthy();
-    const card = within(videos).getByRole("heading", { name: /^meu pai, meu herói$/i }).closest("figure");
-    expect(card).toBeTruthy();
-    expect(within(card as HTMLElement).getByText(/cada página ganha movimento/i)).toBeInTheDocument();
-    const poster = (card as HTMLElement).querySelector("video");
-    expect(poster).toHaveAttribute("poster", expect.stringContaining("capa-meupai-heroi"));
+    const enzo = within(videos).getByRole("heading", { name: /^enzo, meu primo predileto$/i }).closest("figure");
+    expect(enzo).toBeTruthy();
+    expect((enzo as HTMLElement).querySelector("video")).toHaveAttribute(
+      "poster",
+      expect.stringContaining("capa-enzo-primo"),
+    );
+    const pai = within(videos).getByRole("heading", { name: /^meu pai, meu herói$/i }).closest("figure");
+    expect(pai).toBeTruthy();
+    expect((pai as HTMLElement).querySelector("video")).toHaveAttribute(
+      "poster",
+      expect.stringContaining("capa-meupai-heroi"),
+    );
     expect(within(videos).queryByRole("heading", { name: /lia/i })).not.toBeInTheDocument();
-    expect(within(videos).getAllByRole("heading", { level: 3 })).toHaveLength(3);
+    expect(within(videos).getAllByRole("heading", { level: 3 })).toHaveLength(4);
   });
 
   it("ordena as seções e aponta o Instagram para storyr.us", async () => {
