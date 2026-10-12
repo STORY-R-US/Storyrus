@@ -1950,8 +1950,8 @@ img.ex-tab-cover {
 @media (max-width: 900px) {
   .cat-note-grid { grid-template-columns: 1fr; }
   .howex { grid-template-columns: 1fr; grid-template-rows: none; justify-items: stretch; }
-  .howex > .howex-card,
-  .howex > .howex-arrow { grid-column: auto; grid-row: auto; }
+  .howex > .howex-card:nth-child(n),
+  .howex > .howex-arrow:nth-child(n) { grid-column: auto; grid-row: auto; }
   .howex-card { display: flex; flex-direction: column; grid-template-rows: none; }
   .howex-arrow { transform: rotate(90deg); justify-self: center; animation-name: nudgeDown; }
   .fmt-grid { grid-template-columns: 1fr; max-width: 100%; }
