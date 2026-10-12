@@ -171,7 +171,8 @@ const CARTOON_REVIEW_PHOTOS = [
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-const PASSO_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
+const PASSO_IMGS = ["dica-boa.png", "dica-multi.png", "pagina-mamaepapaimatteo.jpg"];
+const PASSO_CARTOON_IMGS = ["dica-boa.png", "dica-multi.png", "cartoon-pagina-matteo.jpg"];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -2012,6 +2013,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
   const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
+  const passoImgs = variant === "cartoon" ? PASSO_CARTOON_IMGS : PASSO_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
     if (variant !== "cartoon") return [book];
@@ -2677,7 +2679,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <h3>{h.t}</h3>
                   </div>
                   <div className="howex-media">
-                    <img src={exUrl(PASSO_IMGS[i])} alt={h.t} loading="lazy" />
+                    <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
                   <figcaption>

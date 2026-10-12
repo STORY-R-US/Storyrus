@@ -711,7 +711,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(passo).getByRole("heading", { name: "Envie Fotos dos Outros Personagens" })).toBeInTheDocument();
     expect(within(passo).getByRole("heading", { name: "Revise e Aprove" })).toBeInTheDocument();
     expect(passo.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"]) {
+    for (const file of ["dica-boa.png", "dica-multi.png", "pagina-mamaepapaimatteo.jpg"]) {
       expect(passo.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
   });
@@ -875,7 +875,7 @@ describe("Landing — CTAs e links", () => {
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
     expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"]) {
+    for (const file of ["dica-boa.png", "dica-multi.png", "cartoon-pagina-matteo.jpg"]) {
       expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 
