@@ -2526,6 +2526,17 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
+          <div className="kmobile-tools">
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label={t.a11y_theme}
+            >
+              {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+              <span className="theme-toggle-label">{theme === "dark" ? t.theme_to_light : t.theme_to_dark}</span>
+            </button>
+          </div>
           <div
             className={`kmobile-auth${signedIn ? " is-signed" : ""}`}
             data-testid="landing-mobile-auth"
