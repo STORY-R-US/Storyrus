@@ -815,7 +815,7 @@ const I18N = {
     vid_title: "Vídeos", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
-      { t: "Enzo, Meu Primo Predileto", p: "Dois primos, praia e carinho — narração, trilha e movimento suave em cada página." },
+      { t: "Enzo, Meu Primo Predileto", p: "Dois primos, praia e carinho — cada página ganha movimento suave." },
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
     ],
@@ -1041,7 +1041,7 @@ const I18N = {
     vid_title: "Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
-      { t: "Enzo, My Favorite Cousin", p: "Two cousins, beach days and warmth — narration, music and gentle motion on every page." },
+      { t: "Enzo, My Favorite Cousin", p: "Two cousins, beach days and warmth — each page comes gently to life." },
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
     ],
@@ -1267,7 +1267,7 @@ const I18N = {
     vid_title: "Videos", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
-      { t: "Enzo, Mi Primo Favorito", p: "Dos primos, playa y cariño — narración, música y movimiento suave en cada página." },
+      { t: "Enzo, Mi Primo Favorito", p: "Dos primos, playa y cariño — cada página cobra movimiento suave." },
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
       { t: "Matteo Y El Mundo De Los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
     ],
