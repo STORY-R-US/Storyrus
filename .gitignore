@@ -304,3 +304,6 @@ apps/web/public/exemplos/enzo-primo/kling-clips/
 .vercel
 .env*
 .local-storage/
+
+# Generated narrated-video music bed
+backend/app/assets/audio/bed.mp3
