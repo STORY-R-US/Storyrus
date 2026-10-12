@@ -682,7 +682,7 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
-    const order = ["como", "catalogo", "promessa", "videos", "reviews", "faq"];
+    const order = ["como", "passo", "catalogo", "promessa", "videos", "reviews", "faq"];
     const nodes = order.map((id) => document.getElementById(id));
     expect(nodes.every(Boolean)).toBe(true);
     for (let i = 0; i < nodes.length - 1; i++) {
@@ -691,20 +691,28 @@ describe("Landing — CTAs e links", () => {
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
     expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
-    expect(screen.getAllByText(/protagonista da sua história/i)).toHaveLength(1);
+    expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: "Envie Foto do Protagonista" })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: "Preencha os Dados" })).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^dados do livro$/i })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /envie fotos do personagem adicional/i })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;
     const firstHow = como.querySelector(".howex-card") as HTMLElement;
-    expect(firstHow.querySelector(".howex-lead")?.textContent).toBe("Envie Foto do Protagonista");
-    expect(firstHow.querySelector("figcaption")?.textContent).toMatch(/protagonista da sua história/i);
-    for (const file of ["como-protagonista.jpg", "como-adicional.jpg", "como-capa.jpg"]) {
+    expect(firstHow.querySelector(".howex-lead")?.textContent).toBe("Preencha os Dados");
+    expect(firstHow.querySelector("figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
+    for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
+    }
+    const passo = document.getElementById("passo") as HTMLElement;
+    expect(within(passo).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
+    expect(within(passo).getByRole("heading", { name: "Envie Foto do Protagonista" })).toBeInTheDocument();
+    expect(within(passo).getByRole("heading", { name: "Envie Fotos do Personagem Adicional" })).toBeInTheDocument();
+    expect(within(passo).getByRole("heading", { name: "Revise e Aprove" })).toBeInTheDocument();
+    expect(passo.querySelector(".howex-card figcaption")?.textContent).toMatch(/protagonista da sua história/i);
+    for (const file of ["passo-protagonista.jpg", "passo-adicional.jpg", "passo-capa.jpg"]) {
+      expect(passo.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
   });
 
@@ -721,6 +729,7 @@ describe("Landing — CTAs e links", () => {
     expect([...nav.querySelectorAll(".kcat-btn")].map((el) => el.textContent?.trim())).toEqual([
       "Livros",
       "Como Funciona",
+      "Passo a Passo",
       "Livros Cartoon",
       "Vídeos",
       "Avaliações",
@@ -857,11 +866,17 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByRole("heading", { name: /dicas para a foto perfeita/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/você envia a foto/i)).not.toBeInTheDocument();
     const cartoonComo = document.getElementById("como") as HTMLElement;
-    expect(within(cartoonComo).getByRole("heading", { name: "Envie Foto do Protagonista" })).toBeInTheDocument();
+    expect(within(cartoonComo).getByRole("heading", { name: "Preencha os Dados" })).toBeInTheDocument();
     expect(within(cartoonComo).queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
-    expect(cartoonComo.querySelector(".howex-card figcaption")?.textContent).toMatch(/protagonista da sua história/i);
-    for (const file of ["como-protagonista.jpg", "como-adicional.jpg", "como-capa.jpg"]) {
+    expect(cartoonComo.querySelector(".howex-card figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
+    for (const file of ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"]) {
       expect(cartoonComo.querySelector(`img[src*="${file}"]`)).toBeTruthy();
+    }
+    const cartoonPasso = document.getElementById("passo") as HTMLElement;
+    expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
+    expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/protagonista da sua história/i);
+    for (const file of ["passo-protagonista.jpg", "passo-adicional.jpg", "passo-capa.jpg"]) {
+      expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
@@ -905,7 +920,8 @@ describe("Landing — CTAs e links", () => {
       expect(screen.getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
     });
     expect(screen.queryByTestId("landing-review-cover-8")).not.toBeInTheDocument();
-    expect(within(document.getElementById("como") as HTMLElement).getAllByRole("heading", { name: "Envie Foto do Protagonista" })).toHaveLength(1);
+    expect(within(document.getElementById("como") as HTMLElement).getAllByRole("heading", { name: "Preencha os Dados" })).toHaveLength(1);
+    expect(within(document.getElementById("passo") as HTMLElement).getByRole("heading", { name: "Envie Foto do Protagonista" })).toBeInTheDocument();
   });
 });
 

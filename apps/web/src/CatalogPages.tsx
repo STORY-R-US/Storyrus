@@ -30,6 +30,7 @@ function CatalogBannerNav({ lang }: { lang: Lang }) {
   const sections = catalogSections(lang);
   const extras = [
     { href: "/#como", label: copy.hiw, color: "#7aa2ff" },
+    { href: "/#passo", label: copy.passo, color: "#f08a4b" },
     { href: "/cartoon", label: copy.cartoon, color: "#3ecf8e" },
     { href: "/#videos", label: copy.videos, color: "#e07a9a" },
     { href: "/#reviews", label: copy.reviews, color: "#f4b740" },
