@@ -97,16 +97,17 @@ describe("Landing — tema", () => {
     renderLanding();
 
     await screen.findByTestId("landing-hero-cta");
-    expect(screen.getByRole("button", { name: /alternar tema/i })).toHaveTextContent(/claro/i);
+    const themeButtons = () => screen.getAllByRole("button", { name: /alternar tema/i });
+    expect(themeButtons()[0]).toHaveTextContent(/claro/i);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
 
-    await user.click(screen.getByRole("button", { name: /alternar tema/i }));
-    expect(screen.getByRole("button", { name: /alternar tema/i })).toHaveTextContent(/escuro/i);
+    await user.click(themeButtons()[0]);
+    expect(themeButtons()[0]).toHaveTextContent(/escuro/i);
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(localStorage.getItem("theme")).toBe("light");
 
-    await user.click(screen.getByRole("button", { name: /alternar tema/i }));
+    await user.click(themeButtons()[0]);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
   });
 
