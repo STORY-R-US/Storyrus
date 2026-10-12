@@ -860,10 +860,11 @@ export const api = {
     }
     return resp.json();
   },
-  async usage(password?: string | null, from?: string, to?: string) {
+  async usage(password?: string | null, from?: string, to?: string, scope?: "orders") {
     const q = new URLSearchParams();
     if (from) q.set("from", from);
     if (to) q.set("to", to);
+    if (scope) q.set("scope", scope);
     const suffix = q.toString() ? `?${q}` : "";
     return ownerJson<UsageReport>(`/v1/usage${suffix}`, password);
   },

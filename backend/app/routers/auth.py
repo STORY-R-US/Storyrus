@@ -13,6 +13,7 @@ from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user, require_registered_user
 from app.models import User
+from app.owner_auth import promote_verified_owner
 from app.schemas import (
     ForgotPasswordIn,
     ForgotPasswordOut,
@@ -162,10 +163,14 @@ def verify_email(body: VerifyEmailIn, db: Session = Depends(get_db)) -> TokenOut
     if expected and expected == digest:
         user.email_verified_at = datetime.now(UTC)
         user.email_verify_token_hash = None
+        promote_verified_owner(user)
         db.add(user)
         db.commit()
         return TokenOut(access_token=create_access_token(str(user.id)))
     if user.email_verified_at is not None:
+        if promote_verified_owner(user):
+            db.add(user)
+            db.commit()
         return TokenOut(access_token=create_access_token(str(user.id)))
     raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
 
@@ -255,6 +260,7 @@ def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
     if user.email_verified_at is None:
         if _is_legacy_unverified(user):
             user.email_verified_at = datetime.now(UTC)
+            promote_verified_owner(user)
             db.add(user)
             db.commit()
         else:
@@ -262,6 +268,9 @@ def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
                 status.HTTP_403_FORBIDDEN,
                 "Confirme seu e-mail antes de entrar",
             )
+    elif promote_verified_owner(user):
+        db.add(user)
+        db.commit()
     return TokenOut(access_token=create_access_token(str(user.id)))
 
 

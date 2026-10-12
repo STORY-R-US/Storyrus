@@ -44,6 +44,57 @@ describe("Pedidos", () => {
     expect(detail.querySelector("a")).toHaveAttribute("href", "https://fotos.test/crianca.jpg");
   });
 
+  it("pede só a lista de pedidos, sem o relatório de gastos", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server, state } = await import("./test/server");
+    const { setToken } = await import("./api");
+    state.isOwner = true;
+    setToken("owner-token");
+    let scope: string | null = null;
+    server.use(
+      http.get("*/v1/usage", ({ request }) => {
+        scope = new URL(request.url).searchParams.get("scope");
+        return HttpResponse.json({
+          timezone: "America/Sao_Paulo",
+          from_at: new Date().toISOString(),
+          to_at: new Date().toISOString(),
+          today_usd: 0,
+          month_usd: 0,
+          range_usd: 0,
+          books_count: 0,
+          avg_book_usd: null,
+          by_type: [],
+          by_provider: [],
+          books: [],
+          recent_jobs: [],
+          events: [],
+          events_count: 0,
+          orders: [
+            {
+              id: "order-1",
+              project_id: "p1",
+              summary: "NOVO LIVRO STORY R US REALISTA\nNome: Matteo",
+              created_at: new Date().toISOString(),
+              child_age: 6,
+              book_size: "M",
+              cover_type: "hard",
+              style: "realistic",
+              photo_urls: ["https://fotos.test/crianca.jpg"],
+              print_code: "SR-TESTE001",
+              tracking_code: "AA123BR",
+            },
+          ],
+        });
+      }),
+    );
+    render(<Pedidos />);
+    expect(
+      await screen.findByRole("heading", { name: /novo livro story r us realista/i }),
+    ).toBeInTheDocument();
+    expect(scope).toBe("orders");
+    setToken(null);
+  });
+
   it("abre Pedidos com a sessão do dono sem digitar senha", async () => {
     const { setToken } = await import("./api");
     const { state } = await import("./test/server");
