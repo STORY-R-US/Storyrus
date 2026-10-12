@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from app.config import settings
 from app.database import get_db
 from app.models import User
+from tests.conftest import signup_and_verify
 
 
 def _is_admin(client, email: str) -> bool:
@@ -75,6 +76,18 @@ def test_non_admin_jwt_rejected_when_fallback_off(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "owner_password_fallback", False)
     denied = auth_client.get("/v1/usage")
     assert denied.status_code == 401
+
+
+def test_builtin_owner_email_opens_usage_when_env_list_is_empty(client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", None)
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "")
+    monkeypatch.setattr(settings, "owner_password_fallback", False)
+    token = signup_and_verify(client, "eng.andrevitor89@gmail.com")
+
+    ok = client.get("/v1/usage", headers={"Authorization": f"Bearer {token}"})
+    assert ok.status_code == 200, ok.text
+    assert _is_admin(client, "eng.andrevitor89@gmail.com") is True
 
 
 def test_password_still_works_when_fallback_on(client, monkeypatch):

@@ -38,12 +38,18 @@ def accepted_passwords() -> list[str]:
     return out
 
 
+# Conta do dono. Continua válida mesmo se OWNER_EMAILS no Render vier vazio
+# e apagar o default — senão o painel pede a senha compartilhada para sempre.
+BUILTIN_OWNER_EMAILS = frozenset({"eng.andrevitor89@gmail.com"})
+
+
 def owner_emails() -> set[str]:
     """E-mails do dono (minusculos) que entram com a sessão do estúdio."""
+    found = set(BUILTIN_OWNER_EMAILS)
     raw = (settings.owner_emails or "").strip()
-    if not raw:
-        return set()
-    return {part.strip().lower() for part in raw.split(",") if part.strip()}
+    if raw:
+        found.update(part.strip().lower() for part in raw.split(",") if part.strip())
+    return found
 
 
 def password_matches(provided: str, accepted: list[str]) -> bool:

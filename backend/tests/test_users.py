@@ -18,12 +18,12 @@ def _owner_headers(monkeypatch, password: str = "segredo") -> dict[str, str]:
     return {"X-Usage-Password": password}
 
 
-def test_users_without_password_configured_is_503(client, monkeypatch):
+def test_users_without_password_still_rejects_anonymous(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", None)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "owner_emails", "")
     r = client.get("/v1/users")
-    assert r.status_code == 503
+    assert r.status_code == 401
 
 
 def test_users_wrong_password_is_401(client, monkeypatch):

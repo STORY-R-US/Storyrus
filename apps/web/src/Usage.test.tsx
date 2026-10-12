@@ -89,6 +89,62 @@ describe("Pedidos", () => {
     setToken(null);
   });
 
+  it("renova a sessão vencida e abre Pedidos mesmo com a senha da conta salva", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server, state } = await import("./test/server");
+    const { setToken } = await import("./api");
+    state.isOwner = true;
+    const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }));
+    const payload = btoa(
+      JSON.stringify({ sub: "u1", exp: Math.floor(Date.now() / 1000) - 120 }),
+    );
+    setToken(`${header}.${payload}.sig`);
+    sessionStorage.setItem("storyrus.usage.password", "senha-da-conta");
+    server.use(
+      http.get("*/v1/usage", ({ request }) => {
+        const auth = request.headers.get("Authorization") || "";
+        if (auth !== "Bearer test-token-resumed") {
+          return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+        }
+        return HttpResponse.json({
+          timezone: "America/Sao_Paulo",
+          from_at: new Date().toISOString(),
+          to_at: new Date().toISOString(),
+          today_usd: 0,
+          month_usd: 0,
+          range_usd: 0,
+          books_count: 1,
+          avg_book_usd: null,
+          by_type: [],
+          by_provider: [],
+          books: [],
+          recent_jobs: [],
+          events: [],
+          events_count: 0,
+          orders: [
+            {
+              id: "order-1",
+              project_id: "p1",
+              summary: "NOVO LIVRO STORY R US REALISTA\nNome: Matteo",
+              created_at: new Date().toISOString(),
+              child_age: 6,
+              book_size: "M",
+              cover_type: "hard",
+              style: "realistic",
+              photo_urls: [],
+            },
+          ],
+        });
+      }),
+    );
+    render(<Pedidos />);
+    expect(
+      await screen.findByRole("heading", { name: /novo livro story r us realista/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/senha inválida/i)).not.toBeInTheDocument();
+    setToken(null);
+  });
+
   it("em falha de rede com sessão, oferece tentar de novo sem travar na senha", async () => {
     const { http, HttpResponse } = await import("msw");
     const { server, state } = await import("./test/server");

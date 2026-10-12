@@ -73,10 +73,16 @@ async function postToken(
   path: string,
   init: RequestInit = {},
 ): Promise<string | null> {
-  const resp = await fetch(`${BASE}${path}`, init);
-  if (!resp.ok) return null;
-  const data = (await resp.json()) as { access_token?: string };
-  return data.access_token ?? null;
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), authFetchTimeoutMs);
+  try {
+    const resp = await fetch(`${BASE}${path}`, { ...init, signal: controller.signal });
+    if (!resp.ok) return null;
+    const data = (await resp.json()) as { access_token?: string };
+    return data.access_token ?? null;
+  } finally {
+    window.clearTimeout(timer);
+  }
 }
 
 /** Headers dos paineis do dono: senha compartilhada e/ou JWT da sessão. */
@@ -88,24 +94,56 @@ function ownerHeaders(password?: string | null, extra?: HeadersInit): Headers {
   return headers;
 }
 
+async function ownerFetch(
+  path: string,
+  password: string | null | undefined,
+  init: RequestInit,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), ownerFetchTimeoutMs);
+  try {
+    return await fetch(`${BASE}${path}`, {
+      ...init,
+      headers: ownerHeaders(password, init.headers),
+      signal: init.signal ?? controller.signal,
+    });
+  } catch (err) {
+    if (controller.signal.aborted || (err instanceof DOMException && err.name === "AbortError")) {
+      throw httpError(504, "Servidor demorou demais para responder");
+    }
+    throw err;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+async function readOwnerError(resp: Response): Promise<Error> {
+  let detail = resp.statusText;
+  try {
+    detail = (await resp.json()).detail ?? detail;
+  } catch {
+    /* corpo vazio */
+  }
+  return httpError(resp.status, String(detail));
+}
+
 async function ownerJson<T>(
   path: string,
   password?: string | null,
   init: RequestInit = {},
 ): Promise<T> {
-  const headers = ownerHeaders(password, init.headers);
-  const resp = await fetch(`${BASE}${path}`, { ...init, headers });
-  if (!resp.ok) {
-    let detail = resp.statusText;
-    try {
-      detail = (await resp.json()).detail ?? detail;
-    } catch {
-      /* corpo vazio */
+  await renewOwnerSession();
+  let resp = await ownerFetch(path, password, init);
+  // JWT vencido: o estúdio renova sozinho; o painel precisa do mesmo resume
+  // antes de tratar a conta logada como "senha inválida".
+  if (resp.status === 401 && token) {
+    const before = token;
+    const resumed = await resumeSession(before);
+    if (resumed && token && token !== before) {
+      resp = await ownerFetch(path, password, init);
     }
-    const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
-    err.status = resp.status;
-    throw err;
   }
+  if (!resp.ok) throw await readOwnerError(resp);
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
 
@@ -226,9 +264,43 @@ export function resetStepIdempotencyState(): void {
 /** Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout). */
 export let authFetchTimeoutMs = 15_000;
 
+/** Painéis do dono: cold start do Render cabe; não fica em "Abrindo…" para sempre. */
+export let ownerFetchTimeoutMs = 75_000;
+
 /** Só para testes — restaura o valor padrão depois. */
 export function setAuthFetchTimeoutMsForTests(ms: number): void {
   authFetchTimeoutMs = ms;
+}
+
+/** Só para testes — restaura o valor padrão depois. */
+export function setOwnerFetchTimeoutMsForTests(ms: number): void {
+  ownerFetchTimeoutMs = ms;
+}
+
+function httpError(status: number, detail: string): Error & { status: number } {
+  const err = new Error(`${status}: ${detail}`) as Error & { status: number };
+  err.status = status;
+  return err;
+}
+
+/**
+ * Renova o JWT antes do painel. Não apaga o token se o Render estiver
+ * acordando — a senha do painel e um novo toque em "abrir com esta sessão"
+ * ainda podem entrar.
+ */
+async function renewOwnerSession(): Promise<void> {
+  if (!token) return;
+  try {
+    if (tokenExpired(token)) {
+      await resumeSession(token);
+      return;
+    }
+    if (tokenExpiresSoon(token)) {
+      await refreshSession();
+    }
+  } catch {
+    /* a chamada segue com o token atual */
+  }
 }
 
 function isAuthPath(path: string): boolean {
