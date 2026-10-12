@@ -124,6 +124,58 @@ function validEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+type FieldKey =
+  | "name"
+  | "age"
+  | "title"
+  | "theme"
+  | "alsoName"
+  | "gender"
+  | "alsoGender"
+  | "photo"
+  | "consent"
+  | "clientName"
+  | "clientEmail"
+  | "clientPhone"
+  | "clientAddress";
+
+const BOOK_FIELD_ORDER: FieldKey[] = [
+  "name",
+  "age",
+  "gender",
+  "alsoName",
+  "alsoGender",
+  "title",
+  "theme",
+  "photo",
+  "consent",
+  "clientName",
+  "clientEmail",
+  "clientPhone",
+  "clientAddress",
+];
+
+const CLIENT_FIELD_ORDER: FieldKey[] = ["clientName", "clientEmail", "clientPhone", "clientAddress"];
+
+function focusMissingField(key: FieldKey) {
+  const el = document.getElementById(`studio-field-${key}`);
+  if (!el) return;
+  if (typeof el.scrollIntoView === "function") {
+    try {
+      el.scrollIntoView({ block: "center" });
+    } catch {
+      /* jsdom */
+    }
+  }
+  if (typeof el.focus === "function") {
+    try {
+      el.focus({ preventScroll: true });
+    } catch {
+      el.focus();
+    }
+  }
+}
+
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
 const ICON_STROKE = 2.2;
@@ -202,6 +254,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [photoNotes, setPhotoNotes] = useState("");
   const [changesSent, setChangesSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [missing, setMissing] = useState<Partial<Record<FieldKey, true>>>({});
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
   const titlePreset = useRef<{ hero: string; title: string } | null>(null);
   const titleTouched = useRef(false);
@@ -383,36 +436,58 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setStoryDraft(project.story_text);
   }, [project?.story_text]);
 
+  function clearMissing(key: FieldKey) {
+    setMissing((cur) => {
+      if (!cur[key]) return cur;
+      const next = { ...cur };
+      delete next[key];
+      return next;
+    });
+  }
+
+  function buyerInfo() {
+    const signedIn = accountKind === "account";
+    return {
+      name: signedIn ? oneLine(accountName || clientName || accountEmail) : oneLine(clientName),
+      email: signedIn ? oneLine(accountEmail || clientEmail) : oneLine(clientEmail),
+      phone: oneLine(clientPhone),
+      address: oneLine(clientAddress),
+    };
+  }
+
+  function buyerGaps(target: Partial<Record<FieldKey, true>>) {
+    const buyer = buyerInfo();
+    if (!buyer.name) target.clientName = true;
+    if (!validEmail(buyer.email)) target.clientEmail = true;
+    if (!buyer.phone) target.clientPhone = true;
+    if (!buyer.address) target.clientAddress = true;
+  }
+
+  function applyMissing(next: Partial<Record<FieldKey, true>>, order: FieldKey[]) {
+    setMissing(next);
+    const first = order.find((key) => next[key]);
+    if (!first) return false;
+    window.setTimeout(() => focusMissingField(first), 0);
+    return true;
+  }
+
   function formReady(agreed = mediaConsent) {
     if (isDemo) return false;
-    if (onlyName) {
-      if (!childName.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
-        setError(t.errMissingFields);
-        return false;
-      }
-    } else if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
-      setError(t.errMissingFields);
-      return false;
+    const next: Partial<Record<FieldKey, true>> = {};
+    if (!childName.trim()) next.name = true;
+    if (childAge.trim() === "") next.age = true;
+    if (alsoWho && !alsoName.trim()) next.alsoName = true;
+    if (!onlyName) {
+      if (!bookTitle.trim()) next.title = true;
+      if (!themeText.trim()) next.theme = true;
     }
-    if (askGender && (!gender || (alsoWho && !alsoGender))) {
-      setError(t.errGender);
-      return false;
-    }
-    const signedIn = accountKind === "account";
-    const buyerName = signedIn ? oneLine(accountName || clientName || accountEmail) : oneLine(clientName);
-    const buyerEmail = signedIn ? oneLine(accountEmail || clientEmail) : oneLine(clientEmail);
-    const buyerPhone = oneLine(clientPhone);
-    const buyerAddress = oneLine(clientAddress);
-    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
-      setError(t.errClient);
-      return false;
-    }
-    if (photos.length === 0) {
-      setError(t.errPhotoRequired);
-      return false;
-    }
-    if (!agreed) {
-      setError(t.errConsentPhoto);
+    if (askGender && !gender) next.gender = true;
+    if (askGender && alsoWho && !alsoGender) next.alsoGender = true;
+    buyerGaps(next);
+    if (photos.length === 0) next.photo = true;
+    if (!agreed) next.consent = true;
+    if (applyMissing(next, BOOK_FIELD_ORDER)) {
+      setError(null);
       return false;
     }
     setError(null);
@@ -422,15 +497,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   async function start(agreed = mediaConsent) {
     if (startLock.current || busy) return;
     if (!formReady(agreed)) return;
-    const signedIn = accountKind === "account";
-    const buyerName = signedIn ? oneLine(accountName || clientName || accountEmail) : oneLine(clientName);
-    const buyerEmail = signedIn ? oneLine(accountEmail || clientEmail) : oneLine(clientEmail);
-    const buyerPhone = oneLine(clientPhone);
-    const buyerAddress = oneLine(clientAddress);
+    const buyer = buyerInfo();
     const buyerNotes = oneLine(clientNotes);
     startLock.current = true;
     setBusy(true);
     setError(null);
+    let accepted = false;
     try {
       const age = Number(childAge);
       const language = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
@@ -445,9 +517,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         coverType,
         language,
       });
-      setProject(p);
-      setJobs([]);
-      setAssets(null);
       setMediaConsent(true);
       const uploadMeta = {
         language,
@@ -458,10 +527,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         alsoName: alsoName.trim() || undefined,
         alsoGender: alsoGender ?? undefined,
         alsoSubject: alsoWho ? subjectCode(alsoWho) : undefined,
-        clientName: buyerName,
-        clientEmail: buyerEmail,
-        clientPhone: buyerPhone,
-        clientAddress: buyerAddress,
+        clientName: buyer.name,
+        clientEmail: buyer.email,
+        clientPhone: buyer.phone,
+        clientAddress: buyer.address,
         clientNotes: buyerNotes || undefined,
       };
       for (let i = 0; i < photos.length; i += 1) {
@@ -470,6 +539,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           finalize: i === photos.length - 1,
         });
       }
+      accepted = true;
+      setProject(p);
+      setJobs([]);
+      setAssets(null);
       setOrderSent(true);
       setChangesSent(false);
       storyTouched.current = false;
@@ -483,6 +556,18 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       }
     } catch (e) {
       setError((e as Error).message);
+      if (!accepted) {
+        window.setTimeout(() => {
+          const el = document.getElementById("studio-form-error");
+          if (el && typeof el.scrollIntoView === "function") {
+            try {
+              el.scrollIntoView({ block: "center" });
+            } catch {
+              /* jsdom */
+            }
+          }
+        }, 0);
+      }
     } finally {
       startLock.current = false;
       setBusy(false);
@@ -599,6 +684,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     titleTouched.current = false;
     setJobs([]);
     setError(null);
+    setMissing({});
   }
 
   function exitDemo() {
@@ -633,12 +719,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const showClient = !isDemo && !clientDone && accountKind === "guest";
 
   function finishClient() {
-    const buyerName = oneLine(clientName);
-    const buyerEmail = oneLine(clientEmail);
-    const buyerPhone = oneLine(clientPhone);
-    const buyerAddress = oneLine(clientAddress);
-    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
-      setError(t.errClient);
+    const next: Partial<Record<FieldKey, true>> = {};
+    buyerGaps(next);
+    if (applyMissing(next, CLIENT_FIELD_ORDER)) {
+      setError(null);
       return;
     }
     setError(null);
@@ -656,6 +740,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         if (next.some((item) => item.key === key)) continue;
         next.push({ key, file, url: previewUrl(file) });
       }
+      return next;
+    });
+    setMissing((cur) => {
+      if (!cur.photo) return cur;
+      const next = { ...cur };
+      delete next.photo;
       return next;
     });
   }, []);
@@ -683,6 +773,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }, [addPhotos]);
   const primary = subjectCopy(lang, castWho, gender);
   const companionCopy = alsoWho ? subjectCopy(lang, alsoWho, alsoGender) : null;
+  const buyer = buyerInfo();
+  const buyerNeedsFields =
+    !buyer.name || !validEmail(buyer.email) || !buyer.phone || !buyer.address;
   const maxAge = ageLimit(castWho);
 
   function syncTitle(name: string, companion: string) {
@@ -695,11 +788,25 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const typed2 = companion.trim();
     if (hero2) next = typed2 ? next.split(hero2).join(typed2) : next;
     setBookTitle(next);
+    if (next.trim()) clearMissing("title");
   }
 
-  function genderButtons(value: StudioGender | null, onPick: (next: StudioGender) => void, label: string) {
+  function genderButtons(
+    value: StudioGender | null,
+    onPick: (next: StudioGender) => void,
+    label: string,
+    field: "gender" | "alsoGender",
+  ) {
+    const invalid = Boolean(missing[field]);
     return (
-      <div className="studio-choice studio-gender" role="group" aria-label={label}>
+      <div
+        className={invalid ? "studio-choice studio-gender is-invalid" : "studio-choice studio-gender"}
+        role="group"
+        aria-label={label}
+        id={`studio-field-${field}`}
+        tabIndex={-1}
+        aria-invalid={invalid || undefined}
+      >
         <span className="studio-choice-label">{label}</span>
         <div className="studio-actions">
           {(["f", "m"] as const).map((choice) => (
@@ -709,13 +816,30 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               className={value === choice ? "studio-pick is-on" : "studio-pick"}
               aria-pressed={value === choice}
               disabled={fieldsLocked}
-              onClick={() => onPick(choice)}
+              onClick={() => {
+                onPick(choice);
+                clearMissing(field);
+              }}
             >
               {choice === "f" ? t.genderF : t.genderM}
             </button>
           ))}
         </div>
+        {invalid ? (
+          <p className="field-error" role="alert" data-testid={`studio-error-${field}`}>
+            {t.errGender}
+          </p>
+        ) : null}
       </div>
+    );
+  }
+
+  function fieldAlert(key: FieldKey, text: string) {
+    if (!missing[key]) return null;
+    return (
+      <p className="field-error" id={`studio-field-${key}-error`} role="alert" data-testid={`studio-error-${key}`}>
+        {text}
+      </p>
     );
   }
 
@@ -1000,69 +1124,99 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           </section>
         ) : (
           <>
-        {error && (
-          <p className="studio-error" role="alert">
-            {error}
-          </p>
-        )}
-
         <section className="studio-card" aria-labelledby="studio-create-heading">
           <h2 id="studio-create-heading">{t.createTitle}</h2>
           <p className="studio-slogan">{t.slogan}</p>
 
-          {showClient && (
-            <div className="studio-client" data-testid="studio-client">
+          {(showClient || (showBook && buyerNeedsFields)) && (
+            <div className="studio-client" data-testid={showClient ? "studio-client" : "studio-buyer-gap"}>
               <h3 className="field-label">{t.clientTitle}</h3>
               <label className="studio-field">
                 {t.clientName}
                 <input
+                  id="studio-field-clientName"
+                  aria-label={t.clientName}
                   disabled={isDemo}
                   value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
+                  onChange={(e) => {
+                    setClientName(e.target.value);
+                    if (oneLine(e.target.value)) clearMissing("clientName");
+                  }}
                   placeholder={t.clientNamePh}
                   maxLength={120}
                   autoComplete="name"
+                  aria-invalid={missing.clientName || undefined}
+                  aria-describedby={missing.clientName ? "studio-field-clientName-error" : undefined}
+                  className={missing.clientName ? "is-invalid" : undefined}
                   data-testid="studio-client-name"
                 />
+                {fieldAlert("clientName", t.errClientName)}
               </label>
               <label className="studio-field">
                 {t.clientEmail}
                 <input
+                  id="studio-field-clientEmail"
+                  aria-label={t.clientEmail}
                   disabled={isDemo}
                   type="email"
                   value={clientEmail}
-                  onChange={(e) => setClientEmail(e.target.value)}
+                  onChange={(e) => {
+                    setClientEmail(e.target.value);
+                    if (validEmail(oneLine(e.target.value))) clearMissing("clientEmail");
+                  }}
                   placeholder={t.clientEmailPh}
                   maxLength={160}
                   autoComplete="email"
+                  aria-invalid={missing.clientEmail || undefined}
+                  aria-describedby={missing.clientEmail ? "studio-field-clientEmail-error" : undefined}
+                  className={missing.clientEmail ? "is-invalid" : undefined}
                   data-testid="studio-client-email"
                 />
+                {fieldAlert("clientEmail", t.errClientEmail)}
               </label>
               <label className="studio-field">
                 {t.clientPhone}
                 <input
+                  id="studio-field-clientPhone"
+                  aria-label={t.clientPhone}
                   disabled={isDemo}
                   type="tel"
                   value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
+                  onChange={(e) => {
+                    setClientPhone(e.target.value);
+                    if (oneLine(e.target.value)) clearMissing("clientPhone");
+                  }}
                   placeholder={t.clientPhonePh}
                   maxLength={40}
                   autoComplete="tel"
+                  aria-invalid={missing.clientPhone || undefined}
+                  aria-describedby={missing.clientPhone ? "studio-field-clientPhone-error" : undefined}
+                  className={missing.clientPhone ? "is-invalid" : undefined}
                   data-testid="studio-client-phone"
                 />
+                {fieldAlert("clientPhone", t.errClientPhone)}
               </label>
               <label className="studio-field">
                 {t.clientAddress}
                 <textarea
+                  id="studio-field-clientAddress"
+                  aria-label={t.clientAddress}
                   disabled={isDemo}
                   value={clientAddress}
-                  onChange={(e) => setClientAddress(e.target.value)}
+                  onChange={(e) => {
+                    setClientAddress(e.target.value);
+                    if (oneLine(e.target.value)) clearMissing("clientAddress");
+                  }}
                   placeholder={t.clientAddressPh}
                   maxLength={300}
                   rows={3}
                   autoComplete="street-address"
+                  aria-invalid={missing.clientAddress || undefined}
+                  aria-describedby={missing.clientAddress ? "studio-field-clientAddress-error" : undefined}
+                  className={missing.clientAddress ? "is-invalid" : undefined}
                   data-testid="studio-client-address"
                 />
+                {fieldAlert("clientAddress", t.errClientAddress)}
               </label>
               <label className="studio-field">
                 {t.clientNotes}
@@ -1076,9 +1230,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   data-testid="studio-client-notes"
                 />
               </label>
-              <button type="button" className="kbtn kbtn-go studio-create" onClick={finishClient}>
-                {t.clientContinue}
-              </button>
+              {showClient ? (
+                <button type="button" className="kbtn kbtn-go studio-create" onClick={finishClient}>
+                  {t.clientContinue}
+                </button>
+              ) : null}
             </div>
           )}
 
@@ -1104,20 +1260,29 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <label className="studio-field">
               {primary.name}
               <input
+                id="studio-field-name"
+                aria-label={primary.name}
                 disabled={fieldsLocked}
                 value={childName}
                 onChange={(e) => {
                   const name = e.target.value;
                   setChildName(name);
                   syncTitle(name, alsoName);
+                  if (name.trim()) clearMissing("name");
                 }}
                 placeholder={primary.namePh}
                 maxLength={80}
+                aria-invalid={missing.name || undefined}
+                aria-describedby={missing.name ? "studio-field-name-error" : undefined}
+                className={missing.name ? "is-invalid" : undefined}
               />
+              {fieldAlert("name", t.errName)}
             </label>
             <label className="studio-field">
               {primary.age}
               <input
+                id="studio-field-age"
+                aria-label={primary.age}
                 disabled={fieldsLocked}
                 type="number"
                 inputMode="numeric"
@@ -1126,33 +1291,49 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 value={childAge}
                 onChange={(e) => {
                   const v = e.target.value;
-                  if (v === "") return setChildAge("");
+                  if (v === "") {
+                    setChildAge("");
+                    return;
+                  }
                   const n = Math.max(0, Math.min(maxAge, Math.floor(Number(v))));
-                  setChildAge(Number.isNaN(n) ? "" : String(n));
+                  const next = Number.isNaN(n) ? "" : String(n);
+                  setChildAge(next);
+                  if (next !== "") clearMissing("age");
                 }}
                 placeholder={t.childAgePh}
+                aria-invalid={missing.age || undefined}
+                aria-describedby={missing.age ? "studio-field-age-error" : undefined}
+                className={missing.age ? "is-invalid" : undefined}
               />
+              {fieldAlert("age", t.errAge)}
             </label>
           </div>
-          {askGender ? genderButtons(gender, setGender, t.gender) : null}
+          {askGender ? genderButtons(gender, setGender, t.gender, "gender") : null}
           {companionCopy ? (
             <>
               <label className="studio-field studio-also">
                 {companionCopy.name}
                 <input
+                  id="studio-field-alsoName"
+                  aria-label={companionCopy.name}
                   disabled={fieldsLocked}
                   value={alsoName}
                   onChange={(e) => {
                     const name = e.target.value;
                     setAlsoName(name);
                     syncTitle(childName, name);
+                    if (name.trim()) clearMissing("alsoName");
                   }}
                   placeholder={companionCopy.namePh}
                   maxLength={80}
+                  aria-invalid={missing.alsoName || undefined}
+                  aria-describedby={missing.alsoName ? "studio-field-alsoName-error" : undefined}
+                  className={missing.alsoName ? "is-invalid" : undefined}
                   data-testid="studio-also-name"
                 />
+                {fieldAlert("alsoName", t.errAlsoName)}
               </label>
-              {askGender ? genderButtons(alsoGender, setAlsoGender, t.gender) : null}
+              {askGender ? genderButtons(alsoGender, setAlsoGender, t.gender, "alsoGender") : null}
             </>
           ) : null}
 
@@ -1196,27 +1377,43 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <label className="studio-field">
                 {t.bookTitle}
                 <input
+                  id="studio-field-title"
+                  aria-label={t.bookTitle}
                   disabled={fieldsLocked}
                   value={bookTitle}
                   onChange={(e) => {
                     titleTouched.current = true;
                     setBookTitle(e.target.value);
+                    if (e.target.value.trim()) clearMissing("title");
                   }}
                   placeholder={t.bookTitlePh}
                   maxLength={120}
+                  aria-invalid={missing.title || undefined}
+                  aria-describedby={missing.title ? "studio-field-title-error" : undefined}
+                  className={missing.title ? "is-invalid" : undefined}
                 />
+                {fieldAlert("title", t.errTitle)}
               </label>
 
               <label className="studio-field">
                 {t.themeFree}
                 <textarea
+                  id="studio-field-theme"
+                  aria-label={t.themeFree}
                   disabled={fieldsLocked}
                   value={themeText}
-                  onChange={(e) => setThemeText(e.target.value)}
+                  onChange={(e) => {
+                    setThemeText(e.target.value);
+                    if (e.target.value.trim()) clearMissing("theme");
+                  }}
                   placeholder={t.themeFreePh}
                   maxLength={500}
                   rows={3}
+                  aria-invalid={missing.theme || undefined}
+                  aria-describedby={missing.theme ? "studio-field-theme-error" : undefined}
+                  className={missing.theme ? "is-invalid" : undefined}
                 />
+                {fieldAlert("theme", t.errTheme)}
               </label>
               <p className="muted field-hint">{t.themeHint}</p>
             </>
@@ -1282,7 +1479,18 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <>
               <p className="studio-field">{t.photoCharacters}</p>
               <div
-                className={dragOver ? "studio-drop is-over" : "studio-drop"}
+                id="studio-field-photo"
+                tabIndex={-1}
+                className={
+                  missing.photo
+                    ? dragOver
+                      ? "studio-drop is-over is-invalid"
+                      : "studio-drop is-invalid"
+                    : dragOver
+                      ? "studio-drop is-over"
+                      : "studio-drop"
+                }
+                aria-invalid={missing.photo || undefined}
                 data-testid="studio-photo-drop"
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -1310,6 +1518,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 <span className="studio-drop-title">{t.photoDrop}</span>
                 <span className="studio-drop-hint">{t.photoDropHint}</span>
               </div>
+              {fieldAlert("photo", t.errPhotoRequired)}
               {photos.length > 0 ? (
                 <>
                   <p className="muted field-hint">{t.photoSelected(photos.length)}</p>
@@ -1326,16 +1535,28 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   </ul>
                 </>
               ) : null}
-              <label className="studio-consent">
+              <label className={missing.consent ? "studio-consent is-invalid" : "studio-consent"}>
                 <input
+                  id="studio-field-consent"
                   type="checkbox"
                   checked={mediaConsent}
                   disabled={isDemo}
                   data-testid="studio-media-consent"
-                  onChange={(e) => setMediaConsent(e.target.checked)}
+                  aria-invalid={missing.consent || undefined}
+                  aria-describedby={missing.consent ? "studio-field-consent-error" : undefined}
+                  onChange={(e) => {
+                    setMediaConsent(e.target.checked);
+                    if (e.target.checked) clearMissing("consent");
+                  }}
                 />
                 {t.consent}
               </label>
+              {fieldAlert("consent", t.errConsentPhoto)}
+              {error ? (
+                <p className="studio-error" id="studio-form-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
               <button
                 type="button"
                 className="kbtn kbtn-primary studio-create"
