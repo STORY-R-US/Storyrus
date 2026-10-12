@@ -69,12 +69,6 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     photo: heroAsset("foto-meupai-heroi.png"),
   },
   {
-    name: "Nano",
-    cover: heroAsset("capa-nanoaventuras.jpg", "capa-nanoaventuras-en.jpg", "capa-nanoaventuras-es.jpg"),
-    page: heroAsset("pagina-nanoaventuras.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
-    photo: heroAsset("foto-nanoaventuras.jpg", "foto-nanoaventuras-en.jpg", "foto-nanoaventuras-es.jpg"),
-  },
-  {
     name: "Amor de Bisavó",
     cover: heroAsset("capa-amordebisavo.jpg", "capa-amordebisavo-en.jpg", "capa-amordebisavo-es.jpg"),
     page: heroAsset("pagina-amordebisavo.jpg", "pagina-amordebisavo-en.jpg", "pagina-amordebisavo-es.jpg"),
@@ -188,7 +182,6 @@ const REVIEW_PHOTOS = [
   { tab: "foto-rebeca.png", name: "Rebeca" },
   { tab: "foto-maya-cachorra-pt.jpg", name: "Maya" },
   { tab: "foto-abigail.png", name: "Abigail" },
-  { tab: "foto-nanoaventuras.jpg", name: "Nano" },
   { tab: "foto-miriam.png", name: "Miriam" },
   { tab: "foto-mako-amigofiel.jpg", name: "Mako" },
   { tab: "foto-noe.png", name: "Noé" },
@@ -366,6 +359,8 @@ const CATALOG_THEMES = [
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
+/** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
+const HIDDEN_BOOK_INDEXES = new Set([10, 13, 32]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
@@ -410,7 +405,6 @@ const NAV_CAT_META = [
       { href: "/app?tema=princess", catalogI: 1 },
       { href: "/app?tema=adventure", catalogI: 25 },
       { href: "/app?tema=sport", catalogI: 4 },
-      { href: "/app?tema=adventure", catalogI: 10 },
     ],
   },
   {
@@ -487,7 +481,7 @@ const NAV_CAT_META = [
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
-  adventure: [33, 2, 10, 25],
+  adventure: [33, 2, 25],
   dinosaurs: [18],
   underwater: [17],
   space: [16],
@@ -584,7 +578,6 @@ const HERO_BY_CATALOG: Record<number, string> = {
   4: "Cristobal",
   5: "Nicolas",
   7: "Matteo",
-  10: "Nano",
   11: "Maya",
   12: "Mako",
   23: "Lucas",
@@ -732,7 +725,7 @@ const I18N = {
       {
         name: "Temáticas",
         subs: ["Aventura", "Dinossauros", "Fundo do Mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
-        feats: ["Princesas", "Aventura", "Cristobal E Seu Esporte Favorito", "Nano E Suas Aventuras"],
+        feats: ["Princesas", "Aventura", "Cristobal E Seu Esporte Favorito"],
       },
       {
         name: "Você e Eu",
@@ -952,7 +945,7 @@ const I18N = {
       {
         name: "Themes",
         subs: ["Adventure", "Dinosaurs", "Under the Sea", "Space", "Princesses", "Superheroes", "Sports"],
-        feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport", "Nano and His Adventures"],
+        feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport"],
       },
       {
         name: "You and Me",
@@ -1172,7 +1165,7 @@ const I18N = {
       {
         name: "Temáticas",
         subs: ["Aventura", "Dinosaurios", "Fondo del Mar", "Espacio", "Princesas", "Superhéroes", "Deportes"],
-        feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito", "Nano y sus aventuras"],
+        feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito"],
       },
       {
         name: "Tú y Yo",
@@ -1828,7 +1821,7 @@ export function CatalogBookCard({
   );
 }
 function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
-  if (index === 13 || index === 32) return null;
+  if (HIDDEN_BOOK_INDEXES.has(index)) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
   if (!book || !theme || !CATALOG_IMGS[index]) return null;
@@ -2006,7 +1999,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   });
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
-        .filter(({ i }) => (variant === "cartoon"
+        .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
           ? Boolean(CARTOON_COVER[i])
           : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i)))
         .sort((a, b) => {
@@ -2058,6 +2051,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     }),
     feats: cat.feats.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
+      if (HIDDEN_BOOK_INDEXES.has(meta.catalogI)) return [];
       if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
       return [{
         label,
@@ -2076,6 +2070,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   });
   const shownCats = menuCats;
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
+    if (HIDDEN_BOOK_INDEXES.has(i)) return [];
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     if (variant !== "cartoon" && isCartoonOnlyCover(i)) return [];
     const book = t.catalog[i];
