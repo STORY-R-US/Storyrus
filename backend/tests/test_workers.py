@@ -392,6 +392,36 @@ async def test_avatar_face_judge_none_retries_then_fails(db, mem_storage, monkey
     assert len(score_calls) == 4
 
 
+async def test_preview_avatar_continues_when_face_judge_has_no_score(db, mem_storage, monkeypatch):
+    """Prévia segue se o InsightFace não der nota. Cartoon e modelo ausente não travam o livro."""
+
+    async def no_score(_photo, _scene, **_k):
+        return None
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", no_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "face_match_retries", 1)
+    monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR", payload={"preview_chain": True})
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    db.refresh(p)
+    assert j.status == JobStatus.DONE.value
+    assert p.character_ref
+    stories = db.scalars(select(Job).where(Job.project_id == p.id, Job.type == "STORY")).all()
+    assert len(stories) == 1
+    assert stories[0].status == JobStatus.PENDING.value
+
+
 async def test_avatar_face_judge_exception_retries_then_succeeds(db, mem_storage, monkeypatch):
     """STO-37: falha transitória do juiz retenta e segue se a nota voltar."""
     score_calls: list[int] = []

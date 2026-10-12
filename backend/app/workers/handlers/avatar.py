@@ -97,7 +97,16 @@ async def handle_avatar(db: Session, job: Job) -> None:
                 photo=face, prompt=AVATAR_PROMPT, style=style
             )
             _tag_image(result, action="generate_realistic", label="Avatar — geração (fallback)")
-        result = await _lock_avatar_identity(provider, face, result, style)
+        # Na prévia, juiz sem nota (ilustração/cartoon ou InsightFace fora)
+        # não pode interromper a história e o ebook. O portão STO-37 fica
+        # no avatar avulso.
+        result = await _lock_avatar_identity(
+            provider,
+            face,
+            result,
+            style,
+            fail_closed=not preview_chain.is_preview_chain(job),
+        )
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -196,12 +205,14 @@ async def _score_avatar_face(photo: bytes | None, scene: bytes) -> float | None:
     return None
 
 
-async def _lock_avatar_identity(provider, face: bytes, result, style):
+async def _lock_avatar_identity(provider, face: bytes, result, style, *, fail_closed: bool = True):
     """Gera o corpo; refine_identity cola o rosto (OpenAI edits).
 
     Sempre 1 passe de refine. Segundo passe se a nota ficar abaixo de
     `avatar_face_match_min` **ou** se o juiz nao devolver nota apos retry.
-    Sem nota nos dois passes → falha visivel (STO-37), sem soft-skip.
+    Sem nota nos dois passes e `fail_closed`: falha visivel (STO-37).
+    A prévia passa `fail_closed=False` — sem nota o livro segue com o
+    avatar já refinado, senão cartoon/InsightFace deixa o projeto parado.
     """
     first = await _refine_identity(
         provider, face, result, style, passes=1, method="refine_identity"
@@ -217,6 +228,9 @@ async def _lock_avatar_identity(provider, face: bytes, result, style):
     )
     score2 = await _score_avatar_face(face, second.image_bytes)
     if score is None and score2 is None:
+        if not fail_closed:
+            logger.warning("Juiz de rosto sem nota na prévia; segue com o avatar gerado")
+            return second
         raise ProviderError(AVATAR_FACE_JUDGE_ERROR, transient=True)
     if score2 is None:
         log_feedback("face_score", score, reason="avatar identity (kept first; judge retry failed)")

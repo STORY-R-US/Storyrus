@@ -202,7 +202,9 @@ class Settings(BaseSettings):
     preview_stale_timeout_s: float = 180.0
     # Cada figura da prévia (capa, página, na mão) tem um teto. Estourar o tempo
     # não reinicia o livro: a prévia fecha com as imagens que já saíram.
-    preview_image_timeout_s: float = 150.0
+    # Precisa caber um timeout do GPT Image e mais um retry (120s + folga + 120s).
+    # Com 150s o primeiro timeout de 120s cancelava o retry e a figura sumia.
+    preview_image_timeout_s: float = 260.0
     job_heartbeat_interval_s: float = 30.0
     # None = ligado só em prod. O worker free do Render dorme; a API acorda
     # com o polling da tela e precisa ela mesma tirar a prévia da fila.

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import uuid
+from io import BytesIO
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app import storage
@@ -18,6 +20,38 @@ from app.schemas import UploadUrlIn, UploadUrlOut
 from .common import get_owned_project
 
 router = APIRouter()
+
+# Lado maior guardado. Acima disso o GPT Image estoura o tempo da prévia.
+_MAX_EDGE = 2048
+
+
+def _normalize_photo(data: bytes) -> bytes:
+    """JPEG que o Pillow (e o provedor de imagem) conseguem abrir.
+
+    HEIC do iPhone e arquivo que não é imagem viram 400 aqui, em vez de
+    um projeto CREATED cujo avatar falha minutos depois no worker.
+    """
+    try:
+        image = Image.open(BytesIO(data))
+        image.load()
+    except Exception as exc:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Não foi possível ler a foto. Envie JPG, PNG ou WEBP. "
+            "No iPhone, exporte a foto HEIC nesses formatos.",
+        ) from exc
+    image = image.convert("RGB")
+    width, height = image.size
+    edge = max(width, height)
+    if edge > _MAX_EDGE:
+        scale = _MAX_EDGE / float(edge)
+        image = image.resize(
+            (max(1, int(width * scale)), max(1, int(height * scale))),
+            Image.Resampling.LANCZOS,
+        )
+    buf = BytesIO()
+    image.save(buf, format="JPEG", quality=90)
+    return buf.getvalue()
 
 
 @router.post("/{project_id}/photos", response_model=UploadUrlOut, status_code=201)
@@ -95,6 +129,7 @@ async def upload_photo(
         raise HTTPException(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
         )
+    data = _normalize_photo(data)
     try:
         buyer = resolve_buyer(
             user,
@@ -106,9 +141,8 @@ async def upload_photo(
         )
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
-    key = storage.new_key(project.id, AssetKind.PHOTO.value, ext)
-    storage.put_bytes(key, data, file.content_type or "image/jpeg")
+    key = storage.new_key(project.id, AssetKind.PHOTO.value, "jpg")
+    storage.put_bytes(key, data, "image/jpeg")
     asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
     db.add(asset)
     db.flush()
@@ -152,16 +186,16 @@ async def upload_extra_character(
         raise HTTPException(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
         )
-    ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
-    key = storage.new_key(project.id, "extra_character", ext)
-    storage.put_bytes(key, data, file.content_type or "image/jpeg")
+    data = _normalize_photo(data)
+    key = storage.new_key(project.id, "extra_character", "jpg")
+    storage.put_bytes(key, data, "image/jpeg")
 
     extras = list(project.extra_characters or [])
     extras.append(
         {
             "name": name.strip() or f"Personagem {len(extras) + 1}",
             "storage_key": key,
-            "mime": file.content_type or "image/jpeg",
+            "mime": "image/jpeg",
         }
     )
     project.extra_characters = extras

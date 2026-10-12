@@ -75,6 +75,30 @@ describe("ProgressList", () => {
   });
 });
 
+describe("Studio — foto HEIC", () => {
+  it("não cria o projeto quando a foto é HEIC", async () => {
+    const user = userEvent.setup();
+    const create = vi.spyOn(api, "createProject");
+    render(<Studio />);
+    await openBook(user);
+
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["heic"], "foto.heic", { type: "image/heic" }),
+    );
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByTestId("studio-generate-book"));
+
+    expect(await screen.findByText(/foto heic/i)).toBeInTheDocument();
+    expect(create).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
+  });
+});
+
 describe("Studio — gênero padrão", () => {
   it("abre com Feminino já acionado", async () => {
     const user = userEvent.setup();

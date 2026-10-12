@@ -87,6 +87,7 @@ export type StudioCopy = {
   errClientPhone: string;
   errClientAddress: string;
   errPhotoRequired: string;
+  errPhotoFormat: string;
   metaBookTitle: string;
   howTitle: string;
   how: { t: string; p: string }[];
@@ -420,6 +421,8 @@ const pt: StudioCopy = {
   errClientPhone: "Preencha o telefone.",
   errClientAddress: "Preencha o endereço.",
   errPhotoRequired: "Selecione a foto do protagonista.",
+  errPhotoFormat:
+    "Essa foto não abre. Envie JPG, PNG ou WEBP. No iPhone, exporte a foto HEIC nesses formatos.",
   metaBookTitle: "Título",
   howTitle: "Como Funciona",
   how: [
@@ -669,6 +672,8 @@ const en: StudioCopy = {
   errClientPhone: "Fill in the phone.",
   errClientAddress: "Fill in the address.",
   errPhotoRequired: "Select the hero photo.",
+  errPhotoFormat:
+    "This photo can't be opened. Send a JPG, PNG, or WEBP. On iPhone, export the HEIC photo in one of those formats.",
   metaBookTitle: "Title",
   howTitle: "How It Works",
   how: [
@@ -918,6 +923,8 @@ const es: StudioCopy = {
   errClientPhone: "Completa el teléfono.",
   errClientAddress: "Completa la dirección.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
+  errPhotoFormat:
+    "Esta foto no se puede abrir. Envía JPG, PNG o WEBP. En el iPhone, exporta la foto HEIC en esos formatos.",
   metaBookTitle: "Título",
   howTitle: "Cómo Funciona",
   how: [
