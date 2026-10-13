@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from datetime import UTC, date, datetime, time
 from typing import Annotated
@@ -30,6 +31,7 @@ from app.schemas import (
 )
 from app.services import spend_guard
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/usage", tags=["usage"])
 
 _TZ = ZoneInfo("America/Sao_Paulo")
@@ -134,9 +136,57 @@ def _event_rows(
     return out[:400]
 
 
+def _meta_dict(value) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
+def _text(value) -> str:
+    return value if isinstance(value, str) else ""
+
+
+def _opt_str(value) -> str | None:
+    if value is None:
+        return None
+    return value if isinstance(value, str) else str(value)
+
+
+def _opt_int(value) -> int | None:
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _created(value: datetime | None) -> datetime:
+    if value is None:
+        return datetime.now(UTC)
+    return _aware(value)
+
+
+def _give_up(db: Session, action: str) -> None:
+    logger.exception("pedidos: %s", action)
+    db.rollback()
+
+
+def _load_orders(db: Session) -> list[OrderTicket]:
+    return list(
+        db.scalars(select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)).all()
+    )
+
+
 def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
-    """Pedidos do painel, sem ler arquivos no storage."""
-    backfill_order_tickets(db, prepare=False)
+    """Pedidos do painel, sem ler arquivos no storage.
+
+    Um pedido com metadado torto, ou uma OS que não abre, não pode derrubar a lista.
+    """
+    try:
+        backfill_order_tickets(db, prepare=False)
+    except Exception:
+        _give_up(db, "backfill")
     projects_total = int(db.scalar(select(func.count()).select_from(Project)) or 0)
     users_total = int(db.scalar(select(func.count()).select_from(User)) or 0)
     ticketed_ids = select(OrderTicket.project_id)
@@ -144,98 +194,129 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
         db.scalar(select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids)))
         or 0
     )
-    order_rows = db.scalars(
-        select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
-    ).all()
-    attach_service_orders(
-        db,
-        [ticket.project for ticket in order_rows if ticket.project is not None],
-        prepare=False,
-    )
+    order_rows = _load_orders(db)
+    try:
+        attach_service_orders(
+            db,
+            [ticket.project for ticket in order_rows if ticket.project is not None],
+            prepare=False,
+        )
+    except Exception:
+        _give_up(db, "abrir ordem de serviço")
+        order_rows = _load_orders(db)
     project_ids = [ticket.project_id for ticket in order_rows]
-    photo_rows = (
-        db.scalars(
-            select(Asset)
-            .where(
-                Asset.project_id.in_(project_ids),
-                Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
-            )
-            .order_by(Asset.created_at.asc())
-        ).all()
-        if project_ids
-        else []
-    )
+    try:
+        photo_rows = (
+            db.scalars(
+                select(Asset)
+                .where(
+                    Asset.project_id.in_(project_ids),
+                    Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
+                )
+                .order_by(Asset.created_at.asc())
+            ).all()
+            if project_ids
+            else []
+        )
+    except Exception:
+        _give_up(db, "fotos")
+        photo_rows = []
+        order_rows = _load_orders(db)
     photos_by_project: dict = defaultdict(list)
     for asset in photo_rows:
         try:
             url = storage.presign_get(asset.storage_key)
         except Exception:
             continue
-        if url:
+        if isinstance(url, str) and url:
             photos_by_project[asset.project_id].append(url)
-    print_rows = (
-        db.scalars(select(PrintOrder).where(PrintOrder.project_id.in_(project_ids))).all()
-        if project_ids
-        else []
-    )
+    try:
+        print_rows = (
+            db.scalars(select(PrintOrder).where(PrintOrder.project_id.in_(project_ids))).all()
+            if project_ids
+            else []
+        )
+    except Exception:
+        _give_up(db, "impressos")
+        print_rows = []
+        order_rows = _load_orders(db)
     print_by_project = {row.project_id: row for row in print_rows}
-    stored_files = (
-        db.scalars(
-            select(Asset)
-            .where(
-                Asset.project_id.in_(project_ids),
-                Asset.kind.in_(_BOOK_KINDS),
-            )
-            .order_by(Asset.created_at.asc())
-        ).all()
-        if project_ids
-        else []
-    )
+    try:
+        stored_files = (
+            db.scalars(
+                select(Asset)
+                .where(
+                    Asset.project_id.in_(project_ids),
+                    Asset.kind.in_(_BOOK_KINDS),
+                )
+                .order_by(Asset.created_at.asc())
+            ).all()
+            if project_ids
+            else []
+        )
+    except Exception:
+        _give_up(db, "arquivos do livro")
+        stored_files = []
+        order_rows = _load_orders(db)
     books_by_project: dict = defaultdict(list)
     for asset in stored_files:
-        label = _BOOK_LABELS.get(asset.kind, asset.kind)
-        if asset.kind == AssetKind.PAGE_IMAGE.value:
-            page = (asset.meta or {}).get("page")
-            if page:
-                label = f"Página {page}"
-        url = _signed(asset.storage_key)
-        if url:
-            books_by_project[asset.project_id].append(OrderFileOut(label=label, url=url))
+        try:
+            label = _BOOK_LABELS.get(asset.kind, asset.kind)
+            if asset.kind == AssetKind.PAGE_IMAGE.value:
+                page = _meta_dict(asset.meta).get("page")
+                if isinstance(page, int) and not isinstance(page, bool):
+                    label = f"Página {page}"
+                elif isinstance(page, str) and page.strip():
+                    label = f"Página {page.strip()}"
+            url = _signed(asset.storage_key)
+            if isinstance(url, str) and url:
+                books_by_project[asset.project_id].append(
+                    OrderFileOut(label=_text(label) or asset.kind, url=url)
+                )
+        except Exception:
+            logger.exception("pedidos: arquivo %s", getattr(asset, "id", None))
+            continue
     orders: list[OrderTicketOut] = []
     for ticket in order_rows:
-        project = ticket.project
-        printed = print_by_project.get(ticket.project_id)
-        files = list(books_by_project.get(ticket.project_id, []))
-        if project is not None:
-            ref = project.character_ref if isinstance(project.character_ref, dict) else {}
-            character_url = _signed(ref.get("storage_key"))
-            if character_url:
-                files.insert(0, OrderFileOut(label="Personagem", url=character_url))
-            ebook_url = _signed(project.ebook_url)
-            if ebook_url and not any(item.label == "PDF do livro" for item in files):
-                files.append(OrderFileOut(label="PDF do livro", url=ebook_url))
-        orders.append(
-            OrderTicketOut(
-                id=ticket.id,
-                project_id=ticket.project_id,
-                summary=ticket.summary,
-                created_at=_aware(ticket.created_at),
-                child_age=project.child_age if project else None,
-                book_size=project.book_size if project else None,
-                cover_type=project.cover_type if project else None,
-                style=project.style if project else None,
-                photo_urls=photos_by_project.get(ticket.project_id, []),
-                has_story=bool(project and (project.story_text or "").strip()),
-                book_files=files,
-                print_order_id=printed.id if printed else None,
-                print_code=printed.code if printed else None,
-                print_status=printed.status if printed else None,
-                block_reason=printed.block_reason if printed else None,
-                tracking_code=printed.tracking_code if printed else None,
-                payment_status=printed.payment_status if printed else None,
-                amount_cents=printed.amount_cents if printed else None,
+        try:
+            project = ticket.project
+            printed = print_by_project.get(ticket.project_id)
+            files = list(books_by_project.get(ticket.project_id, []))
+            if project is not None:
+                ref = project.character_ref if isinstance(project.character_ref, dict) else {}
+                storage_key = ref.get("storage_key")
+                character_url = _signed(storage_key if isinstance(storage_key, str) else None)
+                if character_url:
+                    files.insert(0, OrderFileOut(label="Personagem", url=character_url))
+                ebook_key = project.ebook_url if isinstance(project.ebook_url, str) else None
+                ebook_url = _signed(ebook_key)
+                if ebook_url and not any(item.label == "PDF do livro" for item in files):
+                    files.append(OrderFileOut(label="PDF do livro", url=ebook_url))
+            orders.append(
+                OrderTicketOut(
+                    id=ticket.id,
+                    project_id=ticket.project_id,
+                    summary=_text(ticket.summary) or "Pedido",
+                    created_at=_created(ticket.created_at),
+                    child_age=_opt_int(project.child_age) if project else None,
+                    book_size=_opt_str(project.book_size) if project else None,
+                    cover_type=_opt_str(project.cover_type) if project else None,
+                    style=_opt_str(project.style) if project else None,
+                    photo_urls=photos_by_project.get(ticket.project_id, []),
+                    has_story=bool(project and _text(project.story_text).strip()),
+                    book_files=files,
+                    print_order_id=printed.id if printed else None,
+                    print_code=_opt_str(printed.code) if printed else None,
+                    print_status=_opt_str(printed.status) if printed else None,
+                    block_reason=_opt_str(printed.block_reason) if printed else None,
+                    tracking_code=_opt_str(printed.tracking_code) if printed else None,
+                    payment_status=_opt_str(printed.payment_status) if printed else None,
+                    amount_cents=_opt_int(printed.amount_cents) if printed else None,
+                )
             )
-        )
+        except Exception:
+            logger.exception("pedidos: item %s", getattr(ticket, "id", None))
+            continue
     return orders, users_total, projects_total, projects_awaiting_photo
 
 
