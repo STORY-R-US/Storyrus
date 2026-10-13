@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from app.config import settings
 from app.database import get_db
-from app.models import Asset, Job, JobStatus, PrintOrder, Project, UsageEvent, User
+from app.models import Asset, Job, JobStatus, OrderTicket, PrintOrder, Project, UsageEvent, User
 
 
 def _session(client):
@@ -279,3 +279,49 @@ def test_orders_scope_skips_spend_scan_and_print_files(auth_client, monkeypatch)
     assert full.status_code == 200, full.text
     assert full.headers["cache-control"] == "private, no-store"
     assert calls == {"prepare": 0, "bytes": 0}
+
+
+def test_orders_scope_survives_bad_page_meta_and_service_order(auth_client, monkeypatch):
+    """Metadado que não é dict, e falha ao abrir a OS, não podem responder 500."""
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("os indisponivel")
+
+    monkeypatch.setattr("app.routers.usage.attach_service_orders", _boom)
+    monkeypatch.setattr("app.routers.usage.backfill_order_tickets", _boom)
+
+    db = _session(auth_client)
+    try:
+        user = db.query(User).filter(User.email == "auth@example.com").one()
+        project = Project(
+            user_id=user.id,
+            status="EBOOK_READY",
+            child_name="Lia",
+            story_text="Era uma vez.",
+        )
+        db.add(project)
+        db.flush()
+        db.add(OrderTicket(project_id=project.id, summary="Lia\nCriança: Lia"))
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind="page_image",
+                storage_key="pages/1.png",
+                meta=["sem pagina"],
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    scoped = auth_client.get(
+        "/v1/usage?scope=orders",
+        headers={"X-Usage-Password": "segredo"},
+    )
+    assert scoped.status_code == 200, scoped.text
+    body = scoped.json()
+    assert len(body["orders"]) == 1
+    assert body["orders"][0]["has_story"] is True
+    assert body["orders"][0]["summary"].startswith("Lia")
