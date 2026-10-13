@@ -502,10 +502,14 @@ describe("Landing — menu mobile e abas do hero", () => {
     const track = cover.closest(".hero-carousel-track") as HTMLElement;
     expect(track.querySelector(".hero-slide, .hero-slide-frame")).toBeNull();
     const shot = (n: number) => screen.getByTestId(`landing-hero-slide-${n}`).parentElement;
-    expect(shot(0)?.parentElement).toBe(track);
+    const series0 = shot(0)?.parentElement?.parentElement as HTMLElement;
+    const series1 = shot(3)?.parentElement?.parentElement as HTMLElement;
+    expect(series0).toBeTruthy();
+    expect(series1).toBeTruthy();
     expect(shot(0)?.nextElementSibling).toBe(shot(1));
     expect(shot(1)?.nextElementSibling).toBe(shot(2));
-    expect(shot(2)?.nextElementSibling).toBe(shot(3));
+    expect(series0).toHaveClass("hero-series");
+    expect(series1).toHaveClass("hero-series");
 
     const carousel = cover.closest(".hero-carousel") as HTMLElement;
     const natalCovers = [...carousel.querySelectorAll("img")].filter((img) => {
