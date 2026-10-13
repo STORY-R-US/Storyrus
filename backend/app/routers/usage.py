@@ -10,7 +10,7 @@ from typing import Annotated
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app import storage
@@ -498,23 +498,29 @@ def delete_order(
 ) -> Response:
     """Exclui o pedido e o projeto do livro (fotos, história, arquivos e OS).
 
-    Sem o projeto, o `backfill_order_tickets` não recria o pedido na próxima
-    abertura do painel.
+    Apaga os filhos em SQL direto, sem depender do cascade ORM nem do
+    `ON DELETE CASCADE` do banco (que se comporta diferente entre o SQLite dos
+    testes e o Postgres de produção). Sem o projeto, o `backfill_order_tickets`
+    não recria o pedido na próxima abertura do painel.
     """
     ticket = db.get(OrderTicket, order_id)
     if ticket is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido nao encontrado")
-    project = ticket.project
-    if project is None:
-        db.delete(ticket)
+    project_id = ticket.project_id
+    try:
+        # Ordem: filhos antes do projeto. usage_events antes de jobs.
+        for stmt in (
+            delete(UsageEvent).where(UsageEvent.project_id == project_id),
+            delete(Asset).where(Asset.project_id == project_id),
+            delete(OrderTicket).where(OrderTicket.project_id == project_id),
+            delete(PrintOrder).where(PrintOrder.project_id == project_id),
+            delete(Job).where(Job.project_id == project_id),
+            delete(Project).where(Project.id == project_id),
+        ):
+            db.execute(stmt.execution_options(synchronize_session=False))
         db.commit()
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    # Carrega os filhos para o cascade ORM apagar tudo no SQLite.
-    _ = project.jobs
-    _ = project.assets
-    _ = project.usage_events
-    _ = project.order_ticket
-    _ = project.print_order
-    db.delete(project)
-    db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("pedidos: excluir pedido %s", order_id)
+        raise
     return Response(status_code=status.HTTP_204_NO_CONTENT)
