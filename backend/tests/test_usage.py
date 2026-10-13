@@ -390,3 +390,67 @@ def test_delete_order_desconhecido_responde_404(auth_client, monkeypatch):
         headers={"X-Usage-Password": "segredo"},
     )
     assert miss.status_code == 404
+
+
+def test_delete_order_apaga_tudo_com_fk_enforcada():
+    """Com FK enforcada (como no Postgres), a exclusao apaga todos os filhos.
+
+    O SQLite dos testes desliga FK por padrao, entao um filho esquecido passaria
+    batido aqui e so quebraria em producao. Aqui ligamos `PRAGMA foreign_keys`.
+    """
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    from app.database import Base
+    from app.routers.usage import delete_order
+
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+
+    @event.listens_for(engine, "connect")
+    def _fk_on(dbapi_conn, _record):  # noqa: ANN001
+        dbapi_conn.execute("PRAGMA foreign_keys=ON")
+
+    Base.metadata.create_all(engine)
+    db = sessionmaker(bind=engine)()
+    try:
+        user = User(email="fk@example.com", password_hash="x", credits=1)
+        db.add(user)
+        db.flush()
+        project = Project(user_id=user.id, status="EBOOK_READY", child_name="Lia")
+        db.add(project)
+        db.flush()
+        ticket = OrderTicket(project_id=project.id, summary="Lia")
+        db.add(ticket)
+        db.add(Asset(project_id=project.id, kind="photo", storage_key="photos/lia.jpg"))
+        db.add(PrintOrder(project_id=project.id, code="SR-FK001"))
+        job = Job(project_id=project.id, type="EBOOK", status=JobStatus.DONE.value)
+        db.add(job)
+        db.flush()
+        db.add(
+            UsageEvent(
+                project_id=project.id,
+                job_id=job.id,
+                action="ebook",
+                label="Lia",
+            )
+        )
+        db.commit()
+        ticket_id = ticket.id
+        project_id = project.id
+
+        resp = delete_order(ticket_id, None, db)
+        assert resp.status_code == 204
+
+        assert db.get(Project, project_id) is None
+        assert db.query(OrderTicket).filter_by(project_id=project_id).count() == 0
+        assert db.query(Asset).filter_by(project_id=project_id).count() == 0
+        assert db.query(PrintOrder).filter_by(project_id=project_id).count() == 0
+        assert db.query(Job).filter_by(project_id=project_id).count() == 0
+        assert db.query(UsageEvent).filter_by(project_id=project_id).count() == 0
+    finally:
+        db.close()
