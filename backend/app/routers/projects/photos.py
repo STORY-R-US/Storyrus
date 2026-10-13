@@ -4,26 +4,53 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app import storage
 from app.config import settings
 from app.database import get_db
 from app.deps import require_registered_user
-from app.models import Asset, AssetKind, User
+from app.models import Asset, AssetKind, OrderTicket, Project, User
 from app.order_tickets import register_order_ticket, resolve_buyer
 from app.schemas import UploadUrlIn, UploadUrlOut
+from app.services.transactional_email import send_new_order_email
 
 from .common import get_owned_project
 
 router = APIRouter()
 
 
+def _schedule_new_order_notice(
+    background: BackgroundTasks,
+    project: Project,
+    ticket: OrderTicket,
+    user: User,
+) -> None:
+    """Agenda o aviso interno — monta os dados aqui (sessão aberta) e envia depois."""
+    background.add_task(
+        send_new_order_email,
+        child_name=(project.child_name or "").strip(),
+        summary=ticket.summary or "",
+        client_name=(user.full_name or "").strip(),
+        client_email=(user.email or "").strip(),
+    )
+
+
 @router.post("/{project_id}/photos", response_model=UploadUrlOut, status_code=201)
 def request_photo_upload(
     project_id: uuid.UUID,
     body: UploadUrlIn,
+    background: BackgroundTasks,
     user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> UploadUrlOut:
@@ -37,7 +64,7 @@ def request_photo_upload(
         buyer = resolve_buyer(user)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    register_order_ticket(
+    ticket, created = register_order_ticket(
         db,
         project,
         language=project.language or "pt-BR",
@@ -50,6 +77,8 @@ def request_photo_upload(
     )
     db.commit()
     db.refresh(asset)
+    if created:
+        _schedule_new_order_notice(background, project, ticket, user)
     return UploadUrlOut(
         asset_id=asset.id,
         storage_key=key,
@@ -61,6 +90,7 @@ def request_photo_upload(
 @router.post("/{project_id}/photo", response_model=UploadUrlOut, status_code=201)
 async def upload_photo(
     project_id: uuid.UUID,
+    background: BackgroundTasks,
     user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
@@ -112,7 +142,7 @@ async def upload_photo(
     asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
     db.add(asset)
     db.flush()
-    register_order_ticket(
+    ticket, created = register_order_ticket(
         db,
         project,
         language=language,
@@ -132,6 +162,8 @@ async def upload_photo(
     )
     db.commit()
     db.refresh(asset)
+    if created:
+        _schedule_new_order_notice(background, project, ticket, user)
     return UploadUrlOut(asset_id=asset.id, storage_key=key, upload_url="", expires_in=0)
 
 

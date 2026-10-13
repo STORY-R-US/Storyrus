@@ -110,8 +110,12 @@ def register_order_ticket(
     client_address: str = "",
     client_notes: str = "",
     prepare: bool = True,
-) -> OrderTicket:
-    """Cria ou atualiza o pedido do projeto (um por projeto)."""
+) -> tuple[OrderTicket, bool]:
+    """Cria ou atualiza o pedido do projeto (um por projeto).
+
+    Retorna `(ticket, created)`: `created` indica pedido novo, para o time ser
+    avisado uma única vez (não a cada foto).
+    """
     lang = (language or "").strip() or (project.language or "pt-BR")
     if len(lang) <= 8:
         project.language = lang
@@ -151,14 +155,16 @@ def register_order_ticket(
         existing.summary = summary
         db.add(existing)
         ticket = existing
+        created = False
     else:
         ticket = OrderTicket(project_id=project.id, summary=summary)
         db.add(ticket)
         db.flush()
+        created = True
     from app.printkit.service import open_print_order
 
     open_print_order(db, project, requested=False, prepare=prepare)
-    return ticket
+    return ticket, created
 
 
 def backfill_order_tickets(db: Session, *, prepare: bool = False) -> int:

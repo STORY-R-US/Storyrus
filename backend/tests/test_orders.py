@@ -318,3 +318,42 @@ def test_empty_photo_does_not_open_an_order(auth_client, monkeypatch):
     assert up.status_code == 400
     owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
     assert owner.json()["orders"] == []
+
+
+def test_novo_pedido_avisa_o_time_uma_vez(auth_client, monkeypatch):
+    """A primeira foto abre o pedido e avisa sales + André; a segunda não repete."""
+    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+    monkeypatch.setattr(
+        settings,
+        "new_order_notify_emails",
+        "sales@storyrus.ai,eng.andrevitor89@gmail.com",
+    )
+    calls: list[dict] = []
+
+    class _Resp:
+        status_code = 200
+        text = '{"id":"ok"}'
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(json)
+        return _Resp()
+
+    monkeypatch.setattr("app.services.transactional_email.httpx.post", fake_post)
+    pid = _create(auth_client)
+
+    first = _photo(auth_client, pid)
+    assert first.status_code == 201, first.text
+    assert len(calls) == 1
+    payload = calls[0]
+    assert payload["to"] == ["sales@storyrus.ai", "eng.andrevitor89@gmail.com"]
+    assert payload["subject"] == "Novo pedido — Lia"
+    assert "Resumo do pedido" in payload["text"]
+    assert "NOVO LIVRO" in payload["text"]
+    assert "ana@email.com" in payload["text"]
+    assert "/pedidos" in payload["html"]
+
+    # Segunda foto do mesmo pedido: atualiza o resumo, mas não avisa de novo.
+    second = _photo(auth_client, pid, extra_names="outra pessoa")
+    assert second.status_code == 201, second.text
+    assert len(calls) == 1
