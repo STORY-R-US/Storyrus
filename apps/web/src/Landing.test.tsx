@@ -52,6 +52,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
   setToken(null);
@@ -724,6 +725,10 @@ describe("Landing — CTAs e links", () => {
   });
 
   it("mostra os livros do tema ao passar o mouse no submenu", () => {
+    // O menu lista as ocasiões cuja próxima data ainda cai neste ano. Trava o
+    // relógio antes do Dia das Crianças (12/10) para o cenário ser determinístico.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 20));
     renderLanding();
     const panel = document.querySelector("#cat-panel") as HTMLElement;
     const nav = document.querySelector(".kcats") as HTMLElement;
