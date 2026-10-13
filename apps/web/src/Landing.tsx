@@ -2593,31 +2593,46 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
         <div className="hero-carousel" aria-label={t.book_carousel}>
-          <div className="hero-carousel-track">
-            {[0, 1].map((copy) => heroStrip.flatMap((book, seriesIndex) => {
+          <div
+            className="hero-carousel-track"
+            style={{ transform: `translateX(-${(Math.floor(heroPick / 3) % heroStrip.length) * 100}%)` }}
+          >
+            {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
               const shots = [book.cover[lang], book.page[lang], book.photo[lang]];
-              return shots.map((src, part) => {
-                const i = seriesIndex * 3 + part;
-                return (
-                  <button
-                    type="button"
-                    className={`hero-shot${i === heroPick ? " on" : ""}`}
-                    key={`${copy}-${seriesIndex}-${part}`}
-                    aria-hidden={copy === 1 ? true : undefined}
-                    aria-pressed={copy === 0 ? i === heroPick : undefined}
-                    aria-label={book.name}
-                    tabIndex={copy === 1 ? -1 : 0}
-                    onClick={() => setHeroPick(i)}
-                    data-testid={copy === 0 ? `landing-hero-pick-${i}` : undefined}
-                  >
-                    <img
-                      src={exUrl(src)}
-                      alt=""
-                      data-testid={copy === 0 ? `landing-hero-slide-${i}` : undefined}
-                    />
-                  </button>
-                );
-              });
+              const activeSeries = Math.floor(heroPick / 3) % heroStrip.length;
+              const isActiveSeries = activeSeries === seriesIndex;
+              return (
+                <div
+                  className={`hero-series${isActiveSeries ? " on" : ""}`}
+                  key={`${copy}-${seriesIndex}`}
+                  aria-hidden={copy === 1 ? true : undefined}
+                >
+                  <div className="hero-series-inner">
+                    {shots.map((src, part) => {
+                      const i = seriesIndex * 3 + part;
+                      return (
+                        <button
+                          type="button"
+                          className={`hero-shot${i === heroPick ? " on" : ""}`}
+                          key={`${copy}-${seriesIndex}-${part}`}
+                          aria-hidden={copy === 1 ? true : undefined}
+                          aria-pressed={copy === 0 ? i === heroPick : undefined}
+                          aria-label={book.name}
+                          tabIndex={copy === 1 ? -1 : 0}
+                          onClick={() => setHeroPick(i)}
+                          data-testid={copy === 0 ? `landing-hero-pick-${i}` : undefined}
+                        >
+                          <img
+                            src={exUrl(src)}
+                            alt=""
+                            data-testid={copy === 0 ? `landing-hero-slide-${i}` : undefined}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
             }))}
           </div>
         </div>

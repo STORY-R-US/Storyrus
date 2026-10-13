@@ -495,23 +495,61 @@ a.kcat-group-name.is-chip:focus-visible {
 .hero-carousel {
   overflow: hidden;
   width: 100%;
-  max-width: 100%;
-  margin-top: 8px;
-  padding: 14px 0 16px;
+  max-width: 880px;
+  margin: 8px auto 0;
+  padding: 14px 16px 16px;
   box-sizing: border-box;
 }
 .hero-carousel-track {
   display: flex;
   align-items: center;
-  width: max-content;
+  width: 100%;
   background: #0b1226;
-  animation: rev-marquee 180s linear infinite;
+  transition: transform 0.4s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.hero-series {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  border-radius: 10px;
+  margin: 0;
+  flex: 0 0 100%;
+  box-sizing: border-box;
+}
+
+.hero-series-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  padding: 5px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  box-sizing: border-box;
+  width: auto;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.hero-series.on .hero-series-inner {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #fff, 0 0 10px rgba(255, 255, 255, 0.7), 0 8px 18px rgba(0, 0, 0, 0.16);
 }
 .hero-shot {
-  height: 240px;
+  height: clamp(150px, 13vw, 190px);
   width: auto;
+  max-width: 100%;
   flex: 0 0 auto;
-  margin: 0 2px 0 0;
+  min-width: 0;
+  margin: 0;
   border: 0;
   border-radius: 0;
   padding: 0;
@@ -522,27 +560,34 @@ a.kcat-group-name.is-chip:focus-visible {
   cursor: pointer;
   line-height: 0;
   overflow: hidden;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+  opacity: 0.85;
 }
-.hero-shot:hover:not(:disabled) { transform: none; box-shadow: none; }
+/* Filete separando as fotos da mesma série: mesma cor do fundo da página. */
+.hero-shot + .hero-shot {
+  border-left: 4px solid #0b1226;
+}
+.hero-shot:hover:not(:disabled) {
+  box-shadow: none;
+  opacity: 0.95;
+}
 .hero-shot.on {
-  box-shadow:
-    0 0 0 1px #fff,
-    0 0 12px rgba(255,255,255,.9),
-    0 10px 22px rgba(0,0,0,.22);
-  z-index: 1;
+  box-shadow: none;
+  opacity: 1;
 }
 .hero-shot img {
   display: block;
   height: 100%;
   width: auto;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
   box-sizing: border-box;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  transform: scale(1.04);
+  will-change: transform;
 }
 .khero-flipbook {
   width: 100%;
@@ -1465,6 +1510,10 @@ img.ex-tab-cover {
   display: flex;
   width: max-content;
   animation: rev-marquee 180s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
 }
 .rev-carousel .rev-photo {
   width: 168px;
@@ -1477,12 +1526,22 @@ img.ex-tab-cover {
   to { transform: translateX(-50%); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rev-carousel-track,
+  .rev-carousel-track {
+    animation: none;
+    width: max-content;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    will-change: auto;
+    transform: none;
+  }
   .hero-carousel-track {
     animation: none;
+    transition: none;
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
+    will-change: auto;
+    transform: none;
   }
   .rev-carousel .rev-photo { width: min(168px, 42vw); flex-basis: min(168px, 42vw); }
   .hero-shot { height: min(180px, 52vw); width: auto; flex-basis: auto; }
@@ -1523,6 +1582,7 @@ img.ex-tab-cover {
   padding: 0;
   background: transparent;
   box-shadow: none;
+  will-change: transform;
 }
 .rev-photo figcaption {
   font-family: 'Baloo 2', cursive;
