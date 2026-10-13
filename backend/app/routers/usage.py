@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 from collections import defaultdict
 from datetime import UTC, date, datetime, time
 from typing import Annotated
@@ -487,3 +488,33 @@ def get_usage(
         projects_total=projects_total,
         projects_awaiting_photo=projects_awaiting_photo,
     )
+
+
+@router.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_order(
+    order_id: uuid.UUID,
+    _: Annotated[None, Depends(require_owner_password)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Response:
+    """Exclui o pedido e o projeto do livro (fotos, história, arquivos e OS).
+
+    Sem o projeto, o `backfill_order_tickets` não recria o pedido na próxima
+    abertura do painel.
+    """
+    ticket = db.get(OrderTicket, order_id)
+    if ticket is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido nao encontrado")
+    project = ticket.project
+    if project is None:
+        db.delete(ticket)
+        db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    # Carrega os filhos para o cascade ORM apagar tudo no SQLite.
+    _ = project.jobs
+    _ = project.assets
+    _ = project.usage_events
+    _ = project.order_ticket
+    _ = project.print_order
+    db.delete(project)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

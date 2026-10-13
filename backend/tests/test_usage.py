@@ -325,3 +325,68 @@ def test_orders_scope_survives_bad_page_meta_and_service_order(auth_client, monk
     assert len(body["orders"]) == 1
     assert body["orders"][0]["has_story"] is True
     assert body["orders"][0]["summary"].startswith("Lia")
+
+
+def test_delete_order_apaga_o_pedido_e_o_projeto(auth_client, monkeypatch):
+    """Excluir o pedido remove o projeto (fotos, arquivos, OS) e não recria."""
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+
+    db = _session(auth_client)
+    try:
+        user = db.query(User).filter(User.email == "auth@example.com").one()
+        project = Project(user_id=user.id, status="EBOOK_READY", child_name="Lia")
+        db.add(project)
+        db.flush()
+        ticket = OrderTicket(project_id=project.id, summary="Lia\nCriança: Lia")
+        db.add(ticket)
+        db.add(Asset(project_id=project.id, kind="photo", storage_key="photos/lia.jpg"))
+        db.add(
+            PrintOrder(
+                project_id=project.id,
+                code="SR-DEL001",
+                status="awaiting_spec",
+                payment_status="unpaid",
+            )
+        )
+        db.commit()
+        ticket_id = ticket.id
+        project_id = project.id
+    finally:
+        db.close()
+
+    sem_senha = auth_client.delete(f"/v1/usage/orders/{ticket_id}")
+    assert sem_senha.status_code == 401
+
+    done = auth_client.delete(
+        f"/v1/usage/orders/{ticket_id}",
+        headers={"X-Usage-Password": "segredo"},
+    )
+    assert done.status_code == 204, done.text
+
+    db = _session(auth_client)
+    try:
+        assert db.query(OrderTicket).filter(OrderTicket.id == ticket_id).first() is None
+        assert db.query(Project).filter(Project.id == project_id).first() is None
+        assert db.query(Asset).filter(Asset.project_id == project_id).count() == 0
+        assert db.query(PrintOrder).filter(PrintOrder.project_id == project_id).count() == 0
+    finally:
+        db.close()
+
+    # A foto foi junto: o painel não recria o pedido no próximo carregamento.
+    listed = auth_client.get("/v1/usage?scope=orders", headers={"X-Usage-Password": "segredo"})
+    assert listed.status_code == 200, listed.text
+    assert listed.json()["orders"] == []
+
+
+def test_delete_order_desconhecido_responde_404(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+
+    import uuid as _uuid
+
+    miss = auth_client.delete(
+        f"/v1/usage/orders/{_uuid.uuid4()}",
+        headers={"X-Usage-Password": "segredo"},
+    )
+    assert miss.status_code == 404

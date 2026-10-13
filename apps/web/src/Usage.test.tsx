@@ -105,6 +105,24 @@ describe("Pedidos", () => {
     setToken(null);
   });
 
+  it("exclui o pedido depois da confirmacao", async () => {
+    const { setToken } = await import("./api");
+    const { state } = await import("./test/server");
+    state.isOwner = true;
+    setToken("owner-token");
+    const user = userEvent.setup();
+    render(<Pedidos />);
+    expect(await screen.findByTestId("order-detail")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("order-delete"));
+    expect(screen.getByText(/não volta atrás/i)).toBeInTheDocument();
+    await user.click(screen.getByTestId("order-delete-confirm"));
+
+    expect(await screen.findByTestId("pedidos-empty")).toBeInTheDocument();
+    expect(screen.queryByTestId("order-detail")).not.toBeInTheDocument();
+    setToken(null);
+  });
+
   it("com sessão, mostra abrindo e não pede senha enquanto carrega", async () => {
     const { http, HttpResponse } = await import("msw");
     const { server, state } = await import("./test/server");
