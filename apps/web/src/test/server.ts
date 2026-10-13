@@ -581,6 +581,14 @@ export const handlers = [
       ],
     });
   }),
+  http.delete("*/v1/usage/orders/:id", ({ request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    const auth = request.headers.get("Authorization") || "";
+    if (password !== "segredo" && !(state.isOwner && auth.startsWith("Bearer "))) {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.get("*/v1/users/:id", ({ params, request }) => {
     const password = request.headers.get("X-Usage-Password");
     if (password !== "segredo") {

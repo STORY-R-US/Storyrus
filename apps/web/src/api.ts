@@ -868,6 +868,9 @@ export const api = {
     const suffix = q.toString() ? `?${q}` : "";
     return ownerJson<UsageReport>(`/v1/usage${suffix}`, password);
   },
+  async deleteOrder(password: string | null | undefined, id: string) {
+    await ownerJson<void>(`/v1/usage/orders/${id}`, password, { method: "DELETE" });
+  },
   async users(password?: string | null) {
     return ownerJson<OwnerUsersReport>("/v1/users", password);
   },

@@ -97,6 +97,8 @@ export function Pedidos() {
   const [sessionTried, setSessionTried] = useState(false);
   const [lastStatus, setLastStatus] = useState<number | undefined>();
   const autoRetryUsed = useRef(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [stats, setStats] = useState<{
     users: number;
     projects: number;
@@ -117,6 +119,7 @@ export function Pedidos() {
         awaitingPhoto: report.projects_awaiting_photo ?? 0,
       });
       setSelected((cur) => (cur && list.some((order) => order.id === cur) ? cur : list[0]?.id ?? null));
+      setConfirmDelete(false);
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
       persistOwnerSecret(next);
       setPassword(next);
@@ -171,6 +174,24 @@ export function Pedidos() {
 
   const current = orders?.find((order) => order.id === selected) ?? null;
   const ownerSecret = apiOwnerPassword(password);
+
+  async function removeOrder() {
+    if (!current) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await api.deleteOrder(ownerSecret, current.id);
+      const next = (orders ?? []).filter((order) => order.id !== current.id);
+      setOrders(next);
+      setSelected(next[0]?.id ?? null);
+      setConfirmDelete(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao excluir o pedido.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   const unlocked = orders !== null;
   const transient = Boolean(error && isOwnerTransientFailure(lastStatus, error));
   const opening =
@@ -250,7 +271,10 @@ export function Pedidos() {
                   type="button"
                   className={order.id === selected ? "is-on" : ""}
                   aria-pressed={order.id === selected}
-                  onClick={() => setSelected(order.id)}
+                  onClick={() => {
+                    setSelected(order.id);
+                    setConfirmDelete(false);
+                  }}
                 >
                   <strong>{titleOf(order.summary)}</strong>
                   <span>{when(order.created_at)}</span>
@@ -383,6 +407,42 @@ export function Pedidos() {
                     Baixar pacote
                   </button>
                 )}
+              <div className="usage-user-danger" data-testid="order-danger">
+                {confirmDelete ? (
+                  <>
+                    <p className="error">
+                      Apaga o livro de {titleOf(current.summary)} por completo: fotos, história,
+                      páginas, arquivos e a OS. A conta da família permanece. Isso não volta atrás.
+                    </p>
+                    <button
+                      type="button"
+                      className="usage-btn-danger"
+                      disabled={deleting}
+                      onClick={() => void removeOrder()}
+                      data-testid="order-delete-confirm"
+                    >
+                      {deleting ? "Excluindo…" : "Confirmar exclusão"}
+                    </button>
+                    <button
+                      type="button"
+                      className="link"
+                      disabled={deleting}
+                      onClick={() => setConfirmDelete(false)}
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="usage-btn-danger"
+                    onClick={() => setConfirmDelete(true)}
+                    data-testid="order-delete"
+                  >
+                    Excluir pedido
+                  </button>
+                )}
+              </div>
             </article>
           )}
         </div>
