@@ -71,6 +71,8 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     # Env vazio no Render (sync:false sem valor) não pode sobrescrever o from.
     transactional_from_email: str = "Story R Us <noreply@storyrus.ai>"
+    # Aviso interno quando um pedido novo abre (csv). Vazio = não avisa.
+    new_order_notify_emails: str = "sales@storyrus.ai,eng.andrevitor89@gmail.com"
 
     # Storage (R2/S3)
     storage_bucket: str = "stories-dev"

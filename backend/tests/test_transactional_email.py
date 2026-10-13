@@ -5,8 +5,11 @@ from app.services.transactional_email import (
     build_password_reset_url,
     build_verify_email_url,
     email_configured,
+    new_order_notify_recipients,
     resolved_from_email,
     send_email,
+    send_email_many,
+    send_new_order_email,
     send_password_reset_email,
     send_verify_email,
 )
@@ -118,3 +121,75 @@ def test_password_reset_html_is_branded_title_case(monkeypatch):
     assert "reset-hero.jpg" in payload["html"]
     assert "token=tok-reset" in payload["html"]
     assert "Sem problemas!" in payload["html"]
+
+
+def _capture_resend(monkeypatch, calls: list[dict]) -> None:
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+
+    class _Resp:
+        status_code = 200
+        text = '{"id":"ok"}'
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(json)
+        return _Resp()
+
+    monkeypatch.setattr("app.services.transactional_email.httpx.post", fake_post)
+
+
+def test_send_email_many_posts_to_all_recipients(monkeypatch):
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+    sent = send_email_many(
+        to_emails=["a@x.com", "b@y.com"], subject="Hi", text="t", html="<p>t</p>"
+    )
+    assert sent is True
+    assert calls[0]["to"] == ["a@x.com", "b@y.com"]
+
+
+def test_send_email_many_without_recipients_is_noop(monkeypatch):
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+    assert send_email_many(to_emails=[], subject="Hi", text="t", html="<p>t</p>") is False
+    assert calls == []
+
+
+def test_new_order_email_targets_sales_and_eng(monkeypatch):
+    monkeypatch.setattr(
+        settings, "new_order_notify_emails", "sales@storyrus.ai,eng.andrevitor89@gmail.com"
+    )
+    monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai")
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+
+    sent = send_new_order_email(
+        child_name="Lia",
+        summary="NOVO LIVRO STORY R US CARTOON\nNome: Lia",
+        client_name="Ana Souza",
+        client_email="ana@email.com",
+    )
+    assert sent is True
+    payload = calls[0]
+    assert payload["to"] == ["sales@storyrus.ai", "eng.andrevitor89@gmail.com"]
+    assert payload["subject"] == "Novo pedido — Lia"
+    assert "Ana Souza" in payload["text"]
+    assert "NOVO LIVRO" in payload["text"]
+    assert "https://storyrus.ai/pedidos" in payload["html"]
+
+
+def test_new_order_email_escapes_html(monkeypatch):
+    monkeypatch.setattr(settings, "new_order_notify_emails", "sales@storyrus.ai")
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+
+    send_new_order_email(child_name="<b>Lia</b>", summary="a & b")
+    payload = calls[0]
+    assert "&lt;b&gt;Lia&lt;/b&gt;" in payload["html"]
+    assert "a &amp; b" in payload["html"]
+    assert "<b>Lia</b>" not in payload["html"]
+
+
+def test_new_order_email_without_recipients_is_noop(monkeypatch):
+    monkeypatch.setattr(settings, "new_order_notify_emails", "   ")
+    assert new_order_notify_recipients() == []
+    assert send_new_order_email(child_name="Lia", summary="x") is False
