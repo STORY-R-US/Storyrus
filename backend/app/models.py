@@ -225,6 +225,8 @@ class Project(Base):
     narrated_video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     character_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
     book_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # Quando o cliente foi avisado por e-mail que a prévia (história + imagens) ficou pronta.
+    preview_notified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     print_requested_at: Mapped[datetime | None] = mapped_column(nullable=True)
     print_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())

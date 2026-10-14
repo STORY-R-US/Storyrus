@@ -3,6 +3,7 @@
 from app.config import settings
 from app.services.transactional_email import (
     build_password_reset_url,
+    build_preview_ready_url,
     build_verify_email_url,
     email_configured,
     new_order_notify_recipients,
@@ -11,6 +12,7 @@ from app.services.transactional_email import (
     send_email_many,
     send_new_order_email,
     send_password_reset_email,
+    send_preview_ready_email,
     send_verify_email,
 )
 
@@ -193,3 +195,51 @@ def test_new_order_email_without_recipients_is_noop(monkeypatch):
     monkeypatch.setattr(settings, "new_order_notify_emails", "   ")
     assert new_order_notify_recipients() == []
     assert send_new_order_email(child_name="Lia", summary="x") is False
+
+
+def test_preview_ready_email_targets_the_client(monkeypatch):
+    monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai")
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+
+    sent = send_preview_ready_email(to_email="ana@email.com", child_name="Lia")
+    assert sent is True
+    payload = calls[0]
+    assert payload["to"] == ["ana@email.com"]
+    assert payload["subject"] == "A prévia do livro de Lia ficou pronta — Story R Us"
+    assert "A prévia ficou pronta!" in payload["text"]
+    assert "Lia" in payload["text"]
+    assert "https://storyrus.ai/app" in payload["html"]
+    assert "Ver minha prévia →" in payload["html"]
+
+
+def test_preview_ready_email_without_name_uses_generic_copy(monkeypatch):
+    monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai")
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+
+    assert send_preview_ready_email(to_email="ana@email.com") is True
+    payload = calls[0]
+    assert payload["subject"] == "Sua prévia ficou pronta — Story R Us"
+    assert "do seu livro" in payload["text"]
+
+
+def test_preview_ready_email_without_email_is_noop(monkeypatch, caplog):
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+    assert send_preview_ready_email(to_email="   ", child_name="Lia") is False
+    assert calls == []
+
+
+def test_preview_ready_url_points_to_the_studio(monkeypatch):
+    monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai/")
+    assert build_preview_ready_url() == "https://storyrus.ai/app"
+
+
+def test_preview_ready_email_escapes_html(monkeypatch):
+    calls: list[dict] = []
+    _capture_resend(monkeypatch, calls)
+    send_preview_ready_email(to_email="ana@email.com", child_name="<b>Lia</b>")
+    html = calls[0]["html"]
+    assert "&lt;b&gt;Lia&lt;/b&gt;" in html
+    assert "<b>Lia</b>" not in html
