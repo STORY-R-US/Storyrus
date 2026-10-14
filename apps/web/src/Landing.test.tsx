@@ -347,6 +347,32 @@ describe("Landing — catálogo", () => {
     expect(esCatalog.textContent).not.toContain("R$");
   });
 
+  it("folheia capa, página e foto no card do catálogo", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    const card = within(catalog).getByText("Meu Pai, Meu Herói").closest("[data-testid='landing-catalog-card']") as HTMLElement;
+    const main = () => card.querySelector(".cat-flip-main") as HTMLImageElement;
+
+    // Ocioso: só a capa, e ela é o primeiro <img> do livro (mantém o comportamento antigo).
+    expect(card.querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
+    const dots = within(card).getAllByTestId("catalog-flip-dot");
+    expect(dots).toHaveLength(3);
+
+    await user.click(dots[1]);
+    await waitFor(() => {
+      expect(main().getAttribute("src")).toEqual(expect.stringContaining("pagina-meupai-heroi.png"));
+    }, { timeout: 2400 });
+    expect(dots[1]).toHaveAttribute("aria-selected", "true");
+
+    await user.click(dots[2]);
+    await waitFor(() => {
+      expect(main().getAttribute("src")).toEqual(expect.stringContaining("foto-meupai-heroi.png"));
+    }, { timeout: 2400 });
+    expect(dots[2]).toHaveAttribute("aria-selected", "true");
+  });
+
   it("aponta os livros realistas para os temas existentes", async () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
