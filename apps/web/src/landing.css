@@ -529,7 +529,9 @@ a.kcat-group-name.is-chip:focus-visible {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 0;
+  /* Filete entre as fotos: 2px de fundo branco aparecendo pelo gap. */
+  gap: 2px;
+  background: #fff;
   padding: 0;
   border-radius: 10px;
   border: 1px solid transparent;
@@ -565,10 +567,7 @@ a.kcat-group-name.is-chip:focus-visible {
   transition: box-shadow 0.2s ease, opacity 0.2s ease;
   opacity: 0.85;
 }
-/* Filete separando as fotos da mesma série: mesma cor do fundo da página. */
-.hero-shot + .hero-shot {
-  border-left: 4px solid #0b1226;
-}
+/* O filete entre as fotos é o fundo branco da moldura visto pelo gap de 2px. */
 .hero-shot:hover:not(:disabled) {
   box-shadow: none;
   opacity: 0.95;
