@@ -556,7 +556,9 @@ a.kcat-group-name.is-chip:focus-visible {
   border: 0;
   border-radius: 0;
   padding: 0;
-  background: #0b1226;
+  /* Fundo branco: varias capas do hero sao PNG com transparencia e, com fundo
+     escuro aqui, o azul-marinho aparecia atras delas. */
+  background: #fff;
   box-shadow: none;
   color: inherit;
   font: inherit;
@@ -637,6 +639,7 @@ a.kcat-group-name.is-chip:focus-visible {
 }
 .cat-display {
   position: relative;
+  z-index: 0;
   width: 100%;
   aspect-ratio: 1 / 1;
   flex: 0 0 auto;
@@ -712,6 +715,7 @@ a.kcat-group-name.is-chip:focus-visible {
 .cat-book-link {
   position: absolute;
   inset: 0;
+  z-index: 3;
   display: block;
 }
 .kbh-frame {
@@ -1228,7 +1232,7 @@ a.kcat-group-name.is-chip:focus-visible {
   background: repeating-linear-gradient(0deg, #f6f2e7 0px, #f6f2e7 1.6px, #ddd6c2 1.6px, #ddd6c2 3.2px);
   border-radius: 0 4px 4px 0; box-shadow: inset 1px 0 2px rgba(0,0,0,.15);
 }
-.cat-flip .fb-stage::before, .ex-tabs .fb-stage::before { width: 4px; }
+.ex-tabs .fb-stage::before { width: 4px; }
 .fb-stage:focus-visible { outline: 3px solid var(--yellow); outline-offset: 4px; }
 .fb-spine {
   position: absolute; top: 0; bottom: 0; left: 0; width: 20px; z-index: 5; pointer-events: none;
@@ -2646,20 +2650,34 @@ img.ex-tab-cover {
 /* flutuação suave da legenda/estrelas do hero */
 .ba-caption { animation: floaty 4.6s ease-in-out infinite; }
 
-/* ===== Catálogo: mini flipbook interativo por livro ===== */
-.cat-flip { position: relative; aspect-ratio: 3 / 4; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.cat-flip .flipbook-mini { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-.cat-flip .fb-stage {
-  width: 60%; max-width: 210px; box-shadow: none;
-  filter: drop-shadow(0 16px 28px rgba(0,0,0,.35)); transition: transform .25s ease;
+/* ===== Catálogo: flip capa → página → foto (como no hero) ===== */
+.cat-flip-under { z-index: 2; }
+.cat-flip-main { z-index: 3; }
+/* capa, página e foto inteiras dentro do quadro quadrado do card */
+#catalogo .cat-book img.cat-flip-main,
+#catalogo .cat-book img.cat-flip-under { object-fit: contain; }
+.cat-flip-main.is-leaf { animation: catFlipFade .6s ease forwards; }
+@keyframes catFlipFade { from { opacity: 1; } to { opacity: 0; } }
+.cat-flip-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
+  width: 34px; height: 34px; padding: 0; border: none; cursor: pointer; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff;
+  font-size: 1.35rem; line-height: 1; display: grid; place-items: center;
+  box-shadow: 0 8px 18px rgba(31,53,104,.35); opacity: 0;
+  transition: opacity .16s ease, transform .16s ease;
 }
-.cat-card:hover .cat-flip .fb-stage { transform: scale(1.05); }
-.cat-flip .fb-count {
-  bottom: 10px; font-size: .68rem; padding: 2px 9px; box-shadow: 0 4px 10px rgba(0,0,0,.18);
+.cat-flip-nav.prev { left: 6px; }
+.cat-flip-nav.next { right: 6px; }
+.cat-display:hover .cat-flip-nav,
+.cat-display:focus-within .cat-flip-nav { opacity: .94; }
+.cat-flip-nav:hover { transform: translateY(-50%) scale(1.08); opacity: 1; }
+@media (hover: none) { .cat-flip-nav { opacity: .94; } }
+.cat-flip-dots {
+  position: absolute; left: 0; right: 0; bottom: 10px; z-index: 6;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
 }
-.cat-flip-off { position: absolute; left: 10px; bottom: 10px; z-index: 2; background: #4b2ea8; color: #fff;
-  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .72rem; letter-spacing: .04em;
-  padding: 3px 10px; border-radius: 999px; box-shadow: 0 6px 14px rgba(0,0,0,.18); }
+.cat-flip-dots .fb-dot { width: 9px; height: 9px; background: rgba(255,255,255,.72); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.cat-flip-dots .fb-dot.on { background: var(--yellow); }
 
 @media (prefers-reduced-motion: reduce) {
   .cat-cover img, .howex-card img,
@@ -2667,7 +2685,8 @@ img.ex-tab-cover {
   .studio-cover > img { transform: translate(-50%, -50%); }
   .fb-turn.next, .fb-turn.prev,
   .fb-leaf.next, .fb-leaf.prev,
-  .fb-fx-fade.next, .fb-fx-fade.prev { animation: none; }
+  .fb-fx-fade.next, .fb-fx-fade.prev,
+  .cat-flip-main.is-leaf { animation: none; }
 }
 
 /* ===== Auth (login / cadastro) — card claro legível no tema escuro ===== */
