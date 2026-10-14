@@ -506,6 +506,29 @@ export const handlers = [
   http.get("*/v1/voices", () =>
     HttpResponse.json({ items: [], custom_voice_available: false }),
   ),
+  http.get("*/v1/usage/orders/mine", ({ request }) => {
+    const auth = request.headers.get("Authorization") || "";
+    if (!auth.startsWith("Bearer ")) {
+      return HttpResponse.json({ detail: "Nao autenticado" }, { status: 401 });
+    }
+    return HttpResponse.json([
+      {
+        id: "my-order-1",
+        project_id: "p9",
+        summary: "NOVO LIVRO STORY R US CARTOON\nNome: Lia",
+        created_at: new Date().toISOString(),
+        child_age: 7,
+        book_size: "P",
+        cover_type: "soft",
+        style: "cartoon",
+        photo_urls: [],
+        has_story: true,
+        book_files: [{ label: "PDF do livro", url: "https://arquivos.test/lia.pdf" }],
+        print_status: "files_ready",
+        payment_status: "pending",
+      },
+    ]);
+  }),
   http.get("*/v1/usage", ({ request }) => {
     const password = request.headers.get("X-Usage-Password");
     const auth = request.headers.get("Authorization") || "";

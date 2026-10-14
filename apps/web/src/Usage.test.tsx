@@ -227,6 +227,24 @@ describe("Pedidos", () => {
     expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument();
     setToken(null);
   });
+
+  it("conta comum vê só os próprios pedidos, sem senha e sem controles de admin", async () => {
+    const { setToken } = await import("./api");
+    const { state } = await import("./test/server");
+    state.isOwner = false;
+    setToken("member-token");
+    render(<Pedidos />);
+
+    expect(
+      await screen.findByRole("heading", { name: /novo livro story r us cartoon/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("order-delete")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("order-os")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /pdf do livro/i }),
+    ).toHaveAttribute("href", "https://arquivos.test/lia.pdf");
+  });
 });
 
 describe("Painel /usuarios", () => {

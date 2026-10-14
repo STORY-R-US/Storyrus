@@ -59,6 +59,27 @@ def test_summary_records_pet_gender_and_companion():
     assert "Quantidade:" not in text
 
 
+def test_summary_records_dedication_from_the_studio():
+    text = build_book_order_summary(
+        style="realistic",
+        child_name="Lia",
+        language="pt-BR",
+        theme="Papai herói",
+        extra_names=[],
+        photo_count=1,
+        dedication="Para a Lia,\ncom todo o  amor.",
+    )
+    assert "Dedicatória: Para a Lia, com todo o amor.\n" in text
+    assert "Dedicatória" not in build_book_order_summary(
+        style="realistic",
+        child_name="Lia",
+        language="pt-BR",
+        theme="Papai herói",
+        extra_names=[],
+        photo_count=1,
+    )
+
+
 def test_summary_records_copy_count_for_party_favors():
     text = build_book_order_summary(
         style="realistic",
@@ -70,6 +91,19 @@ def test_summary_records_copy_count_for_party_favors():
         quantity=20,
     )
     assert text.endswith("Quantidade: 20\nFotos anexadas: 1 (arquivo recebido)")
+
+
+def test_order_summary_shows_the_dedication_typed_in_the_studio(auth_client, monkeypatch):
+    """A dedicatória escrita no "Gerar o livro" aparece no pedido do dono e do cliente."""
+    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    pid = _create(auth_client, dedication="Para a Lia, com amor.")
+    up = _photo(auth_client, pid)
+    assert up.status_code == 201, up.text
+    owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    summary = owner.json()["orders"][0]["summary"]
+    assert "Dedicatória: Para a Lia, com amor." in summary
 
 
 def test_summary_anything_but_cartoon_is_realista():

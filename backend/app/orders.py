@@ -123,6 +123,7 @@ def build_book_order_summary(
     theme: str | None,
     extra_names: list[str],
     photo_count: int,
+    dedication: str | None = None,
     gender: str | None = None,
     subject: str | None = None,
     also_name: str | None = None,
@@ -188,8 +189,11 @@ def build_book_order_summary(
     tail = [
         f"Idioma: {language_label(language)}",
         f"Tema: {(theme or '').strip() or '—'}",
-        f"Personagens: {', '.join(characters) if characters else '—'}",
     ]
+    dedication_text = _one_line(dedication, 500)
+    if dedication_text:
+        tail.append(f"Dedicatória: {dedication_text}")
+    tail.append(f"Personagens: {', '.join(characters) if characters else '—'}")
     copies = int(quantity) if isinstance(quantity, int) else None
     if copies is not None and 1 <= copies <= 500:
         tail.append(f"Quantidade: {copies}")

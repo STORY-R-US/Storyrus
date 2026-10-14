@@ -138,6 +138,7 @@ def register_order_ticket(
         theme=theme,
         extra_names=extras,
         photo_count=max(int(photo_count or 0), 1),
+        dedication=project.dedication,
         gender=gender,
         subject=subject,
         also_name=also_name,
