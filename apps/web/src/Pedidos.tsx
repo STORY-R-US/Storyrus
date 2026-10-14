@@ -86,6 +86,107 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
   return rows;
 }
 
+/** Visão de leitura do cliente: só os pedidos da própria conta, com status e arquivos. */
+function PersonalOrders({
+  orders,
+  loading,
+  error,
+}: {
+  orders: OrderTicket[] | null;
+  loading: boolean;
+  error: string | null;
+}) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const current = orders?.find((order) => order.id === selected) ?? orders?.[0] ?? null;
+
+  return (
+    <div className="usage">
+      <header className="usage-head">
+        <img className="hdr-logo" src={logo} alt="Story R Us" />
+        <div>
+          <h1>Meus Pedidos</h1>
+          <p className="muted">
+            Aqui ficam os livros que você criou, com o status de produção e os arquivos.
+          </p>
+        </div>
+        <a className="link" href="/app">
+          Voltar ao estúdio
+        </a>
+      </header>
+
+      {error && <p className="error">{error}</p>}
+
+      {loading && orders === null ? (
+        <p className="muted" data-testid="pedidos-loading">
+          Carregando seus pedidos…
+        </p>
+      ) : (orders ?? []).length === 0 ? (
+        <p className="muted" data-testid="pedidos-empty">
+          Você ainda não tem pedidos. Crie um livro no estúdio e ele aparece aqui.
+        </p>
+      ) : (
+        <div className="usage-orders">
+          <ul className="usage-order-list" aria-label="Lista de pedidos">
+            {(orders ?? []).map((order) => (
+              <li key={order.id}>
+                <button
+                  type="button"
+                  className={order.id === current?.id ? "is-on" : ""}
+                  aria-pressed={order.id === current?.id}
+                  onClick={() => setSelected(order.id)}
+                >
+                  <strong>{titleOf(order.summary)}</strong>
+                  <span>{when(order.created_at)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {current && (
+            <article className="usage-order-detail" data-testid="order-detail">
+              <h2>{titleOf(current.summary)}</h2>
+              <dl>
+                {fieldsOf(current).map((row) => (
+                  <div key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd>{row.value || "—"}</dd>
+                  </div>
+                ))}
+              </dl>
+              {(current.photo_urls ?? []).length > 0 && (
+                <div className="usage-order-photos">
+                  {(current.photo_urls ?? []).map((url) => (
+                    <figure key={url}>
+                      <img src={url} alt="Foto enviada no pedido" />
+                      <a href={url} target="_blank" rel="noreferrer">
+                        Abrir imagem
+                      </a>
+                    </figure>
+                  ))}
+                </div>
+              )}
+              {(current.book_files ?? []).length > 0 && (
+                <section className="order-os">
+                  <h3>Arquivos do livro</h3>
+                  <ul className="order-os-files" data-testid="order-book-files">
+                    {(current.book_files ?? []).map((file) => (
+                      <li key={`${file.label}-${file.url}`}>
+                        <a href={file.url} target="_blank" rel="noreferrer">
+                          {file.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              <p className="muted">{when(current.created_at)}</p>
+            </article>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Pedidos() {
   useOwnerPageTitle("/pedidos");
   const [password, setPassword] = useState(() => readOwnerSecret());
@@ -104,6 +205,11 @@ export function Pedidos() {
     projects: number;
     awaitingPhoto: number;
   } | null>(null);
+  // Papel da conta: admin vê o painel geral; os demais veem só os próprios pedidos.
+  const [role, setRole] = useState<"unknown" | "admin" | "member">("unknown");
+  const [personal, setPersonal] = useState<OrderTicket[] | null>(null);
+  const [personalError, setPersonalError] = useState<string | null>(null);
+  const [personalLoading, setPersonalLoading] = useState(false);
 
   const load = useCallback(async (secret: string) => {
     setLoading(true);
@@ -143,7 +249,53 @@ export function Pedidos() {
     }
   }, []);
 
+  // Descobre o papel da conta: admin mantém o painel geral; os demais veem só os
+  // próprios pedidos. Sem sessão, cai no portão com a senha do painel (dono).
   useEffect(() => {
+    if (!getToken()) {
+      setRole("admin");
+      return;
+    }
+    let alive = true;
+    api
+      .me()
+      .then((me) => {
+        if (alive) setRole(me.is_admin || me.is_owner ? "admin" : "member");
+      })
+      .catch(() => {
+        if (alive) setRole("member");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Pedidos da própria conta (cliente): leitura, sem senha e sem controles de admin.
+  useEffect(() => {
+    if (role !== "member") return;
+    let alive = true;
+    setPersonalLoading(true);
+    setPersonalError(null);
+    api
+      .myOrders()
+      .then((list) => {
+        if (alive) setPersonal(list);
+      })
+      .catch((err: Error) => {
+        if (!alive) return;
+        setPersonal([]);
+        setPersonalError(err.message || "Falha ao carregar seus pedidos.");
+      })
+      .finally(() => {
+        if (alive) setPersonalLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [role]);
+
+  useEffect(() => {
+    if (role !== "admin") return;
     if (password) {
       void load(password);
       return;
@@ -152,7 +304,7 @@ export function Pedidos() {
       setSessionTried(true);
       void load(OWNER_SESSION_TOKEN);
     }
-  }, [password, load, sessionTried]);
+  }, [role, password, load, sessionTried]);
 
   // Cold start: uma nova tentativa automática após falha transitória.
   useEffect(() => {
@@ -200,6 +352,27 @@ export function Pedidos() {
       Boolean(password) ||
       (!sessionTried && canTryOwnerSession()) ||
       (transient && canTryOwnerSession()));
+
+  if (role === "unknown") {
+    return (
+      <OwnerAccessGate
+        title="Pedidos"
+        loginNext="/pedidos"
+        draft={draft}
+        onDraftChange={setDraft}
+        onSubmitPassword={onSubmit}
+        onRetrySession={() => void load(password || OWNER_SESSION_TOKEN)}
+        loading={canTryOwnerSession()}
+        error={null}
+        opening={canTryOwnerSession()}
+        transient={false}
+      />
+    );
+  }
+
+  if (role === "member") {
+    return <PersonalOrders orders={personal} loading={personalLoading} error={personalError} />;
+  }
 
   if (!unlocked) {
     return (

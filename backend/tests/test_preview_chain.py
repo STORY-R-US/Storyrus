@@ -287,6 +287,77 @@ async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, mo
     assert u.credits == 20  # EBOOK job já existia; não debitou VIDEO
 
 
+def _capture_preview_email(monkeypatch) -> list[dict]:
+    sent: list[dict] = []
+    monkeypatch.setattr(
+        "app.services.transactional_email.send_preview_ready_email",
+        lambda **kwargs: sent.append(kwargs) or True,
+    )
+    return sent
+
+
+def test_preview_ready_emails_the_client_once(db, monkeypatch):
+    """Ao fim da prévia (história + imagens), o cliente recebe um e-mail — só uma vez."""
+    u, p = _seed(db)
+    p.child_name = "Lia"
+    db.commit()
+    sent = _capture_preview_email(monkeypatch)
+
+    job = _job(db, p, "EBOOK", payload={"preview_chain": True})
+    preview_chain.finalize_preview_ebook(db, p, job)
+    db.refresh(p)
+    assert len(sent) == 1
+    assert sent[0]["to_email"] == u.email
+    assert sent[0]["child_name"] == "Lia"
+    assert p.preview_notified_at is not None
+
+    # Re-finalizar (retry do job) não manda o aviso de novo.
+    preview_chain.finalize_preview_ebook(db, p, job)
+    assert len(sent) == 1
+
+
+def test_preview_ready_skips_guest_accounts(db, monkeypatch):
+    """Conta convidada (sentinela) não tem e-mail real: nenhum aviso é enviado."""
+    u, p = _seed(db)
+    u.email = "convidado@storyrus.app"
+    u.password_hash = "!guest"
+    db.commit()
+    sent = _capture_preview_email(monkeypatch)
+
+    job = _job(db, p, "EBOOK", payload={"preview_chain": True})
+    preview_chain.finalize_preview_ebook(db, p, job)
+    db.refresh(p)
+    assert sent == []
+    # Ainda marcamos como notificado para não tentar de novo.
+    assert p.preview_notified_at is not None
+
+
+def test_non_preview_ebook_does_not_email(db, monkeypatch):
+    """Livro gerado fora da prévia automática não dispara o aviso de prévia pronta."""
+    _, p = _seed(db)
+    sent = _capture_preview_email(monkeypatch)
+
+    job = _job(db, p, "EBOOK")
+    preview_chain.finalize_preview_ebook(db, p, job)
+    db.refresh(p)
+    assert sent == []
+    assert p.preview_notified_at is None
+
+
+def test_preview_ready_email_failure_is_swallowed(db, monkeypatch):
+    """Resend fora do ar não pode derrubar o job da prévia."""
+    _, p = _seed(db)
+
+    def boom(**_kwargs):
+        raise RuntimeError("resend fora do ar")
+
+    monkeypatch.setattr("app.services.transactional_email.send_preview_ready_email", boom)
+    job = _job(db, p, "EBOOK", payload={"preview_chain": True})
+    preview_chain.finalize_preview_ebook(db, p, job)  # não levanta
+    db.refresh(p)
+    assert p.book_approved_at is not None
+
+
 @pytest.mark.asyncio
 async def test_preview_chain_runs_with_zero_credits(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())

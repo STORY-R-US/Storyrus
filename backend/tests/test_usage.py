@@ -454,3 +454,33 @@ def test_delete_order_apaga_tudo_com_fk_enforcada():
         assert db.query(UsageEvent).filter_by(project_id=project_id).count() == 0
     finally:
         db.close()
+
+
+def test_my_orders_lists_only_the_accounts_tickets(auth_client):
+    """A tela "Meus Pedidos" do cliente nunca mostra pedido de outra conta."""
+    db = _session(auth_client)
+    try:
+        me = db.query(User).filter(User.email == "auth@example.com").one()
+        other = User(email="other@example.com", password_hash="x", credits=0)
+        db.add(other)
+        db.flush()
+        mine = Project(user_id=me.id, status="EBOOK_READY", child_name="Lia")
+        theirs = Project(user_id=other.id, status="EBOOK_READY", child_name="Bia")
+        db.add_all([mine, theirs])
+        db.flush()
+        db.add(OrderTicket(project_id=mine.id, summary="Meu\nCriança: Lia"))
+        db.add(OrderTicket(project_id=theirs.id, summary="Deles\nCriança: Bia"))
+        db.commit()
+    finally:
+        db.close()
+
+    r = auth_client.get("/v1/usage/orders/mine")
+    assert r.status_code == 200, r.text
+    assert r.headers["cache-control"] == "private, no-store"
+    body = r.json()
+    assert len(body) == 1
+    assert "Lia" in body[0]["summary"]
+
+
+def test_my_orders_requires_a_session(client):
+    assert client.get("/v1/usage/orders/mine").status_code == 401

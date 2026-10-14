@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.config import settings
 from app.database import get_db
+from app.deps import get_current_user
 from app.models import Asset, AssetKind, Job, OrderTicket, PrintOrder, Project, UsageEvent, User
 from app.order_tickets import backfill_order_tickets
 from app.owner_auth import require_owner_password
@@ -173,21 +174,33 @@ def _give_up(db: Session, action: str) -> None:
     db.rollback()
 
 
-def _load_orders(db: Session) -> list[OrderTicket]:
-    return list(
-        db.scalars(select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)).all()
-    )
+def _load_orders(db: Session, user_id: uuid.UUID | None = None) -> list[OrderTicket]:
+    stmt = select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
+    if user_id is not None:
+        stmt = stmt.join(Project, Project.id == OrderTicket.project_id).where(
+            Project.user_id == user_id
+        )
+    return list(db.scalars(stmt).all())
 
 
-def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
+def _collect_orders(
+    db: Session,
+    *,
+    user_id: uuid.UUID | None = None,
+    backfill: bool = True,
+) -> tuple[list[OrderTicketOut], int, int, int]:
     """Pedidos do painel, sem ler arquivos no storage.
 
     Um pedido com metadado torto, ou uma OS que não abre, não pode derrubar a lista.
+
+    `user_id` limita a lista aos pedidos da própria conta (tela "Meus Pedidos" de
+    quem não é admin). Nesse caso não roda o backfill global.
     """
-    try:
-        backfill_order_tickets(db, prepare=False)
-    except Exception:
-        _give_up(db, "backfill")
+    if backfill:
+        try:
+            backfill_order_tickets(db, prepare=False)
+        except Exception:
+            _give_up(db, "backfill")
     projects_total = int(db.scalar(select(func.count()).select_from(Project)) or 0)
     users_total = int(db.scalar(select(func.count()).select_from(User)) or 0)
     ticketed_ids = select(OrderTicket.project_id)
@@ -195,7 +208,7 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
         db.scalar(select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids)))
         or 0
     )
-    order_rows = _load_orders(db)
+    order_rows = _load_orders(db, user_id)
     try:
         attach_service_orders(
             db,
@@ -204,7 +217,7 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
         )
     except Exception:
         _give_up(db, "abrir ordem de serviço")
-        order_rows = _load_orders(db)
+        order_rows = _load_orders(db, user_id)
     project_ids = [ticket.project_id for ticket in order_rows]
     try:
         photo_rows = (
@@ -222,7 +235,7 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
     except Exception:
         _give_up(db, "fotos")
         photo_rows = []
-        order_rows = _load_orders(db)
+        order_rows = _load_orders(db, user_id)
     photos_by_project: dict = defaultdict(list)
     for asset in photo_rows:
         try:
@@ -240,7 +253,7 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
     except Exception:
         _give_up(db, "impressos")
         print_rows = []
-        order_rows = _load_orders(db)
+        order_rows = _load_orders(db, user_id)
     print_by_project = {row.project_id: row for row in print_rows}
     try:
         stored_files = (
@@ -258,7 +271,7 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
     except Exception:
         _give_up(db, "arquivos do livro")
         stored_files = []
-        order_rows = _load_orders(db)
+        order_rows = _load_orders(db, user_id)
     books_by_project: dict = defaultdict(list)
     for asset in stored_files:
         try:
@@ -319,6 +332,18 @@ def _collect_orders(db: Session) -> tuple[list[OrderTicketOut], int, int, int]:
             logger.exception("pedidos: item %s", getattr(ticket, "id", None))
             continue
     return orders, users_total, projects_total, projects_awaiting_photo
+
+
+@router.get("/orders/mine", response_model=list[OrderTicketOut])
+def my_orders(
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+) -> list[OrderTicketOut]:
+    """Pedidos da própria conta (a lista geral é exclusiva do painel admin)."""
+    response.headers["Cache-Control"] = "private, no-store"
+    orders, _, _, _ = _collect_orders(db, user_id=user.id, backfill=False)
+    return orders
 
 
 @router.get("", response_model=UsageOut)

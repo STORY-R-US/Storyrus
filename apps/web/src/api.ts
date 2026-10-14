@@ -1,6 +1,7 @@
 import type {
   Job,
   JobAccepted,
+  OrderTicket,
   OwnerUser,
   OwnerUsersReport,
   OwnerUserUpdate,
@@ -870,6 +871,10 @@ export const api = {
   },
   async deleteOrder(password: string | null | undefined, id: string) {
     await ownerJson<void>(`/v1/usage/orders/${id}`, password, { method: "DELETE" });
+  },
+  /** Pedidos da própria conta (visão de quem não é admin em "Meus Pedidos"). */
+  async myOrders() {
+    return req<OrderTicket[]>("/v1/usage/orders/mine");
   },
   async users(password?: string | null) {
     return ownerJson<OwnerUsersReport>("/v1/users", password);

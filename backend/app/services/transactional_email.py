@@ -85,6 +85,11 @@ def build_password_reset_url(token: str, email: str | None = None) -> str:
     return f"{origin}/redefinir-senha?{urlencode(query)}"
 
 
+def build_preview_ready_url() -> str:
+    """Onde o cliente vê a prévia (estúdio) depois do aviso por e-mail."""
+    return f"{public_web_origin()}/app"
+
+
 def _branded_html(
     *,
     hero_file: str,
@@ -370,3 +375,84 @@ def send_new_order_email(
     )
     html = _new_order_html(rows=rows, summary=summary_text, order_url=url)
     return send_email_many(to_emails=recipients, subject=subject, text=text, html=html)
+
+
+def _preview_ready_html(*, child_name: str, preview_url: str) -> str:
+    site = "www.storyrus.ai"
+    who = ""
+    if (child_name or "").strip():
+        who = f" de <strong>{escape(child_name.strip())}</strong>"
+    cta = (
+        f'<p style="margin:22px 0 0 0;"><a href="{escape(preview_url, quote=True)}" '
+        f'style="display:inline-block;background:{_COLOR_CTA};color:#ffffff;text-decoration:none;'
+        f'font-size:16px;font-weight:700;padding:14px 28px;border-radius:999px;">'
+        "Ver minha prévia →</a></p>"
+    )
+    return f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A prévia ficou pronta</title>
+</head>
+<body style="margin:0;padding:0;background:{_COLOR_BG};font-family:Arial,Helvetica,sans-serif;color:{_COLOR_INK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{_COLOR_BG};">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;">
+          <tr>
+            <td style="padding:28px 32px;">
+              <h1 style="margin:0 0 8px 0;font-size:24px;line-height:1.3;color:{_COLOR_INK};">A prévia ficou pronta! 🎉</h1>
+              <p style="margin:0;font-size:15px;line-height:1.55;color:{_COLOR_INK};">
+                A história e as ilustrações{who} já foram criadas. Entre no estúdio para ver cada página e aprovar seu livro.
+              </p>
+              {cta}
+              <p style="margin:22px 0 0 0;font-size:12px;color:{_COLOR_MUTED};">
+                Você recebeu este e-mail porque criou um livro na Story R Us. {site}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+
+def send_preview_ready_email(
+    *,
+    to_email: str,
+    child_name: str = "",
+    preview_url: str = "",
+) -> bool:
+    """Avisa o cliente que a prévia (história + imagens) ficou pronta (best-effort)."""
+    email = (to_email or "").strip()
+    if not email:
+        logger.info("preview_ready_email_skipped reason=no_email")
+        return False
+    name = (child_name or "").strip()
+    url = (preview_url or "").strip() or build_preview_ready_url()
+    subject = (
+        f"A prévia do livro de {name} ficou pronta — Story R Us"
+        if name
+        else "Sua prévia ficou pronta — Story R Us"
+    )
+    text = "\n".join(
+        [
+            "A prévia ficou pronta!",
+            "",
+            (
+                f"A história e as ilustrações de {name} já foram criadas."
+                if name
+                else "A história e as ilustrações do seu livro já foram criadas."
+            ),
+            "Entre no estúdio para ver cada página e aprovar seu livro.",
+            "",
+            f"Ver minha prévia: {url}",
+            "",
+            "www.storyrus.ai",
+        ]
+    )
+    html = _preview_ready_html(child_name=name, preview_url=url)
+    return send_email(to_email=email, subject=subject, text=text, html=html)

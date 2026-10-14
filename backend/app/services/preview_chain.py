@@ -69,6 +69,11 @@ def finalize_preview_ebook(db: Session, project: Project, source_job: Job) -> No
     if not is_preview_chain(source_job):
         return
     project.book_approved_at = _now()
+    # Só avisa o cliente uma vez: a marca é gravada antes do envio (at-most-once).
+    notify_email = _preview_recipient(db, project) if project.preview_notified_at is None else None
+    if project.preview_notified_at is None:
+        project.preview_notified_at = _now()
+    child_name = (project.child_name or "").strip()
     nested = db.begin_nested()
     try:
         from app.printkit.service import open_print_order
@@ -80,6 +85,36 @@ def finalize_preview_ebook(db: Session, project: Project, source_job: Job) -> No
         logger.exception("os da previa falhou project=%s", project.id)
     db.commit()
     logger.info("preview_chain finalized at EBOOK project=%s", project.id)
+    if notify_email:
+        _send_preview_ready_notice(notify_email, child_name)
+
+
+def _preview_recipient(db: Session, project: Project) -> str | None:
+    """E-mail do cliente para o aviso de prévia pronta (None se guest/sem e-mail)."""
+    from app.security import is_guest_user
+
+    try:
+        user = db.get(User, project.user_id)
+    except Exception:
+        logger.exception("preview_ready: user lookup falhou project=%s", project.id)
+        return None
+    if user is None:
+        return None
+    email = (user.email or "").strip()
+    if not email or is_guest_user(email=email, password_hash=user.password_hash or ""):
+        logger.info("preview_ready_email_skipped project=%s reason=guest_or_no_email", project.id)
+        return None
+    return email
+
+
+def _send_preview_ready_notice(to_email: str, child_name: str) -> None:
+    """Envia o aviso de prévia pronta sem derrubar o job (best-effort)."""
+    from app.services.transactional_email import send_preview_ready_email
+
+    try:
+        send_preview_ready_email(to_email=to_email, child_name=child_name)
+    except Exception:
+        logger.exception("preview_ready_email falhou to=%s", to_email)
 
 
 def continue_preview_chain(
