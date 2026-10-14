@@ -1988,6 +1988,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "dark";
   });
   const [heroPick, setHeroPick] = useState(0);
+  const heroH1Ref = useRef<HTMLHeadingElement>(null);
+  const heroCarouselRef = useRef<HTMLDivElement>(null);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -2169,6 +2171,62 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     els.forEach((el, i) => { (el as HTMLElement).style.transitionDelay = `${(i % 3) * 0.1}s`; io.observe(el); });
     return () => io.disconnect();
   }, []);
+
+  // Dimensiona o carrossel do hero para a largura da linha do título que vai
+  // de "inesquecível" até "protagonista", mantendo as fotos proporcionais.
+  useEffect(() => {
+    const carousel = heroCarouselRef.current;
+    const h1 = heroH1Ref.current;
+    if (!carousel || !h1) return;
+
+    const layout = () => {
+      const g2 = h1.querySelector<HTMLElement>(".g2");
+      let spanW = 0;
+      if (g2 && typeof document.createRange === "function") {
+        const range = document.createRange();
+        if (typeof range.getClientRects === "function") {
+          range.selectNodeContents(h1);
+          const rects = Array.from(range.getClientRects());
+          const gr = g2.getBoundingClientRect();
+          const mid = (gr.top + gr.bottom) / 2;
+          const sameLine = rects.filter((r) => Math.abs((r.top + r.bottom) / 2 - mid) < gr.height / 2 + 1);
+          const source = sameLine.length ? sameLine : [gr];
+          spanW = Math.max(...source.map((r) => r.right)) - Math.min(...source.map((r) => r.left));
+        }
+      }
+      if (!spanW) return;
+
+      carousel.style.setProperty("--hero-w", `${Math.round(spanW)}px`);
+
+      // Moldura (padding 5 + border 1 em cada lado) + 2 filetes de 4px.
+      const imgBudget = spanW - 5 * 2 - 1 * 2 - 4 * 2;
+      carousel.querySelectorAll<HTMLElement>(".hero-series-inner").forEach((inner) => {
+        const imgs = Array.from(inner.querySelectorAll("img"));
+        let ratio = 0;
+        let ready = imgs.length > 0;
+        for (const img of imgs) {
+          if (img.naturalWidth && img.naturalHeight) ratio += img.naturalWidth / img.naturalHeight;
+          else ready = false;
+        }
+        if (!ready || !ratio) return;
+        const h = Math.round(Math.min(420, Math.max(70, imgBudget / ratio)));
+        inner.style.setProperty("--hero-shot-h", `${h}px`);
+      });
+    };
+
+    layout();
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(layout);
+    ro?.observe(h1);
+    const onImgLoad = () => layout();
+    const imgs = Array.from(carousel.querySelectorAll("img"));
+    imgs.forEach((img) => img.addEventListener("load", onImgLoad));
+    window.addEventListener("resize", onImgLoad);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", onImgLoad);
+      imgs.forEach((img) => img.removeEventListener("load", onImgLoad));
+    };
+  }, [lang, variant]);
 
   useEffect(() => {
     try { localStorage.setItem("coverFont", coverFont); } catch { /* ignore */ }
@@ -2589,10 +2647,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       {/* HERO — proposta de valor + faixa de livros */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
-          <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
+          <h1 ref={heroH1Ref}>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <div className="hero-carousel" aria-label={t.book_carousel}>
+        <div className="hero-carousel" ref={heroCarouselRef} aria-label={t.book_carousel}>
           <div
             className="hero-carousel-track"
             style={{ transform: `translateX(-${(Math.floor(heroPick / 3) % heroStrip.length) * 100}%)` }}

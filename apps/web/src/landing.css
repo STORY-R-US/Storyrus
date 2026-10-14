@@ -495,9 +495,10 @@ a.kcat-group-name.is-chip:focus-visible {
 .hero-carousel {
   overflow: hidden;
   width: 100%;
-  max-width: 880px;
+  /* Largura medida da linha do título ("inesquecível" → "protagonista"). */
+  max-width: var(--hero-w, 848px);
   margin: 8px auto 0;
-  padding: 14px 16px 16px;
+  padding: 14px 0 16px;
   box-sizing: border-box;
 }
 .hero-carousel-track {
@@ -544,7 +545,7 @@ a.kcat-group-name.is-chip:focus-visible {
   box-shadow: 0 0 0 1px #fff, 0 0 10px rgba(255, 255, 255, 0.7), 0 8px 18px rgba(0, 0, 0, 0.16);
 }
 .hero-shot {
-  height: clamp(150px, 13vw, 190px);
+  height: var(--hero-shot-h, clamp(150px, 13vw, 190px));
   width: auto;
   max-width: 100%;
   flex: 0 0 auto;
