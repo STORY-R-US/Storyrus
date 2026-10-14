@@ -365,12 +365,10 @@ async def test_preview_ebook_fecha_com_capa_se_as_outras_imagens_travam(
     monkeypatch.setattr("app.workers.handlers.ebook.settings.offline_fallback", False)
     monkeypatch.setattr("app.workers.handlers.ebook.settings.preview_image_timeout_s", 0.05)
 
-    calls = {"n": 0}
-
     class SlowAfterCover:
-        async def generate_scene(self, **_kwargs):
-            calls["n"] += 1
-            if calls["n"] == 1:
+        async def generate_scene(self, *, prompt="", **_kwargs):
+            # A capa responde na hora; página e "na mão" ficam presas.
+            if "capa de livro infantil" in prompt.lower():
                 return ImageResult(image_bytes=b"COVER", mime_type="image/png", cost_usd=0.01)
             await asyncio.sleep(30)
             return ImageResult(image_bytes=b"LATE", mime_type="image/png", cost_usd=0.01)
@@ -416,6 +414,35 @@ async def test_preview_ebook_falha_uma_vez_se_nenhuma_imagem_sai(db, mem_storage
     assert j.status == JobStatus.FAILED.value
     assert j.attempts == 1
     assert "imagens" in (j.error or "").lower()
+
+
+@pytest.mark.asyncio
+async def test_preview_ebook_gera_capa_e_pagina_em_paralelo(db, mem_storage, monkeypatch):
+    """A página não espera a capa: as duas ficam em voo juntas (senão o passo demora 3x)."""
+    monkeypatch.setattr("app.workers.handlers.ebook.settings.offline_fallback", False)
+
+    in_flight = 0
+    peak = 0
+    both_started = asyncio.Event()
+
+    class ParallelProbe:
+        async def generate_scene(self, **_kwargs):
+            nonlocal in_flight, peak
+            in_flight += 1
+            peak = max(peak, in_flight)
+            if in_flight >= 2:
+                both_started.set()
+            await asyncio.wait_for(both_started.wait(), timeout=2)
+            in_flight -= 1
+            return ImageResult(image_bytes=b"IMG", mime_type="image/png", cost_usd=0.01)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: ParallelProbe())
+    p = _preview_project(db, mem_storage)
+    j = _job(db, p, "EBOOK", payload={"preview_chain": True})
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    assert peak >= 2
 
 
 def test_has_active_preview_ignores_unreadable_rows():

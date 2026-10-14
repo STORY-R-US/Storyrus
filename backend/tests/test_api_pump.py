@@ -23,10 +23,15 @@ def test_kick_acorda_o_pump():
     assert api_pump._wake.is_set()
 
 
-def test_preview_image_timeout_covers_one_openai_retry():
-    """O teto da figura não pode ser menor que um timeout do GPT Image mais um retry."""
+def test_preview_image_timeout_covers_one_openai_attempt():
+    """O teto da figura precisa cobrir um disparo do GPT Image (com folga).
+
+    A prévia é best-effort: com as três figuras em paralelo, esperar um retry
+    inteiro deixava o passo em Imagens por muitos minutos. O teto cobre um
+    disparo para não cortar um sucesso lento no meio.
+    """
     dev = Settings()
-    assert dev.preview_image_timeout_s >= dev.openai_timeout_s * 2 + dev.openai_retry_base_s
+    assert dev.preview_image_timeout_s >= dev.openai_timeout_s + dev.openai_retry_base_s
 
 
 def test_job_pump_respeita_override():
