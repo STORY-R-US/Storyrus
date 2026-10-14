@@ -209,8 +209,9 @@ def test_preview_ready_email_targets_the_client(monkeypatch):
     assert payload["subject"] == "A prévia do livro de Lia ficou pronta — Story R Us"
     assert "A prévia ficou pronta!" in payload["text"]
     assert "Lia" in payload["text"]
-    assert "https://storyrus.ai/app" in payload["html"]
-    assert "Ver minha prévia →" in payload["html"]
+    assert "Meus Pedidos" in payload["text"]
+    assert "https://storyrus.ai/pedidos" in payload["html"]
+    assert "Ver meu pedido →" in payload["html"]
 
 
 def test_preview_ready_email_without_name_uses_generic_copy(monkeypatch):
@@ -231,9 +232,9 @@ def test_preview_ready_email_without_email_is_noop(monkeypatch, caplog):
     assert calls == []
 
 
-def test_preview_ready_url_points_to_the_studio(monkeypatch):
+def test_preview_ready_url_points_to_my_orders(monkeypatch):
     monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai/")
-    assert build_preview_ready_url() == "https://storyrus.ai/app"
+    assert build_preview_ready_url() == "https://storyrus.ai/pedidos"
 
 
 def test_preview_ready_email_escapes_html(monkeypatch):
