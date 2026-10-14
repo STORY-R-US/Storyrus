@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
+from io import BytesIO
 
 from fastapi import (
     APIRouter,
@@ -14,6 +16,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app import storage
@@ -28,6 +31,39 @@ from app.services.transactional_email import send_new_order_email
 from .common import get_owned_project
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+# Lado maior guardado. Acima disso o GPT Image estoura o tempo da prévia.
+_MAX_EDGE = 2048
+
+
+def _normalize_photo(data: bytes) -> bytes:
+    """JPEG que o Pillow (e o provedor de imagem) conseguem abrir.
+
+    HEIC do iPhone e arquivo que não é imagem viram 400 aqui, em vez de
+    um projeto CREATED cujo avatar falha minutos depois no worker.
+    """
+    try:
+        image = Image.open(BytesIO(data))
+        image.load()
+    except Exception as exc:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Não foi possível ler a foto. Envie JPG, PNG ou WEBP. "
+            "No iPhone, exporte a foto HEIC nesses formatos.",
+        ) from exc
+    image = image.convert("RGB")
+    width, height = image.size
+    edge = max(width, height)
+    if edge > _MAX_EDGE:
+        scale = _MAX_EDGE / float(edge)
+        image = image.resize(
+            (max(1, int(width * scale)), max(1, int(height * scale))),
+            Image.Resampling.LANCZOS,
+        )
+    buf = BytesIO()
+    image.save(buf, format="JPEG", quality=90)
+    return buf.getvalue()
 
 
 def _schedule_new_order_notice(
@@ -46,6 +82,38 @@ def _schedule_new_order_notice(
     )
 
 
+def _save_photo_asset(db: Session, project: Project, key: str) -> Asset:
+    """Grava o asset da foto e confirma — sem depender do pedido/impresso.
+
+    A foto é o insumo que a geração precisa; o pedido do dono é recuperável
+    depois por `backfill_order_tickets`. Separar as duas coisas evita que uma
+    falha de bookkeeping (pedido, impresso, e-mail) derrube o upload com 500.
+    """
+    asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
+    db.add(asset)
+    db.commit()
+    db.refresh(asset)
+    return asset
+
+
+def _register_order_bookkeeping(
+    db: Session, project: Project, **kwargs: str
+) -> tuple[OrderTicket | None, bool]:
+    """Abre/atualiza o pedido sem nunca propagar erro para o clique.
+
+    Retorna `(ticket, created)`. Em falha, desfaz só o pedido e devolve
+    `(None, False)`; a foto já está salva e a geração continua.
+    """
+    try:
+        ticket, created = register_order_ticket(db, project, **kwargs)
+        db.commit()
+        return ticket, created
+    except Exception:  # noqa: BLE001 - bookkeeping não pode virar 500 na foto
+        logger.exception("pedido da foto falhou project=%s", project.id)
+        db.rollback()
+        return None, False
+
+
 @router.post("/{project_id}/photos", response_model=UploadUrlOut, status_code=201)
 def request_photo_upload(
     project_id: uuid.UUID,
@@ -57,14 +125,13 @@ def request_photo_upload(
     """Gera URL assinada de upload e registra o asset (foto de origem)."""
     project = get_owned_project(db, user, project_id)
     key = storage.new_key(project.id, AssetKind.PHOTO.value, body.ext)
-    asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
-    db.add(asset)
-    db.flush()
     try:
         buyer = resolve_buyer(user)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    ticket, created = register_order_ticket(
+    asset = _save_photo_asset(db, project, key)
+    asset_id = asset.id
+    ticket, created = _register_order_bookkeeping(
         db,
         project,
         language=project.language or "pt-BR",
@@ -75,12 +142,10 @@ def request_photo_upload(
         client_address=buyer["address"],
         client_notes=buyer["notes"],
     )
-    db.commit()
-    db.refresh(asset)
-    if created:
+    if created and ticket is not None:
         _schedule_new_order_notice(background, project, ticket, user)
     return UploadUrlOut(
-        asset_id=asset.id,
+        asset_id=asset_id,
         storage_key=key,
         upload_url=storage.presign_put(key, body.content_type),
         expires_in=settings.storage_signing_ttl,
@@ -125,6 +190,7 @@ async def upload_photo(
         raise HTTPException(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
         )
+    data = _normalize_photo(data)
     try:
         buyer = resolve_buyer(
             user,
@@ -136,13 +202,11 @@ async def upload_photo(
         )
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
-    key = storage.new_key(project.id, AssetKind.PHOTO.value, ext)
-    storage.put_bytes(key, data, file.content_type or "image/jpeg")
-    asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
-    db.add(asset)
-    db.flush()
-    ticket, created = register_order_ticket(
+    key = storage.new_key(project.id, AssetKind.PHOTO.value, "jpg")
+    storage.put_bytes(key, data, "image/jpeg")
+    asset = _save_photo_asset(db, project, key)
+    asset_id = asset.id
+    ticket, created = _register_order_bookkeeping(
         db,
         project,
         language=language,
@@ -160,11 +224,9 @@ async def upload_photo(
         client_address=buyer["address"],
         client_notes=buyer["notes"],
     )
-    db.commit()
-    db.refresh(asset)
-    if created:
+    if created and ticket is not None:
         _schedule_new_order_notice(background, project, ticket, user)
-    return UploadUrlOut(asset_id=asset.id, storage_key=key, upload_url="", expires_in=0)
+    return UploadUrlOut(asset_id=asset_id, storage_key=key, upload_url="", expires_in=0)
 
 
 @router.post("/{project_id}/extra-character", response_model=UploadUrlOut, status_code=201)
@@ -184,16 +246,16 @@ async def upload_extra_character(
         raise HTTPException(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
         )
-    ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
-    key = storage.new_key(project.id, "extra_character", ext)
-    storage.put_bytes(key, data, file.content_type or "image/jpeg")
+    data = _normalize_photo(data)
+    key = storage.new_key(project.id, "extra_character", "jpg")
+    storage.put_bytes(key, data, "image/jpeg")
 
     extras = list(project.extra_characters or [])
     extras.append(
         {
             "name": name.strip() or f"Personagem {len(extras) + 1}",
             "storage_key": key,
-            "mime": file.content_type or "image/jpeg",
+            "mime": "image/jpeg",
         }
     )
     project.extra_characters = extras

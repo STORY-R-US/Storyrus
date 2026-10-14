@@ -116,6 +116,11 @@ function imageFiles(list: Iterable<File>): File[] {
   );
 }
 
+function unsupportedPhoto(file: File): boolean {
+  const type = (file.type || "").toLowerCase();
+  return type === "image/heic" || type === "image/heif" || /\.(heic|heif)$/i.test(file.name);
+}
+
 function oneLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -497,6 +502,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   async function start(agreed = mediaConsent) {
     if (startLock.current || busy) return;
     if (!formReady(agreed)) return;
+    if (photos.some((item) => unsupportedPhoto(item.file))) {
+      setError(t.errPhotoFormat);
+      return;
+    }
     const buyer = buyerInfo();
     const buyerNotes = oneLine(clientNotes);
     startLock.current = true;
@@ -732,6 +741,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const addPhotos = useCallback((list: Iterable<File>) => {
     const incoming = imageFiles(list);
     if (!incoming.length) return;
+    if (incoming.some(unsupportedPhoto)) setError(t.errPhotoFormat);
     setPhotos((cur) => {
       const next = [...cur];
       for (const file of incoming) {
@@ -748,7 +758,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       delete next.photo;
       return next;
     });
-  }, []);
+  }, [t]);
 
   function removePhoto(key: string) {
     setPhotos((cur) => {

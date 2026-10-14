@@ -62,7 +62,15 @@ def start_avatar(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
     project.character_approved_at = None
     project.book_approved_at = None
-    invalidate_print(db, project)
+    # Pedido impresso antigo não pode impedir o avatar (mesma proteção da prévia).
+    try:
+        invalidate_print(db, project)
+    except Exception:  # noqa: BLE001 - avatar segue mesmo se o impresso antigo falhar
+        logger.exception("invalidate_print falhou project=%s", project.id)
+        db.rollback()
+        project = get_owned_project(db, user, project_id)
+        project.character_approved_at = None
+        project.book_approved_at = None
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.AVATAR, idempotency_key=idempotency_key
     )
@@ -317,7 +325,14 @@ def start_ebook(
 ) -> JobAcceptedOut:
     project = get_owned_project(db, user, project_id)
     project.book_approved_at = None
-    invalidate_print(db, project)
+    # Pedido impresso antigo não pode impedir o ebook.
+    try:
+        invalidate_print(db, project)
+    except Exception:  # noqa: BLE001 - ebook segue mesmo se o impresso antigo falhar
+        logger.exception("invalidate_print falhou project=%s", project.id)
+        db.rollback()
+        project = get_owned_project(db, user, project_id)
+        project.book_approved_at = None
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.EBOOK, idempotency_key=idempotency_key
     )
