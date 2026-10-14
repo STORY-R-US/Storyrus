@@ -418,6 +418,7 @@ def test_photo_upload_sobrevive_a_falha_de_pedido(auth_client, monkeypatch):
 
 def test_presign_sobrevive_a_falha_de_pedido(auth_client, monkeypatch):
     """O mesmo vale para o fluxo antigo de URL assinada (/photos)."""
+
     def boom(*args, **kwargs):
         raise RuntimeError("tabela de pedidos quebrada")
 
