@@ -86,8 +86,8 @@ def build_password_reset_url(token: str, email: str | None = None) -> str:
 
 
 def build_preview_ready_url() -> str:
-    """Onde o cliente vê a prévia (estúdio) depois do aviso por e-mail."""
-    return f"{public_web_origin()}/app"
+    """Onde o cliente acompanha o livro depois do aviso por e-mail (Meus Pedidos)."""
+    return f"{public_web_origin()}/pedidos"
 
 
 def _branded_html(
@@ -386,7 +386,7 @@ def _preview_ready_html(*, child_name: str, preview_url: str) -> str:
         f'<p style="margin:22px 0 0 0;"><a href="{escape(preview_url, quote=True)}" '
         f'style="display:inline-block;background:{_COLOR_CTA};color:#ffffff;text-decoration:none;'
         f'font-size:16px;font-weight:700;padding:14px 28px;border-radius:999px;">'
-        "Ver minha prévia →</a></p>"
+        "Ver meu pedido →</a></p>"
     )
     return f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -404,7 +404,7 @@ def _preview_ready_html(*, child_name: str, preview_url: str) -> str:
             <td style="padding:28px 32px;">
               <h1 style="margin:0 0 8px 0;font-size:24px;line-height:1.3;color:{_COLOR_INK};">A prévia ficou pronta! 🎉</h1>
               <p style="margin:0;font-size:15px;line-height:1.55;color:{_COLOR_INK};">
-                A história e as ilustrações{who} já foram criadas. Entre no estúdio para ver cada página e aprovar seu livro.
+                A história e as ilustrações{who} já foram criadas. Acompanhe seu livro em Meus Pedidos.
               </p>
               {cta}
               <p style="margin:22px 0 0 0;font-size:12px;color:{_COLOR_MUTED};">
@@ -447,9 +447,9 @@ def send_preview_ready_email(
                 if name
                 else "A história e as ilustrações do seu livro já foram criadas."
             ),
-            "Entre no estúdio para ver cada página e aprovar seu livro.",
+            "Acompanhe seu livro em Meus Pedidos.",
             "",
-            f"Ver minha prévia: {url}",
+            f"Ver meu pedido: {url}",
             "",
             "www.storyrus.ai",
         ]
