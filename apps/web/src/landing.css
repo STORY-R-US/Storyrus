@@ -530,7 +530,7 @@ a.kcat-group-name.is-chip:focus-visible {
   align-items: stretch;
   justify-content: center;
   gap: 0;
-  padding: 5px;
+  padding: 0;
   border-radius: 10px;
   border: 1px solid transparent;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
