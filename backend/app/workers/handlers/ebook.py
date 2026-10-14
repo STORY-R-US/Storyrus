@@ -155,9 +155,10 @@ async def _save_preview_image(
 async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
     """Prévia estilo landing: capa + 1 página + foto na mão (OpenAI GPT Image).
 
-    Cada figura é gravada assim que fica pronta. Se uma estoura o tempo, as
-    outras seguem e o livro fecha com o que já existe — a tela não fica em
-    Imagens até a última chamada voltar.
+    Capa e página saem em paralelo; a foto "na mão" começa assim que a capa fica
+    pronta (usa a capa como referência). Cada figura é gravada assim que chega.
+    Se uma estoura o tempo, as outras seguem e o livro fecha com o que já existe —
+    a tela não fica presa em Imagens esperando a última chamada.
     """
     ref = project.character_ref if isinstance(project.character_ref, dict) else {}
     char_key = ref.get("storage_key")
@@ -221,40 +222,55 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         )
     else:
         _commit_preview_progress(db, job, 0)
-        cover = await _bounded_preview_image(
-            lambda: image_provider.generate_scene(
-                prompt=cover_prompt,
-                character_ref=char_bytes,
-                style=art_style,
+        persist_lock = asyncio.Lock()
+        saved = 0
+
+        async def _persist(kind: str, result: ImageResult, page: int | None = None) -> None:
+            nonlocal saved
+            async with persist_lock:
+                await _save_preview_image(db, project, kind=kind, result=result, page=page)
+                saved += 1
+                _commit_preview_progress(db, job, saved)
+
+        async def _cover_then_hand() -> tuple[ImageResult | None, ImageResult | None]:
+            # A capa sai primeiro; a foto "na mão" usa a capa como referência.
+            cover = await _bounded_preview_image(
+                lambda: image_provider.generate_scene(
+                    prompt=cover_prompt,
+                    character_ref=char_bytes,
+                    style=art_style,
+                )
             )
-        )
-        if cover is not None:
-            await _save_preview_image(db, project, kind=AssetKind.COVER.value, result=cover)
-        _commit_preview_progress(db, job, 1)
-        page = await _bounded_preview_image(
-            lambda: image_provider.generate_scene(
-                prompt=page_prompt,
-                character_ref=char_bytes,
-                style=art_style,
+            if cover is not None:
+                await _persist(AssetKind.COVER.value, cover)
+            hand_ref = cover.image_bytes if cover is not None else char_bytes
+            hand_extra = [char_bytes] if cover is not None else None
+            hand = await _bounded_preview_image(
+                lambda: image_provider.generate_scene(
+                    prompt=in_hand_prompt,
+                    character_ref=hand_ref,
+                    style="photoreal lifestyle product photo",
+                    extra_refs=hand_extra,
+                )
             )
-        )
-        if page is not None:
-            await _save_preview_image(
-                db, project, kind=AssetKind.PAGE_IMAGE.value, result=page, page=1
+            if hand is not None:
+                await _persist(AssetKind.IN_HAND.value, hand)
+            return cover, hand
+
+        async def _page_only() -> ImageResult | None:
+            # A página não depende da capa: corre em paralelo com ela.
+            page = await _bounded_preview_image(
+                lambda: image_provider.generate_scene(
+                    prompt=page_prompt,
+                    character_ref=char_bytes,
+                    style=art_style,
+                )
             )
-        _commit_preview_progress(db, job, 2)
-        hand_ref = cover.image_bytes if cover is not None else char_bytes
-        hand_extra = [char_bytes] if cover is not None else None
-        in_hand = await _bounded_preview_image(
-            lambda: image_provider.generate_scene(
-                prompt=in_hand_prompt,
-                character_ref=hand_ref,
-                style="photoreal lifestyle product photo",
-                extra_refs=hand_extra,
-            )
-        )
-        if in_hand is not None:
-            await _save_preview_image(db, project, kind=AssetKind.IN_HAND.value, result=in_hand)
+            if page is not None:
+                await _persist(AssetKind.PAGE_IMAGE.value, page, page=1)
+            return page
+
+        (cover, in_hand), page = await asyncio.gather(_cover_then_hand(), _page_only())
 
     made = [img for img in (cover, page, in_hand) if img is not None]
     if not made:

@@ -176,7 +176,9 @@ class Settings(BaseSettings):
     openai_image_model: str = "gpt-image-1"
     openai_image_size_portrait: str = "1024x1536"
     openai_image_size_square: str = "1024x1024"
-    openai_timeout_s: float = 120.0
+    # GPT Image (edits com avatar) costuma passar dos 120s. Com o teto antigo o
+    # primeiro disparo expirava, gastava um retry e a prévia levava o dobro.
+    openai_timeout_s: float = 180.0
     openai_max_retries: int = 3
     openai_retry_base_s: float = 2.0
     openai_retry_max_s: float = 60.0
@@ -204,9 +206,10 @@ class Settings(BaseSettings):
     preview_stale_timeout_s: float = 180.0
     # Cada figura da prévia (capa, página, na mão) tem um teto. Estourar o tempo
     # não reinicia o livro: a prévia fecha com as imagens que já saíram.
-    # Precisa caber um timeout do GPT Image e mais um retry (120s + folga + 120s).
-    # Com 150s o primeiro timeout de 120s cancelava o retry e a figura sumia.
-    preview_image_timeout_s: float = 260.0
+    # As três saem em paralelo (a página corre junto da capa), então o passo
+    # inteiro cabe em ~um teto por figura. Cobre um timeout do GPT Image e uma
+    # folga — um disparo lento que ainda dá certo não é cortado no meio.
+    preview_image_timeout_s: float = 200.0
     job_heartbeat_interval_s: float = 30.0
     # None = ligado só em prod. O worker free do Render dorme; a API acorda
     # com o polling da tela e precisa ela mesma tirar a prévia da fila.
