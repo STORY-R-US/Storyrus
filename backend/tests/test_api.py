@@ -171,7 +171,7 @@ def test_backpressure_limit(auth_client):
     r5 = auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "e"})
     assert r5.status_code == 429
     body = r5.json()
-    assert "Limite" in body["detail"]
+    assert "gerações em andamento" in body["detail"]
     assert body["error"]["code"] == "too_many_requests"
     assert body["error"]["status"] == 429
     assert body["error"]["message"] == body["detail"]

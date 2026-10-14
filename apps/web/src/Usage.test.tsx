@@ -27,7 +27,7 @@ describe("Pedidos", () => {
     await user.type(screen.getByLabelText(/senha/i), "segredo");
     await user.click(screen.getByRole("button", { name: /entrar/i }));
 
-    expect(await screen.findByRole("heading", { name: /novo livro story r us realista/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /livro de matteo/i })).toBeInTheDocument();
     const detail = screen.getByTestId("order-detail");
     expect(detail).toHaveTextContent("Matteo");
     expect(detail).toHaveTextContent("Português");
@@ -89,7 +89,7 @@ describe("Pedidos", () => {
     );
     render(<Pedidos />);
     expect(
-      await screen.findByRole("heading", { name: /novo livro story r us realista/i }),
+      await screen.findByRole("heading", { name: /livro de matteo/i }),
     ).toBeInTheDocument();
     expect(scope).toBe("orders");
     setToken(null);
@@ -101,7 +101,7 @@ describe("Pedidos", () => {
     state.isOwner = true;
     setToken("owner-token");
     render(<Pedidos />);
-    expect(await screen.findByRole("heading", { name: /novo livro story r us realista/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /livro de matteo/i })).toBeInTheDocument();
     setToken(null);
   });
 
@@ -208,7 +208,7 @@ describe("Pedidos", () => {
     );
     render(<Pedidos />);
     expect(
-      await screen.findByRole("heading", { name: /novo livro story r us realista/i }),
+      await screen.findByRole("heading", { name: /livro de matteo/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/senha inválida/i)).not.toBeInTheDocument();
     setToken(null);
@@ -236,7 +236,7 @@ describe("Pedidos", () => {
     render(<Pedidos />);
 
     expect(
-      await screen.findByRole("heading", { name: /novo livro story r us cartoon/i }),
+      await screen.findByRole("heading", { name: /livro de lia/i }),
     ).toBeInTheDocument();
     expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("order-delete")).not.toBeInTheDocument();
@@ -244,6 +244,39 @@ describe("Pedidos", () => {
     expect(
       screen.getByRole("link", { name: /pdf do livro/i }),
     ).toHaveAttribute("href", "https://arquivos.test/lia.pdf");
+  });
+
+  it("mostra a prévia, traduz os requisitos da gráfica e gera no mesmo pedido", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server } = await import("./test/server");
+    let generated = 0;
+    server.use(
+      http.get("*/v1/usage", () => HttpResponse.json({ orders: [{
+        id: "preview-order", project_id: "p1", summary: "Livro\nNome: Lia", created_at: new Date().toISOString(),
+        generation_status: "demo", payment_status: "unpaid", print_status: "awaiting_spec",
+        block_reason: "Especificação de produção incompleta: bleed_mm, safety_mm, pdf_x, color_profile",
+        book_files: [
+          { label: "Capa", kind: "cover", url: "https://files.test/cover.png" },
+          { label: "Página 1", kind: "page_image", url: "https://files.test/page.png" },
+        ],
+      }] })),
+      http.post("*/v1/usage/orders/preview-order/generate", () => {
+        generated += 1;
+        return HttpResponse.json({ job_id: "new-preview", status: "PENDING", type: "AVATAR", estimated_cost_credits: 0 }, { status: 202 });
+      }),
+    );
+    const user = userEvent.setup();
+    render(<Pedidos />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /^entrar$/i }));
+    expect(await screen.findByRole("heading", { name: /livro de lia/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Capa" })).toHaveAttribute("src", "https://files.test/cover.png");
+    expect(screen.getByRole("img", { name: "Página 1" })).toBeInTheDocument();
+    expect(screen.getByText(/sangria, margem de segurança, padrão PDF\/X, perfil de cor/i)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("bleed_mm");
+    await user.click(screen.getByTestId("order-generate"));
+    await waitFor(() => expect(generated).toBe(1));
+    expect(screen.getByRole("heading", { name: /livro de lia/i })).toBeInTheDocument();
   });
 });
 

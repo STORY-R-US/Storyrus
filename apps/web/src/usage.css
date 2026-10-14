@@ -195,7 +195,7 @@
   font-size: 1.05rem;
   color: var(--navy);
 }
-.usage-order-detail dl { margin: 0; display: grid; gap: 0.65rem; }
+.usage-order-detail dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem 1.1rem; }
 .usage-order-detail div { display: grid; gap: 0.1rem; }
 .usage-order-detail dt {
   font-size: 0.75rem;
@@ -204,7 +204,7 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-.usage-order-detail dd { margin: 0; color: var(--navy); font-size: 1rem; }
+.usage-order-detail dd { margin: 0; color: var(--navy); font-size: 1rem; overflow-wrap: anywhere; }
 .order-os {
   margin-top: 1rem;
   padding-top: 0.85rem;
@@ -215,6 +215,33 @@
   font-size: 1rem;
   color: var(--navy);
 }
+.order-preview { margin: 1rem 0 1.4rem; }
+.usage-order-detail .order-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.order-preview h3 { margin: 0; font-size: 1rem; }
+.order-preview > p { margin: .45rem 0 .8rem; }
+.order-status { display: inline-flex; align-items: center; border-radius: 999px; padding: .3rem .65rem; font-size: .78rem; font-weight: 700; color: #c5d4ff; background: #263757; }
+.order-status.is-ready { background: #1d3a32; color: #8ee0c8; }
+.order-status.is-demo, .order-status.is-partial, .order-status.is-failed { background: #493326; color: #ffca95; }
+.usage-order-detail .order-preview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem; }
+.order-preview-card { margin: 0; min-width: 0; border: 1px solid var(--line-soft); border-radius: 12px; overflow: hidden; background: var(--panel); }
+.order-preview-card a { display: block; }
+.order-preview-card img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: #101a34; }
+.order-preview-card figcaption { padding: .65rem .4rem; font-size: .82rem; font-weight: 700; text-align: center; }
+.usage-order-detail .order-preview-placeholder { display: grid; place-items: center; aspect-ratio: 1; padding: .5rem; text-align: center; color: var(--muted); background: rgba(120, 142, 190, .08); font-size: .8rem; }
+.order-file-button { display: inline-flex; align-items: center; gap: .35rem; padding: .55rem .8rem; margin-top: .8rem; color: var(--txt); background: #263757; border: 1px solid var(--line-soft); border-radius: 9px; text-decoration: none; font-weight: 700; }
+.order-file-button span { color: #b7c2e3; font-size: .82rem; font-weight: 400; }
+.order-notice { padding: .7rem .8rem; border-left: 3px solid #ef8f4b; border-radius: 5px; background: rgba(239, 143, 75, .1); font-size: .88rem; }
+.usage-order-detail .order-workflow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; }
+.order-workflow > div { padding: .85rem; margin-top: .65rem; background: rgba(120, 142, 190, .08); border: 1px solid var(--line-soft); border-radius: 12px; }
+.order-workflow span { font-size: .72rem; text-transform: uppercase; font-weight: 700; color: var(--muted); letter-spacing: .05em; }
+.order-workflow strong { display: block; margin-top: .35rem; font-size: .9rem; }
+.order-workflow p, .order-print-details p { margin: .45rem 0 0; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+.order-print-details { margin-top: .85rem; font-size: .85rem; }
+.order-print-details summary { cursor: pointer; color: var(--txt); }
+.order-generate-button { margin: 0 0 1.1rem; }
+.usage-order-photos a { color: var(--txt); }
+@media (max-width: 1050px) { .usage-order-detail .order-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .usage-order-detail .order-workflow { grid-template-columns: 1fr; } }
+@media (max-width: 500px) { .order-preview-heading { align-items: flex-start; } }
 .order-os ol {
   margin: 0;
   padding-left: 1.2rem;

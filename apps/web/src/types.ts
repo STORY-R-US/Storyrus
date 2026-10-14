@@ -151,6 +151,8 @@ export interface UsageEvent {
 export interface OrderBookFile {
   label: string;
   url: string;
+  kind?: string | null;
+  provider?: string | null;
 }
 
 export interface OrderTicket {
@@ -165,6 +167,11 @@ export interface OrderTicket {
   photo_urls?: string[];
   has_story?: boolean;
   book_files?: OrderBookFile[];
+  generation_status?: "queued" | "generating" | "ready" | "partial" | "failed" | "demo";
+  generation_stage?: string | null;
+  generated_images?: number;
+  image_provider?: string | null;
+  image_model?: string | null;
   print_order_id?: string | null;
   print_code?: string | null;
   print_status?: string | null;

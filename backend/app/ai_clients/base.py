@@ -70,6 +70,7 @@ class ImageProvider(Protocol):
         style: str,
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
+        reference_role: str = "character",
     ) -> ImageResult:
         """Gera uma ilustracao de pagina reutilizando o avatar (`character_ref`).
 

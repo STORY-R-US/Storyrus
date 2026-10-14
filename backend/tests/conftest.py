@@ -53,6 +53,12 @@ def _no_insightface_in_suite(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _demo_generation_in_tests(monkeypatch):
+    """Offline test fixtures opt in explicitly; production defaults to OpenAI."""
+    monkeypatch.setattr(settings, "offline_fallback", True)
+
+
+@pytest.fixture(autouse=True)
 def _disable_opik(monkeypatch):
     """Opik opt-in: testes nao enviam traces mesmo com chave no .env."""
     monkeypatch.setattr(settings, "opik_api_key", None)

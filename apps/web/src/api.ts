@@ -872,6 +872,9 @@ export const api = {
   async deleteOrder(password: string | null | undefined, id: string) {
     await ownerJson<void>(`/v1/usage/orders/${id}`, password, { method: "DELETE" });
   },
+  async generateOrderImages(password: string | null | undefined, id: string) {
+    return ownerJson<JobAccepted>(`/v1/usage/orders/${id}/generate`, password, { method: "POST" });
+  },
   /** Pedidos da própria conta (visão de quem não é admin em "Meus Pedidos"). */
   async myOrders() {
     return req<OrderTicket[]>("/v1/usage/orders/mine");

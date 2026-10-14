@@ -172,7 +172,21 @@ def start_preview(
         project.character_approved_at = None
         project.book_approved_at = None
 
-    if project.character_ref:
+    ref = project.character_ref if isinstance(project.character_ref, dict) else {}
+    demo_character = ref.get("provider") == "demo"
+    if ref and not ref.get("provider"):
+        last_avatar = db.scalar(
+            select(Job)
+            .where(
+                Job.project_id == project.id,
+                Job.type == JobType.AVATAR.value,
+                Job.status == JobStatus.DONE.value,
+            )
+            .order_by(Job.created_at.desc())
+            .limit(1)
+        )
+        demo_character = bool(last_avatar is not None and last_avatar.cost_usd == 0)
+    if project.character_ref and not demo_character:
         job_type = JobType.STORY
         step = "story"
     else:

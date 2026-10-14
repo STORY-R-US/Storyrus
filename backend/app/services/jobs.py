@@ -71,7 +71,7 @@ def _clean_key(value: str | None, limit: int) -> str | None:
     return cleaned[:limit] or None
 
 
-def _active_jobs(db: Session, user: User) -> int:
+def _active_jobs(db: Session, user: User, *, exclude_job_id: uuid.UUID | None = None) -> int:
     """Conta jobs ativos (PENDING/RUNNING) para o limite de backpressure.
 
     Inclui VIDEO / NARRATED_VIDEO — mesmo padrão dos demais tipos — para evitar
@@ -85,6 +85,8 @@ def _active_jobs(db: Session, user: User) -> int:
             Job.status.in_([JobStatus.PENDING.value, JobStatus.RUNNING.value]),
         )
     )
+    if exclude_job_id is not None:
+        stmt = stmt.where(Job.id != exclude_job_id)
     return db.scalar(stmt) or 0
 
 
@@ -96,6 +98,7 @@ def enqueue_job(
     job_type: JobType,
     idempotency_key: str | None = None,
     payload: dict | None = None,
+    completing_job: Job | None = None,
 ) -> Job:
     """Cria (ou retorna) um job, debitando creditos atomicamente.
 
@@ -118,6 +121,7 @@ def enqueue_job(
                 job_type=job_type,
                 idempotency_key=key,
                 payload=safe_payload,
+                completing_job=completing_job,
             )
         except OperationalError as exc:
             last_operational = exc
@@ -135,6 +139,7 @@ def _enqueue_job_once(
     job_type: JobType,
     idempotency_key: str | None,
     payload: dict | None,
+    completing_job: Job | None = None,
 ) -> Job:
     # 1) Idempotencia: mesma chave -> mesmo job (sem novo custo).
     if idempotency_key:
@@ -145,10 +150,18 @@ def _enqueue_job_once(
     cost = COST_BY_TYPE.get(job_type, 0) if settings.credits_enabled else 0
 
     # 2) Backpressure por usuario.
-    if _active_jobs(db, user) >= settings.max_concurrent_jobs_per_user:
+    # The next preview step replaces the step that just finished its work.
+    # Counting both would block an already accepted book when the queue is full.
+    exclude_id = (
+        completing_job.id
+        if completing_job is not None and completing_job.project_id == project.id
+        else None
+    )
+    if _active_jobs(db, user, exclude_job_id=exclude_id) >= settings.max_concurrent_jobs_per_user:
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
-            f"Limite de {settings.max_concurrent_jobs_per_user} jobs simultaneos atingido",
+            f"Há {settings.max_concurrent_jobs_per_user} gerações em andamento na sua conta. "
+            "Aguarde uma delas terminar e tente novamente.",
         )
 
     # 3) Teto diario da plataforma (USD/creditos) ANTES do vendor (STO-18).

@@ -42,6 +42,7 @@ from .common import (
     _project_photo_bytes,
     _set_status,
     _short_captions,
+    _tag_image,
 )
 from .story import (
     _book_costume_line,
@@ -127,6 +128,11 @@ async def _save_preview_image(
 ) -> None:
     """Grava a figura e só então substitui a anterior. Falha de storage não apaga o que já está no banco."""
     mime = result.mime_type or "image/png"
+    meta = {
+        "mime": mime,
+        "provider": "demo" if settings.offline_fallback else "openai",
+        "model": None if settings.offline_fallback else settings.openai_image_model,
+    }
     ext = "png" if "png" in mime else "jpg"
     key = storage.new_key(project.id, kind, ext)
     await _store_preview_bytes(key, result.image_bytes, mime)
@@ -137,7 +143,7 @@ async def _save_preview_image(
                 project_id=project.id,
                 kind=kind,
                 storage_key=key,
-                meta={"page": page or 1, "mime": mime},
+                meta={**meta, "page": page or 1},
             )
         )
         return
@@ -147,7 +153,7 @@ async def _save_preview_image(
             project_id=project.id,
             kind=kind,
             storage_key=key,
-            meta={"mime": mime},
+            meta=meta,
         )
     )
 
@@ -228,6 +234,12 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         async def _persist(kind: str, result: ImageResult, page: int | None = None) -> None:
             nonlocal saved
             async with persist_lock:
+                labels = {
+                    "cover": "Prévia — capa",
+                    "page_image": "Prévia — página",
+                    "in_hand": "Prévia — livro na mão",
+                }
+                _tag_image(result, action=f"preview_{kind}", label=labels[kind])
                 await _save_preview_image(db, project, kind=kind, result=result, page=page)
                 saved += 1
                 _commit_preview_progress(db, job, saved)
@@ -243,14 +255,14 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
             )
             if cover is not None:
                 await _persist(AssetKind.COVER.value, cover)
-            hand_ref = cover.image_bytes if cover is not None else char_bytes
-            hand_extra = [char_bytes] if cover is not None else None
+            if cover is None:
+                return None, None
             hand = await _bounded_preview_image(
                 lambda: image_provider.generate_scene(
                     prompt=in_hand_prompt,
-                    character_ref=hand_ref,
+                    character_ref=cover.image_bytes,
                     style="photoreal lifestyle product photo",
-                    extra_refs=hand_extra,
+                    reference_role="cover",
                 )
             )
             if hand is not None:
@@ -281,10 +293,18 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         await _save_preview_image(db, project, kind=AssetKind.PAGE_IMAGE.value, result=page, page=1)
         await _save_preview_image(db, project, kind=AssetKind.IN_HAND.value, result=in_hand)
 
-    _commit_preview_progress(db, job, 3)
-    cover_bytes = cover.image_bytes if cover is not None else made[0].image_bytes
-    page_for_pdf = page or cover or in_hand
+    _commit_preview_progress(db, job, len(made))
+    result_meta = dict(job.result or {})
+    result_meta["preview_complete"] = len(made) == 3
+    result_meta["image_provider"] = "demo" if settings.offline_fallback else "openai"
+    result_meta["image_model"] = None if settings.offline_fallback else settings.openai_image_model
+    job.result = result_meta
+    cover_bytes = cover.image_bytes if cover is not None else None
+    page_for_pdf = page
+    pdf_ready = False
     try:
+        if cover_bytes is None or page_for_pdf is None:
+            raise ValueError("O PDF da prévia precisa da capa e da página geradas")
         blob = await asyncio.to_thread(
             ebook_builder.build_pdf,
             title,
@@ -317,8 +337,12 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
             )
         )
         project.ebook_url = ebook_key
+        pdf_ready = True
     except Exception:
         logger.exception("preview pdf falhou; a previa segue com as imagens gravadas")
+
+    result_meta["preview_complete"] = len(made) == 3 and pdf_ready
+    job.result = result_meta
 
     job.cost_usd = add_usd(*(img.cost_usd for img in made))
     usage: list = []
@@ -326,7 +350,10 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         usage.extend(lines_of(img))
     flush_usage(db, job, usage)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
-    preview_chain.finalize_preview_ebook(db, project, job)
+    if len(made) == 3 and pdf_ready:
+        preview_chain.finalize_preview_ebook(db, project, job)
+    else:
+        db.commit()
 
 
 async def handle_ebook(db: Session, job: Job) -> None:

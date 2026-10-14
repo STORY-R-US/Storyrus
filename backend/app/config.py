@@ -95,7 +95,9 @@ class Settings(BaseSettings):
     signup_bonus_credits: int = 10
     # false = gerar o livro não debita nem bloqueia por saldo. A cobrança é a OS do impresso.
     credits_enabled: bool = False
-    offline_fallback: bool = True
+    # Demo images require an explicit opt-in in development. Never default to
+    # placeholders when a deployment omits OFFLINE_FALLBACK.
+    offline_fallback: bool = False
 
     # Custo estimado por etapa (creditos = 1 credito ~ 1 unidade de custo)
     cost_avatar_credits: int = 1
@@ -174,6 +176,7 @@ class Settings(BaseSettings):
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
     openai_api_key: str | None = None  # GPT Image + juiz de historia
     openai_image_model: str = "gpt-image-1"
+    openai_image_quality: Literal["auto", "low", "medium", "high"] = "high"
     openai_image_size_portrait: str = "1024x1536"
     openai_image_size_square: str = "1024x1024"
     # GPT Image (edits com avatar) costuma passar dos 120s. Com o teto antigo o

@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import logging
+import uuid
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import Asset, AssetKind, OrderTicket, Project, User
 from app.orders import build_book_order_summary, client_registration, parse_extra_names
+
+logger = logging.getLogger(__name__)
 
 
 def _stored_extra_names(project: Project) -> list[str]:
@@ -164,28 +169,36 @@ def register_order_ticket(
         created = True
     from app.printkit.service import open_print_order
 
-    open_print_order(db, project, requested=False, prepare=prepare)
+    # The customer's ticket must survive a failure in print setup or PDF storage.
+    # Flush it before the savepoint; rollback only the optional print work.
+    db.flush()
+    try:
+        with db.begin_nested():
+            open_print_order(db, project, requested=False, prepare=prepare)
+    except Exception:
+        logger.exception("ordem de impressão falhou project=%s", project.id)
     return ticket, created
 
 
-def backfill_order_tickets(db: Session, *, prepare: bool = False) -> int:
+def backfill_order_tickets(
+    db: Session, *, prepare: bool = False, user_id: uuid.UUID | None = None
+) -> int:
     """Abre pedidos faltantes para projetos que já têm foto (mobile/presign/falha).
 
     Não gera PDF: quem lista o painel não pode ficar lendo cada imagem.
     """
     ticketed = select(OrderTicket.project_id)
-    photo_projects = db.scalars(
-        select(Project)
-        .where(
-            Project.id.in_(
-                select(Asset.project_id).where(
-                    Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"])
-                )
-            ),
-            ~Project.id.in_(ticketed),
-        )
-        .limit(200)
-    ).all()
+    stmt = select(Project).where(
+        Project.id.in_(
+            select(Asset.project_id).where(
+                Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"])
+            )
+        ),
+        ~Project.id.in_(ticketed),
+    )
+    if user_id is not None:
+        stmt = stmt.where(Project.user_id == user_id)
+    photo_projects = db.scalars(stmt.limit(200)).all()
     created = 0
     for project in photo_projects:
         user = project.user

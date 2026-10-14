@@ -118,7 +118,11 @@ async def handle_avatar(db: Session, job: Job) -> None:
             meta={"mime": result.mime_type},
         )
     )
-    project.character_ref = {"storage_key": key, "mime": result.mime_type}
+    image_meta = {
+        "provider": "demo" if settings.offline_fallback else "openai",
+        "model": None if settings.offline_fallback else settings.openai_image_model,
+    }
+    project.character_ref = {"storage_key": key, "mime": result.mime_type, **image_meta}
     project.character_approved_at = None
     project.book_approved_at = None
     job.cost_usd = result.cost_usd
@@ -126,7 +130,12 @@ async def handle_avatar(db: Session, job: Job) -> None:
         flush_usage(db, job, lines_of(result))
     _set_status(db, project, ProjectStatus.AVATAR_READY)
     # Prévia automática: aprova personagem e enfileira a história.
-    preview_chain.continue_preview_chain(db, project, job, JobType.STORY)
+    next_type = (
+        JobType.EBOOK
+        if preview_chain.job_payload(job).get("reuse_story") and project.story_text
+        else JobType.STORY
+    )
+    preview_chain.continue_preview_chain(db, project, job, next_type)
 
 
 async def _refine_identity(

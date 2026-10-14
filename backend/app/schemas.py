@@ -414,6 +414,8 @@ class OrderFileOut(BaseModel):
 
     label: str
     url: str
+    kind: str | None = None
+    provider: str | None = None
 
 
 class OrderTicketOut(BaseModel):
@@ -430,6 +432,11 @@ class OrderTicketOut(BaseModel):
     photo_urls: list[str] = []
     has_story: bool = False
     book_files: list[OrderFileOut] = []
+    generation_status: str = "queued"
+    generation_stage: str | None = None
+    generated_images: int = 0
+    image_provider: str | None = None
+    image_model: str | None = None
     print_order_id: uuid.UUID | None = None
     print_code: str | None = None
     print_status: str | None = None

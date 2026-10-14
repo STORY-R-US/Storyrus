@@ -240,6 +240,17 @@ async def test_story_preview_chains_to_ebook(db, mem_storage, monkeypatch):
     assert u.credits == 20
 
 
+def test_accepted_preview_continues_when_concurrency_limit_is_full(db, monkeypatch):
+    monkeypatch.setattr(settings, "max_concurrent_jobs_per_user", 1)
+    _, project = _seed(db)
+    source = _job(db, project, "AVATAR", cost=0, payload={"preview_chain": True})
+    source.status = JobStatus.RUNNING.value
+    db.commit()
+    next_job = preview_chain.continue_preview_chain(db, project, source, JobType.STORY)
+    assert next_job.status == JobStatus.PENDING.value
+    assert next_job.error is None
+
+
 @pytest.mark.asyncio
 async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
@@ -429,10 +440,10 @@ def _preview_project(db, mem_storage):
 
 
 @pytest.mark.asyncio
-async def test_preview_ebook_fecha_com_capa_se_as_outras_imagens_travam(
+async def test_preview_ebook_keeps_partial_images_without_approving_incomplete_preview(
     db, mem_storage, monkeypatch
 ):
-    """A última figura não pode segurar o livro. Capa gravada + timeout segue até Prévia pronta."""
+    """A partial result stays saved, without claiming all three images or a PDF."""
     monkeypatch.setattr("app.workers.handlers.ebook.settings.offline_fallback", False)
     monkeypatch.setattr("app.workers.handlers.ebook.settings.preview_image_timeout_s", 0.05)
 
@@ -452,7 +463,10 @@ async def test_preview_ebook_fecha_com_capa_se_as_outras_imagens_travam(
     db.refresh(p)
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.EBOOK_READY.value
-    assert p.book_approved_at is not None
+    assert p.book_approved_at is None
+    assert j.result["preview_complete"] is False
+    assert j.result["progress"]["done"] == 1
+    assert p.ebook_url is None
     covers = db.scalars(
         select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.COVER.value)
     ).all()
@@ -465,6 +479,23 @@ async def test_preview_ebook_fecha_com_capa_se_as_outras_imagens_travam(
     assert len(covers) == 1
     assert pages == []
     assert hands == []
+
+
+@pytest.mark.asyncio
+async def test_regenerating_images_reuses_saved_story(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    _, project = _seed(db)
+    story = "Título: História aprovada\n\nPágina 1: O texto original."
+    project.story_text = story
+    db.add(Asset(project_id=project.id, kind="photo", storage_key="photo1"))
+    db.commit()
+    job = _job(db, project, "AVATAR", cost=0, payload={"preview_chain": True, "reuse_story": True})
+    await runner.process_job(db, job)
+    db.refresh(project)
+    assert project.story_text == story
+    assert project.character_approved_at is not None
+    next_jobs = db.scalars(select(Job).where(Job.project_id == project.id, Job.id != job.id)).all()
+    assert [item.type for item in next_jobs] == ["EBOOK"]
 
 
 @pytest.mark.asyncio
