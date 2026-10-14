@@ -2198,8 +2198,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
 
       carousel.style.setProperty("--hero-w", `${Math.round(spanW)}px`);
 
-      // Moldura (border 1px em cada lado) + 2 filetes de 4px. Sem padding interno.
-      const imgBudget = spanW - 1 * 2 - 4 * 2;
+      // Moldura (border 1px em cada lado) + 2 filetes de 2px. Sem padding interno.
+      const imgBudget = spanW - 1 * 2 - 2 * 2;
       carousel.querySelectorAll<HTMLElement>(".hero-series-inner").forEach((inner) => {
         const imgs = Array.from(inner.querySelectorAll("img"));
         let ratio = 0;
