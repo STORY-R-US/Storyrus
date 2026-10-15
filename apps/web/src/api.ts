@@ -32,9 +32,13 @@ function readStoredToken(): string | null {
 let token: string | null = readStoredToken();
 let refreshPromise: Promise<boolean> | null = null;
 let resumePromise: Promise<boolean> | null = null;
+let sessionRetryAt = 0;
+let sessionRetryError: (Error & { status: number }) | null = null;
 
 export function setToken(t: string | null) {
   token = t;
+  sessionRetryAt = 0;
+  sessionRetryError = null;
   try {
     if (t) localStorage.setItem(TOKEN_KEY, t);
     else localStorage.removeItem(TOKEN_KEY);
@@ -75,9 +79,24 @@ async function postToken(
   path: string,
   init: RequestInit = {},
 ): Promise<string | null> {
+  if (sessionRetryError && Date.now() < sessionRetryAt) throw sessionRetryError;
   const resp = await backendFetch(`${BASE}${path}`, init, authFetchTimeoutMs);
   if (resp.status === 401 || resp.status === 403) return null;
-  if (!resp.ok) throw httpError(resp.status, "Não foi possível renovar a sessão agora");
+  if (!resp.ok) {
+    const error = httpError(resp.status, "Não foi possível renovar a sessão agora. Tente em instantes.");
+    if (resp.status === 429 || resp.status >= 500) {
+      const retryAfter = resp.headers.get("Retry-After");
+      const seconds = retryAfter === null ? NaN : Number(retryAfter);
+      const retryAt = Number.isFinite(seconds)
+        ? Date.now() + seconds * 1_000
+        : Date.parse(retryAfter ?? "");
+      sessionRetryAt = Number.isFinite(retryAt)
+        ? Math.max(Date.now() + 1_000, retryAt)
+        : Date.now() + (resp.status === 429 ? 60_000 : 10_000);
+      sessionRetryError = error;
+    }
+    throw error;
+  }
   const data = (await resp.json()) as { access_token?: string };
   if (!data.access_token) throw httpError(502, "Resposta de sessão indisponível");
   return data.access_token;

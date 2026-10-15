@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     guest_rate_limit_per_ip: int = 10
     guest_rate_limit_per_fingerprint: int = 5
     guest_rate_limit_window_s: int = 3600
+    # Recuperar uma conta existente tem cota própria; não cria convidados/créditos.
+    session_resume_rate_limit_per_ip: int = 120
+    session_resume_rate_limit_per_user: int = 30
+    session_resume_rate_limit_window_s: int = 60
     # Verificação de e-mail + envio (Resend opcional).
     email_verify_ttl_min: int = 60 * 24
     # Redefinição de senha (JWT purpose=password_reset).
