@@ -83,9 +83,9 @@ async def handle_avatar(db: Session, job: Job) -> None:
         # GPT Image gera o corpo CGI; refine_identity trava o rosto.
         provider = _pkg().get_image_provider(job.provider)
         style = book_art_direction(project.style) if project.style == "cartoon" else AVATAR_STYLE
-        gen_refs = (
-            await identity_images(refs[0], use_detector=settings.avatar_face_match)
-        ) + refs[1:]
+        gen_refs = (await identity_images(refs[0], use_detector=settings.avatar_face_match)) + refs[
+            1:
+        ]
         face = gen_refs[0]
         try:
             result = await provider.generate_character(
