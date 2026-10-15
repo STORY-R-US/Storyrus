@@ -1,0 +1,184 @@
+{
+  "id": "alfabeto_amazonia",
+  "titulo": "{NOME} na Amazônia — Alfabeto dos Animais",
+  "genero": "unissex",
+  "idade": "3-7",
+  "tematica": "Alfabeto e animais da Amazônia",
+  "emoji": "🦜",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para você, {NOME}, pequeno aventureiro,\nque seu coração seja valente,\ne que a floresta o leve a lugares\nincríveis e surpreendentes.\n\nAqui cada animal da Amazônia ensina um jeito de cuidar da floresta e do chão. Cuidar dos bichos é cuidar da água, das árvores e do ar. Preservar a Amazônia é também preservar a natureza em todo lugar.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "name",
+      "text": "",
+      "illustration_note": "{NOME} no lado direito da floresta amazonica, sorriso valente, corpo em tres quartos totalmente visivel e figurino de explorador; o lado esquerdo deve permanecer calmo e limpo, com nevoa suave sobre o rio e folhagem desfocada, sem personagem nem objeto importante; arvores ao fundo e luz dourada filtrada. Nenhum animal em destaque. Nenhuma letra, palavra, placa ou texto legivel na arte."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "A arara voa pela floresta com penas de muitas cores. Ela come frutas e deixa cair sementes que viram árvores com flores.",
+      "illustration_note": "{NOME} olhando uma arara azul-e-amarela voando sobre as arvores; letra grande abstrata A (madeira, sem texto legivel); um animal so."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "O boto é um golfinho cor-de-rosa que vive no rio e adora nadar. Ele sobe até a parte de cima da água porque precisa de ar para respirar.",
+      "illustration_note": "{NOME} numa canoa vendo um boto-cor-de-rosa subindo para respirar; letra grande abstrata B; um animal so."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "A capivara é um bicho grande da beira do rio e vive em família, sempre com companhia. Ela come capim e outras plantas verdes e descansa na água durante o dia.",
+      "illustration_note": "{NOME} na beira do rio com uma capivara tranquila descansando na agua; letra grande abstrata C; um animal so."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "O dourado é um peixe forte, da cor do ouro, e muito bom de nadar. Ele sobe o rio contra a força da água e quase não quer parar.",
+      "illustration_note": "{NOME} vendo um peixe dourado nadando contra a corrente; letra grande abstrata D; um animal so."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "O esquilo pula de galho em galho e quase nunca fica parado. Ele esconde frutas e sementes para comer depois, num lugar bem guardado.",
+      "illustration_note": "{NOME} vendo um esquilo pulando de galho em galho; letra grande abstrata E; um animal so."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "A formiga corta um pedaço de folha e volta andando em fila pelo caminho. Com essas folhas, ela faz a comida que guarda dentro do ninho.",
+      "illustration_note": "{NOME} vendo formigas andando em fila com um pedaco de folha; letra grande abstrata F; um tipo de animal so."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "O gavião voa bem alto e fica olhando a floresta inteira. Lá de cima ele enxerga muito longe, até um bicho pequeno que se mexe na beira.",
+      "illustration_note": "{NOME} olhando um gaviao voando alto sobre a mata; letra grande abstrata G; um animal so."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "A harpia é a maior águia da Amazônia e voa forte pela mata todo dia. Ela faz um ninho enorme no alto de uma árvore grande, onde cuida da família com alegria.",
+      "illustration_note": "{NOME} admirando uma harpia (gaviao-real) num ninho alto; letra grande abstrata H; um animal so."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "A irara vive no chão da floresta e procura frutas para comer. Ela também gosta de mel e segue pela mata até a comida aparecer.",
+      "illustration_note": "{NOME} vendo uma irara no chao da floresta procurando frutas; letra grande abstrata I; um animal so."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "O jacaré fica bem quieto na água, com só os olhos de fora. Ele espera com muita calma, sem pressa nenhuma, até chegar a hora.",
+      "illustration_note": "{NOME} a distancia segura vendo um jacare com so os olhos fora da agua; letra grande abstrata J; um animal so."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "O kinkajú vive nas árvores e usa o rabo para se equilibrar. Ele come frutas e caminha pelos galhos sem parar.",
+      "illustration_note": "{NOME} vendo um kinkaju (jupara) no galho com rabo enrolado, comendo fruta; letra grande abstrata K; um animal so."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "A lontra é grande e vive com a família, brincando e nadando sem parar. Ela precisa de água limpa para ver os peixes e conseguir pescar.",
+      "illustration_note": "{NOME} vendo uma lontra-gigante nadando e pescando no rio; letra grande abstrata L; um animal so."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "O macaco usa as mãos, os pés e o rabo comprido em cada galho que segura. Ele pula de árvore em árvore procurando a fruta mais madura.",
+      "illustration_note": "{NOME} vendo um macaco-prego pulando de galho em galho; letra grande abstrata M; um animal so."
+    },
+    {
+      "page": 16,
+      "layout": "story",
+      "text": "O nambu é um pássaro que anda pela floresta e vive no chão. Ele esconde o ninho no meio das folhas secas e canta baixo uma canção.",
+      "illustration_note": "{NOME} vendo um nambu andando entre as folhas do chao; letra grande abstrata N; um animal so."
+    },
+    {
+      "page": 17,
+      "layout": "story",
+      "text": "A onça é o maior gato da floresta e caminha quieta, bem devagar. As manchas do corpo escondem ela na sombra das árvores e fica difícil de encontrar.",
+      "illustration_note": "{NOME} admirando uma onca-pintada a distancia segura caminhando na sombra; letra grande abstrata O; um animal so."
+    },
+    {
+      "page": 18,
+      "layout": "story",
+      "text": "O papagaio tem um bico forte que quebra sementes duras sem parar. Ele mora nas árvores com muitos amigos e adora imitar os sons que consegue escutar.",
+      "illustration_note": "{NOME} perto de um papagaio verde no galho, bico forte; letra grande abstrata P; um animal so."
+    },
+    {
+      "page": 19,
+      "layout": "story",
+      "text": "O quati tem o focinho comprido e vai cheirando o chão para achar fruta caída. Ele anda sempre em grupo, com a família toda reunida.",
+      "illustration_note": "{NOME} numa trilha com um quati farejando fruta caída; letra grande abstrata Q; um animal so."
+    },
+    {
+      "page": 20,
+      "layout": "story",
+      "text": "A raia é um peixe de corpo chato que vive no rio e deita na areia do fundo. Ela fica tão quieta, coberta de areia, que passa sem ser vista por todo mundo.",
+      "illustration_note": "{NOME} vendo uma raia de agua doce deitada na areia do rio raso; letra grande abstrata R; um animal so."
+    },
+    {
+      "page": 21,
+      "layout": "story",
+      "text": "O sapo canta mais alto quando a chuva está chegando. Ele passa a noite perto da água, comendo insetos e cantando.",
+      "illustration_note": "{NOME} vendo um sapo cantando na beira da agua; letra grande abstrata S; um animal so."
+    },
+    {
+      "page": 22,
+      "layout": "story",
+      "text": "O tucano tem um bico grande e colorido que todo mundo conhece. Ele leva frutas para longe e deixa cair as sementes, e assim uma árvore nova aparece.",
+      "illustration_note": "{NOME} vendo um tucano no galho com bico colorido levando uma fruta; letra grande abstrata T; um animal so."
+    },
+    {
+      "page": 23,
+      "layout": "story",
+      "text": "O urubu voa alto e enxerga a mata inteira com grande clareza. Ao comer animais que já morreram, ajuda a manter a floresta limpa e cheia de beleza.",
+      "illustration_note": "{NOME} vendo um urubu voando alto no ceu da floresta, de longe e com cara amigavel; letra grande abstrata U; um animal so."
+    },
+    {
+      "page": 24,
+      "layout": "story",
+      "text": "O veado caminha devagar e sem barulho num lugar aberto. Ele escuta cada folha que se mexe e some entre as árvores quando alguém chega perto.",
+      "illustration_note": "{NOME} vendo um veado-mateiro caminhando quieto na clareira; letra grande abstrata V; um animal so."
+    },
+    {
+      "page": 25,
+      "layout": "story",
+      "text": "O uakari tem a cara vermelha e o pelo bem clarinho. Ele vive no alto da mata e procura frutas maduras no caminho.",
+      "illustration_note": "{NOME} vendo um uakari de cara vermelha e pelo claro no alto da copa; letra grande abstrata W; um animal so."
+    },
+    {
+      "page": 26,
+      "layout": "story",
+      "text": "O xexéu é um passarinho da Amazônia. Ele junta palha e faz um ninho firme para a família todo dia.",
+      "illustration_note": "{NOME} vendo um xexeu (passarinho amarelo-preto) juntando palha no ninho; letra grande abstrata X; um animal so."
+    },
+    {
+      "page": 27,
+      "layout": "story",
+      "text": "O iapu é um pássaro da Amazônia que tece um ninho comprido. O ninho fica pendurado no galho, firme e escondido.",
+      "illustration_note": "{NOME} vendo um iapu (japu) junto de um ninho comprido pendurado; letra grande abstrata Y; um animal so."
+    },
+    {
+      "page": 28,
+      "layout": "story",
+      "text": "O zogue-zogue é um macaco pequeno da Amazônia. Ele vive nas árvores e pula de galho em galho com a família.",
+      "illustration_note": "{NOME} vendo um zogue-zogue no galho; letra grande abstrata Z; um animal so."
+    },
+    {
+      "page": 29,
+      "layout": "story",
+      "text": "Da arara até o zogue-zogue, {NOME}, você conheceu muitos animais e o lugar onde eles estão. Cuidar da floresta é cuidar de cada um deles, com carinho e atenção.",
+      "illustration_note": "{NOME} numa canoa no rio amazonico acenando; uma arara ao longe; clima de despedida alegre; um foco principal so."
+    }
+  ]
+}

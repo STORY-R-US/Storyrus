@@ -1,0 +1,118 @@
+{
+  "id": "numeros_1_15",
+  "titulo": "{NOME} e os Números — De 1 a 15",
+  "genero": "unissex",
+  "idade": "3-6",
+  "tematica": "Contar objetos e escrever os números 1 a 15",
+  "emoji": "🔢",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para você, {NOME} pequeno aventureiro,\nque seu coração seja valente,\ne que contar o leve a lugares\nincríveis e surpreendentes.\n\nAqui cada número pede calma: um por um, sem pular. Traçar com o dedo é também aprender a ver o mundo com atenção.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "story",
+      "text": "{NOME} achou os números espalhados no chão. Um a um, com calma, vai traçar cada um então.",
+      "illustration_note": "{NOME} num quarto de brincar com blocos e formas espalhados; silhuetas grandes de numerais de madeira no chao (formas abstratas, sem texto legivel); sorriso curioso. Nenhum numero isolado em destaque."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "O um é um pauzinho em pé, um traço só, bem direito. Uma maçã na mesa: conta um, bem de jeito.",
+      "illustration_note": "{NOME} apontando UMA maca vermelha na mesa; numeral grande abstrato 1 (madeira, silhueta, sem texto legivel); objetos contaveis bem claros, so um."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "O dois desce em curva e faz um risquinho no chão. Duas bolas rolando, um par na palma da mão.",
+      "illustration_note": "{NOME} com DUAS bolas coloridas no chao; numeral grande abstrato 2; exatamente dois objetos, faceis de contar."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "O três são duas barrigas, uma em cima da outra. Três peixinhos no aquário nadam na mesma rota.",
+      "illustration_note": "{NOME} vendo um aquario com EXATAMENTE TRES peixinhos; numeral grande abstrato 3; tres objetos claros."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "O quatro tem um palito e um telhadinho de lado. Quatro blocos empilhados, um castelo bem armado.",
+      "illustration_note": "{NOME} empilhando EXATAMENTE QUATRO blocos de madeira; numeral grande abstrato 4; quatro objetos claros."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "O cinco desce, faz barriga e um chapéu no alto. Cinco dedos na luva, um cumprimento de salto.",
+      "illustration_note": "{NOME} mostrando uma luva colorida com CINCO dedos abertos; numeral grande abstrato 5; cinco dedos bem visiveis."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "O seis é uma barriga com um olho embaixo. Seis botões na camisa, um a um no trabalho.",
+      "illustration_note": "{NOME} vendo uma camisa com EXATAMENTE SEIS botoes grandes; numeral grande abstrato 6; seis objetos claros."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "O sete é um telhado e um pauzinho de escorrega. Sete folhas no chão, o vento brinca e entrega.",
+      "illustration_note": "{NOME} no quintal com EXATAMENTE SETE folhas no chao; numeral grande abstrato 7; sete objetos claros."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "O oito é um boneco: duas barrigas coladas. Oito pétalas na flor, a roda toda fechada.",
+      "illustration_note": "{NOME} olhando UMA flor grande com EXATAMENTE OITO petalas; numeral grande abstrato 8; oito petalas faceis de contar."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "O nove é um olho em cima e um cabo pra baixo. Nove contas no colar, um brilho debaixo do cacho.",
+      "illustration_note": "{NOME} segurando um colar com EXATAMENTE NOVE contas coloridas; numeral grande abstrato 9; nove objetos claros."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "O dez é o um e o zero, um palito e uma bola. Dez dedos nas duas mãos, a conta inteira e boa.",
+      "illustration_note": "{NOME} mostrando as DUAS maos abertas, dez dedos visiveis; numeral grande abstrato 10 (1 e 0 como silhuetas de madeira, sem texto legivel); dez dedos claros."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "O onze é um e um: dois pauzinhos lado a lado. Primeiro o um, depois o um, o traço bem pautado.",
+      "illustration_note": "{NOME} traçando no ar dois pauzinhos; numeral grande abstrato 11 (duas silhuetas de 1 em madeira, sem texto); POUCOS objetos, foco no tracado, nao amontoar onze coisas."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "O doze é um e dois: pauzinho e depois a curva. O um primeiro, o dois depois, a dupla que se curva.",
+      "illustration_note": "{NOME} traçando no ar um pauzinho e uma curva; numeral grande abstrato 12 (silhuetas 1 e 2 em madeira, sem texto); foco no tracado, poucos objetos."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "O treze é um e três: palito e duas barrigas. Primeiro o um, depois o três, as linhas amigas.",
+      "illustration_note": "{NOME} traçando no ar um palito e duas barrigas; numeral grande abstrato 13 (silhuetas 1 e 3, sem texto); foco no tracado, poucos objetos."
+    },
+    {
+      "page": 16,
+      "layout": "story",
+      "text": "O quatorze é um e quatro: palito e o telhadinho. O um vem antes, o quatro depois, no mesmo caminho.",
+      "illustration_note": "{NOME} traçando no ar um palito e um telhadinho; numeral grande abstrato 14 (silhuetas 1 e 4, sem texto); foco no tracado, poucos objetos."
+    },
+    {
+      "page": 17,
+      "layout": "story",
+      "text": "O quinze é um e cinco: palito e a barriga com chapéu. Dois algarismos juntos, o número ficou seu.",
+      "illustration_note": "{NOME} traçando no ar um palito e uma barriga com chapeu; numeral grande abstrato 15 (silhuetas 1 e 5, sem texto); foco no tracado, poucos objetos."
+    },
+    {
+      "page": 18,
+      "layout": "story",
+      "text": "De um até quinze, {NOME}, você traçou e contou. Devagar, sem pular, cada número encontrou.",
+      "illustration_note": "{NOME} sorrindo no quarto organizado, blocos empilhados por tamanho; silhuetas de numerais ao fundo sem texto legivel; clima de missao cumprida."
+    }
+  ]
+}

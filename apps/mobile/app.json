@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Story R Us",
+    "slug": "storyrus-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "storyrus",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f1320"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.storyrus.app"
+    },
+    "android": {
+      "package": "ai.storyrus.app",
+      "permissions": ["READ_EXTERNAL_STORAGE"]
+    },
+    "extra": {
+      "apiBase": "https://storyrus.ai"
+    }
+  }
+}

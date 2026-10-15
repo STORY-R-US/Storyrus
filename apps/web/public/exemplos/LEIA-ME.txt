@@ -1,0 +1,20 @@
+Coloque aqui as 6 imagens dos exemplos "Antes e Depois" da landing page.
+
+Use EXATAMENTE estes nomes (tudo minúsculo, extensão .jpg):
+
+  Exemplo 1 (bebê body do sol)
+    foto-bebe.jpg      = a FOTO real
+    arte-bebe.jpg      = a ILUSTRAÇÃO
+
+  Exemplo 2 (menino macacão azul)
+    foto-menino.jpg    = a FOTO real
+    arte-menino.jpg    = a ILUSTRAÇÃO
+
+  Exemplo 3 (pai com bebê)
+    foto-pai.jpg       = a FOTO real
+    arte-pai.jpg       = a ILUSTRAÇÃO
+
+Dicas:
+- Se a ilustração estiver em .png, pode salvar como .jpg (ou me avise que eu ajusto o código).
+- A foto e a arte de cada par devem ter o mesmo enquadramento, para a transição "varrer" certinho.
+- Depois de salvar, me avise que eu gero a prévia e publico.

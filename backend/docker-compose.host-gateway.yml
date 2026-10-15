@@ -1,0 +1,12 @@
+# Workaround for Cloud Agent VMs where Docker bridge
+# inter-container traffic times out. Routes `db`/`redis` hostnames
+# to the host gateway so containers use published ports.
+services:
+  api:
+    extra_hosts:
+      - "db:host-gateway"
+      - "redis:host-gateway"
+  worker:
+    extra_hosts:
+      - "db:host-gateway"
+      - "redis:host-gateway"

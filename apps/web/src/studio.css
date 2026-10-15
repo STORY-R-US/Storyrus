@@ -1,0 +1,948 @@
+/* Estúdio (/app) — mesma superfície visual da landing (.kid), sem alterar landing.css */
+
+.studio-app.kid {
+  padding-top: var(--khead-h);
+  --studio-surface: #172140;
+  --studio-surface-border: #26315a;
+  --studio-input-bg: #101a34;
+  --studio-input-border: #34467d;
+  --studio-muted: #9fabce;
+  --studio-label: #bcc6e6;
+  --studio-focus-ring: rgba(63, 143, 125, 0.35);
+  background:
+    radial-gradient(920px 480px at 50% -120px, rgba(127, 178, 227, 0.14) 0%, transparent 68%),
+    radial-gradient(640px 400px at 92% 8%, rgba(244, 183, 64, 0.07) 0%, transparent 58%),
+    radial-gradient(520px 360px at 4% 24%, rgba(58, 95, 174, 0.12) 0%, transparent 55%),
+    #0b1226;
+}
+
+.studio-app .studio-page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 28px var(--page-gutter) 64px;
+  box-sizing: border-box;
+}
+
+.studio-app .studio-card {
+  background: var(--studio-surface);
+  border: 1px solid var(--studio-surface-border);
+  border-radius: 22px;
+  padding: 1.75rem;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  margin-bottom: 1.75rem;
+}
+
+.studio-app .studio-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.55rem;
+  color: var(--ink);
+}
+
+.studio-app .studio-slogan {
+  margin: 0 0 1.25rem;
+  color: var(--studio-muted);
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.studio-app .studio-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .studio-app .studio-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.studio-app label.studio-field {
+  display: block;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--studio-label);
+}
+
+/* Ritmo vertical consistente entre blocos do formulário */
+.studio-app .studio-card > .how {
+  margin: 1.5rem 0 0;
+  padding-top: 0.75rem;
+}
+
+.studio-app .studio-card > .studio-grid {
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-grid + label.studio-field,
+.studio-app label.studio-field + label.studio-field,
+.studio-app .field-hint + label.studio-field,
+.studio-app label.studio-field + p.studio-field {
+  margin-top: 1.5rem;
+}
+
+/* Campos lado a lado (ex.: Nome da criança / Idade) devem ficar alinhados na mesma linha,
+   sem o espaçamento vertical pensado para campos empilhados. */
+.studio-app .studio-grid.two label.studio-field + label.studio-field {
+  margin-top: 0;
+}
+
+.studio-app .field-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.studio-app label.studio-field input,
+.studio-app label.studio-field textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.95rem 1rem;
+  font-size: 1.05rem;
+  border: 1.5px solid var(--studio-input-border);
+  border-radius: 14px;
+  background: var(--studio-input-bg);
+  color: var(--ink);
+  font: inherit;
+  box-sizing: border-box;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.studio-app label.studio-field input::placeholder,
+.studio-app label.studio-field textarea::placeholder {
+  color: #6f7da8;
+  opacity: 1;
+}
+
+.studio-app label.studio-field textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.studio-app label.studio-field input:focus,
+.studio-app label.studio-field textarea:focus {
+  outline: none;
+  border-color: var(--mint);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.22),
+    0 0 0 3px var(--studio-focus-ring);
+}
+
+.studio-app label.studio-field input:disabled,
+.studio-app label.studio-field textarea:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.studio-app .studio-upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.studio-app .studio-drop {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 0.4rem;
+  min-height: 148px;
+  margin-top: 0.6rem;
+  padding: 1.4rem 1.1rem;
+  border-radius: 18px;
+  border: 1.5px dashed var(--studio-input-border);
+  background: var(--studio-input-bg);
+  text-align: center;
+  cursor: pointer;
+}
+
+.studio-app .studio-drop.is-over {
+  border-color: var(--coral);
+  background: rgba(244, 140, 90, 0.14);
+}
+
+.studio-app .studio-drop input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.studio-app .studio-drop-title,
+.studio-app .studio-drop-hint {
+  pointer-events: none;
+}
+
+.studio-app .studio-drop-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.studio-app .studio-drop-hint {
+  max-width: 36rem;
+  color: var(--studio-muted);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.studio-app .studio-photo-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+}
+
+.studio-app .studio-photo-list li {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.studio-app .studio-photo-list img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.studio-app .studio-photo-list span {
+  font-size: 0.85rem;
+  color: var(--studio-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-app .studio-photo-list button {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+}
+
+.studio-app .studio-upload-row input[type="file"] {
+  flex: 1 1 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1.5px dashed var(--studio-input-border);
+  background: var(--studio-input-bg);
+  color: var(--studio-muted);
+  font-size: 1rem;
+}
+
+.studio-app .studio-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 1rem 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--studio-muted);
+  font-weight: 600;
+}
+
+.studio-app .studio-consent input {
+  margin-top: 0.15rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
+.studio-app .studio-meta {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  color: var(--studio-muted);
+}
+
+.studio-app .studio-meta b {
+  color: var(--ink);
+}
+
+.studio-app .studio-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.studio-app .studio-gender,
+.studio-app .studio-also {
+  margin-top: 0.9rem;
+}
+
+.studio-app .studio-choices {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-client {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-client .field-label {
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .studio-app .studio-choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.studio-app .studio-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--studio-surface-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.studio-app .studio-choice-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-label);
+}
+
+.studio-app .studio-choice .studio-actions {
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.studio-app .print-quantity .studio-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.studio-app .print-quantity {
+  margin-top: 16px;
+}
+
+.studio-app .studio-pick {
+  min-height: 64px;
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 16px;
+  border: 1.5px solid var(--studio-input-border);
+  background: var(--studio-input-bg);
+  color: var(--ink);
+  font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.15;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.studio-app .studio-pick.is-on {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--coral), var(--yellow));
+  box-shadow: 0 8px 18px rgba(244, 140, 90, 0.28);
+}
+
+.studio-app .studio-pick:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.studio-app .studio-chosen {
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  background: rgba(127, 178, 227, 0.12);
+  border: 1px solid rgba(127, 178, 227, 0.28);
+}
+
+.studio-app .studio-chosen span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-muted);
+}
+
+.studio-app .studio-chosen b {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.studio-app .studio-create {
+  width: 100%;
+  justify-content: center;
+  min-height: 68px;
+  margin-top: 0.25rem;
+  padding: 18px 28px;
+  font-size: 1.35rem;
+}
+
+.studio-app .studio-card.studio-order {
+  text-align: center;
+  padding: 3.5rem 1.75rem;
+}
+
+.studio-app .studio-card.studio-order h2 {
+  font-size: 2rem;
+  margin-bottom: 0.6rem;
+}
+
+.studio-app .studio-card.studio-order > p,
+.studio-app .studio-card.studio-order > .studio-slogan {
+  margin: 0 auto;
+  max-width: 28rem;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--studio-muted);
+}
+
+.studio-app .studio-preview-building {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.studio-app .studio-preview-building > .studio-slogan {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--studio-muted);
+  text-align: center;
+}
+
+.studio-app .preview-step-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.studio-app .preview-step-hint {
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--studio-muted);
+}
+
+.studio-app .studio-preview-building > .preview-must-move {
+  margin-top: 1.15rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.studio-app .studio-preview-building > .preview-eta {
+  margin-top: 0.85rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.studio-app .studio-preview-building > .preview-elapsed {
+  margin-top: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-app .studio-preview-building > .preview-stay {
+  margin-top: 0.85rem;
+}
+
+.studio-app .studio-preview-building > .preview-ready-cue {
+  margin-top: 0.65rem;
+  font-size: 1.05rem;
+}
+
+.studio-app .preview-steps {
+  list-style: none;
+  margin: 1.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+.studio-app .preview-step {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.72rem 0.9rem;
+  border-radius: 12px;
+  background: var(--studio-input-bg);
+  border: 1px solid var(--studio-input-border);
+  color: var(--studio-muted);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.studio-app .preview-step.is-now,
+.studio-app .preview-step.is-done {
+  color: var(--ink);
+}
+
+.studio-app .preview-step.is-now {
+  border-color: #3f8f7d;
+}
+
+.studio-app .preview-step-mark {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.studio-app .preview-step.is-now .preview-step-mark {
+  background: #3f8f7d;
+  border-color: #3f8f7d;
+  box-shadow: 0 0 0 4px rgba(63, 143, 125, 0.28);
+  animation: preview-step-pulse 1.6s ease-out infinite;
+}
+
+.studio-app .preview-step.is-done .preview-step-mark {
+  color: #14352c;
+  background: #8fd0b8;
+  border-color: #8fd0b8;
+}
+
+.studio-app .preview-step-state {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@keyframes preview-step-pulse {
+  70% { box-shadow: 0 0 0 8px rgba(63, 143, 125, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-app .preview-step.is-now .preview-step-mark {
+    animation: none;
+  }
+}
+
+.studio-app .studio-card.studio-review {
+  text-align: left;
+}
+
+.studio-app .studio-card.studio-review > h2 {
+  text-align: center;
+}
+
+.studio-app .studio-card.studio-review > .studio-slogan {
+  text-align: center;
+}
+
+.studio-app .studio-review-story,
+.studio-app .studio-review-changes {
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-review-story {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+
+.studio-app .studio-review-story > .field-label {
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.studio-app .studio-story-book {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0.85rem auto 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.studio-app .studio-story-page {
+  position: relative;
+  display: block;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1.4rem 1.55rem 1.55rem;
+  border-radius: 16px;
+  background:
+    linear-gradient(160deg, rgba(255, 248, 235, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(12, 22, 44, 0.55);
+  border: 1px solid rgba(232, 196, 140, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Never inherit meta-style label/value grids from parent cards */
+  grid-template-columns: none;
+  grid-template-rows: none;
+}
+
+.studio-app .studio-story-page.is-title {
+  background:
+    linear-gradient(160deg, rgba(255, 214, 150, 0.14), rgba(255, 255, 255, 0.02)),
+    rgba(18, 28, 52, 0.7);
+  border-color: rgba(240, 180, 90, 0.4);
+}
+
+.studio-app .studio-story-page-head {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  text-align: left;
+}
+
+.studio-app .studio-story-page-num {
+  display: inline-block;
+  font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0c27a;
+}
+
+.studio-app .studio-story-verse {
+  display: block;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: #f4efe6;
+  grid-template-columns: none;
+  grid-template-rows: none;
+}
+
+.studio-app .studio-card.studio-review .studio-story-verse p {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 0.7em;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  text-align: justify;
+  text-justify: inter-word;
+  text-align-last: left;
+  /* Auto-hyphenation looks harsh on short kids-book lines; keep whole words */
+  hyphens: none;
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.studio-app .studio-story-verse p:last-child {
+  margin-bottom: 0;
+}
+
+.studio-app .studio-story-page.is-title .studio-story-verse {
+  font-size: 1.32rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.studio-app .studio-card.studio-review .studio-story-page.is-title .studio-story-verse p {
+  text-align: center;
+  text-align-last: center;
+}
+
+[data-theme="light"] .studio-app .studio-story-page {
+  background:
+    linear-gradient(160deg, #fff8eb, #fffdf7);
+  border-color: rgba(180, 130, 70, 0.28);
+  box-shadow: 0 10px 28px rgba(40, 28, 10, 0.08);
+}
+
+[data-theme="light"] .studio-app .studio-story-page.is-title {
+  background: linear-gradient(160deg, #ffe8c4, #fff7e8);
+}
+
+[data-theme="light"] .studio-app .studio-story-page-num {
+  color: #9a6a22;
+}
+
+[data-theme="light"] .studio-app .studio-story-verse {
+  color: #2a2118;
+}
+
+.studio-app .studio-review-changes .studio-field {
+  margin-top: 0.85rem;
+}
+
+.studio-app .studio-review-changes .studio-create {
+  margin-top: 1.25rem;
+}
+
+.studio-app .how ol {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: studio-step;
+}
+
+.studio-app .how li {
+  counter-increment: studio-step;
+  display: grid;
+  grid-template-columns: 1.7rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  color: var(--studio-muted);
+  line-height: 1.4;
+}
+
+.studio-app .how li strong {
+  display: block;
+  color: var(--ink);
+  font-weight: 800;
+}
+.studio-app .how li p { margin: 0.15rem 0 0; }
+
+.studio-app .how li::before {
+  content: counter(studio-step);
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(127, 178, 227, 0.18);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.studio-app .studio-error {
+  color: #ff9a8f;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.studio-app .field-error {
+  margin: 0.4rem 0 0;
+  color: #ff9a8f;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.studio-app label.studio-field input.is-invalid,
+.studio-app label.studio-field textarea.is-invalid,
+.studio-app .studio-drop.is-invalid,
+.studio-app .studio-choice.is-invalid {
+  border-color: #ff8b7d;
+}
+
+.studio-app .studio-consent.is-invalid {
+  color: #ff9a8f;
+}
+
+.studio-app .demo-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--studio-surface-border);
+  background: linear-gradient(
+    135deg,
+    rgba(39, 51, 95, 0.95) 0%,
+    rgba(23, 33, 64, 0.98) 55%,
+    rgba(20, 29, 58, 1) 100%
+  );
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  margin-bottom: 1rem;
+  color: var(--studio-muted);
+}
+
+.studio-app .upgrade-form label {
+  display: block;
+  margin: 0.75rem 0 0.35rem;
+  color: var(--studio-label);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.studio-app .upgrade-form input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.35rem;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--studio-input-border);
+  border-radius: 14px;
+  background: var(--studio-input-bg);
+  color: var(--ink);
+  font: inherit;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.studio-app .upgrade-form .muted {
+  color: var(--studio-muted);
+}
+
+/* Reuso de utilitários globais do app dentro da landing */
+.studio-app .story,
+.studio-app .story-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.studio-app .results .result-block {
+  margin-top: 1.25rem;
+}
+
+.studio-app button.link {
+  background: none;
+  box-shadow: none;
+  color: #9cc4ff;
+  padding: 0.35rem 0;
+}
+
+.studio-app button.link:hover {
+  color: var(--yellow);
+}
+
+/* Tema claro — cartões claros como antes do restyle escuro */
+[data-theme="light"] .studio-app.kid {
+  --studio-link: #185a99;
+  --studio-surface: #fff;
+  --studio-surface-border: rgba(31, 53, 104, 0.1);
+  --studio-input-bg: #fffdf8;
+  --studio-input-border: rgba(31, 53, 104, 0.14);
+  --studio-muted: #5a6a8f;
+  --studio-label: #4a5880;
+  --studio-focus-ring: rgba(63, 143, 125, 0.18);
+  background:
+    radial-gradient(1200px 520px at 50% -140px, #dcecfb 0%, transparent 70%),
+    linear-gradient(180deg, #f3f8ff 0%, #fff7ec 55%, #fff2db 100%);
+}
+
+[data-theme="light"] .studio-app .studio-card {
+  background: var(--studio-surface);
+  box-shadow: 0 18px 48px rgba(31, 53, 104, 0.1);
+}
+
+[data-theme="light"] .studio-app .studio-choice {
+  background: #fffaf3;
+}
+
+[data-theme="light"] .studio-app .studio-pick {
+  background: #fff;
+}
+
+[data-theme="light"] .studio-app .studio-chosen {
+  background: #f3f8ff;
+}
+
+[data-theme="light"] .studio-app label.studio-field input,
+[data-theme="light"] .studio-app label.studio-field textarea,
+[data-theme="light"] .studio-app .upgrade-form input {
+  box-shadow: none;
+}
+
+[data-theme="light"] .studio-app .studio-drop {
+  background: #fff;
+  border-color: rgba(31, 53, 104, 0.2);
+}
+
+[data-theme="light"] .studio-app .studio-upload-row input[type="file"] {
+  background: #fff;
+  border-color: rgba(31, 53, 104, 0.2);
+  color: inherit;
+}
+
+[data-theme="light"] .studio-app .demo-banner {
+  background: linear-gradient(135deg, rgba(127, 178, 227, 0.25), rgba(244, 183, 64, 0.2));
+  border: none;
+  box-shadow: none;
+  color: #4a5880;
+}
+
+[data-theme="light"] .studio-app .studio-error,
+[data-theme="light"] .studio-app .field-error,
+[data-theme="light"] .studio-app .studio-consent.is-invalid {
+  color: #c44d3f;
+}
+
+[data-theme="light"] .studio-app button.link {
+  color: var(--purple);
+}
+
+/* Pedido/meta summary only — keep scoped so story pages never get the 9rem label grid */
+.studio-order-meta {
+  margin: 0.75rem 0 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+}
+.studio-order-meta h3 { margin: 0 0 0.65rem; font-size: 1rem; }
+.studio-order-meta dl { margin: 0; display: grid; gap: 0.35rem; }
+.studio-order-meta dl > div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 0.4rem; }
+.studio-order-meta dt { color: var(--muted); font-weight: 700; }
+.studio-order-meta dd { margin: 0; }
+@media (max-width: 720px) {
+  .studio-order-meta dl > div { grid-template-columns: 1fr; }
+}
+.studio-master-flow a {
+  color: var(--studio-link, #76baff);
+  display: inline-block;
+  margin: 8px 10px 8px 0;
+}
+
+.studio-master-flow button {
+  margin: 6px 8px 6px 0;
+}
+
+.studio-master-flow figure {
+  margin: 20px 0;
+}
+
+.studio-master-flow figcaption {
+  margin-bottom: 8px;
+}
+
+.studio-master-flow textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88px;
+  margin: 8px 0;
+}

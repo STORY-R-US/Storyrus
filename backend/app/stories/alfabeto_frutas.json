@@ -1,0 +1,184 @@
+{
+  "id": "alfabeto_frutas",
+  "titulo": "{NOME} no Pomar — Alfabeto das Frutas",
+  "genero": "unissex",
+  "idade": "3-7",
+  "tematica": "Alfabeto e frutas do pomar",
+  "emoji": "🍍",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para você, {NOME} pequeno aventureiro,\nque seu coração seja valente,\ne que o pomar o leve a lugares\nincríveis e surpreendentes.\n\nAqui cada fruta ensina um jeito de cuidar da terra e da horta. Cuidar das plantas é cuidar da água, das árvores e do chão. Colher com carinho é também cuidar da natureza em todo lugar.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "name",
+      "text": "",
+      "illustration_note": "{NOME} num pomar ensolarado, sorriso valente; silhuetas decorativas das letras do nome em madeira (formas abstratas, sem texto legivel); arvores frutiferas ao fundo, sem nenhuma fruta em destaque; luz suave."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "O abacaxi usa uma coroa e a casca tem espinho. Por dentro é dourado e doce, um suco que agrada o caminho.",
+      "illustration_note": "{NOME} olhando um abacaxi de coroa verde e casca dourada no chao do pomar; letra grande abstrata A (madeira, sem texto legivel); uma fruta so."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "A banana amarela cresce em cacho no pé. É macia e doce, e a gente descasca pra comer de uma vez.",
+      "illustration_note": "{NOME} vendo um cacho de bananas amarelas pendurado na bananeira; letra grande abstrata B; uma fruta so."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "O caju é amarelo e traz uma castanha no alto. O suco é azedinho e o cheiro chega num salto.",
+      "illustration_note": "{NOME} segurando um caju amarelo com a castanha no alto; letra grande abstrata C; uma fruta so."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "O damasco é pequeno, alaranjado e aveludado. Por dentro tem um caroço e um gosto adocicado.",
+      "illustration_note": "{NOME} vendo damascos alaranjados aveludados numa cesta; letra grande abstrata D; uma fruta so."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "A embaúba dá uma frutinha na mata, miúda e discreta. Os passarinhos comem e espalham a semente completa.",
+      "illustration_note": "{NOME} na mata vendo frutinhas de embauba no galho; letra grande abstrata E; uma fruta so."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "O figo é macio, roxinho por fora e doce por inteiro. Abre no meio e mostra as sementinhas como um tesouro verdadeiro.",
+      "illustration_note": "{NOME} vendo um figo roxo aberto ao meio, sementes a mostra; letra grande abstrata F; uma fruta so."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "A goiaba é cheirosa, verde por fora e rosa por dentro. Tem sementes pequeninas e um gosto que fica na lembrança, no centro.",
+      "illustration_note": "{NOME} vendo uma goiaba cortada ao meio, polpa rosa e sementes; letra grande abstrata G; uma fruta so."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "O hibisco tem cálices vermelhos que viram um chá. É azedinho e bonito, e a cor alegra o lugar.",
+      "illustration_note": "{NOME} vendo calices vermelhos de hibisco (vinagreira) numa cesta; letra grande abstrata H; uma fruta so."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "O ingá abre uma vagem comprida com polpa branca e macia. É doce da mata e derrete na boca todo dia.",
+      "illustration_note": "{NOME} abrindo uma vagem de inga com polpa branca; letra grande abstrata I; uma fruta so."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "A jabuticaba nasce no tronco, pretinha e brilhante. Estoura na boca com um suco doce e vibrante.",
+      "illustration_note": "{NOME} junto a um tronco cheio de jabuticabas pretas brilhantes; letra grande abstrata J; uma fruta so."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "O kiwi tem casca marrom e por dentro é verde de verdade. As sementinhas pretas brilham numa roda de suavidade.",
+      "illustration_note": "{NOME} vendo um kiwi cortado ao meio, polpa verde e sementes pretas; letra grande abstrata K; uma fruta so."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "A laranja é redonda e guarda um suco dourado. Descascá-la é fácil e o cheiro fica no ar, bem guardado.",
+      "illustration_note": "{NOME} descascando uma laranja redonda, suco dourado a mostra; letra grande abstrata L; uma fruta so."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "A manga é grande, suculenta e escorre nos dedos. O caroço é grande e o sabor é de verão nos brinquedos.",
+      "illustration_note": "{NOME} segurando uma manga madura suculenta; letra grande abstrata M; uma fruta so."
+    },
+    {
+      "page": 16,
+      "layout": "story",
+      "text": "A nêspera é pequenina, amarela e doce no ponto. Tem um caroço no meio e um gosto suave, bem pronto.",
+      "illustration_note": "{NOME} vendo nesperas amarelas pequenas no galho; letra grande abstrata N; uma fruta so."
+    },
+    {
+      "page": 17,
+      "layout": "story",
+      "text": "O oiti é uma fruta da praia, amarelada e perfumada. A polpa é fina e doce, uma sombra gostosa na calçada.",
+      "illustration_note": "{NOME} numa calcada de praia vendo oitis amarelados no chao; letra grande abstrata O; uma fruta so."
+    },
+    {
+      "page": 18,
+      "layout": "story",
+      "text": "A pitanga é vermelhinha e tem gomos como uma flor. É azedinha e suculenta, um beijo de sabor.",
+      "illustration_note": "{NOME} colhendo uma pitanga vermelha de gomos no arbusto; letra grande abstrata P; uma fruta so."
+    },
+    {
+      "page": 19,
+      "layout": "story",
+      "text": "O quinoto é um cítrico miúdo e se come inteiro, sem medo. A casca é doce, o miolo é azedo, um gosto de brinquedo.",
+      "illustration_note": "{NOME} segurando um quinoto (kumquat) miudo laranja inteiro; letra grande abstrata Q; uma fruta so."
+    },
+    {
+      "page": 20,
+      "layout": "story",
+      "text": "A romã esconde grãos vermelhos como joias no interior. Cada um estoura na boca com suco doce e um pouco de sabor.",
+      "illustration_note": "{NOME} vendo uma roma aberta com graos vermelhos brilhantes; letra grande abstrata R; uma fruta so."
+    },
+    {
+      "page": 21,
+      "layout": "story",
+      "text": "A seriguela é amarela, pequena e tem um cheiro forte. A polpa gruda no caroço e o gosto é de sol no norte.",
+      "illustration_note": "{NOME} vendo seriguelas amarelas pequenas numa cesta; letra grande abstrata S; uma fruta so."
+    },
+    {
+      "page": 22,
+      "layout": "story",
+      "text": "A tangerina abre fácil, em gomos, sem trabalho. É doce e cheirosa, um abraço de laranja no atalho.",
+      "illustration_note": "{NOME} abrindo uma tangerina em gomos faceis; letra grande abstrata T; uma fruta so."
+    },
+    {
+      "page": 23,
+      "layout": "story",
+      "text": "A uva vem em cacho, verdinha ou roxinha no galho. É suco em bolinha, um doce que cabe na palma, sem falha.",
+      "illustration_note": "{NOME} vendo um cacho de uvas roxas no parreiral; letra grande abstrata U; uma fruta so."
+    },
+    {
+      "page": 24,
+      "layout": "story",
+      "text": "A vergamota é uma tangerina do sul, fácil de abrir. Os gomos são doces e o cheiro faz a gente sorrir.",
+      "illustration_note": "{NOME} descascando uma vergamota (bergamota) facil de abrir; letra grande abstrata V; uma fruta so."
+    },
+    {
+      "page": 25,
+      "layout": "story",
+      "text": "O wampi é uma frutinha dourada, de casca fininha. Por dentro é azedinho e refrescante, uma surpresa na cestinha.",
+      "illustration_note": "{NOME} vendo frutinhas douradas de wampi (clausena) numa cesta; letra grande abstrata W; uma fruta so."
+    },
+    {
+      "page": 26,
+      "layout": "story",
+      "text": "O xixá é uma fruta do cerrado, redonda e de casca dura. Por dentro tem um gosto especial, uma riqueza da natureza pura.",
+      "illustration_note": "{NOME} no cerrado vendo um xixa redondo de casca dura; letra grande abstrata X; uma fruta so."
+    },
+    {
+      "page": 27,
+      "layout": "story",
+      "text": "O iacón parece uma raiz, crocante e cheio de suco. É doce e refrescante, um petisco da terra, um luxo.",
+      "illustration_note": "{NOME} vendo um iacon (yacon) crocante, formato de raiz suculenta; letra grande abstrata Y; uma fruta so."
+    },
+    {
+      "page": 28,
+      "layout": "story",
+      "text": "O zimbro dá uma frutinha azulada, pequena e aromática. Tem cheiro de mata e um gosto especial, quase uma mágica.",
+      "illustration_note": "{NOME} vendo frutinhas azuladas de zimbro no arbusto; letra grande abstrata Z; uma fruta so."
+    },
+    {
+      "page": 29,
+      "layout": "story",
+      "text": "Do abacaxi até o zimbro, {NOME}, você provou o alfabeto no pomar. Cuidar da terra é cuidar de cada fruta, com carinho e sem parar.",
+      "illustration_note": "{NOME} no pomar acenando com uma cesta de frutas variadas ao fundo, sem uma so em destaque; clima de despedida alegre."
+    }
+  ]
+}

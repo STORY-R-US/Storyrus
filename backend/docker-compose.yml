@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: stories
+      POSTGRES_PASSWORD: stories
+      POSTGRES_DB: stories
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stories"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    env_file: .env
+    # Hostnames inside the compose network (override localhost from .env.example).
+    environment:
+      DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_LOCAL_DIR: /data/local-storage
+    volumes:
+      - local_storage:/data/local-storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_LOCAL_DIR: /data/local-storage
+    volumes:
+      - local_storage:/data/local-storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["python", "-m", "app.workers.runner"]
+
+volumes:
+  pgdata:
+  local_storage:
