@@ -60,6 +60,8 @@ def _reset(monkeypatch):
     _FakeAsyncClient.calls = []
     monkeypatch.setattr(oai.httpx, "AsyncClient", _FakeAsyncClient)
     monkeypatch.setattr(oai.settings, "openai_api_key", "test-key")
+    monkeypatch.setattr(oai.settings, "openai_image_model", "gpt-image-1")
+    monkeypatch.setattr(oai.settings, "openai_image_quality", "high")
     monkeypatch.setattr(oai.settings, "openai_max_retries", 2)
     monkeypatch.setattr(oai.settings, "openai_retry_base_s", 0.0)
     monkeypatch.setattr(oai.settings, "openai_retry_max_s", 0.0)
@@ -94,6 +96,37 @@ async def test_generate_scene_uses_edits_with_avatar():
     call = _FakeAsyncClient.calls[0]
     assert "/images/edits" in call["url"]
     assert call.get("files")
+    assert call["data"]["input_fidelity"] == "high"
+    assert call["data"]["quality"] == "high"
+
+
+@pytest.mark.asyncio
+async def test_product_photo_preserves_cover_prompt_and_reference_role():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"product"))]
+    provider = oai.OpenAIImageProvider()
+    await provider.generate_scene(
+        prompt="A PRIMEIRA imagem é a CAPA. Use esta capa no livro físico.",
+        character_ref=b"cover",
+        reference_role="cover",
+        style="photoreal product photo",
+    )
+    prompt = _FakeAsyncClient.calls[0]["data"]["prompt"]
+    assert prompt.startswith("A PRIMEIRA imagem é a CAPA.")
+    assert "AVATAR" not in prompt
+    assert "Ilustre" not in prompt
+
+
+@pytest.mark.asyncio
+async def test_multiple_reference_files_use_matching_mime_types():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload())]
+    await oai.OpenAIImageProvider().generate_character(
+        prompt="saved prompt",
+        reference_images=[b"\xff\xd8\xffPHOTO", b"\x89PNG\r\n\x1a\nIMAGE"],
+        style="cartoon",
+    )
+    files = _FakeAsyncClient.calls[0]["files"]
+    assert [field for field, _ in files] == ["image[]", "image[]"]
+    assert [value[2] for _, value in files] == ["image/jpeg", "image/png"]
 
 
 @pytest.mark.asyncio

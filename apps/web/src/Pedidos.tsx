@@ -26,6 +26,75 @@ function titleOf(summary: string): string {
   return summary.split("\n")[0]?.trim() || "Pedido";
 }
 
+function nameOf(order: OrderTicket): string {
+  const name = order.summary.split("\n").find((line) => /^Nome:/i.test(line));
+  return name ? `Livro de ${name.slice(name.indexOf(":") + 1).trim()}` : titleOf(order.summary);
+}
+
+function generationLabel(order: OrderTicket): string {
+  const stages: Record<string, string> = { AVATAR: "Criando personagem", STORY: "Preparando história", EBOOK: "Gerando imagens" };
+  const labels: Record<string, string> = {
+    queued: "Na fila de geração", generating: order.generation_stage === "EBOOK" ? `Gerando imagens · ${order.generated_images ?? 0}/3` : stages[order.generation_stage ?? ""] ?? "Gerando prévia",
+    ready: "Prévia pronta", partial: "Prévia incompleta", failed: "Geração interrompida", demo: "Imagens de demonstração",
+  };
+  return labels[order.generation_status ?? ""] ?? ((order.book_files ?? []).length ? "Prévia disponível" : "Aguardando geração");
+}
+
+function printDescription(order: OrderTicket): string {
+  const labels: Record<string, string> = {
+    awaiting_spec: "Configuração da gráfica pendente", awaiting_pages: "Aguardando páginas para impressão",
+    held: "Formato aguardando liberação", files_ready: "Arquivos prontos", sent_for_validation: "Pacote em validação",
+    approved: "Produção aprovada", rejected: "Ajustes solicitados pela gráfica",
+  };
+  return labels[order.print_status ?? ""] ?? "Aguardando preparação do impresso";
+}
+
+function printRequirements(reason: string): string {
+  const labels: Record<string, string> = {
+    bleed_mm: "sangria", safety_mm: "margem de segurança", spine_mm: "largura da lombada",
+    score_mm: "medida do vinco", pdf_x: "padrão PDF/X", color_profile: "perfil de cor", filename_pattern: "padrão dos nomes dos arquivos",
+  };
+  return reason.replace(/Especificação de produção incompleta:\s*/i, "A gráfica precisa informar: ")
+    .replace(/\b(bleed_mm|safety_mm|spine_mm|score_mm|pdf_x|color_profile|filename_pattern)\b/g, (key) => labels[key]);
+}
+
+function OrderPreview({ order }: { order: OrderTicket }) {
+  const files = order.book_files ?? [];
+  const slots = [
+    { kind: "character", label: "Personagem" }, { kind: "cover", label: "Capa" },
+    { kind: "page_image", label: "Página 1" }, { kind: "in_hand", label: "Livro na mão" },
+  ];
+  const pdf = files.find((file) => file.kind === "ebook" || file.label === "PDF do livro");
+  return (
+    <section className="order-preview" aria-label="Prévia do livro">
+      <div className="order-preview-heading">
+        <h3>Prévia do livro</h3>
+        <span className={`order-status is-${order.generation_status ?? "queued"}`} role="status">{generationLabel(order)}</span>
+      </div>
+      <p className="muted">Capa, uma página da história e o livro na mão.</p>
+      <div className="order-preview-grid" data-testid="order-book-files">
+        {slots.map((slot) => {
+          const file = files.find((item) => item.kind === slot.kind || item.label === slot.label || (slot.kind === "page_image" && /^Página/.test(item.label)));
+          return (
+            <figure className="order-preview-card" key={slot.kind}>
+              {file ? (
+                <a href={file.url} target="_blank" rel="noreferrer" aria-label={`Abrir ${slot.label.toLowerCase()}`}>
+                  <img src={file.url} alt={slot.label} loading="lazy" />
+                </a>
+              ) : <div className="order-preview-placeholder">{order.generation_status === "failed" ? "Imagem pendente" : "Aguardando imagem"}</div>}
+              <figcaption>{slot.label}</figcaption>
+            </figure>
+          );
+        })}
+      </div>
+      {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
+      {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
+      {order.generation_status === "failed" && <p className="order-notice">A geração foi interrompida. Seus dados e fotos continuam salvos para uma nova tentativa.</p>}
+      {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
+    </section>
+  );
+}
+
 function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
   const rows = order.summary
     .split("\n")
@@ -58,7 +127,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
   if (order.print_code) rows.push({ label: "OS", value: order.print_code });
   if (order.print_status) {
     const labels: Record<string, string> = {
-      awaiting_spec: "Aguardando especificação",
+      awaiting_spec: "Configuração da gráfica pendente",
       awaiting_pages: "Aguardando páginas",
       held: "Formato ainda não liberado",
       files_ready: "Arquivos prontos",
@@ -135,7 +204,8 @@ function PersonalOrders({
                   aria-pressed={order.id === current?.id}
                   onClick={() => setSelected(order.id)}
                 >
-                  <strong>{titleOf(order.summary)}</strong>
+                  <strong>{nameOf(order)}</strong>
+                  <span>{generationLabel(order)}</span>
                   <span>{when(order.created_at)}</span>
                 </button>
               </li>
@@ -143,7 +213,8 @@ function PersonalOrders({
           </ul>
           {current && (
             <article className="usage-order-detail" data-testid="order-detail">
-              <h2>{titleOf(current.summary)}</h2>
+              <h2>{nameOf(current)}</h2>
+              <OrderPreview order={current} />
               <dl>
                 {fieldsOf(current).map((row) => (
                   <div key={row.label}>
@@ -163,20 +234,6 @@ function PersonalOrders({
                     </figure>
                   ))}
                 </div>
-              )}
-              {(current.book_files ?? []).length > 0 && (
-                <section className="order-os">
-                  <h3>Arquivos do livro</h3>
-                  <ul className="order-os-files" data-testid="order-book-files">
-                    {(current.book_files ?? []).map((file) => (
-                      <li key={`${file.label}-${file.url}`}>
-                        <a href={file.url} target="_blank" rel="noreferrer">
-                          {file.label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
               )}
               <p className="muted">{when(current.created_at)}</p>
             </article>
@@ -210,9 +267,12 @@ export function Pedidos() {
   const [personal, setPersonal] = useState<OrderTicket[] | null>(null);
   const [personalError, setPersonalError] = useState<string | null>(null);
   const [personalLoading, setPersonalLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const hasOrders = orders !== null;
+  const hasActiveGeneration = (orders ?? []).some((order) => order.generation_status === "generating" || (order.generation_status === "queued" && Boolean(order.generation_stage)));
 
-  const load = useCallback(async (secret: string) => {
-    setLoading(true);
+  const load = useCallback(async (secret: string, quiet = false) => {
+    if (!quiet) setLoading(true);
     setError(null);
     setLastStatus(undefined);
     try {
@@ -225,7 +285,7 @@ export function Pedidos() {
         awaitingPhoto: report.projects_awaiting_photo ?? 0,
       });
       setSelected((cur) => (cur && list.some((order) => order.id === cur) ? cur : list[0]?.id ?? null));
-      setConfirmDelete(false);
+      if (!quiet) setConfirmDelete(false);
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
       persistOwnerSecret(next);
       setPassword(next);
@@ -274,23 +334,37 @@ export function Pedidos() {
   useEffect(() => {
     if (role !== "member") return;
     let alive = true;
+    let inFlight = false;
+    let watching = true;
     setPersonalLoading(true);
     setPersonalError(null);
-    api
-      .myOrders()
+    const refresh = () => {
+      if (inFlight || document.visibilityState === "hidden") return;
+      inFlight = true;
+      void api.myOrders()
       .then((list) => {
-        if (alive) setPersonal(list);
+        if (alive) {
+          setPersonal(list);
+          watching = list.some((order) => order.generation_status === "generating" || (order.generation_status === "queued" && Boolean(order.generation_stage)));
+        }
       })
       .catch((err: Error) => {
         if (!alive) return;
-        setPersonal([]);
+        setPersonal((current) => current ?? []);
         setPersonalError(err.message || "Falha ao carregar seus pedidos.");
       })
       .finally(() => {
+        inFlight = false;
         if (alive) setPersonalLoading(false);
       });
+    };
+    refresh();
+    const timer = window.setInterval(() => { if (watching) refresh(); }, 15000);
+    window.addEventListener("focus", refresh);
     return () => {
       alive = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
     };
   }, [role]);
 
@@ -305,6 +379,16 @@ export function Pedidos() {
       void load(OWNER_SESSION_TOKEN);
     }
   }, [role, password, load, sessionTried]);
+
+  useEffect(() => {
+    if (role !== "admin" || !password || !hasOrders) return;
+    const refresh = () => {
+      if (document.visibilityState !== "hidden") void load(password, true);
+    };
+    const timer = hasActiveGeneration ? window.setInterval(refresh, 15000) : undefined;
+    window.addEventListener("focus", refresh);
+    return () => { if (timer !== undefined) window.clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, [role, password, hasOrders, hasActiveGeneration, load]);
 
   // Cold start: uma nova tentativa automática após falha transitória.
   useEffect(() => {
@@ -326,6 +410,20 @@ export function Pedidos() {
 
   const current = orders?.find((order) => order.id === selected) ?? null;
   const ownerSecret = apiOwnerPassword(password);
+
+  async function generateImages() {
+    if (!current || generating) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      await api.generateOrderImages(ownerSecret, current.id);
+      await load(password, true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível iniciar a geração.");
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   async function removeOrder() {
     if (!current) return;
@@ -403,6 +501,9 @@ export function Pedidos() {
           </p>
         </div>
         <OwnerNav current="pedidos" />
+        <button className="link" type="button" disabled={loading} onClick={() => void load(password)}>
+          {loading ? "Atualizando…" : "Atualizar pedidos"}
+        </button>
         <button
           className="link"
           type="button"
@@ -449,7 +550,8 @@ export function Pedidos() {
                     setConfirmDelete(false);
                   }}
                 >
-                  <strong>{titleOf(order.summary)}</strong>
+                  <strong>{nameOf(order)}</strong>
+                  <span>{generationLabel(order)}</span>
                   <span>{when(order.created_at)}</span>
                 </button>
               </li>
@@ -457,7 +559,18 @@ export function Pedidos() {
           </ul>
           {current && (
             <article className="usage-order-detail" data-testid="order-detail">
-              <h2>{titleOf(current.summary)}</h2>
+              <h2>{nameOf(current)}</h2>
+              <OrderPreview order={current} />
+              {current.payment_status !== "paid" && (
+                <button
+                  type="button" className="order-generate-button" data-testid="order-generate"
+                  disabled={generating || current.generation_status === "generating" || (current.generation_status === "queued" && Boolean(current.generation_stage))}
+                  onClick={() => void generateImages()}
+                >
+                  {generating ? "Iniciando geração…" : current.generation_status === "generating" || (current.generation_status === "queued" && current.generation_stage)
+                    ? "Geração em andamento" : current.image_provider === "openai" ? "Gerar novamente com OpenAI" : "Gerar imagens com OpenAI"}
+                </button>
+              )}
               <dl>
                 {fieldsOf(current).map((row) => (
                   <div key={row.label}>
@@ -480,46 +593,15 @@ export function Pedidos() {
               )}
               <section className="order-os" data-testid="order-os">
                 <h3>Ordem de serviço {current.print_code || "—"}</h3>
-                <ol>
-                  <li>Pedido aberto com os dados da família e a foto.</li>
-                  <li>
-                    {current.has_story || (current.book_files ?? []).length > 0
-                      ? "Livro guardado neste pedido."
-                      : "Livro ainda sendo gerado. Personagem, história e imagens entram aqui."}
-                  </li>
-                  <li>
-                    Faturar
-                    {current.payment_status === "paid"
-                      ? " — faturado."
-                      : current.payment_status === "pending"
-                        ? " — fatura em aberto."
-                        : " — ainda a faturar."}
-                  </li>
-                  <li>
-                    Gráfica
-                    {current.print_status === "files_ready" || current.print_status === "approved"
-                      ? " — pacote pronto para envio."
-                      : current.print_status === "sent_for_validation"
-                        ? " — pacote em validação."
-                        : current.block_reason
-                          ? ` — ${current.block_reason}`
-                          : " — aguardando o livro para montar o pacote."}
-                  </li>
-                </ol>
-                {(current.book_files ?? []).length > 0 && (
-                  <ul className="order-os-files" data-testid="order-book-files">
-                    {(current.book_files ?? []).map((file) => (
-                      <li key={`${file.label}-${file.url}`}>
-                        <a href={file.url} target="_blank" rel="noreferrer">
-                          {file.label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="order-workflow">
+                  <div><span>Prévia</span><strong>{generationLabel(current)}</strong><p>As imagens e o PDF ficam salvos neste pedido.</p></div>
+                  <div><span>Faturamento</span><strong>{current.payment_status === "paid" ? "Faturado" : current.payment_status === "pending" ? "Fatura em aberto" : "A faturar"}</strong><p>{current.payment_status === "paid" ? "Pagamento confirmado." : "Faturamento do livro impresso."}</p></div>
+                  <div><span>Impressão</span><strong>{printDescription(current)}</strong><p>{current.print_status === "awaiting_spec" ? "O pacote de impressão depende das medidas e do padrão da gráfica." : "Acompanhe a preparação e a validação dos arquivos."}</p></div>
+                </div>
+                {current.block_reason && <details className="order-print-details"><summary>O que falta para impressão?</summary><p>{printRequirements(current.block_reason)}</p></details>}
               </section>
               <p className="muted">
-                {when(current.created_at)} · Projeto {current.project_id}
+                Pedido recebido em {when(current.created_at)}
               </p>
               {current.print_order_id && current.print_status === "files_ready" && (
                 <button

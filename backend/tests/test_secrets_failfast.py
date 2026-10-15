@@ -6,6 +6,19 @@ from pydantic import ValidationError
 from app.config import Settings
 
 
+def test_production_defaults_to_real_openai_generation(monkeypatch):
+    monkeypatch.delenv("OFFLINE_FALLBACK", raising=False)
+    settings = Settings(
+        _env_file=None,
+        app_env="prod",
+        jwt_secret="strong-jwt-secret-value",
+        webhook_signing_secret="strong-webhook-secret-value",
+        openai_api_key="test-openai-key",
+    )
+    assert settings.offline_fallback is False
+    assert settings.image_provider == "openai"
+
+
 def test_dev_allows_default_secrets():
     s = Settings(
         app_env="dev",

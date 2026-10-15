@@ -98,6 +98,11 @@ def reclaim_stale_jobs(db: Session) -> int:
             updated = updated.replace(tzinfo=UTC)
         if updated >= now - timedelta(seconds=limit):
             continue
+        if job.attempts >= settings.job_max_attempts:
+            jobs_svc.mark_failed_and_refund(
+                db, job, "A geração foi interrompida repetidamente. Tente gerar novamente."
+            )
+            continue
         job.status = JobStatus.PENDING.value
         # Preserva result (progresso); so anota o reclaim. Handlers sao idempotentes.
         meta = dict(job.result or {})
@@ -229,6 +234,9 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
             except Exception as exc:
+                # A SQL error leaves the transaction unusable. Roll it back so
+                # the failure is saved instead of leaving RUNNING stuck forever.
+                db.rollback()
                 # STO-36: blips de rede/timeout nao queimam o job na 1a tentativa.
                 transient = is_transient_exception(exc)
                 retriable = transient and job.attempts < settings.job_max_attempts

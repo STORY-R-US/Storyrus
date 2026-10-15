@@ -83,7 +83,9 @@ async def handle_avatar(db: Session, job: Job) -> None:
         # GPT Image gera o corpo CGI; refine_identity trava o rosto.
         provider = _pkg().get_image_provider(job.provider)
         style = book_art_direction(project.style) if project.style == "cartoon" else AVATAR_STYLE
-        gen_refs = (await identity_images(refs[0])) + refs[1:]
+        gen_refs = (await identity_images(refs[0], use_detector=settings.avatar_face_match)) + refs[
+            1:
+        ]
         face = gen_refs[0]
         try:
             result = await provider.generate_character(
@@ -118,7 +120,11 @@ async def handle_avatar(db: Session, job: Job) -> None:
             meta={"mime": result.mime_type},
         )
     )
-    project.character_ref = {"storage_key": key, "mime": result.mime_type}
+    image_meta = {
+        "provider": "demo" if settings.offline_fallback else "openai",
+        "model": None if settings.offline_fallback else settings.openai_image_model,
+    }
+    project.character_ref = {"storage_key": key, "mime": result.mime_type, **image_meta}
     project.character_approved_at = None
     project.book_approved_at = None
     job.cost_usd = result.cost_usd
@@ -126,7 +132,12 @@ async def handle_avatar(db: Session, job: Job) -> None:
         flush_usage(db, job, lines_of(result))
     _set_status(db, project, ProjectStatus.AVATAR_READY)
     # Prévia automática: aprova personagem e enfileira a história.
-    preview_chain.continue_preview_chain(db, project, job, JobType.STORY)
+    next_type = (
+        JobType.EBOOK
+        if preview_chain.job_payload(job).get("reuse_story") and project.story_text
+        else JobType.STORY
+    )
+    preview_chain.continue_preview_chain(db, project, job, next_type)
 
 
 async def _refine_identity(
@@ -217,6 +228,9 @@ async def _lock_avatar_identity(provider, face: bytes, result, style, *, fail_cl
     first = await _refine_identity(
         provider, face, result, style, passes=1, method="refine_identity"
     )
+    if not settings.avatar_face_match:
+        logger.info("Juiz local de rosto do avatar desligado; usando o refine da OpenAI")
+        return first
     threshold = settings.avatar_face_match_min
     score = await _score_avatar_face(face, first.image_bytes)
     if score is not None and score >= threshold:

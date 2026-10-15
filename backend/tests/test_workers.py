@@ -221,6 +221,46 @@ def test_reclaim_skips_fresh_running_jobs(db, monkeypatch):
     assert j.status == JobStatus.RUNNING.value
 
 
+def test_reclaim_exhausted_job_fails_and_refunds_once(db, monkeypatch):
+    from datetime import datetime, timedelta
+
+    monkeypatch.setattr(runner.settings, "job_stale_timeout_s", 60.0)
+    user, project = _seed(db, credits=0)
+    job = _job(db, project, "STORY", cost=2)
+    job.status = JobStatus.RUNNING.value
+    job.attempts = runner.settings.job_max_attempts
+    job.updated_at = datetime.now(UTC) - timedelta(seconds=120)
+    db.commit()
+    assert runner.reclaim_stale_jobs(db) == 0
+    db.refresh(job)
+    db.refresh(user)
+    assert job.status == JobStatus.FAILED.value
+    assert user.credits == 2
+    assert runner.reclaim_stale_jobs(db) == 0
+    db.refresh(user)
+    assert user.credits == 2
+
+
+@pytest.mark.asyncio
+async def test_sql_failure_is_saved_instead_of_leaving_running(db, monkeypatch):
+    user, project = _seed(db, credits=0)
+    job = _job(db, project, "STORY", cost=2)
+    job.status = JobStatus.RUNNING.value
+    db.commit()
+
+    async def broken_handler(db, job):
+        db.add(User(email=user.email, password_hash="duplicate", credits=0))
+        db.flush()
+
+    monkeypatch.setitem(handlers.HANDLERS, "STORY", broken_handler)
+    await runner.process_job(db, job)
+    db.refresh(job)
+    db.refresh(user)
+    assert job.status == JobStatus.FAILED.value
+    assert "IntegrityError" in job.error
+    assert user.credits == 2
+
+
 async def test_run_once_reclaims_then_processes(db, mem_storage, monkeypatch):
     from datetime import datetime, timedelta
 
@@ -286,6 +326,30 @@ async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch
 
     await runner.process_job(db, _job(db, p, "AVATAR"))
     assert heads == [1]
+
+
+async def test_avatar_skips_local_face_judge_when_disabled(db, mem_storage, monkeypatch):
+    """Instancias pequenas usam o refine da OpenAI sem carregar o buffalo_l."""
+    score_calls: list[int] = []
+
+    async def score_must_not_run(_photo, _scene, **_k):
+        score_calls.append(1)
+        return 0.91
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", score_must_not_run)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "avatar_face_match", False)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+
+    db.refresh(p)
+    assert score_calls == []
+    assert p.character_ref
+    assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
 
 
 async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypatch):

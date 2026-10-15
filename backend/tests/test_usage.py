@@ -2,6 +2,8 @@
 
 from datetime import UTC, datetime
 
+import pytest
+
 from app.config import settings
 from app.database import get_db
 from app.models import Asset, Job, JobStatus, OrderTicket, PrintOrder, Project, UsageEvent, User
@@ -484,3 +486,35 @@ def test_my_orders_lists_only_the_accounts_tickets(auth_client):
 
 def test_my_orders_requires_a_session(client):
     assert client.get("/v1/usage/orders/mine").status_code == 401
+
+
+def test_my_orders_recovers_missing_ticket_only_for_current_account(auth_client, monkeypatch):
+    monkeypatch.setattr(
+        "app.storage.get_bytes", lambda *args: pytest.fail("Listing must not read images")
+    )
+    db = _session(auth_client)
+    try:
+        me = db.query(User).filter(User.email == "auth@example.com").one()
+        other = User(email="other@example.com", password_hash="x", credits=0)
+        db.add(other)
+        db.flush()
+        mine = Project(user_id=me.id, child_name="Lia")
+        theirs = Project(user_id=other.id, child_name="Bia")
+        db.add_all([mine, theirs])
+        db.flush()
+        db.add_all(
+            [
+                Asset(project_id=mine.id, kind="photo", storage_key="mine.jpg"),
+                Asset(project_id=theirs.id, kind="photo", storage_key="other.jpg"),
+            ]
+        )
+        db.commit()
+        mine_id, other_id = mine.id, theirs.id
+        r = auth_client.get("/v1/usage/orders/mine")
+        assert r.status_code == 200, r.text
+        assert [row["project_id"] for row in r.json()] == [str(mine_id)]
+        assert db.query(OrderTicket).filter_by(project_id=other_id).count() == 0
+        again = auth_client.get("/v1/usage/orders/mine")
+        assert [row["id"] for row in again.json()] == [row["id"] for row in r.json()]
+    finally:
+        db.close()

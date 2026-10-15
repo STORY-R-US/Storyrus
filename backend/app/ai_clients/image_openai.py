@@ -94,6 +94,7 @@ class OpenAIImageProvider:
             "model": self._model,
             "prompt": prompt,
             "size": size,
+            "quality": settings.openai_image_quality,
         }
         update_span(metadata={"provider": "openai", "model": self._model, "mode": "generate"})
         return await self._post_json("/images/generations", body)
@@ -106,12 +107,20 @@ class OpenAIImageProvider:
             return await self._generate_text(prompt, size=size)
         files: list[tuple[str, tuple[str, bytes, str]]] = []
         for idx, img in enumerate(refs):
-            files.append(("image", (f"ref{idx}.png", img, "image/png")))
+            ext, mime = "png", "image/png"
+            if img.startswith(b"\xff\xd8\xff"):
+                ext, mime = "jpg", "image/jpeg"
+            elif img.startswith(b"RIFF") and img[8:12] == b"WEBP":
+                ext, mime = "webp", "image/webp"
+            files.append(("image[]" if len(refs) > 1 else "image", (f"ref{idx}.{ext}", img, mime)))
         data = {
             "model": self._model,
             "prompt": prompt,
             "size": size,
+            "quality": settings.openai_image_quality,
         }
+        if self._model in {"gpt-image-1", "gpt-image-1.5"}:
+            data["input_fidelity"] = "high"
         update_span(
             metadata={
                 "provider": "openai",
@@ -269,9 +278,17 @@ class OpenAIImageProvider:
         style: str,
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
+        reference_role: str = "character",
     ) -> ImageResult:
         _ = photo
         extras = [img for img in (extra_refs or []) if img]
+        if reference_role == "cover":
+            # Preserve the product prompt: this reference is a book cover,
+            # never an avatar or an instruction to illustrate the real person.
+            text = f"{prompt}\nEstilo da fotografia: {style}."
+            return await self._generate_with_refs(
+                text, [character_ref] + extras, size=settings.openai_image_size_square
+            )
         identity = (
             "A primeira imagem e o AVATAR (unica fonte de verdade do rosto, "
             "cabelo, idade e proporcoes). NAO copie a roupa dele. "

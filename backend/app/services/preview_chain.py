@@ -58,6 +58,8 @@ def has_active_preview(db: Session, project_id: uuid.UUID) -> bool:
 def _next_payload(source_job: Job, next_type: JobType) -> dict:
     src = job_payload(source_job)
     out: dict = {PREVIEW_FLAG: True}
+    if src.get("reuse_story"):
+        out["reuse_story"] = True
     brief = (src.get("brief") or "").strip()
     if brief and next_type == JobType.STORY:
         out["brief"] = brief[:2000]
@@ -132,7 +134,9 @@ def continue_preview_chain(
     if not is_preview_chain(source_job):
         return None
 
-    if next_type == JobType.STORY:
+    if next_type == JobType.STORY or (
+        next_type == JobType.EBOOK and source_job.type == JobType.AVATAR.value
+    ):
         project.character_approved_at = _now()
     elif next_type == JobType.EBOOK:
         pass
@@ -158,6 +162,7 @@ def continue_preview_chain(
             job_type=next_type,
             idempotency_key=key,
             payload=payload,
+            completing_job=source_job,
         )
         logger.info(
             "preview_chain next=%s job_id=%s from=%s project=%s",

@@ -17,11 +17,22 @@ from app import storage
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
-from app.models import Asset, AssetKind, Job, OrderTicket, PrintOrder, Project, UsageEvent, User
+from app.models import (
+    Asset,
+    AssetKind,
+    Job,
+    JobType,
+    OrderTicket,
+    PrintOrder,
+    Project,
+    UsageEvent,
+    User,
+)
 from app.order_tickets import backfill_order_tickets
 from app.owner_auth import require_owner_password
 from app.printkit.service import attach_service_orders
 from app.schemas import (
+    JobAcceptedOut,
     OrderFileOut,
     OrderTicketOut,
     UsageAnomalyOut,
@@ -31,7 +42,10 @@ from app.schemas import (
     UsageJobOut,
     UsageOut,
 )
-from app.services import spend_guard
+from app.services import jobs as jobs_svc
+from app.services import preview_chain, spend_guard
+
+from .projects.common import accept_job
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/usage", tags=["usage"])
@@ -194,11 +208,11 @@ def _collect_orders(
     Um pedido com metadado torto, ou uma OS que não abre, não pode derrubar a lista.
 
     `user_id` limita a lista aos pedidos da própria conta (tela "Meus Pedidos" de
-    quem não é admin). Nesse caso não roda o backfill global.
+    quem não é admin). Nesse caso recupera só os pedidos dessa conta.
     """
     if backfill:
         try:
-            backfill_order_tickets(db, prepare=False)
+            backfill_order_tickets(db, prepare=False, user_id=user_id)
         except Exception:
             _give_up(db, "backfill")
     projects_total = int(db.scalar(select(func.count()).select_from(Project)) or 0)
@@ -219,6 +233,29 @@ def _collect_orders(
         _give_up(db, "abrir ordem de serviço")
         order_rows = _load_orders(db, user_id)
     project_ids = [ticket.project_id for ticket in order_rows]
+    # Read one pipeline job per listed project, never the global spend report.
+    ranked_jobs = (
+        select(
+            Job.id,
+            func.row_number()
+            .over(partition_by=Job.project_id, order_by=(Job.created_at.desc(), Job.id.desc()))
+            .label("position"),
+        )
+        .where(Job.project_id.in_(project_ids), Job.type.in_(["AVATAR", "STORY", "EBOOK"]))
+        .subquery()
+    )
+    latest_jobs = (
+        {
+            job.project_id: job
+            for job in db.scalars(
+                select(Job)
+                .join(ranked_jobs, ranked_jobs.c.id == Job.id)
+                .where(ranked_jobs.c.position == 1)
+            ).all()
+        }
+        if project_ids
+        else {}
+    )
     try:
         photo_rows = (
             db.scalars(
@@ -285,7 +322,12 @@ def _collect_orders(
             url = _signed(asset.storage_key)
             if isinstance(url, str) and url:
                 books_by_project[asset.project_id].append(
-                    OrderFileOut(label=_text(label) or asset.kind, url=url)
+                    OrderFileOut(
+                        label=_text(label) or asset.kind,
+                        url=url,
+                        kind=asset.kind,
+                        provider=_opt_str(_meta_dict(asset.meta).get("provider")),
+                    )
                 )
         except Exception:
             logger.exception("pedidos: arquivo %s", getattr(asset, "id", None))
@@ -301,11 +343,49 @@ def _collect_orders(
                 storage_key = ref.get("storage_key")
                 character_url = _signed(storage_key if isinstance(storage_key, str) else None)
                 if character_url:
-                    files.insert(0, OrderFileOut(label="Personagem", url=character_url))
+                    files.insert(
+                        0,
+                        OrderFileOut(
+                            label="Personagem",
+                            url=character_url,
+                            kind="character",
+                            provider=_opt_str(ref.get("provider")),
+                        ),
+                    )
                 ebook_key = project.ebook_url if isinstance(project.ebook_url, str) else None
                 ebook_url = _signed(ebook_key)
                 if ebook_url and not any(item.label == "PDF do livro" for item in files):
-                    files.append(OrderFileOut(label="PDF do livro", url=ebook_url))
+                    files.append(OrderFileOut(label="PDF do livro", url=ebook_url, kind="ebook"))
+            latest = latest_jobs.get(ticket.project_id)
+            result = _meta_dict(latest.result) if latest else {}
+            provider = _opt_str(result.get("image_provider"))
+            image_count = sum(file.kind in {"cover", "page_image", "in_hand"} for file in files)
+            progress = _meta_dict(result.get("progress"))
+            if latest and latest.type == "EBOOK" and isinstance(progress.get("done"), int):
+                image_count = progress["done"]
+            generation_status = "ready" if files else "queued"
+            if latest:
+                if latest.status == "PENDING":
+                    generation_status = "queued"
+                elif latest.status == "RUNNING":
+                    generation_status = "generating"
+                elif latest.status == "FAILED":
+                    generation_status = "failed"
+                elif latest.type == "EBOOK":
+                    # Legacy zero-cost preview jobs were produced by the old
+                    # default demo mode, before provenance was recorded.
+                    if provider == "demo" or (
+                        provider is None
+                        and latest.cost_usd == 0
+                        and _meta_dict(result.get("payload")).get("preview_chain")
+                    ):
+                        generation_status, provider = "demo", "demo"
+                    elif result.get("preview_complete") is False:
+                        generation_status = "partial"
+                    else:
+                        generation_status = "ready"
+                else:
+                    generation_status = "queued"
             orders.append(
                 OrderTicketOut(
                     id=ticket.id,
@@ -319,6 +399,11 @@ def _collect_orders(
                     photo_urls=photos_by_project.get(ticket.project_id, []),
                     has_story=bool(project and _text(project.story_text).strip()),
                     book_files=files,
+                    generation_status=generation_status,
+                    generation_stage=latest.type if latest else None,
+                    generated_images=image_count,
+                    image_provider=provider,
+                    image_model=_opt_str(result.get("image_model")),
                     print_order_id=printed.id if printed else None,
                     print_code=_opt_str(printed.code) if printed else None,
                     print_status=_opt_str(printed.status) if printed else None,
@@ -342,7 +427,7 @@ def my_orders(
 ) -> list[OrderTicketOut]:
     """Pedidos da própria conta (a lista geral é exclusiva do painel admin)."""
     response.headers["Cache-Control"] = "private, no-store"
-    orders, _, _, _ = _collect_orders(db, user_id=user.id, backfill=False)
+    orders, _, _, _ = _collect_orders(db, user_id=user.id)
     return orders
 
 
@@ -513,6 +598,61 @@ def get_usage(
         projects_total=projects_total,
         projects_awaiting_photo=projects_awaiting_photo,
     )
+
+
+@router.post("/orders/{order_id}/generate", response_model=JobAcceptedOut, status_code=202)
+def regenerate_order_images(
+    order_id: uuid.UUID,
+    _: Annotated[None, Depends(require_owner_password)],
+    db: Annotated[Session, Depends(get_db)],
+) -> JobAcceptedOut:
+    """Generate the preview again with the saved prompts, photos and story."""
+    if settings.offline_fallback:
+        raise HTTPException(503, "Ative a geração OpenAI antes de gerar as imagens deste pedido.")
+    ticket = db.get(OrderTicket, order_id)
+    if ticket is None or ticket.project is None:
+        raise HTTPException(404, "Pedido não encontrado")
+    project = ticket.project
+    active = db.scalar(
+        select(Job)
+        .where(
+            Job.project_id == project.id,
+            Job.status.in_(["PENDING", "RUNNING"]),
+            Job.type.in_(["AVATAR", "STORY", "EBOOK"]),
+        )
+        .order_by(Job.created_at.desc())
+    )
+    if active is not None:
+        return accept_job(active)
+    if not db.scalar(
+        select(Asset.id)
+        .where(
+            Asset.project_id == project.id,
+            Asset.kind == AssetKind.PHOTO.value,
+        )
+        .limit(1)
+    ):
+        raise HTTPException(400, "Envie uma foto antes de gerar as imagens")
+    from app.printkit.service import invalidate_print
+
+    printed = db.scalar(select(PrintOrder).where(PrintOrder.project_id == project.id))
+    if printed and printed.payment_status == "paid":
+        raise HTTPException(
+            409, "O pedido faturado precisa de revisão antes de refazer as imagens."
+        )
+    invalidate_print(db, project)
+    project.character_approved_at = None
+    project.book_approved_at = None
+    project.preview_notified_at = None
+    job = jobs_svc.enqueue_job(
+        db,
+        user=project.user,
+        project=project,
+        job_type=JobType.AVATAR,
+        idempotency_key=f"order-preview-{project.id}-{uuid.uuid4()}",
+        payload={preview_chain.PREVIEW_FLAG: True, "reuse_story": bool(project.story_text)},
+    )
+    return accept_job(job)
 
 
 @router.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)

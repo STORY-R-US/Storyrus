@@ -465,3 +465,20 @@ def test_presign_sobrevive_a_falha_de_pedido(auth_client, monkeypatch):
     )
     assert r.status_code == 201, r.text
     assert r.json()["asset_id"]
+
+
+def test_print_failure_does_not_hide_uploaded_order(auth_client, monkeypatch):
+    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
+
+    def boom(db, *args, **kwargs):
+        # A SQL error exercises rollback of the print savepoint as well.
+        from sqlalchemy import text
+
+        db.execute(text("select * from missing_print_table"))
+
+    monkeypatch.setattr("app.printkit.service.open_print_order", boom)
+    pid = _create(auth_client)
+    assert _photo(auth_client, pid).status_code == 201
+    orders = auth_client.get("/v1/usage/orders/mine")
+    assert orders.status_code == 200, orders.text
+    assert [order["project_id"] for order in orders.json()] == [pid]
