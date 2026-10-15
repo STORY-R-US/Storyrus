@@ -68,27 +68,21 @@ A migration `0023_user_is_admin` cria `users.is_admin` (default false) e marca `
 2. Para outra conta admin, rode no Postgres `UPDATE users SET is_admin = true WHERE lower(email) = 'pessoa@exemplo.com';` **ou** acrescente o e-mail em `OWNER_EMAILS` e abra o painel logado — o primeiro acesso grava `is_admin`.
 3. Só depois disso, se quiser aposentar a senha compartilhada, defina `OWNER_PASSWORD_FALLBACK=false` na API do Render. Enquanto estiver `true` (default), o header `X-Usage-Password` continua válido.
 
-> Free tier do Render hiberna após inatividade e o Postgres free expira em ~90 dias — ok para testes. Para produção/demos estáveis, veja **§ Beyond free (recomendado)**.
+> A API usa uma instância paga para permanecer ativa. O banco e o worker têm planos independentes; o Postgres Free expira após 30 dias.
 
 ### Beyond free (recomendado)
 
-O Blueprint (`render.yaml`) continua em `plan: free` de propósito — **não** força upgrade pago no git. Em produção (ou demos que não podem “acordar frias”), suba os planos **no painel** do Render:
+O Blueprint (`render.yaml`) define a **storyrus-api** no plano `0.5c-512mb` (antigo Starter, US$ 7/mês), sem hibernação por inatividade. Banco e worker mantêm seus planos separados. Para mudar a capacidade da API, abra **Compute → Edit** no serviço do Render.
 
 | Recurso | Free (demo) | Recomendado além do free |
 |---------|-------------|---------------------------|
-| **storyrus-api** | Hiberna após ~15 min sem tráfego | Plano **Starter** (ou superior) — API always-on |
-| **storyrus-worker** | Também hiberna; jobs param enquanto dorme | Mesmo plano always-on — worker precisa ficar acordado |
-| **storyrus-db** | Expira em ~90 dias | Postgres **pago** (Starter+) — sem expiração do free |
+| **storyrus-api** | Hiberna após ~15 min sem tráfego | `0.5c-512mb` (ou superior) — API always-on |
+| **storyrus-worker** | Worker dedicado não oferece plano Free | Plano pago se houver worker dedicado |
+| **storyrus-db** | Expira em 30 dias | Postgres pago — sem expiração do free |
 
-**Cold start (free):** o primeiro request depois da hibernação demora (imagem Docker pesada: InsightFace/ONNX/ffmpeg). Enquanto a API/worker dormem, o estúdio parece “morto” e jobs enfileirados não avançam. Postgres free somado a isso torna demos instáveis.
+**Recuperação de sessão:** `POST /v1/auth/resume` usa cotas próprias: `SESSION_RESUME_RATE_LIMIT_PER_IP=120` e `SESSION_RESUME_RATE_LIMIT_PER_USER=30` por janela de `SESSION_RESUME_RATE_LIMIT_WINDOW_S=60` segundos. A criação de convidados mantém sua proteção original. Respostas 429 de recuperação incluem `Retry-After`; o navegador respeita essa espera e preserva o JWT durante falhas temporárias 429/5xx.
 
-**Mitigação temporária (só free):** um health-check externo periódico em `GET /health` (ex.: UptimeRobot) pode reduzir hibernação da **web** service. Isso **não** substitui always-on: o worker free ainda pode dormir, o banco free ainda expira, e pings abusivos podem violar o fair-use do free. Trate como paliativo até migrar API+worker+DB.
-
-Passos no Render (painel, sem mudar o Blueprint):
-
-1. **API** → Settings → Instance Type → Starter (ou acima).
-2. **Worker** → o mesmo (always-on).
-3. **Postgres** → upgrade para plano pago **antes** dos ~90 dias do free, ou crie um DB pago e aponte `DATABASE_URL` (Blueprint `fromDatabase` ou var manual).
+Referências: [planos de computação](https://render.com/docs/compute-plans), [preços](https://render.com/pricing) e [limites do Free](https://render.com/docs/free).
 
 ### Cloudflare R2 (storage)
 - Painel Cloudflare → **R2** → crie um bucket (ex.: `storyrus`).

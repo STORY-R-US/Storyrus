@@ -2,7 +2,7 @@
 # Como usar: no Render -> New -> Blueprint -> conecte o repo. Ele cria tudo.
 # Depois preencha as variaveis sync:false (IA, storage, Opik, credits, etc.) no painel.
 # Redis e OPCIONAL (REDIS_URL sync:false): sem ele, o worker faz polling do banco.
-# plan: free fica no Blueprint de proposito — upgrade always-on/DB pago no painel (DEPLOY.md).
+# API always-on; banco e worker mantêm os planos atuais (DEPLOY.md).
 
 databases:
   - name: storyrus-db
@@ -17,7 +17,7 @@ services:
     runtime: docker
     rootDir: backend
     dockerfilePath: ./Dockerfile
-    plan: free
+    plan: 0.5c-512mb
     healthCheckPath: /health
     dockerCommand: sh start-api.sh
     envVars:
@@ -25,6 +25,12 @@ services:
         value: prod
       - key: LOG_FORMAT
         value: json
+      - key: SESSION_RESUME_RATE_LIMIT_PER_IP
+        value: "120"
+      - key: SESSION_RESUME_RATE_LIMIT_PER_USER
+        value: "30"
+      - key: SESSION_RESUME_RATE_LIMIT_WINDOW_S
+        value: "60"
       # Worker free dorme. A API processa a fila enquanto o estúdio faz polling.
       - key: API_JOB_PUMP
         value: "true"

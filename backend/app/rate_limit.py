@@ -7,6 +7,7 @@ compartilhar o contador entre instancias da API.
 from __future__ import annotations
 
 import logging
+import math
 import threading
 import time
 from collections import defaultdict, deque
@@ -167,6 +168,27 @@ def check_guest(request) -> None:
                 status.HTTP_429_TOO_MANY_REQUESTS,
                 "Muitos convidados deste dispositivo; tente mais tarde",
             )
+
+
+def check_session_resume(request, *, user_id: str | None = None) -> None:
+    """Limita IP antes de validar JWT e conta somente após validar assinatura/usuário."""
+    from fastapi import HTTPException, status
+
+    window = float(settings.session_resume_rate_limit_window_s)
+    if user_id is None:
+        key = f"resume:ip:{client_ip(request)}"
+        limit = settings.session_resume_rate_limit_per_ip
+        detail = "Muitas tentativas de recuperar sessão deste IP; aguarde um minuto"
+    else:
+        key = f"resume:user:{user_id}"
+        limit = settings.session_resume_rate_limit_per_user
+        detail = "Muitas tentativas de recuperar sessão desta conta; aguarde um minuto"
+    if not allow(key, limit, window):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            detail,
+            headers={"Retry-After": str(max(1, math.ceil(window)))},
+        )
 
 
 def check_password_reset(request, *, email: str) -> None:
