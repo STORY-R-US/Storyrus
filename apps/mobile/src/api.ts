@@ -24,6 +24,24 @@ const BASE: string =
   (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ||
   "https://storyrus.ai";
 
+function httpError(status: number, detail: string): Error & { status: number } {
+  return Object.assign(new Error(`${status}: ${detail}`), { status });
+}
+
+export function isSessionRejected(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const value = error as { status?: number; message?: string };
+  return value.status === 401 || value.status === 403 || /^(401|403):/.test(value.message ?? "");
+}
+
+async function sessionToken(response: Response): Promise<string | null> {
+  if (response.status === 401 || response.status === 403) return null;
+  if (!response.ok) throw httpError(response.status, "Não foi possível renovar a sessão agora");
+  const data = (await response.json()) as { access_token?: string };
+  if (!data.access_token) throw httpError(502, "Resposta de sessão indisponível");
+  return data.access_token;
+}
+
 let token: string | null = null;
 let guestPromise: Promise<void> | null = null;
 let hydratePromise: Promise<void> | null = null;
@@ -61,17 +79,17 @@ export function hydrateToken(): Promise<void> {
 export async function ensureSession(): Promise<void> {
   await hydrateToken();
   if (!token) {
-    throw new Error("401: Nao autenticado");
+    throw httpError(401, "Nao autenticado");
   }
   if (tokenExpired(token)) {
     const old = token;
     const ok = await resumeSession(old);
     if (ok) return;
     setToken(null);
-    throw new Error("401: Nao autenticado");
+    throw httpError(401, "Nao autenticado");
   }
   if (tokenExpiresSoon(token)) {
-    void refreshSession();
+    void refreshSession().catch(() => { /* falha temporária mantém a sessão */ });
   }
 }
 
@@ -121,9 +139,9 @@ async function refreshSession(): Promise<boolean> {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!resp.ok) return false;
-      const data = (await resp.json()) as { access_token: string };
-      setToken(data.access_token);
+      const next = await sessionToken(resp);
+      if (!next) return false;
+      setToken(next);
       return true;
     })().finally(() => {
       refreshPromise = null;
@@ -140,9 +158,9 @@ async function resumeSession(oldToken: string): Promise<boolean> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ access_token: oldToken }),
       });
-      if (!resp.ok) return false;
-      const data = (await resp.json()) as { access_token: string };
-      setToken(data.access_token);
+      const next = await sessionToken(resp);
+      if (!next) return false;
+      setToken(next);
       return true;
     })().finally(() => {
       resumePromise = null;
@@ -224,7 +242,7 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     } catch {
       /* corpo vazio */
     }
-    throw new Error(`${resp.status}: ${detail}`);
+    throw httpError(resp.status, String(detail));
   }
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
@@ -322,12 +340,9 @@ export const api = {
       body: JSON.stringify({ content_type: contentType, ext }),
     }),
   async uploadToSignedUrl(url: string, uri: string, contentType: string) {
-    try {
-      const blob = await (await fetch(uri)).blob();
-      await fetch(url, { method: "PUT", body: blob, headers: { "Content-Type": contentType } });
-    } catch {
-      /* storage stub em dev */
-    }
+    const blob = await (await fetch(uri)).blob();
+    const response = await fetch(url, { method: "PUT", body: blob, headers: { "Content-Type": contentType } });
+    if (!response.ok) throw httpError(response.status, "Não foi possível enviar a foto. Tente novamente.");
   },
   startStep(id: string, step: StudioStep, body: object = {}) {
     // Clique duplo / retry em voo: mesma promise + mesma Idempotency-Key.
@@ -386,7 +401,7 @@ export const api = {
       } catch {
         /* corpo vazio */
       }
-      throw new Error(`${resp.status}: ${detail}`);
+      throw httpError(resp.status, String(detail));
     }
     return (await resp.json()) as UserVoice;
   },
