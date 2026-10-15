@@ -708,7 +708,7 @@ a.kcat-group-name.is-chip:focus-visible {
   width: 100%;
   height: 100%;
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   border-radius: 8px;
 }
@@ -2650,28 +2650,18 @@ img.ex-tab-cover {
 /* flutuação suave da legenda/estrelas do hero */
 .ba-caption { animation: floaty 4.6s ease-in-out infinite; }
 
-/* ===== Catálogo: flip capa → página → foto (como no hero) ===== */
-.cat-flip-under { z-index: 2; }
-.cat-flip-main { z-index: 3; }
-/* capa, página e foto inteiras dentro do quadro quadrado do card */
-#catalogo .cat-book img.cat-flip-main,
-#catalogo .cat-book img.cat-flip-under { object-fit: contain; }
-.cat-flip-main.is-leaf { animation: catFlipFade .6s ease forwards; }
-@keyframes catFlipFade { from { opacity: 1; } to { opacity: 0; } }
+/* ===== Página do livro: navegação entre capa, página e foto ===== */
 .cat-flip-nav {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
   width: 34px; height: 34px; padding: 0; border: none; cursor: pointer; border-radius: 50%;
   background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff;
   font-size: 1.35rem; line-height: 1; display: grid; place-items: center;
-  box-shadow: 0 8px 18px rgba(31,53,104,.35); opacity: 0;
+  box-shadow: 0 8px 18px rgba(31,53,104,.35); opacity: .94;
   transition: opacity .16s ease, transform .16s ease;
 }
 .cat-flip-nav.prev { left: 6px; }
 .cat-flip-nav.next { right: 6px; }
-.cat-display:hover .cat-flip-nav,
-.cat-display:focus-within .cat-flip-nav { opacity: .94; }
 .cat-flip-nav:hover { transform: translateY(-50%) scale(1.08); opacity: 1; }
-@media (hover: none) { .cat-flip-nav { opacity: .94; } }
 .cat-flip-dots {
   position: absolute; left: 0; right: 0; bottom: 10px; z-index: 6;
   display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -2685,8 +2675,7 @@ img.ex-tab-cover {
   .studio-cover > img { transform: translate(-50%, -50%); }
   .fb-turn.next, .fb-turn.prev,
   .fb-leaf.next, .fb-leaf.prev,
-  .fb-fx-fade.next, .fb-fx-fade.prev,
-  .cat-flip-main.is-leaf { animation: none; }
+  .fb-fx-fade.next, .fb-fx-fade.prev { animation: none; }
 }
 
 /* ===== Auth (login / cadastro) — card claro legível no tema escuro ===== */

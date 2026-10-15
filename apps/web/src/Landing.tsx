@@ -1707,153 +1707,58 @@ const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: st
   en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo" },
   es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
 };
-/** Fotos de cada card do catálogo: capa + página + foto, quando existirem. */
-function catalogCardShots(
-  book: CatalogCardBook,
-  lang: Lang,
-  modo: "realista" | "cartoon",
-): { key: CatalogSeriesKind; src: string }[] {
-  const shots: { key: CatalogSeriesKind; src: string }[] = [{ key: "cover", src: book.img }];
-  if (book.catalogI == null || modo === "cartoon") return shots;
-  const series = CATALOG_SERIES[book.catalogI];
-  if (!series) return shots;
-  if (series.page) shots.push({ key: "page", src: catalogImgSrc(series.page, lang) });
-  if (series.photo) shots.push({ key: "photo", src: catalogImgSrc(series.photo, lang) });
-  return shots;
-}
-const CAT_FLIP_MS = 600;
-const CAT_FLIP_AUTO_MS = 2600;
-/** Flip do card do catálogo: capa → página → foto, como o flipbook do hero. */
-function CatBookFlip({
+/** Galeria manual da página do livro: capa, página e foto disponíveis. */
+function BookImageGallery({
   shots,
   alt,
   size,
-  linked,
-  href,
   labels,
 }: {
   shots: { key: CatalogSeriesKind; src: string }[];
   alt: string;
   size: CatalogSizeChoice;
-  linked: boolean;
-  href: string | null;
   labels: { prev: string; next: string; turn: string; cover: string; page: string; photo: string };
 }) {
   const [index, setIndex] = useState(0);
-  const [target, setTarget] = useState(0);
-  const [anim, setAnim] = useState<"next" | "prev" | null>(null);
-  const [hover, setHover] = useState(false);
-  const busy = useRef(false);
-  const shotsRef = useRef(shots);
-  const indexRef = useRef(index);
-  shotsRef.current = shots;
-  indexRef.current = index;
   const count = shots.length;
   const multi = count > 1;
-  const shotKey = shots.map((shot) => shot.key).join("|");
-  useEffect(() => {
-    shots.forEach((shot) => {
-      const img = new Image();
-      img.src = exUrl(shot.src);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shotKey]);
-  const settle = () => {
-    if (!busy.current) return;
-    busy.current = false;
-    setIndex(target);
-    setAnim(null);
-  };
-  const flip = (step: "next" | "prev" | number) => {
-    const list = shotsRef.current;
-    if (busy.current || list.length < 2) return;
-    const cur = indexRef.current;
-    const next =
-      typeof step === "number"
-        ? step
-        : step === "next"
-          ? (cur + 1) % list.length
-          : (cur - 1 + list.length) % list.length;
-    if (next === cur || next < 0 || next >= list.length) return;
-    if (prefersReducedMotion()) {
-      setIndex(next);
-      setTarget(next);
-      return;
-    }
-    busy.current = true;
-    setTarget(next);
-    setAnim(typeof step === "number" ? (next < cur ? "prev" : "next") : step);
-  };
-  // Folheia sozinho enquanto o ponteiro/foco está no card (igual ao hero).
-  useEffect(() => {
-    if (!hover || count < 2 || anim || prefersReducedMotion()) return;
-    const id = window.setTimeout(() => flip("next"), CAT_FLIP_AUTO_MS);
-    return () => window.clearTimeout(id);
-  }, [hover, index, count, anim]);
-  // Ao sair, fecha na capa.
-  useEffect(() => {
-    if (hover || count < 2) return;
-    busy.current = false;
-    setAnim(null);
-    setIndex(0);
-    setTarget(0);
-  }, [hover, count]);
-  // Rede de segurança se o fim da animação não disparar.
-  useEffect(() => {
-    if (!anim) return;
-    const id = window.setTimeout(settle, CAT_FLIP_MS + 80);
-    return () => window.clearTimeout(id);
-  }, [anim, target]);
   const shotLabel = (key: CatalogSeriesKind) =>
     key === "page" ? labels.page : key === "photo" ? labels.photo : labels.cover;
   const current = shots[Math.min(index, count - 1)];
   return (
-    <div
-      className="cat-display"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onFocusCapture={() => setHover(true)}
-      onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHover(false);
-      }}
-    >
-      <div className="cat-book" data-size={size}>
-        {anim ? (
-          <img className="cat-flip-under" src={exUrl(shots[target].src)} alt="" aria-hidden />
-        ) : null}
-        <img
-          className={`cat-flip-main${anim ? " is-leaf" : ""}`}
-          src={exUrl(current.src)}
-          alt={alt}
-          loading="lazy"
-          onAnimationEnd={settle}
-        />
-        {linked && href ? <Link to={href} className="cat-book-link" aria-label={alt} /> : null}
-        {multi ? (
-          <>
-            <button type="button" className="cat-flip-nav prev" aria-label={labels.prev} onClick={() => flip("prev")}>
-              ‹
-            </button>
-            <button type="button" className="cat-flip-nav next" aria-label={labels.next} onClick={() => flip("next")}>
-              ›
-            </button>
-            <div className="cat-flip-dots" role="tablist" aria-label={labels.turn}>
-              {shots.map((shot, i) => (
-                <button
-                  key={shot.key}
-                  type="button"
-                  role="tab"
-                  className={`fb-dot${i === index ? " on" : ""}`}
-                  aria-selected={i === index}
-                  aria-label={shotLabel(shot.key)}
-                  data-testid="catalog-flip-dot"
-                  onClick={() => flip(i)}
-                />
-              ))}
-            </div>
-          </>
-        ) : null}
-      </div>
+    <div className="cat-display book-series" data-testid="book-series">
+      <figure className={`book-series-shot is-${current.key}`} data-testid={`book-series-${current.key}`}>
+        <div className="book-series-frame">
+          <div className="cat-book" data-size={current.key === "cover" ? size : "M"}>
+            <img src={exUrl(current.src)} alt={`${alt} — ${shotLabel(current.key)}`} loading="lazy" />
+          </div>
+          {multi ? (
+            <>
+              <button type="button" className="cat-flip-nav prev" aria-label={labels.prev} onClick={() => setIndex((i) => (i - 1 + count) % count)}>
+                ‹
+              </button>
+              <button type="button" className="cat-flip-nav next" aria-label={labels.next} onClick={() => setIndex((i) => (i + 1) % count)}>
+                ›
+              </button>
+              <div className="cat-flip-dots" role="tablist" aria-label={labels.turn}>
+                {shots.map((shot, i) => (
+                  <button
+                    key={shot.key}
+                    type="button"
+                    role="tab"
+                    className={`fb-dot${i === index ? " on" : ""}`}
+                    aria-selected={i === index}
+                    aria-label={shotLabel(shot.key)}
+                    data-testid="catalog-flip-dot"
+                    onClick={() => setIndex(i)}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+        <figcaption aria-live="polite">{shotLabel(current.key)}</figcaption>
+      </figure>
     </div>
   );
 }
@@ -1888,7 +1793,6 @@ export function CatalogBookCard({
   };
   const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
   const linked = linkBook && bookHref != null;
-  const shots = catalogCardShots(book, lang, modo ?? "realista");
   const notes = (
     <div className="cat-notes">
       <div className="cat-notes-sizes">
@@ -1958,18 +1862,7 @@ export function CatalogBookCard({
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        <div className="cat-display book-series" data-testid="book-series">
-          {series.map((shot) => (
-            <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
-              <div className="book-series-frame">
-                <div className="cat-book" data-size={shot.key === "cover" ? size : "M"}>
-                  <img src={exUrl(shot.src)} alt={`${book.t} — ${pageCopy[shot.key]}`} loading="lazy" />
-                </div>
-              </div>
-              <figcaption>{pageCopy[shot.key]}</figcaption>
-            </figure>
-          ))}
-        </div>
+        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={flipLabels} />
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
           <h1 title={book.t}>{book.t}</h1>
@@ -1989,7 +1882,12 @@ export function CatalogBookCard({
   }
   return (
     <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
-      <CatBookFlip shots={shots} alt={book.t} size={size} linked={linked} href={bookHref} labels={flipLabels} />
+      <div className="cat-display">
+        <div className="cat-book" data-size={size}>
+          <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
+          {linked ? <Link to={bookHref} className="cat-book-link" aria-label={book.t} /> : null}
+        </div>
+      </div>
       <div className="cat-body">
         <h3 title={book.t}>{linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : book.t}</h3>
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}

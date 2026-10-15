@@ -347,30 +347,22 @@ describe("Landing — catálogo", () => {
     expect(esCatalog.textContent).not.toContain("R$");
   });
 
-  it("folheia capa, página e foto no card do catálogo", async () => {
+  it("mostra somente a capa sem navegação no card do catálogo", async () => {
     const user = userEvent.setup();
     renderLanding();
 
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const card = within(catalog).getByText("Meu Pai, Meu Herói").closest("[data-testid='landing-catalog-card']") as HTMLElement;
-    const main = () => card.querySelector(".cat-flip-main") as HTMLImageElement;
-
-    // Ocioso: só a capa, e ela é o primeiro <img> do livro (mantém o comportamento antigo).
-    expect(card.querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
-    const dots = within(card).getAllByTestId("catalog-flip-dot");
-    expect(dots).toHaveLength(3);
-
-    await user.click(dots[1]);
-    await waitFor(() => {
-      expect(main().getAttribute("src")).toEqual(expect.stringContaining("pagina-meupai-heroi.png"));
-    }, { timeout: 2400 });
-    expect(dots[1]).toHaveAttribute("aria-selected", "true");
-
-    await user.click(dots[2]);
-    await waitFor(() => {
-      expect(main().getAttribute("src")).toEqual(expect.stringContaining("foto-meupai-heroi.png"));
-    }, { timeout: 2400 });
-    expect(dots[2]).toHaveAttribute("aria-selected", "true");
+    const cover = within(card).getByRole("img");
+    expect(cover).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
+    expect(within(catalog).queryByRole("button", { name: /imagem anterior|próxima imagem/i })).not.toBeInTheDocument();
+    expect(within(catalog).queryByRole("tablist")).not.toBeInTheDocument();
+    await user.hover(cover);
+    expect(within(card).getAllByRole("img")).toHaveLength(1);
+    expect(cover).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
+    within(card).getAllByRole("link", { name: "Meu Pai, Meu Herói" }).forEach((link) => {
+      expect(link).toHaveAttribute("href", "/livro/21");
+    });
   });
 
   it("aponta os livros realistas para os temas existentes", async () => {
@@ -975,6 +967,8 @@ describe("Catálogo e página do livro", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /imagem anterior|próxima imagem/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /como funciona/i })).toHaveAttribute("href", "/#como");
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
@@ -1017,6 +1011,8 @@ describe("Catálogo e página do livro", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole("heading", { name: /ocasiões especiais/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /imagem anterior|próxima imagem/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^natal$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^dia das mães$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /natal com a meme e o tata/i })).toBeInTheDocument();
@@ -1028,6 +1024,7 @@ describe("Catálogo e página do livro", () => {
   });
 
   it("mostra a descrição completa na página do livro", async () => {
+    const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/livro/20"]}>
         <AppRoutes />
@@ -1045,16 +1042,27 @@ describe("Catálogo e página do livro", () => {
     const series = screen.getByTestId("book-series");
     expect(series).toBeInTheDocument();
     expect(screen.getByTestId("book-series-cover")).toBeInTheDocument();
-    expect(screen.getByTestId("book-series-page")).toBeInTheDocument();
-    expect(screen.getByTestId("book-series-photo")).toBeInTheDocument();
-    const seriesImgs = within(series).getAllByRole("img");
-    expect(seriesImgs).toHaveLength(3);
-    expect(seriesImgs[0]).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
-    expect(seriesImgs[1]).toHaveAttribute("src", expect.stringContaining("pagina-davi-pastor"));
-    expect(seriesImgs[2]).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
+    expect(within(series).getAllByRole("img")).toHaveLength(1);
+    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
     expect(within(series).getByText(/^capa$/i)).toBeInTheDocument();
+
+    const next = within(series).getByRole("button", { name: /próxima imagem/i });
+    const prev = within(series).getByRole("button", { name: /imagem anterior/i });
+    expect(within(series).getAllByRole("tab")).toHaveLength(3);
+    await user.click(next);
+    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("pagina-davi-pastor"));
     expect(within(series).getByText(/^página$/i)).toBeInTheDocument();
+    await user.click(next);
+    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
     expect(within(series).getByText(/^foto$/i)).toBeInTheDocument();
+    await user.unhover(series);
+    expect(within(series).getByRole("tab", { name: /^foto$/i })).toHaveAttribute("aria-selected", "true");
+    await user.click(next);
+    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
+    await user.click(prev);
+    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
+    await user.click(within(series).getByRole("tab", { name: /^capa$/i }));
+    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
   });
 
   it("abre o catálogo completo da categoria", async () => {
