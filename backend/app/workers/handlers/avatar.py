@@ -226,6 +226,9 @@ async def _lock_avatar_identity(provider, face: bytes, result, style, *, fail_cl
     first = await _refine_identity(
         provider, face, result, style, passes=1, method="refine_identity"
     )
+    if not settings.avatar_face_match:
+        logger.info("Juiz local de rosto do avatar desligado; usando o refine da OpenAI")
+        return first
     threshold = settings.avatar_face_match_min
     score = await _score_avatar_face(face, first.image_bytes)
     if score is not None and score >= threshold:

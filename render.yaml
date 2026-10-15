@@ -42,6 +42,8 @@ services:
         value: openai
       - key: OFFLINE_FALLBACK
         value: "false"
+      - key: AVATAR_FACE_MATCH
+        value: "false"
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: KLING_API_KEY
@@ -118,6 +120,8 @@ services:
       - key: IMAGE_PROVIDER
         value: openai
       - key: OFFLINE_FALLBACK
+        value: "false"
+      - key: AVATAR_FACE_MATCH
         value: "false"
       - key: ANTHROPIC_API_KEY
         sync: false

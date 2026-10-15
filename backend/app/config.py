@@ -188,6 +188,9 @@ class Settings(BaseSettings):
     openai_story_judge_model: str = "gpt-4o-mini"
     # Retries do juiz de rosto (InsightFace) no avatar/paginas.
     face_match_retries: int = 3
+    # O modelo local buffalo_l consome mais memoria do que a instancia web
+    # pequena do Render suporta. Em ambientes maiores, pode ser reativado.
+    avatar_face_match: bool = True
     # TLS do cliente Opik: true | system | false
     opik_ssl_verify: str = "true"
 

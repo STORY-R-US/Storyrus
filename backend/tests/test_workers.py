@@ -328,6 +328,30 @@ async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch
     assert heads == [1]
 
 
+async def test_avatar_skips_local_face_judge_when_disabled(db, mem_storage, monkeypatch):
+    """Instancias pequenas usam o refine da OpenAI sem carregar o buffalo_l."""
+    score_calls: list[int] = []
+
+    async def score_must_not_run(_photo, _scene, **_k):
+        score_calls.append(1)
+        return 0.91
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", score_must_not_run)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "avatar_face_match", False)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+
+    db.refresh(p)
+    assert score_calls == []
+    assert p.character_ref
+    assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
+
+
 async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypatch):
     realistic_calls: list[int] = []
 
