@@ -158,6 +158,7 @@ export function StudioScreen({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
     });
     if (res.canceled) return;
+    setPhotoUploaded(false);
     setBusy(true);
     setError(null);
     try {
@@ -179,7 +180,6 @@ export function StudioScreen({
     setError(null);
     try {
       let body: Record<string, unknown> = {};
-      if (step === "video") body = { duration_s: 30 };
       if (step === "narrated-video" && selectedVoiceId) body = { voice_id: selectedVoiceId };
       await api.startStep(project.id, step, body);
       setJobs(await api.listJobs(project.id));

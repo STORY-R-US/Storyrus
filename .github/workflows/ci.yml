@@ -65,6 +65,8 @@ jobs:
       - run: npm ci
       - name: Typecheck
         run: npm run typecheck
+      - name: Mobile regression tests
+        run: npm test
 
   e2e:
     name: E2E (Playwright)
