@@ -17,6 +17,7 @@ import {
   submitStreetNumber,
 } from "./signupRegions";
 import { SiteBackNav } from "./SiteBackNav";
+import { ConnectionRetry } from "./BackendStatus";
 import "./landing.css";
 
 type ProfileForm = {
@@ -204,7 +205,8 @@ export function Conta() {
   const [lang, setLang] = useResolvedLang();
   const t = COPY[lang];
 
-  const [gate, setGate] = useState<"loading" | "ok" | "need-account">("loading");
+  const [gate, setGate] = useState<"loading" | "ok" | "need-account" | "error">("loading");
+  const [attempt, setAttempt] = useState(0);
   const [email, setEmail] = useState("");
   const [form, setForm] = useState<ProfileForm>(() => ({
     full_name: "",
@@ -268,17 +270,22 @@ export function Conta() {
         setEmail(me.email);
         setForm(formFromMe(me, lang));
         setGate("ok");
-      } catch {
-        api.logout();
-        if (!cancelled) setGate("need-account");
+      } catch (error) {
+        if (cancelled) return;
+        if (/^(401|403):/.test((error as Error).message)) {
+          api.logout();
+          setGate("need-account");
+        } else {
+          setGate("error");
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-    // Só na montagem / troca de sessão; idioma inicial já veio do storage.
+    // Montagem / nova tentativa; idioma inicial já veio do storage.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [attempt]);
 
   function onCountryChange(country: string) {
     setForm((prev) => ({ ...prev, country, state: "" }));
@@ -325,6 +332,11 @@ export function Conta() {
       setBusy(false);
     }
   }
+
+  if (gate === "error") return <ConnectionRetry onRetry={() => {
+    setGate("loading");
+    setAttempt((value) => value + 1);
+  }} />;
 
   if (gate === "loading") {
     return (

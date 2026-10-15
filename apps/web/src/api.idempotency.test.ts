@@ -8,7 +8,9 @@ describe("startStep Idempotency-Key", () => {
     resetStepIdempotencyState();
     setToken("test-token");
     fetchMock.mockReset();
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
+      String(input) === "/health" ? jsonResponse({ status: "ok" }, 200) : fetchMock(input, init),
+    );
     let n = 0;
     vi.spyOn(globalThis.crypto, "randomUUID").mockImplementation(() => {
       const id = String(++n).padStart(12, "0");
@@ -96,6 +98,16 @@ describe("startStep Idempotency-Key", () => {
     const key2 = new Headers(fetchMock.mock.calls[1][1].headers).get("Idempotency-Key");
     expect(key1).toBe("00000000-0000-4000-8000-000000000001");
     expect(key2).toBe("00000000-0000-4000-8000-000000000002");
+  });
+
+  it("preserva a chave após 502 para reencontrar uma geração que já pode ter sido gravada", async () => {
+    fetchMock
+      .mockImplementationOnce(() => jsonResponse({ detail: "Bad gateway" }, 502))
+      .mockImplementationOnce(() => jsonResponse({ job_id: "j-existing", estimated_cost_credits: 1 }));
+    await expect(api.startStep("proj-1", "avatar", {})).rejects.toThrow("502:");
+    await expect(api.startStep("proj-1", "avatar", {})).resolves.toMatchObject({ job_id: "j-existing" });
+    const keys = fetchMock.mock.calls.map((call) => new Headers(call[1].headers).get("Idempotency-Key"));
+    expect(keys[0]).toBe(keys[1]);
   });
 
   it("emite chave nova após erro HTTP definitivo", async () => {

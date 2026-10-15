@@ -37,6 +37,23 @@ body {
 .error { color: var(--err); }
 .ok { color: var(--ok); font-weight: 600; }
 
+.backend-status {
+  position: fixed;
+  z-index: 10000;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  padding: 0.8rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--navy);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
 .card {
   max-width: 640px;
   margin: 3rem auto;

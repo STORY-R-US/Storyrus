@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { resetStepIdempotencyState, setToken } from "../api";
+import { resetBackendConnectionForTests } from "../backendConnection";
 import { server, state } from "./server";
 
 // crypto.randomUUID em ambiente de teste (caso o jsdom não exponha).
@@ -31,6 +32,7 @@ afterEach(() => {
   state.reset();
   setToken(null);
   resetStepIdempotencyState();
+  resetBackendConnectionForTests();
   try {
     localStorage.clear();
   } catch {

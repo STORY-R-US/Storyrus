@@ -1,3 +1,4 @@
+import { BackendUnavailableError, backendFetch, warmBackend } from "./backendConnection";
 import type {
   Job,
   JobAccepted,
@@ -74,16 +75,12 @@ async function postToken(
   path: string,
   init: RequestInit = {},
 ): Promise<string | null> {
-  const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), authFetchTimeoutMs);
-  try {
-    const resp = await fetch(`${BASE}${path}`, { ...init, signal: controller.signal });
-    if (!resp.ok) return null;
-    const data = (await resp.json()) as { access_token?: string };
-    return data.access_token ?? null;
-  } finally {
-    window.clearTimeout(timer);
-  }
+  const resp = await backendFetch(`${BASE}${path}`, init, authFetchTimeoutMs);
+  if (resp.status === 401 || resp.status === 403) return null;
+  if (!resp.ok) throw httpError(resp.status, "Não foi possível renovar a sessão agora");
+  const data = (await resp.json()) as { access_token?: string };
+  if (!data.access_token) throw httpError(502, "Resposta de sessão indisponível");
+  return data.access_token;
 }
 
 /** Headers dos paineis do dono: senha compartilhada e/ou JWT da sessão. */
@@ -100,22 +97,10 @@ async function ownerFetch(
   password: string | null | undefined,
   init: RequestInit,
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), ownerFetchTimeoutMs);
-  try {
-    return await fetch(`${BASE}${path}`, {
-      ...init,
-      headers: ownerHeaders(password, init.headers),
-      signal: init.signal ?? controller.signal,
-    });
-  } catch (err) {
-    if (controller.signal.aborted || (err instanceof DOMException && err.name === "AbortError")) {
-      throw httpError(504, "Servidor demorou demais para responder");
-    }
-    throw err;
-  } finally {
-    window.clearTimeout(timer);
-  }
+  return backendFetch(`${BASE}${path}`, {
+    ...init,
+    headers: ownerHeaders(password, init.headers),
+  }, ownerFetchTimeoutMs);
 }
 
 async function readOwnerError(resp: Response): Promise<Error> {
@@ -194,6 +179,9 @@ export async function ensureSession(): Promise<void> {
   if (!token) {
     throw new Error("401: Nao autenticado");
   }
+  // O JWT pode vencer durante o cold start: valide depois que a API acordar.
+  await warmBackend();
+  if (!token) throw new Error("401: Nao autenticado");
   if (tokenExpired(token)) {
     const old = token;
     const ok = await resumeSession(old);
@@ -202,7 +190,7 @@ export async function ensureSession(): Promise<void> {
     throw new Error("401: Nao autenticado");
   }
   if (tokenExpiresSoon(token)) {
-    void refreshSession();
+    void refreshSession().catch(() => { /* falha temporária mantém o JWT atual */ });
   }
 }
 
@@ -262,7 +250,7 @@ export function resetStepIdempotencyState(): void {
   stepInFlight.clear();
 }
 
-/** Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout). */
+/** Timeout após a API estar pronta; o cold start tem uma espera própria de 90s. */
 export let authFetchTimeoutMs = 15_000;
 
 /** Painéis do dono: cold start do Render cabe; não fica em "Abrindo…" para sempre. */
@@ -290,6 +278,8 @@ function httpError(status: number, detail: string): Error & { status: number } {
  * ainda podem entrar.
  */
 async function renewOwnerSession(): Promise<void> {
+  if (!token) return;
+  await warmBackend();
   if (!token) return;
   try {
     if (tokenExpired(token)) {
@@ -327,33 +317,8 @@ async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> 
   }
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const timeoutMs = isAuthPath(path) ? authFetchTimeoutMs : undefined;
-  let timedOut = false;
-  const controller = timeoutMs ? new AbortController() : null;
-  const timer = controller
-    ? window.setTimeout(() => {
-        timedOut = true;
-        controller.abort();
-      }, timeoutMs)
-    : undefined;
-  try {
-    return await fetch(`${BASE}${path}`, {
-      ...init,
-      headers,
-      signal: init.signal ?? controller?.signal,
-    });
-  } catch (err) {
-    if (timedOut || (err instanceof DOMException && err.name === "AbortError")) {
-      throw new Error(
-        timedOut
-          ? "504: Servidor demorou demais para responder"
-          : ((err as Error).message || "Requisição cancelada"),
-      );
-    }
-    throw err;
-  } finally {
-    if (timer !== undefined) window.clearTimeout(timer);
-  }
+  return backendFetch(`${BASE}${path}`, { ...init, headers },
+    isAuthPath(path) ? authFetchTimeoutMs : undefined);
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -610,7 +575,7 @@ export const api = {
     if (meta?.finalize === false) fd.append("finalize", "0");
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const resp = await fetch(`${BASE}/v1/projects/${id}/photo`, {
+    const resp = await backendFetch(`${BASE}/v1/projects/${id}/photo`, {
       method: "POST",
       body: fd,
       headers,
@@ -651,7 +616,7 @@ export const api = {
     fd.append("file", file);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const resp = await fetch(`${BASE}/v1/projects/${id}/story/extract`, {
+    const resp = await backendFetch(`${BASE}/v1/projects/${id}/story/extract`, {
       method: "POST",
       body: fd,
       headers,
@@ -707,8 +672,8 @@ export const api = {
         return accepted;
       } catch (err) {
         const message = err instanceof Error ? err.message : "";
-        // Resposta HTTP definitiva: libera. Falha de rede: mantém a chave no retry.
-        if (isHttpErrorMessage(message)) {
+        // Rede/5xx podem ter ocorrido após o commit: a próxima tentativa usa a mesma chave.
+        if (isHttpErrorMessage(message) && !isRetryableHttpStatus(httpStatus(message))) {
           releaseStepIdempotencyKey(id, step);
         }
         throw err;
@@ -746,7 +711,7 @@ export const api = {
             const message = err instanceof Error ? err.message : "";
             const status = httpStatus(message);
             const retryable = isRetryableHttpStatus(status);
-            if (!retryable || attempt === maxAttempts) {
+            if (err instanceof BackendUnavailableError || !retryable || attempt === maxAttempts) {
               // 4xx é definitivo. 5xx esgotado mantém a chave: o retry manual
               // reencontra o job se o insert chegou a commitar.
               if (isHttpErrorMessage(message) && !retryable) {
@@ -777,7 +742,7 @@ export const api = {
     fd.append("make_default", makeDefault ? "true" : "false");
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const resp = await fetch(`${BASE}/v1/voices`, { method: "POST", body: fd, headers });
+    const resp = await backendFetch(`${BASE}/v1/voices`, { method: "POST", body: fd, headers });
     if (!resp.ok) {
       let detail = resp.statusText;
       try {
@@ -845,7 +810,7 @@ export const api = {
     fd.append("name", name);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const resp = await fetch(`${BASE}/v1/projects/${id}/extra-character`, {
+    const resp = await backendFetch(`${BASE}/v1/projects/${id}/extra-character`, {
       method: "POST",
       body: fd,
       headers,
@@ -897,7 +862,7 @@ export const api = {
   },
   async downloadPrintPackage(password: string | null | undefined, id: string) {
     const headers = ownerHeaders(password);
-    const resp = await fetch(`${BASE}/v1/print-orders/${id}/package`, { headers });
+    const resp = await backendFetch(`${BASE}/v1/print-orders/${id}/package`, { headers });
     if (!resp.ok) throw new Error("Pacote de produção indisponível.");
     return resp.blob();
   },

@@ -1,5 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  // Fontes externas não devem bloquear a navegação nos testes de fluxo.
+  await page.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//, (route) => route.abort());
+  await page.route("**/health", (route) => route.fulfill({
+    status: 200, contentType: "application/json", body: JSON.stringify({ status: "ok" }),
+  }));
+});
+
 // Estado em memória que imita o backend; injetado via page.route (sem rede real).
 type Job = {
   id: string;
@@ -263,13 +271,43 @@ async function fillSignupForm(page: Page, email = "e2e@storyrus.app") {
 }
 
 async function loginViaEntrar(page: Page) {
-  await page.goto("/entrar");
+  await page.goto("/entrar", { waitUntil: "domcontentloaded" });
   await page.getByTestId("auth-email").fill("e2e@storyrus.app");
   await page.getByTestId("auth-password").fill("password123");
   await page.getByTestId("auth-submit").click();
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/app");
 }
+
+test("login aguarda o despertar sem erro nem envio duplicado", async ({ page }, testInfo) => {
+  await mockApi(page, makeState());
+  let ready = false;
+  let logins = 0;
+  await page.route("**/health", (route) => route.fulfill({
+    status: ready ? 200 : 503,
+    contentType: ready ? "application/json" : "text/html",
+    body: ready ? JSON.stringify({ status: "ok" }) : "<html>Waking up</html>",
+  }));
+  await page.route("**/v1/auth/login", (route) => {
+    logins++;
+    return route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify({ access_token: "e2e-token" }),
+    });
+  });
+  await page.goto("/entrar", { waitUntil: "domcontentloaded" });
+  await page.getByTestId("auth-email").fill("e2e@storyrus.app");
+  await page.getByTestId("auth-password").fill("password123");
+  await page.getByTestId("auth-submit").click();
+  await expect(page.getByRole("status")).toContainText("preparando sua conexão");
+  await expect(page.getByTestId("auth-submit")).toBeDisabled();
+  await expect(page.getByTestId("auth-error")).toHaveCount(0);
+  expect(logins).toBe(0);
+  await page.screenshot({ path: testInfo.outputPath("cold-start.png") });
+  ready = true;
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await expect(page.getByRole("status")).toHaveCount(0);
+  expect(logins).toBe(1);
+});
 
 test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
   const state = makeState();

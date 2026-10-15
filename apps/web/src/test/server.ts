@@ -218,6 +218,7 @@ function advance(job: Job, project: Project) {
 }
 
 export const handlers = [
+  http.get("*/health", () => HttpResponse.json({ status: "ok" })),
   http.get(/https?:\/\/viacep\.com\.br\/ws\/(\d{8})\/json\/?/, ({ request }) => {
     const cep = request.url.match(/ws\/(\d{8})/)?.[1] ?? "";
     if (cep === "00000000" || cep === "99999999") {

@@ -4,6 +4,7 @@ import { accountGateHref } from "./Auth";
 import { api, getToken } from "./api";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { Studio } from "./Studio";
+import { ConnectionRetry } from "./BackendStatus";
 
 function demoIdFromSearch(search: string): string | null {
   const q = new URLSearchParams(search);
@@ -20,9 +21,10 @@ export function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isDemo = Boolean(demoIdFromSearch(location.search));
-  const [gate, setGate] = useState<"loading" | "ok" | "need-account">(
+  const [gate, setGate] = useState<"loading" | "ok" | "need-account" | "error">(
     isDemo ? "ok" : "loading",
   );
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (isDemo) {
@@ -44,17 +46,26 @@ export function App() {
           return;
         }
         setGate("ok");
-      } catch {
-        api.logout();
-        if (!cancelled) setGate("need-account");
+      } catch (error) {
+        if (cancelled) return;
+        if (/^(401|403):/.test((error as Error).message)) {
+          api.logout();
+          setGate("need-account");
+        } else {
+          setGate("error");
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [isDemo, location.search]);
+  }, [isDemo, location.search, attempt]);
 
   if (gate === "loading") return null;
+  if (gate === "error") return <ConnectionRetry onRetry={() => {
+    setGate("loading");
+    setAttempt((value) => value + 1);
+  }} />;
   if (gate === "need-account") {
     const next = `${location.pathname}${location.search}`;
     return <Navigate to={accountGateHref(next)} replace />;

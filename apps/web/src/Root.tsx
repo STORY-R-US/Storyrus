@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Exemplos } from "./Exemplos";
 import { Legal } from "./Legal";
 import { NotFound } from "./NotFound";
+import { BackendStatus } from "./BackendStatus";
 
 const Landing = lazy(() =>
   import("./Landing").then((m) => ({ default: m.Landing })),
@@ -100,6 +101,7 @@ export function AppRoutes() {
 export function Root() {
   return (
     <BrowserRouter>
+      <BackendStatus />
       <AppRoutes />
     </BrowserRouter>
   );

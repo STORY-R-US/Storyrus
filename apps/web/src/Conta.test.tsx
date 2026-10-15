@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Conta } from "./Conta";
 import { Auth } from "./Auth";
-import { api, setToken } from "./api";
+import { api, getToken, setToken } from "./api";
 import { state } from "./test/server";
 
 function renderConta(initial = "/conta") {
@@ -51,6 +51,17 @@ afterEach(() => {
 });
 
 describe("Conta — perfil editável", () => {
+  it("mantém a sessão após falha temporária e recupera o perfil sem novo login", async () => {
+    asRegistered();
+    vi.spyOn(api, "me").mockRejectedValueOnce(new Error("502: Bad Gateway"));
+    const user = userEvent.setup();
+    renderConta();
+    expect(await screen.findByTestId("connection-error")).toBeInTheDocument();
+    expect(getToken()).toBe("test-token");
+    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+    expect(await screen.findByTestId("conta-form")).toBeInTheDocument();
+  });
+
   it("redireciona para cadastro sem sessão", async () => {
     setToken(null);
     renderConta();

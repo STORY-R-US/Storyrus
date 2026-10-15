@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { App } from "./App";
 import { Auth } from "./Auth";
-import { api, setToken } from "./api";
+import { api, getToken, setToken } from "./api";
 import { state } from "./test/server";
 
 function renderApp(initial = "/app") {
@@ -34,6 +34,26 @@ afterEach(() => {
 });
 
 describe("Fluxo E2E (com conta)", () => {
+  it("mantém a sessão após falha temporária e abre o estúdio ao tentar novamente", async () => {
+    asRegistered();
+    vi.spyOn(api, "me").mockRejectedValueOnce(new Error("504: Servidor indisponível"));
+    const user = userEvent.setup();
+    renderApp();
+    expect(await screen.findByTestId("connection-error")).toHaveTextContent(/sessão foi mantida/i);
+    expect(getToken()).toBe("test-token");
+    expect(screen.queryByTestId("auth-page")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
+    expect(await screen.findByLabelText(/nome do protagonista/i)).toBeInTheDocument();
+  });
+
+  it("limpa uma sessão rejeitada pela API", async () => {
+    asRegistered();
+    vi.spyOn(api, "me").mockRejectedValueOnce(new Error("401: Sessão inválida"));
+    renderApp();
+    expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
+    expect(getToken()).toBeNull();
+  });
+
   it("redireciona para cadastro sem sessão", async () => {
     setToken(null);
     renderApp("/app");
