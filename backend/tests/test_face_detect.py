@@ -72,3 +72,17 @@ async def test_identity_images_uses_the_detected_crop(monkeypatch):
     assert refs[1] == photo
     # Caixa de 200x240 px + folga de 12% (24 em x, 28 em y) em cada lado.
     assert Image.open(BytesIO(refs[0])).size == (248, 296)
+
+
+@pytest.mark.asyncio
+async def test_identity_images_can_skip_insightface(monkeypatch):
+    photo = _png()
+
+    def detector_must_not_run(_photo):
+        raise AssertionError("InsightFace nao deve carregar")
+
+    monkeypatch.setattr(fd, "detect_face_box", detector_must_not_run)
+    refs = await fd.identity_images(photo, use_detector=False)
+
+    assert refs
+    assert refs[-1] == photo

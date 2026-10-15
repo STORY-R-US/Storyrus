@@ -87,9 +87,13 @@ async def face_reference(photo: bytes) -> bytes:
         return try_face_crop(photo)
 
 
-async def identity_images(photo: bytes) -> list[bytes]:
-    """[recorte do rosto, foto inteira] para `generate_character`."""
-    crop = await face_reference(photo)
+async def identity_images(photo: bytes, *, use_detector: bool = True) -> list[bytes]:
+    """[recorte do rosto, foto inteira] para `generate_character`.
+
+    Instancias pequenas podem pular o InsightFace e usar o recorte geometrico,
+    evitando carregar o modelo local buffalo_l de centenas de megabytes.
+    """
+    crop = await face_reference(photo) if use_detector else try_face_crop(photo)
     if crop == photo:
         return [photo]
     return [crop, photo]
