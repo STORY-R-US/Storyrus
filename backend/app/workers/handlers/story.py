@@ -599,6 +599,13 @@ LEARNING_GOALS: dict[str, dict[str, dict[str, str]]] = {
 
 async def handle_story(db: Session, job: Job) -> None:
     project = _project(db, job)
+    from app.services import book_profile
+
+    if book_profile.enabled(project):
+        from . import master_book
+
+        await master_book.story(db, job, project)
+        return
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
 
     theme = project.theme or "adventure"

@@ -842,6 +842,7 @@
 
 /* Tema claro — cartões claros como antes do restyle escuro */
 [data-theme="light"] .studio-app.kid {
+  --studio-link: #185a99;
   --studio-surface: #fff;
   --studio-surface-border: rgba(31, 53, 104, 0.1);
   --studio-input-bg: #fffdf8;
@@ -919,4 +920,29 @@
 .studio-order-meta dd { margin: 0; }
 @media (max-width: 720px) {
   .studio-order-meta dl > div { grid-template-columns: 1fr; }
+}
+.studio-master-flow a {
+  color: var(--studio-link, #76baff);
+  display: inline-block;
+  margin: 8px 10px 8px 0;
+}
+
+.studio-master-flow button {
+  margin: 6px 8px 6px 0;
+}
+
+.studio-master-flow figure {
+  margin: 20px 0;
+}
+
+.studio-master-flow figcaption {
+  margin-bottom: 8px;
+}
+
+.studio-master-flow textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88px;
+  margin: 8px 0;
 }

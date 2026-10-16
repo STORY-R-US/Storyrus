@@ -26,6 +26,7 @@ coverage/
 backend/app/assets/fonts/*.ttf
 !backend/app/assets/fonts/PlayfairDisplay-Regular.ttf
 !backend/app/assets/fonts/Fredoka-Bold.ttf
+!backend/app/assets/fonts/Nunito-SemiBold.ttf
 backend/app/assets/fonts/OFL.txt
 
 # Arquivo local (rascunhos, entregas, scripts avulsos — nao versionar)
@@ -300,4 +301,36 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 
 .vercel
 .env*
+.local-storage/
+
+# Modelos e assets existentes que integram a base inicial
+!backend/.env.example
+!apps/web/public/exemplos/capa-amor-de-avo-en.png
+!apps/web/public/exemplos/capa-amor-de-avo.png
+!apps/web/public/exemplos/capa-natalmemetata.jpg
+!apps/web/public/exemplos/foto-amordebisavo.jpg
+!apps/web/public/exemplos/foto-amordemae.jpg
+!apps/web/public/exemplos/foto-nanoaventuras.jpg
+!apps/web/public/exemplos/foto-natalmemetata.jpg
+!apps/web/public/exemplos/foto-nicolas-maefilho.jpg
+!apps/web/public/exemplos/pagina-amordebisavo.jpg
+!apps/web/public/exemplos/pagina-amordemae.jpg
+!apps/web/public/exemplos/pagina-mamaepapaimatteo.jpg
+!apps/web/public/exemplos/pagina-nanoaventuras.jpg
+!apps/web/public/exemplos/pagina-natalmemetata.jpg
+!apps/web/public/exemplos/pagina-nicolas-maefilho.jpg
+
+# Gerados e segredos locais da base consolidada
+.git/
+*.pem
+*.key
+*.p12
+*.pfx
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
 .local-storage/

@@ -216,6 +216,8 @@ class Project(Base):
     child_interest: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Idioma do livro (BCP-47 simplificado: 'pt-BR', 'en'); None => pt-BR.
     language: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    # Perfil persistido do Studio: ficha, trava visual e aprovações por etapa.
+    book_profile: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     character_ref: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     # Personagens extras: lista de dicts [{name, storage_key, mime}].
     extra_characters: Mapped[dict | None] = mapped_column(JSONType, nullable=True)

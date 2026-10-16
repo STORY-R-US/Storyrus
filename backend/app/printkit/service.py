@@ -68,6 +68,16 @@ def _page_images(db: Session, project: Project) -> list[bytes]:
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
         .order_by(Asset.created_at.asc())
     ).all()
+    if (project.book_profile or {}).get("version") == 1:
+        rows = [
+            row
+            for row in rows
+            if (row.meta or {}).get("workflow") == 1
+            and (row.meta or {}).get("role") == "com_texto"
+            and (row.meta or {}).get("language") == project.language
+        ]
+        if len(rows) != 16:
+            return []
     ordered = sorted(rows, key=lambda row: int((row.meta or {}).get("page") or 0))
     images: list[bytes] = []
     for row in ordered:
@@ -134,6 +144,7 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
             cover_type=order.cover_type,
             spec=spec,
             interior_pages=pages,
+            front_cover=_approved_cover(db, project),
         )
     except PrintPagesMissing:
         order.status = "awaiting_pages"
@@ -154,6 +165,18 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     order.status = "files_ready"
     order.block_reason = None
     _sync(project, order)
+
+
+def _approved_cover(db: Session, project: Project) -> bytes | None:
+    if not (project.book_profile or {}).get("version") == 1:
+        return None
+    rows = db.scalars(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
+    ).all()
+    for row in rows:
+        if (row.meta or {}).get("language") == project.language:
+            return storage.get_bytes(row.storage_key)
+    return None
 
 
 def _seed_delivery(order: PrintOrder, project: Project) -> None:

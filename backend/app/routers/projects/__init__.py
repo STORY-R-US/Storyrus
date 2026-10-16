@@ -17,8 +17,9 @@ from app.database import get_db
 from app.deps import get_current_user, require_registered_user
 from app.models import Asset, AssetKind, Job, Project, User
 from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut
+from app.services import book_profile
 
-from . import approvals, photos, steps
+from . import approvals, book_flow, photos, steps
 from . import print as print_mod
 from .common import get_owned_project
 
@@ -44,6 +45,7 @@ def create_project(
         child_trait=(body.child_trait or None),
         child_interest=(body.child_interest or None),
         language=(body.language or "pt-BR"),
+        book_profile=book_profile.initial_profile(body) if body.gender or body.languages else None,
     )
     db.add(project)
     db.commit()
@@ -174,6 +176,22 @@ def project_assets(
             )
 
     return {
+        "previews": [
+            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            for a in db.scalars(
+                select(Asset)
+                .where(Asset.project_id == project.id)
+                .order_by(Asset.created_at, Asset.id)
+            ).all()
+            if (a.meta or {}).get("workflow") == 1
+            and (a.meta or {}).get("role") in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+        ],
+        "page_versions": [
+            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            for a in pages
+            if (a.meta or {}).get("workflow") == 1
+            and (a.meta or {}).get("role") in {"sem_texto", "com_texto"}
+        ],
         "character_url": character_url,
         "realistic_url": realistic_url,
         "extra_characters": extra_characters_out,
@@ -211,4 +229,5 @@ def list_jobs(
 router.include_router(photos.router)
 router.include_router(steps.router)
 router.include_router(approvals.router)
+router.include_router(book_flow.router)
 router.include_router(print_mod.router)

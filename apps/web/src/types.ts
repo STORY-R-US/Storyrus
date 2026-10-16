@@ -57,6 +57,20 @@ export interface ExtraCharacter {
 }
 
 export interface Project {
+  book_profile?: {
+    version: number;
+    stage: string;
+    title: string;
+    gender: string;
+    languages: string[];
+    current_page: number;
+    costume?: string;
+    palette?: string;
+    trait?: string;
+    interest?: string;
+    locales?: Record<string, { title: string; left: string; right: string }>;
+    stories?: Record<string, string>;
+  } | null;
   id: string;
   status: string;
   style: string | null;

@@ -162,12 +162,12 @@ describe("Studio — avisos nos campos", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-error-name")).toHaveTextContent(/preencha o nome/i);
     expect(screen.getByTestId("studio-error-age")).toHaveTextContent(/preencha a idade/i);
-    expect(screen.getByTestId("studio-error-title")).toHaveTextContent(/preencha o título/i);
+    expect(screen.queryByTestId("studio-error-title")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-error-theme")).toHaveTextContent(/preencha o tema/i);
     expect(screen.getByTestId("studio-error-photo")).toHaveTextContent(/selecione a foto/i);
     expect(screen.getByTestId("studio-error-consent")).toHaveTextContent(/consentimento/i);
     expect(screen.getByLabelText(/nome do protagonista/i)).toHaveAttribute("aria-invalid", "true");
-    expect(screen.getByLabelText(/título do livro/i)).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText(/título do livro/i)).not.toHaveAttribute("aria-invalid", "true");
     expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
   });
 

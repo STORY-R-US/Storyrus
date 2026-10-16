@@ -358,6 +358,18 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
 
 async def handle_ebook(db: Session, job: Job) -> None:
     project = _project(db, job)
+    from app.services import book_profile
+
+    if book_profile.enabled(project):
+        from . import master_book
+
+        if preview_chain.job_payload(job).get("master_preview"):
+            book_profile.require_stage(project, "ficha", "preview_ready")
+            _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
+            await master_book.preview(db, job, project)
+        else:
+            await master_book.page(db, job, project)
+        return
     update_trace(metadata=job_metadata(job), tags=["EBOOK"])
     if not project.story_text:
         raise ProviderError("Historia ausente: rode STORY antes", transient=False)

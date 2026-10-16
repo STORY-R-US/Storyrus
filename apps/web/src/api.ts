@@ -511,6 +511,11 @@ export const api = {
     return req<{ credits: number }>("/v1/credits");
   },
   async createProject(input: {
+    title?: string;
+    gender?: "f" | "m";
+    languages?: string[];
+    themeDescription?: string;
+    characters?: string;
     theme?: string;
     childName?: string;
     dedication?: string;
@@ -524,6 +529,11 @@ export const api = {
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
+        title: input.title?.trim() || undefined,
+        gender: input.gender,
+        languages: input.languages,
+        theme_description: input.themeDescription,
+        characters: input.characters,
         style: input.style ?? "cgi_3d",
         theme,
         book_size: input.bookSize,
@@ -541,6 +551,8 @@ export const api = {
   // URLs (assinadas) dos resultados de cada etapa.
   async getAssets(id: string) {
     return req<{
+      previews?: import("./studio/assets").BookImage[];
+      page_versions?: import("./studio/assets").BookImage[];
       character_url: string | null;
       realistic_url: string | null;
       extra_characters: { name: string; url: string }[];
@@ -704,8 +716,20 @@ export const api = {
     stepInFlight.set(cacheKey, promise);
     return promise;
   },
-  /** Cadeia automática: avatar → história → ebook → vídeo (prévia no Studio). */
-  startPreview(id: string, body: { brief?: string } = {}): Promise<JobAccepted> {
+  async approvePreview(id: string) {
+    return req<Project>(`/v1/projects/${id}/preview/approve`, { method: "POST" });
+  },
+  async approveStory(id: string) {
+    return req<Project>(`/v1/projects/${id}/story/approve`, { method: "POST" });
+  },
+  nextBookPage(id: string, body: { page?: number; adjustment?: string } = {}) {
+    return req<JobAccepted>(`/v1/projects/${id}/pages/next`, {
+      method: "POST", headers: { "Idempotency-Key": getOrCreateStepIdempotencyKey(id, "page") },
+      body: JSON.stringify(body),
+    }).then((result) => { releaseStepIdempotencyKey(id, "page"); return result; });
+  },
+  /** Three separate previews, then explicit approval in the Studio. */
+  startPreview(id: string, body: { brief?: string; image?: string; language?: string; adjustment?: string } = {}): Promise<JobAccepted> {
     const step = "preview";
     const cacheKey = stepCacheKey(id, step);
     const inFlight = stepInFlight.get(cacheKey);

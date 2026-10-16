@@ -57,6 +57,13 @@ def _pkg():
 
 async def handle_avatar(db: Session, job: Job) -> None:
     project = _project(db, job)
+    from app.services import book_profile
+
+    if book_profile.enabled(project):
+        from . import master_book
+
+        await master_book.avatar(db, job, project)
+        return
     update_trace(
         metadata={**job_metadata(job), "theme": project.theme, "language": project.language},
         tags=["AVATAR"],

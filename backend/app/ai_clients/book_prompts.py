@@ -401,7 +401,7 @@ _PAGE_LOCK = (
 )
 
 _REALISTA = (
-    "ilustracao editorial infantil premium, suavemente realista, quente e refinada. "
+    "fotografia editorial infantil premium, realismo natural, quente e refinado. "
     "Pele com luz suave, iris nitida na mesma fracao do rosto da foto, cabelo fio a fio. "
     "Sem cartoon, anime, caricatura, chibi, 3D plastico, olho de boneca, ombros largos, "
     "bracos volumosos ou corpo esticado. Identidade rigorosa das fotos. " + _PAGE_LOCK
@@ -409,7 +409,7 @@ _REALISTA = (
 
 _CARTOON = (
     "ilustracao cartoon premium de livro infantil, claramente cartoon: tracos desenhados, "
-    "contornos suaves, formas arredondadas, olhos levemente maiores, expressoes ludicas, "
+    "contornos suaves, formas arredondadas, olhos no tamanho natural da foto, expressoes ludicas, "
     "cores alegres, acabamento editorial. Nao e uma foto suavizada. "
     "Sem anime, manga, chibi extremo, caricatura extrema, 3D plastico ou personagem generico. "
     "Identidade rigorosa das fotos. " + _PAGE_LOCK

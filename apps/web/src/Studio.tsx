@@ -16,6 +16,7 @@ import logo from "./assets/logo.png";
 import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
 import { PreviewTrio } from "./studio/PreviewTrio";
+import { MasterBookFlow } from "./studio/MasterBookFlow";
 import {
   previewChainSteps,
   previewEtaMinutes,
@@ -227,12 +228,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [isOwner, setIsOwner] = useState(false);
   const [clientDone, setClientDone] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
+  const [resumeProjectId] = useState(() => new URLSearchParams(window.location.search).get("project"));
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photos, setPhotos] = useState<{ key: string; file: File; url: string }[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [bookTitle, setBookTitle] = useState("");
+  const [bookLanguages, setBookLanguages] = useState<string[]>([]);
   const [themeText, setThemeText] = useState("");
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
@@ -281,6 +284,22 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", colorTheme);
   }, [colorTheme]);
+
+  useEffect(() => {
+    if (!resumeProjectId || isDemo) return;
+    let cancelled = false;
+    setBusy(true);
+    Promise.all([api.getProject(resumeProjectId), api.listJobs(resumeProjectId), api.getAssets(resumeProjectId)])
+      .then(([saved, savedJobs, savedAssets]) => {
+        if (cancelled) return;
+        setProject(saved); setJobs(savedJobs); setAssets(savedAssets); setOrderSent(true);
+        setChildName(saved.child_name ?? ""); setChildAge(String(saved.child_age ?? ""));
+        setBookTitle(saved.book_profile?.title ?? "");
+      })
+      .catch((e) => { if (!cancelled) setError((e as Error).message); })
+      .finally(() => { if (!cancelled) setBusy(false); });
+    return () => { cancelled = true; };
+  }, [resumeProjectId, isDemo]);
 
   useEffect(() => {
     if (!isDemo) return;
@@ -421,7 +440,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       Boolean(j.result?.payload?.preview_chain),
   );
   const previewReady = Boolean(
-    project?.story_text?.trim() &&
+    project?.book_profile ? project.book_profile.stage !== "ficha" : project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
   );
   const previewFailed = Boolean(previewFailedJob) && !previewChainActive;
@@ -483,7 +502,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (childAge.trim() === "") next.age = true;
     if (alsoWho && !alsoName.trim()) next.alsoName = true;
     if (!onlyName) {
-      if (!bookTitle.trim()) next.title = true;
       if (!themeText.trim()) next.theme = true;
     }
     if (askGender && !gender) next.gender = true;
@@ -517,6 +535,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       const language = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
       const themeLabel = (onlyName ? bookTitle || themeText : themeText || bookTitle).trim();
       const p = await api.createProject({
+        title: bookTitle,
+        gender: gender ?? undefined,
+        languages: [...new Set([language, ...bookLanguages])],
+        themeDescription: themeText.trim() || bookTitle,
+        characters: [extraNames.trim(), alsoName.trim()].filter(Boolean).join(", "),
         theme: temaId || themeText.trim(),
         childName,
         dedication,
@@ -553,6 +576,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setJobs([]);
       setAssets(null);
       setOrderSent(true);
+      const projectUrl = new URL(window.location.href);
+      projectUrl.searchParams.set("project", p.id);
+      window.history.replaceState({}, "", `${projectUrl.pathname}${projectUrl.search}${projectUrl.hash}`);
       setChangesSent(false);
       storyTouched.current = false;
       setPhotoNotes("");
@@ -588,8 +614,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     orderSent && !isDemo && !error && !previewFailed && (previewChainActive || !previewReady);
   const showPreviewRetry =
     orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
-  const previewSteps = previewChainSteps(jobs);
   const imageJob = [...jobs].reverse().find((job) => job.type === "EBOOK" && job.result?.payload?.preview_chain);
+  const completedShots = imageJob?.result?.progress?.done ?? 0;
+  const previewSteps = project?.book_profile
+    ? (["AVATAR", "STORY", "EBOOK"] as const).map((id, index) => ({ id,
+        state: (completedShots > index ? "done" : completedShots === index && previewChainActive ? "now" : "wait") as "done" | "now" | "wait" }))
+    : previewChainSteps(jobs);
   const imageActivity =
     previewSteps.find((step) => step.id === "EBOOK")?.state === "now"
       ? previewImageActivity(imageJob?.result?.progress?.done)
@@ -672,6 +702,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   function resetProject() {
+    const projectUrl = new URL(window.location.href);
+    projectUrl.searchParams.delete("project");
+    window.history.replaceState({}, "", `${projectUrl.pathname}${projectUrl.search}${projectUrl.hash}`);
     setProject(null);
     setAssets(null);
     setPhotos((cur) => {
@@ -974,9 +1007,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                         {step.state === "done" ? "✓" : ""}
                       </span>
                       <span className="preview-step-copy">
-                        <span>{previewStepLabel(t, step.id)}</span>
+                        <span>{project?.book_profile
+                          ? step.id === "AVATAR" ? t.previewCover : step.id === "STORY" ? t.previewPage : t.previewInHand
+                          : previewStepLabel(t, step.id)}</span>
                         <span className="preview-step-hint">
-                          {previewStepHint(t, step.id, step.id === "EBOOK" ? imageActivity : null)}
+                          {project?.book_profile ? t.previewTrioHint : previewStepHint(t, step.id, step.id === "EBOOK" ? imageActivity : null)}
                         </span>
                       </span>
                       <span className="preview-step-state">{previewStepStateLabel(t, step.state)}</span>
@@ -994,8 +1029,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
                 <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
+                {project?.book_profile && <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} />}
               </div>
-            ) : showPreviewRetry ? null : (
+            ) : showPreviewRetry ? null : project?.book_profile ? (
+              <>
+                <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} />
+                <button type="button" className="link" onClick={resetProject}>{t.newProject}</button>
+              </>
+            ) : (
               <>
                 <p className="studio-slogan">{t.orderFollowup}</p>
 
@@ -1403,6 +1444,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   className={missing.title ? "is-invalid" : undefined}
                 />
                 {fieldAlert("title", t.errTitle)}
+                <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
               </label>
 
               <label className="studio-field">
@@ -1430,6 +1472,17 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           )}
 
           <div className="studio-choices">
+            <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
+              <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>
+              <div className="studio-actions">
+                {([['pt-BR', 'Português'], ['en', 'English'], ['es', 'Español']] as const).map(([code, label]) => {
+                  const primaryLanguage = lang === "pt" ? "pt-BR" : lang;
+                  return <label key={code}><input type="checkbox" checked={code === primaryLanguage || bookLanguages.includes(code)}
+                    disabled={fieldsLocked || code === primaryLanguage}
+                    onChange={(e) => setBookLanguages((cur) => e.target.checked ? [...cur, code] : cur.filter((item) => item !== code))} /> {label}</label>;
+                })}
+              </div>
+            </div>
             <div className="studio-choice" role="group" aria-label={t.artStyle}>
               <span className="studio-choice-label">{t.artStyle}</span>
               <div className="studio-actions">

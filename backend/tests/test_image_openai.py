@@ -101,6 +101,24 @@ async def test_generate_scene_uses_edits_with_avatar():
 
 
 @pytest.mark.asyncio
+async def test_scene_and_reading_receive_original_photo_before_generated_reference():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload())]
+    provider = oai.OpenAIImageProvider()
+    await provider.generate_scene(
+        prompt="Same child reading the approved book",
+        character_ref=b"cover",
+        photo=b"original-photo",
+        extra_refs=[b"pet-photo"],
+        style="cartoon",
+        reference_role="cover",
+    )
+    call = _FakeAsyncClient.calls[0]
+    assert [value[1] for _, value in call["files"]] == [b"original-photo", b"cover", b"pet-photo"]
+    assert "FOTO ORIGINAL" in call["data"]["prompt"]
+    assert "unica fonte de verdade do rosto" not in call["data"]["prompt"]
+
+
+@pytest.mark.asyncio
 async def test_product_photo_preserves_cover_prompt_and_reference_role():
     _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"product"))]
     provider = oai.OpenAIImageProvider()

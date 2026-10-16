@@ -48,8 +48,8 @@ export function PreviewTrio({ coverUrl, pageUrl, inHandUrl }: Props) {
                 loading="lazy"
                 style={{
                   width: "100%",
-                  aspectRatio: "1 / 1",
-                  objectFit: "cover",
+                  aspectRatio: shot.testId === "studio-preview-page" ? "2 / 1" : "1 / 1",
+                  objectFit: "contain",
                   borderRadius: 10,
                   display: "block",
                 }}
