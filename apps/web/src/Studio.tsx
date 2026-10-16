@@ -15,6 +15,8 @@ import {
 import logo from "./assets/logo.png";
 import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
+import { PostPreviewFlow } from "./studio/PostPreviewFlow";
+import { purchaseCopy } from "./studio/purchaseCopy";
 import { PreviewTrio } from "./studio/PreviewTrio";
 import { MasterBookFlow } from "./studio/MasterBookFlow";
 import {
@@ -228,7 +230,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [isOwner, setIsOwner] = useState(false);
   const [clientDone, setClientDone] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
-  const [resumeProjectId] = useState(() => new URLSearchParams(window.location.search).get("project"));
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photos, setPhotos] = useState<{ key: string; file: File; url: string }[]>([]);
   const [dragOver, setDragOver] = useState(false);
@@ -261,6 +262,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [storyDraft, setStoryDraft] = useState("");
   const [photoNotes, setPhotoNotes] = useState("");
   const [changesSent, setChangesSent] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewDirty, setReviewDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState<Partial<Record<FieldKey, true>>>({});
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
@@ -286,22 +289,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }, [colorTheme]);
 
   useEffect(() => {
-    if (!resumeProjectId || isDemo) return;
-    let cancelled = false;
-    setBusy(true);
-    Promise.all([api.getProject(resumeProjectId), api.listJobs(resumeProjectId), api.getAssets(resumeProjectId)])
-      .then(([saved, savedJobs, savedAssets]) => {
-        if (cancelled) return;
-        setProject(saved); setJobs(savedJobs); setAssets(savedAssets); setOrderSent(true);
-        setChildName(saved.child_name ?? ""); setChildAge(String(saved.child_age ?? ""));
-        setBookTitle(saved.book_profile?.title ?? "");
-      })
-      .catch((e) => { if (!cancelled) setError((e as Error).message); })
-      .finally(() => { if (!cancelled) setBusy(false); });
-    return () => { cancelled = true; };
-  }, [resumeProjectId, isDemo]);
-
-  useEffect(() => {
     if (!isDemo) return;
     const demo = getDemoExample();
     setChildName(demo.childName);
@@ -314,6 +301,27 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setStoryDraft(demo.project.story_text ?? "");
     setOrderSent(true);
     setJobs([]);
+  }, [isDemo]);
+
+  useEffect(() => {
+    if (isDemo) return;
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get("projeto") || q.get("project");
+    if (!id) return;
+    let cancelled = false;
+    setBusy(true);
+    void Promise.all([api.getProject(id), api.getAssets(id), api.listJobs(id)]).then(([p, a, j]) => {
+      if (cancelled) return;
+      setProject(p); setAssets(a); setJobs(j); setOrderSent(true);
+      setBookTitle(p.purchase_flow?.title || p.book_profile?.title || p.story_text?.match(/^T[íi]tulo:\s*([^\n]+)/i)?.[1] || "");
+      setThemeText(p.purchase_flow?.theme_description || p.theme || "");
+      setStoryDraft(p.story_text || ""); setPhotoNotes(p.purchase_flow?.photo_notes || "");
+      setChildName(p.child_name || ""); setChildAge(String(p.child_age ?? ""));
+      setBookSize(p.book_size || "M"); setCoverType(p.cover_type || "soft");
+      setReviewDirty(false);
+    }).catch((e: Error) => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setBusy(false); });
+    return () => { cancelled = true; };
   }, [isDemo]);
 
   useEffect(() => {
@@ -573,6 +581,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       }
       accepted = true;
       setProject(p);
+      window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}`);
       setJobs([]);
       setAssets(null);
       setOrderSent(true);
@@ -632,7 +641,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       : null,
   );
   const previewHeadline = previewReady && !showPreviewLoading && !showPreviewRetry
-    ? t.previewReadyTitle
+    ? project?.purchase_flow?.full_book_ready_at
+      ? (project.book_approved_at ? purchaseCopy(lang).approved : purchaseCopy(lang).full)
+      : project?.purchase_flow?.stage === "generating_book" ? purchaseCopy(lang).generating : t.previewReadyTitle
     : t.orderSent;
 
   const [previewWaitedSec, setPreviewWaitedSec] = useState(0);
@@ -687,12 +698,15 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      const nextStory = storyDraft.trim();
-      if (nextStory) {
-        const updated = await api.setStoryText(project.id, nextStory);
-        setProject(updated);
-        setStoryDraft(updated.story_text ?? nextStory);
-      }
+      const accepted = await api.savePreviewChanges(project.id, {
+        title: bookTitle.trim(), theme_description: themeText.trim(),
+        story_text: storyDraft.trim(), photo_notes: photoNotes.trim(),
+      });
+      setJobs((prev) => [...prev, { id: accepted.job_id, project_id: project.id, type: "EBOOK",
+        status: "PENDING", provider: null, cost_credits: 0, attempts: 0, error: null,
+        created_at: new Date().toISOString(), result: { payload: { preview_chain: true } } }]);
+      setReviewDirty(false); setReviewOpen(false); storyTouched.current = false;
+      void api.getProject(project.id).then(setProject).catch(() => {});
       setChangesSent(true);
     } catch (e) {
       setError((e as Error).message);
@@ -712,6 +726,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       return [];
     });
     setOrderSent(false);
+    setReviewDirty(false); setReviewOpen(false);
+    window.history.replaceState({}, "", "/app");
     setExtraNames("");
     setMediaConsent(false);
     setChildName("");
@@ -927,7 +943,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     </span>
                   </button>
                   {onLogout && (
-                    <a className="kutil" href="/pedidos" data-testid="studio-orders">
+                    <a className="kutil" href={isOwner ? "/pedidos" : "/meus-pedidos"} data-testid="studio-orders">
                       {t.orders}
                     </a>
                   )}
@@ -1085,6 +1101,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   inHandUrl={assets?.in_hand_url ?? null}
                 />
 
+                {project && <PostPreviewFlow project={project} assets={assets} jobs={jobs}
+                  isDemo={isDemo} dirty={reviewDirty} onProject={setProject} onJobs={setJobs}
+                  onAdjust={() => setReviewOpen(true)} />}
+
+                {!project?.purchase_flow?.full_book_ready_at && project?.purchase_flow?.stage !== "generating_book" && <details className="purchase-adjustments" open={reviewOpen} onToggle={(e) => setReviewOpen(e.currentTarget.open)}>
+                  <summary>{purchaseCopy(lang).adjust}</summary>
                 <div
                   className="studio-review-changes"
                   data-testid="studio-review-changes"
@@ -1100,7 +1122,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       value={bookTitle}
                       onChange={(e) => {
                         titleTouched.current = true;
-                        setBookTitle(e.target.value);
+                        setBookTitle(e.target.value); setReviewDirty(true); setChangesSent(false);
                       }}
                       placeholder={t.bookTitlePh}
                       maxLength={120}
@@ -1112,7 +1134,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     {t.themeFree}
                     <textarea
                       value={themeText}
-                      onChange={(e) => setThemeText(e.target.value)}
+                      onChange={(e) => { setThemeText(e.target.value); setReviewDirty(true); setChangesSent(false); }}
                       placeholder={t.themeFreePh}
                       maxLength={500}
                       rows={3}
@@ -1126,7 +1148,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       value={storyDraft}
                       onChange={(e) => {
                         storyTouched.current = true;
-                        setStoryDraft(e.target.value);
+                        setStoryDraft(e.target.value); setReviewDirty(true); setChangesSent(false);
                       }}
                       placeholder={t.storyPlaceholder}
                       rows={8}
@@ -1138,7 +1160,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     {t.photoChanges}
                     <textarea
                       value={photoNotes}
-                      onChange={(e) => setPhotoNotes(e.target.value)}
+                      onChange={(e) => { setPhotoNotes(e.target.value); setReviewDirty(true); setChangesSent(false); }}
                       placeholder={t.photoChangesPh}
                       maxLength={500}
                       rows={3}
@@ -1162,6 +1184,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     </button>
                   )}
                 </div>
+
+                </details>}
 
                 <button
                   type="button"

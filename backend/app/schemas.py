@@ -263,6 +263,7 @@ class ProjectOut(BaseModel):
     narrated_video_url: str | None = None
     character_approved_at: datetime | None = None
     book_approved_at: datetime | None = None
+    purchase_flow: dict | None = None
     print_requested_at: datetime | None = None
     print_status: str | None = None
     created_at: datetime

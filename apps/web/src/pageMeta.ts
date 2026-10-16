@@ -163,6 +163,14 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
     robots: "noindex, nofollow",
     sitemap: false,
   },
+  {
+    path: "/meus-pedidos",
+    title: "Meus Pedidos — Story R Us",
+    description: "Acompanhe a cotação, a produção e a entrega dos seus livros personalizados.",
+    robots: "noindex, nofollow",
+    sitemap: false,
+    prerender: false,
+  },
 ];
 
 export function staticPageMeta(pathname: string): HtmlPage | null {

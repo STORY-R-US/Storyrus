@@ -117,17 +117,17 @@ def _days(raw) -> int | None:
         return None
 
 
-def _package() -> dict:
+def _package(quantity: int = 1) -> dict:
     weight_g = int(settings.print_package_weight_g or 0)
     return {
-        "height": float(settings.print_package_height_cm or 0),
+        "height": float(settings.print_package_height_cm or 0) * quantity,
         "width": float(settings.print_package_width_cm or 0),
         "length": float(settings.print_package_length_cm or 0),
-        "weight": weight_g / 1000.0,
+        "weight": weight_g * quantity / 1000.0,
     }
 
 
-def quote_freight(to_postal_code: str) -> list[FreightOption]:
+def quote_freight(to_postal_code: str, *, quantity: int = 1) -> list[FreightOption]:
     gaps = quote_gaps()
     if gaps:
         raise ShippingNotConfigured(gaps)
@@ -139,7 +139,7 @@ def quote_freight(to_postal_code: str) -> list[FreightOption]:
         {
             "from": {"postal_code": _digits(settings.melhor_envio_from_postal_code)},
             "to": {"postal_code": to_code},
-            "package": _package(),
+            "package": _package(quantity),
         },
     )
     if response.status_code >= 400:
@@ -207,7 +207,7 @@ def buy_label(order) -> LabelResult:
                 "unitary_value": (order.amount_cents or 0) / 100.0,
             }
         ],
-        "volumes": [_package()],
+        "volumes": [_package(max(1, order.quantity or 1))],
     }
     cart = _post(f"{_base()}/api/v2/me/cart", payload)
     if cart.status_code >= 400:

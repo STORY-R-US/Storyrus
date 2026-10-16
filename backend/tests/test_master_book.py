@@ -93,6 +93,12 @@ async def test_complete_flow_requires_each_approval_and_keeps_16_paired_pages(st
     assert spread_image.width == spread_image.height * 2
     cover = next(a for a in assets["previews"] if a["role"] == "01_CAPA")["url"]
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+    from app.printkit.service import get_print_order
+
+    db.expire_all()
+    get_print_order(db, uuid.UUID(pid)).payment_status = "paid"
+    db.commit()
     await _run(studio, "story")
     assert client.post(f"/v1/projects/{pid}/avatar").status_code == 409
     assert client.post(f"/v1/projects/{pid}/story/approve").status_code == 200

@@ -58,6 +58,7 @@ function routeHtml(): Plugin {
 }
 
 export default defineConfig({
+  cacheDir: ".vite",
   plugins: [react(), routeHtml()],
   server: {
     host: true,

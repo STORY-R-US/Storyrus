@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import PrintOrder
 from app.owner_auth import require_owner_password
-from app.printkit.service import advance_validation, package_zip
+from app.printkit.service import advance_validation, package_zip, prepare_shipping_label
 from app.routers.projects.print import to_print_out
 from app.schemas import PrintOrderOut, PrintValidationIn
 
@@ -67,6 +67,8 @@ def set_validation(
             status.HTTP_409_CONFLICT,
             f"Não dá para ir de {exc} para {body.status}.",
         ) from exc
+    if body.status == "approved" and (order.project.purchase_flow or {}).get("preview_approved_at"):
+        prepare_shipping_label(db, order)
     db.commit()
     db.refresh(order)
     return to_print_out(order)

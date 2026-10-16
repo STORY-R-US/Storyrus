@@ -37,7 +37,7 @@ from app.schemas import (
     StoryTextIn,
     VideoRequestIn,
 )
-from app.services import book_profile, preview_chain
+from app.services import book_profile, preview_chain, purchase_flow
 from app.services import jobs as jobs_svc
 
 from .common import accept_job, get_owned_project
@@ -55,6 +55,11 @@ def start_avatar(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
     book_profile.require_stage(project, "story_approved", "avatar_ready")
     has_photo = db.scalar(
         select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
@@ -108,6 +113,11 @@ def start_story(
 ) -> JobAcceptedOut:
     """Inventar uma história com IA (Claude)."""
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
     book_profile.require_stage(project, "preview_approved", "story_ready")
     payload: dict | None = None
     brief = (body.brief if body else None) or None
@@ -134,10 +144,12 @@ def start_preview(
 ) -> JobAcceptedOut:
     """Gera a prévia no Studio: avatar → história → ebook (3 págs) → vídeo.
 
-    Auto-aprova personagem e livro ao longo da cadeia. Requer foto. Bloqueia se
+    Aprova o personagem durante a cadeia; a família aprova a prévia e o livro. Requer foto. Bloqueia se
     já houver uma prévia PENDING/RUNNING no projeto.
     """
     project = get_owned_project(db, user, project_id)
+    purchase_flow.require_unpaid(db, project)
+    purchase_flow.reset_preview(project, force=True)
     has_photo = db.scalar(
         select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
     )
@@ -242,6 +254,11 @@ def set_story_text(
 ) -> Project:
     """Usar uma história fornecida pelo usuário (digitada ou colada). Sem IA, sem créditos."""
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
     book_profile.require_stage(project, "story_ready")
     text = body.story_text.strip()
     if not text:
@@ -301,6 +318,11 @@ def apply_story_template(
     padrão ('Título:' + 'Página N:'), com {NOME} substituído pelo nome do projeto.
     """
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
     if book_profile.enabled(project):
         raise HTTPException(409, "A historia deste livro e criada depois de aprovar a previa")
     name = (project.child_name or "").strip()
@@ -381,6 +403,10 @@ def start_ebook(
     project = get_owned_project(db, user, project_id)
     if book_profile.enabled(project):
         raise HTTPException(409, "Use a etapa de paginas: uma pagina por vez apos aprovar o rosto")
+    if (project.purchase_flow or {}).get("stage"):
+        from .purchase import generate_book
+
+        return generate_book(project_id, user, db)
     project.book_approved_at = None
     # Pedido impresso antigo não pode impedir o ebook.
     try:

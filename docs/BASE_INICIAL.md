@@ -15,8 +15,9 @@ local começa em um commit inicial; novas mudanças devem partir desta estrutura
 
 ## Limites desta base
 
-O fluxo adicional de impressão pós-prévia ainda em edição não foi incorporado.
-Ele permanece preservado no trabalho de origem para integração após conclusão e testes.
+O fluxo pós-prévia foi integrado: aprovação explícita, resumo do pedido, cotação,
+entrega, acompanhamento e aprovação final antes da impressão. O pagamento permanece
+indisponível até a escolha e configuração de um provedor.
 Os dados de produção, contas externas, chaves, dependências instaladas, builds e
 materiais avulsos de criação não fazem parte deste repositório.
 

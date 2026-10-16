@@ -295,7 +295,7 @@ def test_freight_refuses_when_melhor_envio_is_not_configured(auth_client, monkey
     assert saved.status_code == 200, saved.text
     quoted = auth_client.post(f"/v1/projects/{pid}/print-order/freight")
     assert quoted.status_code == 409
-    assert "melhor_envio_token" in quoted.json()["detail"]
+    assert "Salve o pedido como cotação" in quoted.json()["detail"]
 
 
 def test_freight_keeps_a_missing_deadline(auth_client, monkeypatch):

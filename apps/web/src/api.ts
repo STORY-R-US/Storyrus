@@ -548,6 +548,24 @@ export const api = {
   async getProject(id: string) {
     return req<Project>(`/v1/projects/${id}`);
   },
+  async myProjects() {
+    return req<Project[]>("/v1/projects");
+  },
+  async savePreviewChanges(id: string, body: { title: string; theme_description: string; story_text: string; photo_notes: string }) {
+    return req<JobAccepted>(`/v1/projects/${id}/preview/changes`, { method: "PUT", body: JSON.stringify(body) });
+  },
+  async saveQuotation(id: string) {
+    return req<Project>(`/v1/projects/${id}/quotation`, { method: "POST" });
+  },
+  async setPrintSpecification(id: string, book_size: string, cover_type: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/specification`, { method: "PUT", body: JSON.stringify({ book_size, cover_type }) });
+  },
+  async generatePurchasedBook(id: string) {
+    return req<JobAccepted>(`/v1/projects/${id}/book/generate`, { method: "POST" });
+  },
+  async requestBookChanges(id: string, notes: string) {
+    return req<JobAccepted>(`/v1/projects/${id}/book/changes`, { method: "POST", body: JSON.stringify({ notes }) });
+  },
   // URLs (assinadas) dos resultados de cada etapa.
   async getAssets(id: string) {
     return req<{

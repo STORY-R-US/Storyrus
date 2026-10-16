@@ -80,3 +80,21 @@ npm test
 O repositório local começa em um único commit na branch `main`. Os diretórios de
 trabalhos anteriores permanecem fora desta base. Publicar o código ou alterar
 o ambiente em produção exige configurar o destino e executar o procedimento de deploy.
+
+## Depois da prévia
+
+A família escolhe **Gostei, continuar com meu livro** ou **Quero ajustar**.
+Os ajustes salvam título, tema, história e orientações visuais e geram uma nova
+prévia para revisão. Aprovar a prévia abre o resumo com tamanho, acabamento,
+quantidade, endereço e frete. **Salvar cotação e acompanhar** mantém o pedido
+acessível em `/meus-pedidos`, inclusive após recarregar a página.
+
+Enquanto não houver provedor de pagamento configurado, o pedido permanece como
+cotação, sem cobrança. A confirmação real de pagamento enfileira uma única
+geração do livro completo. A família revisa todas as páginas e o PDF, pode pedir
+ajustes e precisa autorizar expressamente a impressão. A aprovação da prévia
+nunca vale como aprovação do livro completo. Pedidos antigos continuam legíveis.
+
+Antes de executar esta versão em um banco existente, rode `alembic upgrade head`
+na pasta `backend` para criar o campo persistente `projects.purchase_flow`.
+Validação sem credenciais de produção: `python backend/scripts/validate_purchase.py tests`.

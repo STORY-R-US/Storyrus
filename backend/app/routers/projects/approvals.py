@@ -48,6 +48,19 @@ def approve_book(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Aprove o personagem antes do livro")
     if not project.ebook_url:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Monte o e-book antes de aprovar o livro")
+    flow = project.purchase_flow or {}
+    if flow.get("preview_ready_at"):
+        from app.printkit.service import get_print_order, prepare_files
+        from app.services import purchase_flow
+
+        order = get_print_order(db, project.id)
+        if not flow.get("full_book_ready_at") or not order or order.payment_status != "paid":
+            raise HTTPException(409, "Revise o livro completo após a confirmação do pagamento.")
+        if purchase_flow.active_job(db, project):
+            raise HTTPException(409, "Aguarde a geração do livro completo terminar.")
+        purchase_flow.update(project, stage="production_approved")
+        project.book_approved_at = _now()
+        prepare_files(db, project, order)
     project.book_approved_at = _now()
     db.commit()
     db.refresh(project)

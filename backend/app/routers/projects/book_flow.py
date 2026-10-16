@@ -12,7 +12,7 @@ from app.deps import require_registered_user
 from app.models import Job, JobStatus, JobType, User
 from app.printkit.service import invalidate_print
 from app.schemas import JobAcceptedOut, ProjectOut
-from app.services import book_profile, jobs
+from app.services import book_profile, jobs, purchase_flow
 
 from .common import accept_job, get_owned_project
 
@@ -30,19 +30,6 @@ def _project(db, user, project_id):
         )
     ):
         raise HTTPException(409, "Aguarde a geracao atual terminar")
-    return project
-
-
-@router.post("/{project_id}/preview/approve", response_model=ProjectOut)
-def approve_preview(
-    project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
-    db: Session = Depends(get_db),
-):
-    project = _project(db, user, project_id)
-    book_profile.require_stage(project, "preview_ready", "preview_approved")
-    book_profile.update(project, stage="preview_approved")
-    db.commit()
     return project
 
 
@@ -81,6 +68,10 @@ def next_page(
         if existing:
             return accept_job(existing)
     project = _project(db, user, project_id)
+    purchase_flow.require_paid(db, project)
+    if project.book_approved_at:
+        raise HTTPException(409, "O livro ja foi aprovado para impressao")
+    purchase_flow.update(project, full_book_ready_at=None)
     book_profile.require_stage(project, "avatar_approved", "page_ready", "book_ready")
     current = project.book_profile.get("current_page", 0)
     number = body.page if body and body.page else current + 1
