@@ -1024,7 +1024,6 @@ describe("Catálogo e página do livro", () => {
   });
 
   it("mostra a descrição completa na página do livro", async () => {
-    const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/livro/20"]}>
         <AppRoutes />
@@ -1042,27 +1041,47 @@ describe("Catálogo e página do livro", () => {
     const series = screen.getByTestId("book-series");
     expect(series).toBeInTheDocument();
     expect(screen.getByTestId("book-series-cover")).toBeInTheDocument();
-    expect(within(series).getAllByRole("img")).toHaveLength(1);
-    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
+    expect(screen.getByTestId("book-series-page")).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-photo")).toBeInTheDocument();
+    const seriesImgs = within(series).getAllByRole("img");
+    expect(seriesImgs).toHaveLength(3);
+    expect(seriesImgs[0]).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
+    expect(seriesImgs[1]).toHaveAttribute("src", expect.stringContaining("pagina-davi-pastor"));
+    expect(seriesImgs[2]).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
     expect(within(series).getByText(/^capa$/i)).toBeInTheDocument();
-
-    const next = within(series).getByRole("button", { name: /próxima imagem/i });
-    const prev = within(series).getByRole("button", { name: /imagem anterior/i });
-    expect(within(series).getAllByRole("tab")).toHaveLength(3);
-    await user.click(next);
-    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("pagina-davi-pastor"));
     expect(within(series).getByText(/^página$/i)).toBeInTheDocument();
-    await user.click(next);
-    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
     expect(within(series).getByText(/^foto$/i)).toBeInTheDocument();
-    await user.unhover(series);
-    expect(within(series).getByRole("tab", { name: /^foto$/i })).toHaveAttribute("aria-selected", "true");
-    await user.click(next);
-    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
-    await user.click(prev);
-    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
-    await user.click(within(series).getByRole("tab", { name: /^capa$/i }));
-    expect(within(series).getByRole("img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
+    expect(within(series).queryByRole("button", { name: /imagem anterior|próxima imagem/i })).not.toBeInTheDocument();
+  });
+
+  it("mostra capa, página e foto na página de um livro que tinha só a capa e a foto", async () => {
+    render(
+      <MemoryRouter initialEntries={["/livro/14"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /raquel e papai/i })).toBeInTheDocument();
+    const series = screen.getByTestId("book-series");
+    const seriesImgs = within(series).getAllByRole("img");
+    expect(seriesImgs).toHaveLength(3);
+    expect(seriesImgs[0]).toHaveAttribute("src", expect.stringContaining("capa-raquel-papai"));
+    expect(seriesImgs[1]).toHaveAttribute("src", expect.stringContaining("pagina-raquel-papai"));
+    expect(seriesImgs[2]).toHaveAttribute("src", expect.stringContaining("foto-raquel-papai"));
+  });
+
+  it("mostra capa, página e foto dos livros novos", async () => {
+    render(
+      <MemoryRouter initialEntries={["/livro/26"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    const series = screen.getByTestId("book-series");
+    const seriesImgs = within(series).getAllByRole("img");
+    expect(seriesImgs).toHaveLength(3);
+    expect(seriesImgs[0]).toHaveAttribute("src", expect.stringContaining("capa-heroi-bombeiro"));
+    expect(seriesImgs[1]).toHaveAttribute("src", expect.stringContaining("pagina-heroi-bombeiro"));
+    expect(seriesImgs[2]).toHaveAttribute("src", expect.stringContaining("foto-heroi-bombeiro"));
   });
 
   it("abre o catálogo completo da categoria", async () => {

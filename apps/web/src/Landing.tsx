@@ -249,8 +249,15 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   0: { cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", photo: "foto-martin-goleiro.jpg" },
   1: { cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", photo: "foto-emilia-bailarina.jpg" },
   2: { cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", photo: "foto-antonio-bicicleta.jpg" },
-  3: { cover: "capa-sofia-alfabeto.png", page: "pagina-sofia-alfabeto.jpg", photo: "foto-sofia.png" },
-  4: { cover: "capa-cristobal-esporte.png", page: "pagina-cristobal-esporte.jpg" },
+  3: {
+    cover: "capa-sofia-alfabeto.png",
+    page: { pt: "pagina-sofia-alfabeto.jpg", en: "pagina-sofia-alfabeto-en.png", es: "pagina-sofia-alfabeto-es.png" },
+    photo: "foto-sofia.png",
+  },
+  4: {
+    cover: "capa-cristobal-esporte.png",
+    page: { pt: "pagina-cristobal-esporte.jpg", en: "pagina-cristobal-esporte-en.png", es: "pagina-cristobal-esporte-es.png" },
+  },
   5: { cover: "capa-nicolas-maefilho.png", page: "pagina-nicolas-maefilho.jpg", photo: "foto-nicolas-maefilho.jpg" },
   6: {
     cover: { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
@@ -287,24 +294,78 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-mako-amigofiel.jpg", en: "pagina-mako-amigofiel-en.jpg", es: "pagina-mako-amigofiel-es.jpg" },
     photo: { pt: "foto-mako-amigofiel.jpg", en: "foto-mako-amigofiel-en.jpg", es: "foto-mako-amigofiel-es.jpg" },
   },
-  13: { cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" }, photo: "foto-ester.png" },
-  14: { cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" }, photo: "foto-raquel-papai.png" },
-  15: { cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" }, photo: "foto-rebeca.png" },
-  16: { cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" }, photo: "foto-abigail.png" },
-  17: { cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" }, photo: "foto-miriam.png" },
-  18: { cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" }, photo: "foto-noe.png" },
+  13: {
+    cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" },
+    page: { pt: "pagina-ester.png", en: "pagina-ester-en.png", es: "pagina-ester-es.png" },
+    photo: { pt: "foto-ester.png", en: "foto-ester-en.png", es: "foto-ester-es.png" },
+  },
+  14: {
+    cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" },
+    page: { pt: "pagina-raquel-papai.png", en: "pagina-raquel-papai-en.png", es: "pagina-raquel-papai-es.png" },
+    photo: { pt: "foto-raquel-papai.png", en: "foto-raquel-papai-en.png", es: "foto-raquel-papai-es.png" },
+  },
+  15: {
+    cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" },
+    page: { pt: "pagina-rebeca.png", en: "pagina-rebeca-en.png", es: "pagina-rebeca-es.png" },
+    photo: { pt: "foto-rebeca.png", en: "foto-rebeca-en.png", es: "foto-rebeca-es.png" },
+  },
+  16: {
+    cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" },
+    page: { pt: "pagina-abigail.png", en: "pagina-abigail-en.png", es: "pagina-abigail-es.png" },
+    photo: { pt: "foto-abigail.png", en: "foto-abigail-en.png", es: "foto-abigail-es.png" },
+  },
+  17: {
+    cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" },
+    page: { pt: "pagina-miriam.png", en: "pagina-miriam-en.png", es: "pagina-miriam.png" },
+    photo: { pt: "foto-miriam.png", en: "foto-miriam-en.png", es: "foto-miriam.png" },
+  },
+  18: {
+    cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" },
+    page: { pt: "pagina-noe.png", en: "pagina-noe-en.png", es: "pagina-noe-es.png" },
+    photo: { pt: "foto-noe.png", en: "foto-noe-en.png", es: "foto-noe-es.png" },
+  },
   19: { cover: "capa-amordetia.png", page: "pagina-amordetia.png", photo: "foto-amordetia.png" },
   20: { cover: "capa-davi-pastor.png", page: "pagina-davi-pastor.png", photo: "foto-davi-pastor.png" },
   21: { cover: "capa-meupai-heroi.png", page: "pagina-meupai-heroi.png", photo: "foto-meupai-heroi.png" },
   22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
   23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
   24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
-  30: { cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" } },
+  25: { cover: "capa-construtor.png", page: "pagina-construtor.png", photo: "foto-construtor.png" },
+  26: {
+    cover: { pt: "capa-heroi-bombeiro.png", en: "capa-heroi-bombeiro-en.png", es: "capa-heroi-bombeiro-es.png" },
+    page: { pt: "pagina-heroi-bombeiro.png", en: "pagina-heroi-bombeiro-en.png", es: "pagina-heroi-bombeiro-es.png" },
+    photo: { pt: "foto-heroi-bombeiro.png", en: "foto-heroi-bombeiro-en.png", es: "foto-heroi-bombeiro-es.png" },
+  },
+  27: {
+    cover: { pt: "capa-heroi-policia.png", en: "capa-heroi-policia-en.png", es: "capa-heroi-policia-es.png" },
+    page: { pt: "pagina-heroi-policia.png", en: "pagina-heroi-policia-en.png", es: "pagina-heroi-policia-es.png" },
+    photo: { pt: "foto-heroi-policia.png", en: "foto-heroi-policia-en.png", es: "foto-heroi-policia-es.png" },
+  },
+  28: {
+    cover: { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
+    page: { pt: "pagina-heroi-aranha.png", en: "pagina-heroi-aranha-en.png", es: "pagina-heroi-aranha-es.png" },
+    photo: { pt: "foto-heroi-aranha.png", en: "foto-heroi-aranha-en.png", es: "foto-heroi-aranha-es.png" },
+  },
+  29: {
+    cover: { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
+    page: { pt: "pagina-tia-especial.png", en: "pagina-tia-especial-en.png", es: "pagina-tia-especial-es.png" },
+    photo: { pt: "foto-tia-especial.png", en: "foto-tia-especial-en.png", es: "foto-tia-especial-es.png" },
+  },
+  30: {
+    cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" },
+    page: { pt: "pagina-amor-de-avo.png", en: "pagina-amor-de-avo-en.png", es: "pagina-amor-de-avo-en.png" },
+    photo: { pt: "foto-amor-de-avo.png", en: "foto-amor-de-avo-en.png", es: "foto-amor-de-avo-en.png" },
+  },
+  31: {
+    cover: { pt: "capa-pascoa.png", en: "capa-pascoa-en.png", es: "capa-pascoa-es.png" },
+    page: { pt: "pagina-pascoa.png", en: "pagina-pascoa-en.png", es: "pagina-pascoa-es.png" },
+    photo: { pt: "foto-pascoa.png", en: "foto-pascoa-en.png", es: "foto-pascoa-es.png" },
+  },
   34: {
     cover: { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
-    page: "pagina-bruno-animais.jpg",
+    page: { pt: "pagina-bruno-animais.jpg", en: "pagina-bruno-animais-en.png", es: "pagina-bruno-animais-es.png" },
   },
-  36: { cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg" },
+  36: { cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", photo: "foto-mariajesus-hockey.jpg" },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -1707,7 +1768,7 @@ const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: st
   en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo" },
   es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
 };
-/** Galeria manual da página do livro: capa, página e foto disponíveis. */
+/** Página do livro: capa, página e foto correspondentes, todas visíveis. */
 function BookImageGallery({
   shots,
   alt,
@@ -1717,48 +1778,22 @@ function BookImageGallery({
   shots: { key: CatalogSeriesKind; src: string }[];
   alt: string;
   size: CatalogSizeChoice;
-  labels: { prev: string; next: string; turn: string; cover: string; page: string; photo: string };
+  labels: { cover: string; page: string; photo: string };
 }) {
-  const [index, setIndex] = useState(0);
-  const count = shots.length;
-  const multi = count > 1;
   const shotLabel = (key: CatalogSeriesKind) =>
     key === "page" ? labels.page : key === "photo" ? labels.photo : labels.cover;
-  const current = shots[Math.min(index, count - 1)];
   return (
     <div className="cat-display book-series" data-testid="book-series">
-      <figure className={`book-series-shot is-${current.key}`} data-testid={`book-series-${current.key}`}>
-        <div className="book-series-frame">
-          <div className="cat-book" data-size={current.key === "cover" ? size : "M"}>
-            <img src={exUrl(current.src)} alt={`${alt} — ${shotLabel(current.key)}`} loading="lazy" />
+      {shots.map((shot) => (
+        <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
+          <div className="book-series-frame">
+            <div className="cat-book" data-size={shot.key === "cover" ? size : "M"}>
+              <img src={exUrl(shot.src)} alt={`${alt} — ${shotLabel(shot.key)}`} loading="lazy" />
+            </div>
           </div>
-          {multi ? (
-            <>
-              <button type="button" className="cat-flip-nav prev" aria-label={labels.prev} onClick={() => setIndex((i) => (i - 1 + count) % count)}>
-                ‹
-              </button>
-              <button type="button" className="cat-flip-nav next" aria-label={labels.next} onClick={() => setIndex((i) => (i + 1) % count)}>
-                ›
-              </button>
-              <div className="cat-flip-dots" role="tablist" aria-label={labels.turn}>
-                {shots.map((shot, i) => (
-                  <button
-                    key={shot.key}
-                    type="button"
-                    role="tab"
-                    className={`fb-dot${i === index ? " on" : ""}`}
-                    aria-selected={i === index}
-                    aria-label={shotLabel(shot.key)}
-                    data-testid="catalog-flip-dot"
-                    onClick={() => setIndex(i)}
-                  />
-                ))}
-              </div>
-            </>
-          ) : null}
-        </div>
-        <figcaption aria-live="polite">{shotLabel(current.key)}</figcaption>
-      </figure>
+          <figcaption>{shotLabel(shot.key)}</figcaption>
+        </figure>
+      ))}
     </div>
   );
 }
@@ -1783,14 +1818,6 @@ export function CatalogBookCard({
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
   const copy = FORMAT_COPY[lang];
   const pageCopy = BOOK_PAGE_COPY[lang];
-  const flipLabels = {
-    prev: I18N[lang].cf_prev,
-    next: I18N[lang].cf_next,
-    turn: I18N[lang].fb_turn,
-    cover: pageCopy.cover,
-    page: pageCopy.page,
-    photo: pageCopy.photo,
-  };
   const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
   const linked = linkBook && bookHref != null;
   const notes = (
@@ -1862,7 +1889,7 @@ export function CatalogBookCard({
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={flipLabels} />
+        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={pageCopy} />
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
           <h1 title={book.t}>{book.t}</h1>
