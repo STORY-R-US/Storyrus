@@ -43,6 +43,7 @@ function generationLabel(order: OrderTicket): string {
 function printDescription(order: OrderTicket): string {
   const labels: Record<string, string> = {
     awaiting_spec: "Configuração da gráfica pendente", awaiting_pages: "Aguardando páginas para impressão",
+    awaiting_payment: "Pedido em cotação", generating_book: "Gerando livro completo", awaiting_customer_approval: "Aguardando revisão da família",
     held: "Formato aguardando liberação", files_ready: "Arquivos prontos", sent_for_validation: "Pacote em validação",
     approved: "Produção aprovada", rejected: "Ajustes solicitados pela gráfica",
   };
@@ -128,6 +129,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
   if (order.print_status) {
     const labels: Record<string, string> = {
       awaiting_spec: "Configuração da gráfica pendente",
+      awaiting_payment: "Pedido em cotação", generating_book: "Gerando livro completo", awaiting_customer_approval: "Aguardando revisão da família",
       awaiting_pages: "Aguardando páginas",
       held: "Formato ainda não liberado",
       files_ready: "Arquivos prontos",
@@ -235,6 +237,7 @@ function PersonalOrders({
                   ))}
                 </div>
               )}
+              <a className="btn" href={`/app?projeto=${encodeURIComponent(current.project_id)}`}>Continuar pedido</a>
               <p className="muted">{when(current.created_at)}</p>
             </article>
           )}

@@ -227,6 +227,8 @@ class Project(Base):
     narrated_video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     character_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
     book_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # Customer decisions and the revision used to generate the purchased book.
+    purchase_flow: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     # Quando o cliente foi avisado por e-mail que a prévia (história + imagens) ficou pronta.
     preview_notified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     print_requested_at: Mapped[datetime | None] = mapped_column(nullable=True)
@@ -340,6 +342,7 @@ class PrintOrder(Base):
     book_size: Mapped[str | None] = mapped_column(String(1), nullable=True)
     cover_type: Mapped[str | None] = mapped_column(String(8), nullable=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    # awaiting_payment | generating_book | awaiting_customer_approval |
     # awaiting_spec | awaiting_pages | held | files_ready |
     # sent_for_validation | approved | rejected
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="awaiting_spec")

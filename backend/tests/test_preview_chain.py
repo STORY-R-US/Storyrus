@@ -271,7 +271,8 @@ async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, mo
     db.refresh(p)
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.EBOOK_READY.value
-    assert p.book_approved_at is not None
+    assert p.book_approved_at is None
+    assert p.purchase_flow["stage"] == "preview_ready"
 
     covers = db.scalars(
         select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.COVER.value)
@@ -366,7 +367,8 @@ def test_preview_ready_email_failure_is_swallowed(db, monkeypatch):
     job = _job(db, p, "EBOOK", payload={"preview_chain": True})
     preview_chain.finalize_preview_ebook(db, p, job)  # não levanta
     db.refresh(p)
-    assert p.book_approved_at is not None
+    assert p.book_approved_at is None
+    assert p.purchase_flow["stage"] == "preview_ready"
 
 
 @pytest.mark.asyncio

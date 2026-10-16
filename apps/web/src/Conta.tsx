@@ -675,6 +675,7 @@ export function Conta() {
               {busy ? t.busy : t.save}
             </button>
           </form>
+          <p className="auth-foot"><Link to="/meus-pedidos">{lang === "en" ? "My orders" : lang === "es" ? "Mis pedidos" : "Meus pedidos"}</Link></p>
           <p className="auth-foot">
             <Link to="/app" data-testid="conta-studio">
               {t.studio}

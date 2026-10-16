@@ -18,6 +18,7 @@ const BookPage = lazy(() =>
   import("./CatalogPages").then((m) => ({ default: m.BookPage })),
 );
 const App = lazy(() => import("./App").then((m) => ({ default: m.App })));
+const MyOrders = lazy(() => import("./MyOrders").then((m) => ({ default: m.MyOrders })));
 const Auth = lazy(() => import("./Auth").then((m) => ({ default: m.Auth })));
 const VerifyEmail = lazy(() =>
   import("./VerifyEmail").then((m) => ({ default: m.VerifyEmail })),
@@ -82,6 +83,7 @@ export function AppRoutes() {
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha" element={<ResetPassword />} />
         <Route path="/app" element={<App />} />
+        <Route path="/meus-pedidos" element={<MyOrders />} />
         <Route path="/conta" element={<Conta />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />

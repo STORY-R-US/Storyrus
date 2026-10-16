@@ -11,6 +11,7 @@ from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, ProjectStatus
 from app.services import book_profile as contract
+from app.services import purchase_flow
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.workers import book_render
@@ -254,6 +255,12 @@ async def preview(db, job, project):
             "Previa incompleta; tente novamente para gerar as imagens restantes", transient=True
         )
     contract.update(project, stage="preview_ready")
+    purchase_flow.update(
+        project,
+        preview_ready_at=purchase_flow.timestamp(),
+        preview_approved_at=None,
+        stage="preview_ready",
+    )
     job.result = {**(job.result or {}), "preview_complete": True}
     _set_status(db, project, ProjectStatus.EBOOK_READY)
     # A ready preview is never book approval or a print order.
@@ -446,4 +453,8 @@ async def page(db, job, project):
             )
             if language == project.language:
                 project.ebook_url = key
+    if current == 16:
+        purchase_flow.update(
+            project, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready"
+        )
     _set_status(db, project, ProjectStatus.EBOOK_READY)

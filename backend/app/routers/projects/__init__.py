@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,7 @@ from app.models import Asset, AssetKind, Job, Project, User
 from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut
 from app.services import book_profile
 
-from . import approvals, book_flow, photos, steps
+from . import approvals, book_flow, photos, purchase, steps
 from . import print as print_mod
 from .common import get_owned_project
 
@@ -45,6 +45,7 @@ def create_project(
         child_trait=(body.child_trait or None),
         child_interest=(body.child_interest or None),
         language=(body.language or "pt-BR"),
+        purchase_flow={"title": body.title, "theme_description": body.theme_description},
         book_profile=book_profile.initial_profile(body) if body.gender or body.languages else None,
     )
     db.add(project)
@@ -55,8 +56,9 @@ def create_project(
 
 @router.get("", response_model=list[ProjectOut])
 def list_projects(
-    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[Project]:
+    response.headers["Cache-Control"] = "private, no-store"
     return list(
         db.scalars(
             select(Project).where(Project.user_id == user.id).order_by(Project.created_at.desc())
@@ -231,3 +233,5 @@ router.include_router(steps.router)
 router.include_router(approvals.router)
 router.include_router(book_flow.router)
 router.include_router(print_mod.router)
+
+router.include_router(purchase.router)

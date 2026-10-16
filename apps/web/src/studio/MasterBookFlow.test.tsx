@@ -18,7 +18,7 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
-  it("waits for preview approval before starting the story", async () => {
+  it("opens a quotation after preview approval without starting unpaid production", async () => {
     const story = vi.spyOn(api, "startStep").mockResolvedValue(accepted);
     const approve = vi.spyOn(api, "approvePreview").mockResolvedValue(project);
     vi.spyOn(api, "getProject").mockResolvedValue(project);
@@ -30,9 +30,9 @@ describe("Studio approval stages", () => {
     expect(labels[0]).toContain("Capa");
     expect(labels[1]).toContain("Livro aberto");
     expect(labels[2]).toContain("Leitura");
-    await userEvent.click(screen.getByRole("button", { name: "Sim, aprovo" }));
-    await waitFor(() => expect(story).toHaveBeenCalledWith("master", "story"));
-    expect(approve.mock.invocationCallOrder[0]).toBeLessThan(story.mock.invocationCallOrder[0]);
+    await userEvent.click(screen.getByRole("button", { name: "Gostei, continuar com meu livro" }));
+    await waitFor(() => expect(approve).toHaveBeenCalledWith("master"));
+    expect(story).not.toHaveBeenCalled();
   });
 
   it("regenerates only the selected preview image and language", async () => {

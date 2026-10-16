@@ -206,6 +206,13 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         text_band=page_brief.get("text_band") or "",
     )
     in_hand_prompt = preview_in_hand_prompt(language=language)
+    flow = project.purchase_flow or {}
+    adjustments = "\nTema solicitado: " + (flow.get("theme_description") or project.theme or "")
+    if flow.get("photo_notes"):
+        adjustments += "\nAjustes visuais solicitados: " + flow["photo_notes"]
+    cover_prompt += adjustments
+    page_prompt += adjustments
+    in_hand_prompt += adjustments
 
     if settings.offline_fallback:
         cover = ImageResult(
@@ -463,6 +470,12 @@ async def handle_ebook(db: Session, job: Job) -> None:
             else _scene_to_brief({}, full_text, page_index=idx - 1, layout=layout)
         )
         brief["shot"] = identity_shot(brief.get("shot"), layout=layout)
+        flow = project.purchase_flow or {}
+        notes = " ".join(
+            str(flow.get(key) or "") for key in ("theme_description", "photo_notes", "final_notes")
+        )
+        if notes.strip():
+            brief["scene"] = str(brief.get("scene") or "") + " Ajustes do responsável: " + notes
         if layout != "dedication":
             work.append((idx, caption, brief, layout))
 
@@ -559,15 +572,19 @@ async def handle_ebook(db: Session, job: Job) -> None:
             except Exception:  # noqa: BLE001
                 pass
 
+    approved_cover = db.scalar(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
+    )
     blob = ebook_builder.build_pdf(
         title=title,
         pages=pages,
+        cover=storage.get_bytes(approved_cover.storage_key) if approved_cover else None,
         dedication=(project.dedication or None),
         portrait=char_bytes,
         child_name=(name or None),
         language=language,
         extra_characters=extra_chars or None,
-        preview_pages=3,
+        preview_pages=None,
         cover_palette=ebook_builder.cover_palette_for(template_id, project.theme),
         page_cm=20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
     )
@@ -597,3 +614,10 @@ async def handle_ebook(db: Session, job: Job) -> None:
         ebook_lines.extend(lines_of(scene))
     flush_usage(db, job, ebook_lines)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
+    if preview_chain.job_payload(job).get("purchase_full_book"):
+        from app.services import purchase_flow
+
+        purchase_flow.update(
+            project, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready"
+        )
+        db.commit()
