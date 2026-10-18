@@ -1775,44 +1775,36 @@ img.ex-tab-cover {
   aspect-ratio: auto;
   height: auto;
   overflow: visible;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: block;
   border-radius: 0;
-}
-#catalogo.book-page .book-series-shot {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-#catalogo.book-page .book-series-frame {
-  position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+}
+#catalogo.book-page .book-series .flipbook-square {
+  width: 100%;
+}
+#catalogo.book-page .book-series .flipbook-square .fb-board {
+  gap: 0;
+}
+#catalogo.book-page .book-series .flipbook-square .fb-stage {
+  background: transparent;
   overflow: hidden;
   border-radius: 10px;
+  filter: drop-shadow(0 18px 32px rgba(31, 53, 104, 0.22));
 }
-#catalogo.book-page .book-series-shot .cat-book {
+#catalogo.book-page .book-series .flipbook-square .fb-stage::before { display: none; }
+#catalogo.book-page .book-series .flipbook-square .fb-spine { display: none; }
+#catalogo.book-page .book-series .flipbook-square img.fb-page {
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  border-radius: 10px;
+}
+#catalogo.book-page .book-series .flipbook-square .fb-nav {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  z-index: 4;
 }
-#catalogo.book-page .book-series-shot .cat-book[data-size="P"] {
-  inset: 12.5%;
-  width: auto;
-  height: auto;
-}
-#catalogo.book-page .book-series-shot figcaption {
-  margin: 0;
-  font-family: "Baloo 2", cursive;
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--yellow);
-}
-[data-theme="light"] .kid .book-page .book-series-shot figcaption { color: #1f3568; }
+#catalogo.book-page .book-series .flipbook-square .fb-nav:first-child { left: 10px; }
+#catalogo.book-page .book-series .flipbook-square .fb-nav:last-of-type { right: 10px; }
 .book-page .book-tag {
   display: inline-block;
   align-self: flex-start;

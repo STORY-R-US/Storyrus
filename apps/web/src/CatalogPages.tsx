@@ -1,5 +1,5 @@
 import { useEffect, type CSSProperties } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
@@ -178,6 +178,8 @@ export function BookPage() {
   const [lang, setLang] = useSiteLang();
   const params = useParams();
   const index = Number(params.indice);
+  const [search] = useSearchParams();
+  const modo = search.get("estilo") === "cartoon" ? "cartoon" : "realista";
   const book = Number.isInteger(index) ? catalogEntry(lang, index) : null;
   usePageMeta(
     book
@@ -196,7 +198,7 @@ export function BookPage() {
       <main className="ksection book-page" id="catalogo">
         <SiteBackNav />
         <div className="book-page-card">
-          <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" />
+          <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" modo={modo} />
         </div>
       </main>
     </div>
