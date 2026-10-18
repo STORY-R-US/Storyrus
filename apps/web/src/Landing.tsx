@@ -1959,7 +1959,7 @@ export function CatalogBookCard({
   if (layout === "page") {
     const series =
       book.catalogI != null
-        ? catalogSeriesShots(book.catalogI, lang, modo)
+        ? catalogSeriesShots(book.catalogI, lang, modo === "cartoon" ? "cartoon" : "photo")
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
