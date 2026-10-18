@@ -792,7 +792,7 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Vovô e Eu", "Nossa Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Vovô e Eu", "Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Eu", "Nossa Família", "O Amor de Mãe"],
       },
       {
@@ -1020,7 +1020,7 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Grandpa and Me", "Our Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Grandpa and Me", "Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
         feats: ["Mommy and Me", "Grandma and Me", "Our Family", "A Mother's Love"],
       },
       {
@@ -1248,7 +1248,7 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Abuelo y Yo", "Nuestra Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Abuelo y Yo", "Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Yo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
