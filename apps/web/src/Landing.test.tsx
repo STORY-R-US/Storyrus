@@ -992,7 +992,7 @@ describe("Catálogo e página do livro", () => {
     expect(within(aventuras).getByRole("heading", { name: /^princesas$/i })).toBeInTheDocument();
     expect(within(aventuras).getByRole("heading", { name: /^esportes$/i })).toBeInTheDocument();
     expect(within(aventuras).getByRole("heading", { name: /martin, o grande goleiro/i })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /^nossa família$/i })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: /^família$/i })).toHaveLength(1);
     const ocasioes = document.getElementById("ocasioes") as HTMLElement;
     expect(within(ocasioes).getByRole("heading", { name: /^natal$/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /^dia das mães$/i })).toBeInTheDocument();
