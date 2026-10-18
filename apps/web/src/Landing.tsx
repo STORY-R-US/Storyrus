@@ -149,6 +149,8 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   23: "cartoon-capa-lucas.png",
   30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
   33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
+  37: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
+  38: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -242,6 +244,9 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
   "capa-gael-economia.jpg",
   "capa-mariajesus-hockey.jpg",
+  { pt: "capa-grace-aniversario.png", en: "capa-grace-aniversario-en.png", es: "capa-grace-aniversario-es.png" },
+  { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
+  { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -366,12 +371,40 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-bruno-animais.jpg", en: "pagina-bruno-animais-en.png", es: "pagina-bruno-animais-es.png" },
   },
   36: { cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", photo: "foto-mariajesus-hockey.jpg" },
+  37: {
+    cover: { pt: "capa-grace-aniversario.png", en: "capa-grace-aniversario-en.png", es: "capa-grace-aniversario-es.png" },
+    page: { pt: "pagina-grace-aniversario.jpg", en: "pagina-grace-aniversario-en.jpg", es: "pagina-grace-aniversario-es.jpg" },
+    photo: { pt: "foto-grace-aniversario.jpg", en: "foto-grace-aniversario-en.jpg", es: "foto-grace-aniversario-es.jpg" },
+  },
+  38: {
+    cover: { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
+    page: { pt: "pagina-grace-andar.jpg", en: "pagina-grace-andar-en.jpg", es: "pagina-grace-andar-es.jpg" },
+    photo: { pt: "foto-grace-andar.jpg", en: "foto-grace-andar-en.jpg", es: "foto-grace-andar-es.jpg" },
+  },
+  39: {
+    cover: { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
+    page: { pt: "pagina-quatro-geracoes.jpg", en: "pagina-quatro-geracoes-en.jpg", es: "pagina-quatro-geracoes-es.jpg" },
+    photo: { pt: "foto-quatro-geracoes.jpg", en: "foto-quatro-geracoes-en.jpg", es: "foto-quatro-geracoes-es.jpg" },
+  },
+};
+/** Série cartoon (capa, página, foto) quando o livro tem as três imagens em desenho. */
+const CARTOON_SERIES: Record<number, CatalogSeriesShot> = {
+  37: {
+    cover: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
+    page: { pt: "cartoon-pagina-grace-aniversario.jpg", en: "cartoon-pagina-grace-aniversario-en.jpg", es: "cartoon-pagina-grace-aniversario-es.jpg" },
+    photo: { pt: "cartoon-foto-grace-aniversario.jpg", en: "cartoon-foto-grace-aniversario-en.jpg", es: "cartoon-foto-grace-aniversario-es.jpg" },
+  },
+  38: {
+    cover: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
+    page: { pt: "cartoon-pagina-grace-andar.jpg", en: "cartoon-pagina-grace-andar-en.jpg", es: "cartoon-pagina-grace-andar-es.jpg" },
+    photo: { pt: "cartoon-foto-grace-andar.jpg", en: "cartoon-foto-grace-andar-en.jpg", es: "cartoon-foto-grace-andar-es.jpg" },
+  },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
-function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
-  const series = CATALOG_SERIES[i];
+function catalogSeriesShots(i: number, lang: Lang, variant: "photo" | "cartoon" = "photo"): { key: CatalogSeriesKind; src: string }[] {
+  const series = (variant === "cartoon" ? CARTOON_SERIES[i] : undefined) ?? CATALOG_SERIES[i];
   if (!series) {
-    const cover = catalogCoverFile(i, lang, "photo");
+    const cover = catalogCoverFile(i, lang, variant);
     return cover ? [{ key: "cover", src: cover }] : [];
   }
   const shots: { key: CatalogSeriesKind; src: string }[] = [
@@ -419,6 +452,9 @@ const CATALOG_THEMES = [
   "animais_sons",
   "economia",
   "sport",
+  "birthday",
+  "family_love",
+  "family_love",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -427,9 +463,9 @@ const HIDDEN_BOOK_INDEXES = new Set([10, 13, 32]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
+const CATALOG_LEAD = [39, 37, 38, 25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -556,7 +592,8 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   grandparents_love: [8],
   grandfather_love: [30],
   dia_do_idoso: [8, 30],
-  family_love: [7, 29],
+  family_love: [7, 29, 38, 39],
+  birthday: [37],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
@@ -651,6 +688,9 @@ const HERO_BY_CATALOG: Record<number, string> = {
   17: "Miriam",
   18: "Noé",
   20: "Davi",
+  37: "Grace",
+  38: "Grace",
+  39: "Matteo",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -947,6 +987,9 @@ const I18N = {
       { t: "Bruno Em Uma Aventura Animal", p: "Leão, girafa e zebra ao redor: Bruno descobre os animais e aprende a cuidar de cada um.", cover: "Hard", size: "M", tag: "Animais", quote: "Pequenas aventuras, grandes descobertas." },
       { t: "Aprendendo Economia Com O Gael", p: "Cofrinho, moedas e um plano: Gael aprende a guardar hoje para realizar um sonho amanhã.", cover: "Hard", size: "M", tag: "Economia", quote: "Cada moedinha ajuda o sonho a crescer." },
       { t: "Maria Jesus E A Disciplina No Hockey", p: "Patins, treino e um sorriso no gelo: disciplina e coragem para chegar ao gol.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Patinar, aprender e sorrir." },
+      { t: "Feliz Aniversário, Grace", p: "Vela, bolo e o abraço da família: o primeiro aniversário vira uma história para guardar.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Uma vela acesa, um desejo no ar." },
+      { t: "Aprendendo A Andar Com Grace", p: "Os primeiros passos no parque, com a mamãe de braços abertos: cada passinho vira uma história para guardar.", cover: "Hard", size: "M", tag: "Primeiros passos", quote: "Um passo de cada vez, já vai caminhar." },
+      { t: "Quatro Gerações de Amor, Nosso Maior Valor", p: "Matteo, a mamãe Ana, Lullys e Iolanda: quatro gerações num só abraço, uma história para guardar.", cover: "Hard", size: "M", tag: "Quatro gerações", quote: "O amor da família sempre permanece." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1175,6 +1218,9 @@ const I18N = {
       { t: "Bruno On An Animal Adventure", p: "A lion, a giraffe and a zebra all around: Bruno meets the animals and learns to care for each one.", cover: "Hard", size: "M", tag: "Animals", quote: "Small adventures, big discoveries." },
       { t: "Learning Savings With Gael", p: "A piggy bank, coins and a plan: Gael learns to save today so a dream can happen tomorrow.", cover: "Hard", size: "M", tag: "Savings", quote: "Every little coin helps the dream grow." },
       { t: "Maria Jesus And Discipline In Hockey", p: "Skates, practice and a smile on the ice: discipline and courage to reach the goal.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Skate, learn and smile." },
+      { t: "Happy Birthday, Grace", p: "A candle, a cake and the family's hug: a first birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "Birthday", quote: "A candle lit, a wish in the air." },
+      { t: "Learning To Walk With Grace", p: "First steps in the park, with mom's arms open: every little step becomes a story to keep.", cover: "Hard", size: "M", tag: "First steps", quote: "One step at a time, and then she walks." },
+      { t: "Four Generations of Love, Our Greatest Treasure", p: "Matteo, Mommy Ana, Lullys and Iolanda: four generations in one embrace, a story to keep.", cover: "Hard", size: "M", tag: "Four generations", quote: "Through every generation, love grows." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1403,6 +1449,9 @@ const I18N = {
       { t: "Bruno En Una Aventura Animal", p: "León, jirafa y cebra alrededor: Bruno conoce a los animales y aprende a cuidar de cada uno.", cover: "Hard", size: "M", tag: "Animales", quote: "Pequeñas aventuras, grandes descubrimientos." },
       { t: "Aprendiendo Economía Con Gael", p: "Alcancía, monedas y un plan: Gael aprende a guardar hoy para cumplir un sueño mañana.", cover: "Hard", size: "M", tag: "Economía", quote: "Cada monedita ayuda a crecer el sueño." },
       { t: "Maria Jesus Y La Disciplina En El Hockey", p: "Patines, entrenamiento y una sonrisa en el hielo: disciplina y coraje para llegar al gol.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Patinar, aprender y sonreír." },
+      { t: "Feliz Cumpleaños, Grace", p: "Vela, pastel y el abrazo de la familia: el primer cumpleaños se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "Una vela encendida, un deseo en el aire." },
+      { t: "Aprendiendo A Caminar Con Grace", p: "Los primeros pasos en el parque, con los brazos de mamá abiertos: cada pasito se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Primeros pasos", quote: "Un paso a la vez, y ya va a caminar." },
+      { t: "Cuatro Generaciones de Amor, Nuestro Mayor Tesoro", p: "Matteo, mamá Ana, Lullys e Iolanda: cuatro generaciones en un abrazo, una historia para guardar.", cover: "Hard", size: "M", tag: "Cuatro generaciones", quote: "El amor de familia siempre permanece." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -1486,11 +1535,15 @@ function FlipBook({
   index,
   onIndex,
   labels,
+  fit = "natural",
+  altPrefix,
 }: {
   pages: string[];
   index: number;
   onIndex: (next: number) => void;
-  labels: { prev: string; next: string; turn: string; cover: string; photo: string };
+  labels: { prev: string; next: string; turn: string; cover: string; photo: string; spread?: string };
+  fit?: "natural" | "square";
+  altPrefix?: string;
 }) {
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(index);
@@ -1619,7 +1672,7 @@ function FlipBook({
     const slot = ((idx % 3) + 3) % 3;
     if (slot === 0) return labels.cover;
     if (slot === 2) return labels.photo;
-    return labels.turn;
+    return labels.spread ?? labels.turn;
   };
   const bookBase = Math.floor(index / 3) * 3;
   const bookDots = [bookBase, bookBase + 1, bookBase + 2].filter((i) => i < pages.length);
@@ -1651,7 +1704,7 @@ function FlipBook({
   };
   return (
     <div
-      className="flipbook"
+      className={`flipbook${fit === "square" ? " flipbook-square" : ""}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -1668,7 +1721,13 @@ function FlipBook({
           role={single ? "img" : "button"}
           tabIndex={single ? undefined : 0}
           aria-label={single ? pageLabel(index) : labels.turn}
-          style={frame ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" } : undefined}
+          style={
+            fit === "square"
+              ? { width: "100%", maxWidth: "100%", height: "auto", aspectRatio: "1 / 1", flex: "1 1 auto", minWidth: 0 }
+              : frame
+                ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" }
+                : undefined
+          }
         >
           <span className="fb-spine" />
           <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
@@ -1677,7 +1736,7 @@ function FlipBook({
             className={`fb-leaf fb-fx-${FLIP_FX}${anim ? ` ${anim}` : ""}`}
             onAnimationEnd={(e) => onLeafEnd(e)}
           >
-            <img className={`fb-page fb-leaf-front ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(index)} data-testid="landing-hero-flip" />
+            <img className={`fb-page fb-leaf-front ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={altPrefix ? `${altPrefix} — ${pageLabel(index)}` : pageLabel(index)} data-testid="landing-hero-flip" />
             {folding ? <FoldMesh src={exUrl(leafSrc)} kind={pageKind(leafIdx)} /> : null}
             {folding ? <span className="fb-leaf-back" aria-hidden /> : null}
             {folding ? <span className="fb-leaf-shade" aria-hidden /> : null}
@@ -1763,37 +1822,50 @@ export type CatalogCardBook = {
   story?: string;
   quote?: string;
 };
-const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: string; page: string; photo: string }> = {
-  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro", cover: "Capa", page: "Página", photo: "Foto" },
-  en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo" },
-  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
+const BOOK_PAGE_COPY: Record<Lang, {
+  summary: string;
+  details: string;
+  cover: string;
+  page: string;
+  photo: string;
+  prev: string;
+  next: string;
+  turn: string;
+}> = {
+  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro", cover: "Capa", page: "Página", photo: "Foto", prev: "Página Anterior", next: "Próxima Página", turn: "Virar Página" },
+  en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo", prev: "Previous Page", next: "Next Page", turn: "Turn Page" },
+  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto", prev: "Página Anterior", next: "Página Siguiente", turn: "Pasar Página" },
 };
-/** Página do livro: capa, página e foto correspondentes, todas visíveis. */
+/** Página do livro: capa, página e foto no mesmo flipbook, com as setas do hero. */
 function BookImageGallery({
   shots,
   alt,
-  size,
   labels,
 }: {
   shots: { key: CatalogSeriesKind; src: string }[];
   alt: string;
-  size: CatalogSizeChoice;
-  labels: { cover: string; page: string; photo: string };
+  labels: { cover: string; page: string; photo: string; prev: string; next: string; turn: string };
 }) {
-  const shotLabel = (key: CatalogSeriesKind) =>
-    key === "page" ? labels.page : key === "photo" ? labels.photo : labels.cover;
+  const [index, setIndex] = useState(0);
+  const pages = shots.map((shot) => shot.src);
+  const safeIndex = pages.length ? Math.min(index, pages.length - 1) : 0;
   return (
     <div className="cat-display book-series" data-testid="book-series">
-      {shots.map((shot) => (
-        <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
-          <div className="book-series-frame">
-            <div className="cat-book" data-size={shot.key === "cover" ? size : "M"}>
-              <img src={exUrl(shot.src)} alt={`${alt} — ${shotLabel(shot.key)}`} loading="lazy" />
-            </div>
-          </div>
-          <figcaption>{shotLabel(shot.key)}</figcaption>
-        </figure>
-      ))}
+      <FlipBook
+        pages={pages}
+        index={safeIndex}
+        onIndex={setIndex}
+        fit="square"
+        altPrefix={alt}
+        labels={{
+          prev: labels.prev,
+          next: labels.next,
+          turn: labels.turn,
+          cover: labels.cover,
+          photo: labels.photo,
+          spread: labels.page,
+        }}
+      />
     </div>
   );
 }
@@ -1818,7 +1890,9 @@ export function CatalogBookCard({
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
   const copy = FORMAT_COPY[lang];
   const pageCopy = BOOK_PAGE_COPY[lang];
-  const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
+  const bookHref = book.catalogI != null
+    ? `/livro/${book.catalogI}${modo === "cartoon" && CARTOON_SERIES[book.catalogI] ? "?estilo=cartoon" : ""}`
+    : null;
   const linked = linkBook && bookHref != null;
   const notes = (
     <div className="cat-notes">
@@ -1885,11 +1959,11 @@ export function CatalogBookCard({
   if (layout === "page") {
     const series =
       book.catalogI != null
-        ? catalogSeriesShots(book.catalogI, lang)
+        ? catalogSeriesShots(book.catalogI, lang, modo)
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={pageCopy} />
+        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} labels={pageCopy} />
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
           <h1 title={book.t}>{book.t}</h1>
