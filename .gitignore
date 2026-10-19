@@ -326,6 +326,15 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/foto-quatro-geracoes.jpg
 !apps/web/public/exemplos/foto-quatro-geracoes-en.jpg
 !apps/web/public/exemplos/foto-quatro-geracoes-es.jpg
+!apps/web/public/exemplos/capa-mamae-e-eu.png
+!apps/web/public/exemplos/capa-mamae-e-eu-en.png
+!apps/web/public/exemplos/capa-mamae-e-eu-es.png
+!apps/web/public/exemplos/pagina-mamae-e-eu.jpg
+!apps/web/public/exemplos/pagina-mamae-e-eu-en.jpg
+!apps/web/public/exemplos/pagina-mamae-e-eu-es.jpg
+!apps/web/public/exemplos/foto-mamae-e-eu.jpg
+!apps/web/public/exemplos/foto-mamae-e-eu-en.jpg
+!apps/web/public/exemplos/foto-mamae-e-eu-es.jpg
 
 .vercel
 .env*

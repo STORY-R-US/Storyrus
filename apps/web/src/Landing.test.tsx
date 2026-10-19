@@ -228,7 +228,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-lucas-max.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-esther-higiene.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(27);
+    expect(imgs).toHaveLength(28);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(false);
   });
 
@@ -251,17 +251,18 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(27);
-    expect(cards).toHaveLength(27);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(28);
+    expect(cards).toHaveLength(28);
     expect(within(catalog).queryByText(/nano e suas aventuras/i)).not.toBeInTheDocument();
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
       expect(within(card).queryByText(/amizade e cuidado/i)).not.toBeInTheDocument();
     });
-    expect(within(cards[0]).getByText("Quatro Gerações de Amor, Nosso Maior Valor")).toBeInTheDocument();
-    expect(within(cards[1]).getByText("Feliz Aniversário, Grace")).toBeInTheDocument();
-    expect(within(cards[2]).getByText("Aprendendo A Andar Com Grace")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Mamãe e Eu, Presente que Deus me Deu")).toBeInTheDocument();
+    expect(within(cards[1]).getByText("Quatro Gerações de Amor, Nosso Maior Valor")).toBeInTheDocument();
+    expect(within(cards[2]).getByText("Feliz Aniversário, Grace")).toBeInTheDocument();
+    expect(within(cards[3]).getByText("Aprendendo A Andar Com Grace")).toBeInTheDocument();
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
     expect(within(catalog).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
@@ -283,9 +284,10 @@ describe("Landing — catálogo", () => {
     expect(within(catalog).queryByText("Nossa Família")).not.toBeInTheDocument();
     expect(within(catalog).queryByText("Minha Grande Aventura")).not.toBeInTheDocument();
     expect(within(catalog).getByText("Esther E Os Superpoderes Da Higiene")).toBeInTheDocument();
-    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-quatro-geracoes.jpg"));
-    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-grace-aniversario.png"));
-    expect(cards[2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-grace-andar.png"));
+    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-mamae-e-eu.png"));
+    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-quatro-geracoes.jpg"));
+    expect(cards[2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-grace-aniversario.png"));
+    expect(cards[3].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-grace-andar.png"));
     expect(within(cards[0]).getByRole("button", { name: "HARD", pressed: true })).toBeInTheDocument();
     expect(within(cards[0]).getByRole("button", { name: "SOFT", pressed: false })).toBeInTheDocument();
     expect(within(cards[0]).getByRole("button", { name: "M", pressed: true })).toBeInTheDocument();
@@ -381,22 +383,24 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(27);
+    expect(personalize).toHaveLength(28);
     const first = studioTarget(personalize[0].getAttribute("href"));
-    expect(first).toContain("tema=family_love");
+    expect(first).toContain("tema=mothers_day");
     expect(first).toContain("campos=nome");
     expect(first).toContain("tamanho=M");
     expect(first).toContain("capa=hard");
     expect(first).toContain("modo=realista");
     expect(first).toContain("titulo=");
-    expect(first).toContain("heroi=Matteo");
-    expect(first).toContain("Quatro gera");
+    expect(first).not.toContain("heroi=");
+    expect(first).toContain("Presente que Deus");
+    expect(studioTarget(personalize[1].getAttribute("href"))).toContain("tema=family_love");
+    expect(studioTarget(personalize[1].getAttribute("href"))).toContain("heroi=Matteo");
     const construtor = personalize.find((link) => studioTarget(link.getAttribute("href")).includes("Construir e criar"));
     expect(construtor).toBeTruthy();
     expect(studioTarget(construtor ? construtor.getAttribute("href") : null)).toContain("tema=adventure");
     expect(studioTarget(construtor ? construtor.getAttribute("href") : null)).not.toContain("heroi=");
-    expect(studioTarget(personalize[1].getAttribute("href"))).toContain("tema=birthday");
-    expect(studioTarget(personalize[4].getAttribute("href"))).toContain("tema=superhero");
+    expect(studioTarget(personalize[2].getAttribute("href"))).toContain("tema=birthday");
+    expect(studioTarget(personalize[5].getAttribute("href"))).toContain("tema=superhero");
     const martin = personalize.find((link) => studioTarget(link.getAttribute("href")).includes("Martin, O Grande Goleiro"));
     expect(martin).toBeTruthy();
     expect(studioTarget(martin ? martin.getAttribute("href") : null)).toContain("tema=sport");
@@ -1142,6 +1146,21 @@ describe("Catálogo e página do livro", () => {
       "foto-quatro-geracoes.jpg",
     ]);
     expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=family_love");
+  });
+
+  it("mostra capa, página e foto de Mamãe e Eu", async () => {
+    render(
+      <MemoryRouter initialEntries={["/livro/40"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /mamãe e eu, presente que deus me deu/i })).toBeInTheDocument();
+    await expectSeriesFlip(screen.getByTestId("book-series"), [
+      "capa-mamae-e-eu.png",
+      "pagina-mamae-e-eu.jpg",
+      "foto-mamae-e-eu.jpg",
+    ]);
+    expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=mothers_day");
   });
 
   it("abre o catálogo completo da categoria", async () => {
