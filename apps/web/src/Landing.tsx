@@ -2357,8 +2357,33 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
 
       carousel.style.setProperty("--hero-w", `${Math.round(spanW)}px`);
 
-      // Moldura (border 1px em cada lado) + 2 filetes de 2px. Sem padding interno.
-      const imgBudget = spanW - 1 * 2 - 2 * 2;
+      // No Safari, width:100% desta faixa (flex column + align-items:center)
+      // fica menor que a linha do título. A altura era calculada pela linha,
+      // as fotos quadradas transbordavam e o overflow cortava as laterais.
+      const parent = carousel.parentElement;
+      const parentStyle = parent ? getComputedStyle(parent) : null;
+      const pad = parentStyle
+        ? (parseFloat(parentStyle.paddingLeft) || 0) + (parseFloat(parentStyle.paddingRight) || 0)
+        : 0;
+      const parentInner = parent ? parent.clientWidth - pad : spanW;
+      const cap = parentInner > 32 ? parentInner : spanW;
+      const target = Math.min(Math.round(spanW), Math.round(cap));
+      carousel.style.width = `${target}px`;
+      carousel.style.maxWidth = `${Math.round(cap)}px`;
+
+      const clearShot = (img: HTMLImageElement) => {
+        img.style.width = "";
+        img.style.height = "";
+        img.style.maxWidth = "";
+        img.style.objectFit = "";
+        const shot = img.parentElement as HTMLElement | null;
+        if (!shot) return;
+        shot.style.width = "";
+        shot.style.minWidth = "";
+        shot.style.maxWidth = "";
+        shot.style.flex = "";
+      };
+
       carousel.querySelectorAll<HTMLElement>(".hero-series-inner").forEach((inner) => {
         const imgs = Array.from(inner.querySelectorAll("img"));
         let ratio = 0;
@@ -2367,9 +2392,39 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           if (img.naturalWidth && img.naturalHeight) ratio += img.naturalWidth / img.naturalHeight;
           else ready = false;
         }
-        if (!ready || !ratio) return;
+        if (!ready || !ratio) {
+          imgs.forEach(clearShot);
+          inner.style.width = "";
+          inner.style.maxWidth = "";
+          return;
+        }
+        // Moldura (border 1px em cada lado) + filete de 2px entre as fotos.
+        const gaps = 2 * Math.max(0, imgs.length - 1);
+        const border = 2;
+        const imgBudget = Math.max(0, target - border - gaps);
         const h = Math.round(Math.min(420, Math.max(70, imgBudget / ratio)));
         inner.style.setProperty("--hero-shot-h", `${h}px`);
+        let widths = imgs.map((img) => h * (img.naturalWidth / img.naturalHeight));
+        const sum = widths.reduce((acc, w) => acc + w, 0);
+        if (sum > imgBudget && sum > 0) widths = widths.map((w) => w * (imgBudget / sum));
+        const px = widths.map((w) => Math.max(1, Math.floor(w)));
+        imgs.forEach((img, i) => {
+          const w = px[i];
+          const shot = img.parentElement as HTMLElement | null;
+          if (shot) {
+            shot.style.width = `${w}px`;
+            shot.style.minWidth = `${w}px`;
+            shot.style.maxWidth = `${w}px`;
+            shot.style.flex = `0 0 ${w}px`;
+          }
+          img.style.width = "100%";
+          img.style.height = "100%";
+          img.style.maxWidth = "none";
+          img.style.objectFit = "cover";
+        });
+        const row = px.reduce((acc, w) => acc + w, 0) + gaps + border;
+        inner.style.width = `${row}px`;
+        inner.style.maxWidth = "none";
       });
     };
 
