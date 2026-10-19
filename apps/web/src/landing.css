@@ -494,9 +494,12 @@ a.kcat-group-name.is-chip:focus-visible {
 .khero-intro .keyebrow { margin: 0; }
 .hero-carousel {
   overflow: hidden;
-  width: 100%;
-  /* Largura medida da linha do título ("inesquecível" → "protagonista"). */
-  max-width: var(--hero-w, 848px);
+  align-self: center;
+  /* Largura medida da linha do título ("inesquecível" → "protagonista").
+     O JS grava width em px: no Safari, width:100% num flex column com
+     align-items:center encolhe a faixa e corta as fotos. */
+  width: min(100%, var(--hero-w, 848px));
+  max-width: 100%;
   margin: 8px auto 0;
   padding: 14px 0 16px;
   box-sizing: border-box;
@@ -549,13 +552,15 @@ a.kcat-group-name.is-chip:focus-visible {
 .hero-shot {
   height: var(--hero-shot-h, clamp(150px, 13vw, 190px));
   width: auto;
-  max-width: 100%;
+  max-width: none;
   flex: 0 0 auto;
-  min-width: 0;
+  min-width: auto;
   margin: 0;
   border: 0;
   border-radius: 0;
   padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
   /* Fundo branco: varias capas do hero sao PNG com transparencia e, com fundo
      escuro aqui, o azul-marinho aparecia atras delas. */
   background: #fff;
@@ -580,14 +585,14 @@ a.kcat-group-name.is-chip:focus-visible {
   display: block;
   height: 100%;
   width: auto;
-  object-fit: contain;
+  max-width: none;
+  object-fit: cover;
   object-position: center center;
   box-sizing: border-box;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  will-change: transform;
 }
 .khero-flipbook {
   width: 100%;
