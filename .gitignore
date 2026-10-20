@@ -335,6 +335,15 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/foto-mamae-e-eu.jpg
 !apps/web/public/exemplos/foto-mamae-e-eu-en.jpg
 !apps/web/public/exemplos/foto-mamae-e-eu-es.jpg
+!apps/web/public/exemplos/capa-pedro-amem-se.png
+!apps/web/public/exemplos/capa-pedro-amem-se-en.png
+!apps/web/public/exemplos/capa-pedro-amem-se-es.png
+!apps/web/public/exemplos/pagina-pedro-amem-se.jpg
+!apps/web/public/exemplos/pagina-pedro-amem-se-en.jpg
+!apps/web/public/exemplos/pagina-pedro-amem-se-es.jpg
+!apps/web/public/exemplos/foto-pedro-amem-se.jpg
+!apps/web/public/exemplos/foto-pedro-amem-se-en.jpg
+!apps/web/public/exemplos/foto-pedro-amem-se-es.jpg
 
 .vercel
 .env*
