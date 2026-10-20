@@ -248,6 +248,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
   { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
   { pt: "capa-mamae-e-eu.png", en: "capa-mamae-e-eu-en.png", es: "capa-mamae-e-eu-es.png" },
+  { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -392,6 +393,11 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-mamae-e-eu.jpg", en: "pagina-mamae-e-eu-en.jpg", es: "pagina-mamae-e-eu-es.jpg" },
     photo: { pt: "foto-mamae-e-eu.jpg", en: "foto-mamae-e-eu-en.jpg", es: "foto-mamae-e-eu-es.jpg" },
   },
+  41: {
+    cover: { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
+    page: { pt: "pagina-pedro-amem-se.jpg", en: "pagina-pedro-amem-se-en.jpg", es: "pagina-pedro-amem-se-es.jpg" },
+    photo: { pt: "foto-pedro-amem-se.jpg", en: "foto-pedro-amem-se-en.jpg", es: "foto-pedro-amem-se-es.jpg" },
+  },
 };
 /** Série cartoon (capa, página, foto) quando o livro tem as três imagens em desenho. */
 const CARTOON_SERIES: Record<number, CatalogSeriesShot> = {
@@ -462,6 +468,7 @@ const CATALOG_THEMES = [
   "family_love",
   "family_love",
   "mothers_day",
+  "biblico",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -470,9 +477,9 @@ const HIDDEN_BOOK_INDEXES = new Set([10, 13, 32]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [40, 39, 37, 38, 25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
+const CATALOG_LEAD = [41, 40, 39, 37, 38, 25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -610,7 +617,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   animais_sons: [34],
   economia: [35],
   higiene_desfralde: [24],
-  biblico: [20],
+  biblico: [41, 20],
 };
 function catalogSectionId(theme: string | null | undefined): string {
   if (!theme) return "aventuras";
@@ -698,6 +705,7 @@ const HERO_BY_CATALOG: Record<number, string> = {
   37: "Grace",
   38: "Grace",
   39: "Matteo",
+  41: "Pedro",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -998,6 +1006,7 @@ const I18N = {
       { t: "Aprendendo A Andar Com Grace", p: "Os primeiros passos no parque, com a mamãe de braços abertos: cada passinho vira uma história para guardar.", cover: "Hard", size: "M", tag: "Primeiros passos", quote: "Um passo de cada vez, já vai caminhar." },
       { t: "Quatro Gerações de Amor, Nosso Maior Valor", p: "Matteo, a mamãe Ana, Lullys e Iolanda: quatro gerações num só abraço, uma história para guardar.", cover: "Hard", size: "M", tag: "Quatro gerações", quote: "O amor da família sempre permanece." },
       { t: "Mamãe e Eu, Presente que Deus me Deu", p: "No colo da mamãe, amor e proteção: um presente de Deus vira uma história para guardar.", cover: "Hard", size: "M", tag: "Mamãe e eu", quote: "Presente que Deus me deu." },
+      { t: "Amem-se Sinceramente uns aos Outros", p: "Pedro ouve o chamado, deixa as redes e aprende com Jesus a amar: uma história de fé para guardar.", cover: "Hard", size: "M", tag: "1 Pedro 4:8", quote: "Quem ama, perdoa e sabe servir." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1230,6 +1239,7 @@ const I18N = {
       { t: "Learning To Walk With Grace", p: "First steps in the park, with mom's arms open: every little step becomes a story to keep.", cover: "Hard", size: "M", tag: "First steps", quote: "One step at a time, and then she walks." },
       { t: "Four Generations of Love, Our Greatest Treasure", p: "Matteo, Mommy Ana, Lullys and Iolanda: four generations in one embrace, a story to keep.", cover: "Hard", size: "M", tag: "Four generations", quote: "Through every generation, love grows." },
       { t: "Mommy and Me, a Gift God Gave to Me", p: "In Mommy's arms, love and protection: a gift from God becomes a story to keep.", cover: "Hard", size: "M", tag: "Mommy and me", quote: "A gift God gave to me." },
+      { t: "Love One Another Sincerely", p: "Peter hears the call, leaves his nets and learns from Jesus how to love: a story of faith to keep.", cover: "Hard", size: "M", tag: "1 Peter 4:8", quote: "Whoever loves, forgives and knows how to serve." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1462,6 +1472,7 @@ const I18N = {
       { t: "Aprendiendo A Caminar Con Grace", p: "Los primeros pasos en el parque, con los brazos de mamá abiertos: cada pasito se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Primeros pasos", quote: "Un paso a la vez, y ya va a caminar." },
       { t: "Cuatro Generaciones de Amor, Nuestro Mayor Tesoro", p: "Matteo, mamá Ana, Lullys e Iolanda: cuatro generaciones en un abrazo, una historia para guardar.", cover: "Hard", size: "M", tag: "Cuatro generaciones", quote: "El amor de familia siempre permanece." },
       { t: "Mamá y Yo, el Regalo que Dios me Dio", p: "En los brazos de mamá, amor y protección: un regalo de Dios se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Mamá y yo", quote: "El regalo que Dios me dio." },
+      { t: "Ámense Sinceramente Unos a Otros", p: "Pedro escucha el llamado, deja las redes y aprende de Jesús a amar: una historia de fe para guardar.", cover: "Hard", size: "M", tag: "1 Pedro 4:8", quote: "Quien ama, perdona y sabe servir." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
