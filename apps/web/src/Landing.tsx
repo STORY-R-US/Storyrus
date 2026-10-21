@@ -151,6 +151,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
   37: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
   38: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
+  42: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -249,6 +250,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
   { pt: "capa-mamae-e-eu.png", en: "capa-mamae-e-eu-en.png", es: "capa-mamae-e-eu-es.png" },
   { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
+  { pt: "capa-tio-favorito.png", en: "capa-tio-favorito-en.png", es: "capa-tio-favorito-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -398,6 +400,11 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-pedro-amem-se.jpg", en: "pagina-pedro-amem-se-en.jpg", es: "pagina-pedro-amem-se-es.jpg" },
     photo: { pt: "foto-pedro-amem-se.jpg", en: "foto-pedro-amem-se-en.jpg", es: "foto-pedro-amem-se-es.jpg" },
   },
+  42: {
+    cover: { pt: "capa-tio-favorito.png", en: "capa-tio-favorito-en.png", es: "capa-tio-favorito-es.png" },
+    page: { pt: "pagina-tio-favorito.jpg", en: "pagina-tio-favorito-en.jpg", es: "pagina-tio-favorito-es.jpg" },
+    photo: { pt: "foto-tio-favorito.jpg", en: "foto-tio-favorito-en.jpg", es: "foto-tio-favorito-es.jpg" },
+  },
 };
 /** Série cartoon (capa, página, foto) quando o livro tem as três imagens em desenho. */
 const CARTOON_SERIES: Record<number, CatalogSeriesShot> = {
@@ -410,6 +417,11 @@ const CARTOON_SERIES: Record<number, CatalogSeriesShot> = {
     cover: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
     page: { pt: "cartoon-pagina-grace-andar.jpg", en: "cartoon-pagina-grace-andar-en.jpg", es: "cartoon-pagina-grace-andar-es.jpg" },
     photo: { pt: "cartoon-foto-grace-andar.jpg", en: "cartoon-foto-grace-andar-en.jpg", es: "cartoon-foto-grace-andar-es.jpg" },
+  },
+  42: {
+    cover: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
+    page: { pt: "cartoon-pagina-tio-favorito.jpg", en: "cartoon-pagina-tio-favorito-en.jpg", es: "cartoon-pagina-tio-favorito-es.jpg" },
+    photo: { pt: "cartoon-foto-tio-favorito.jpg", en: "cartoon-foto-tio-favorito-en.jpg", es: "cartoon-foto-tio-favorito-es.jpg" },
   },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
@@ -469,6 +481,7 @@ const CATALOG_THEMES = [
   "family_love",
   "mothers_day",
   "biblico",
+  "family_love",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -477,9 +490,9 @@ const HIDDEN_BOOK_INDEXES = new Set([10, 13, 32]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [41, 40, 39, 37, 38, 25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
+const CATALOG_LEAD = [42, 41, 40, 39, 37, 38, 25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -606,12 +619,12 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   grandparents_love: [8],
   grandfather_love: [30],
   dia_do_idoso: [8, 30],
-  family_love: [7, 29, 38, 39],
+  family_love: [42, 7, 29, 38, 39],
   birthday: [37],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
-  tio_tia: [19, 29],
+  tio_tia: [42, 19, 29],
   christmas: [9],
   easter: [31],
   animais_sons: [34],
@@ -1007,6 +1020,7 @@ const I18N = {
       { t: "Quatro Gerações de Amor, Nosso Maior Valor", p: "Matteo, a mamãe Ana, Lullys e Iolanda: quatro gerações num só abraço, uma história para guardar.", cover: "Hard", size: "M", tag: "Quatro gerações", quote: "O amor da família sempre permanece." },
       { t: "Mamãe e Eu, Presente que Deus me Deu", p: "No colo da mamãe, amor e proteção: um presente de Deus vira uma história para guardar.", cover: "Hard", size: "M", tag: "Mamãe e eu", quote: "Presente que Deus me deu." },
       { t: "Amem-se Sinceramente uns aos Outros", p: "Pedro ouve o chamado, deixa as redes e aprende com Jesus a amar: uma história de fé para guardar.", cover: "Hard", size: "M", tag: "1 Pedro 4:8", quote: "Quem ama, perdoa e sabe servir." },
+      { t: "Tio Favorito e Sem Igual, Você é Sensacional", p: "Enzo e Davi com o Tio Nico, na água e na diversão: uma aventura para guardar.", cover: "Hard", size: "P", tag: "Tio favorito", quote: "Com você, tudo é sensacional." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1240,6 +1254,7 @@ const I18N = {
       { t: "Four Generations of Love, Our Greatest Treasure", p: "Matteo, Mommy Ana, Lullys and Iolanda: four generations in one embrace, a story to keep.", cover: "Hard", size: "M", tag: "Four generations", quote: "Through every generation, love grows." },
       { t: "Mommy and Me, a Gift God Gave to Me", p: "In Mommy's arms, love and protection: a gift from God becomes a story to keep.", cover: "Hard", size: "M", tag: "Mommy and me", quote: "A gift God gave to me." },
       { t: "Love One Another Sincerely", p: "Peter hears the call, leaves his nets and learns from Jesus how to love: a story of faith to keep.", cover: "Hard", size: "M", tag: "1 Peter 4:8", quote: "Whoever loves, forgives and knows how to serve." },
+      { t: "Favorite Uncle, One of a Kind, You're Amazing", p: "Enzo and Davi with Uncle Nico, on the water and in the fun: an adventure to keep.", cover: "Hard", size: "P", tag: "Favorite uncle", quote: "With you, everything is amazing." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1473,6 +1488,7 @@ const I18N = {
       { t: "Cuatro Generaciones de Amor, Nuestro Mayor Tesoro", p: "Matteo, mamá Ana, Lullys e Iolanda: cuatro generaciones en un abrazo, una historia para guardar.", cover: "Hard", size: "M", tag: "Cuatro generaciones", quote: "El amor de familia siempre permanece." },
       { t: "Mamá y Yo, el Regalo que Dios me Dio", p: "En los brazos de mamá, amor y protección: un regalo de Dios se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Mamá y yo", quote: "El regalo que Dios me dio." },
       { t: "Ámense Sinceramente Unos a Otros", p: "Pedro escucha el llamado, deja las redes y aprende de Jesús a amar: una historia de fe para guardar.", cover: "Hard", size: "M", tag: "1 Pedro 4:8", quote: "Quien ama, perdona y sabe servir." },
+      { t: "Tío Favorito y Sin Igual, Eres Sensacional", p: "Enzo y Davi con el tío Nico, en el agua y en la diversión: una aventura para guardar.", cover: "Hard", size: "P", tag: "Tío favorito", quote: "Contigo, todo es sensacional." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
