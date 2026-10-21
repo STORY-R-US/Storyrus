@@ -344,6 +344,15 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/foto-pedro-amem-se.jpg
 !apps/web/public/exemplos/foto-pedro-amem-se-en.jpg
 !apps/web/public/exemplos/foto-pedro-amem-se-es.jpg
+!apps/web/public/exemplos/capa-tio-favorito.png
+!apps/web/public/exemplos/capa-tio-favorito-en.png
+!apps/web/public/exemplos/capa-tio-favorito-es.png
+!apps/web/public/exemplos/pagina-tio-favorito.jpg
+!apps/web/public/exemplos/pagina-tio-favorito-en.jpg
+!apps/web/public/exemplos/pagina-tio-favorito-es.jpg
+!apps/web/public/exemplos/foto-tio-favorito.jpg
+!apps/web/public/exemplos/foto-tio-favorito-en.jpg
+!apps/web/public/exemplos/foto-tio-favorito-es.jpg
 
 .vercel
 .env*
