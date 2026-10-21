@@ -176,7 +176,9 @@ async def preview(db, job, project):
     photos = _photos(db, project)
     payload = _payload(job)
     selected = payload.get("image")
-    languages = [payload["language"]] if payload.get("language") else project.book_profile["languages"]
+    languages = (
+        [payload["language"]] if payload.get("language") else project.book_profile["languages"]
+    )
     total = 1 if selected else 3 * len(languages)
     if not (project.book_profile or {}).get("locales"):
         _publish_progress(db, job, stage="ficha", done=0, total=total)

@@ -4,26 +4,23 @@ import { describe, expect, it } from "vitest";
 import { PreviewTrio } from "./PreviewTrio";
 
 describe("PreviewTrio", () => {
-  it("avisa quando as imagens da prévia são genéricas", () => {
+  it("mostra capa, página e na mão", () => {
     render(
       <PreviewTrio
-        genericImages
         coverUrl="https://cdn.test/capa.png"
         pageUrl="https://cdn.test/pagina.png"
         inHandUrl="https://cdn.test/mao.png"
       />,
     );
-    expect(screen.getByTestId("studio-generic-images")).toHaveTextContent(/sem créditos/i);
+    expect(screen.getByTestId("studio-preview-cover")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-page")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-in-hand")).toBeInTheDocument();
   });
 
-  it("não mostra o aviso quando as imagens são da geração", () => {
-    render(
-      <PreviewTrio
-        coverUrl="https://cdn.test/capa.png"
-        pageUrl={null}
-        inHandUrl={null}
-      />,
+  it("não mostra o bloco quando não há imagens", () => {
+    const { container } = render(
+      <PreviewTrio coverUrl={null} pageUrl={null} inHandUrl={null} />,
     );
-    expect(screen.queryByTestId("studio-generic-images")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 });

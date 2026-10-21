@@ -36,9 +36,7 @@ def text_cost(usage: dict | None = None) -> float:
     """Custo do texto OpenAI a partir de `prompt_tokens` e `completion_tokens`."""
     usage = usage or {}
     inp = _f(usage.get("prompt_tokens", usage.get("input_tokens", usage.get("inputTokens"))))
-    out = _f(
-        usage.get("completion_tokens", usage.get("output_tokens", usage.get("outputTokens")))
-    )
+    out = _f(usage.get("completion_tokens", usage.get("output_tokens", usage.get("outputTokens"))))
     if not inp and not out:
         return 0.0
     total = (
