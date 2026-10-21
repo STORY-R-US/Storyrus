@@ -32,9 +32,13 @@ function readStoredToken(): string | null {
 let token: string | null = readStoredToken();
 let refreshPromise: Promise<boolean> | null = null;
 let resumePromise: Promise<boolean> | null = null;
+let sessionRetryAt = 0;
+let sessionRetryError: (Error & { status: number }) | null = null;
 
 export function setToken(t: string | null) {
   token = t;
+  sessionRetryAt = 0;
+  sessionRetryError = null;
   try {
     if (t) localStorage.setItem(TOKEN_KEY, t);
     else localStorage.removeItem(TOKEN_KEY);
@@ -75,9 +79,24 @@ async function postToken(
   path: string,
   init: RequestInit = {},
 ): Promise<string | null> {
+  if (sessionRetryError && Date.now() < sessionRetryAt) throw sessionRetryError;
   const resp = await backendFetch(`${BASE}${path}`, init, authFetchTimeoutMs);
   if (resp.status === 401 || resp.status === 403) return null;
-  if (!resp.ok) throw httpError(resp.status, "Não foi possível renovar a sessão agora");
+  if (!resp.ok) {
+    const error = httpError(resp.status, "Não foi possível renovar a sessão agora. Tente em instantes.");
+    if (resp.status === 429 || resp.status >= 500) {
+      const retryAfter = resp.headers.get("Retry-After");
+      const seconds = retryAfter === null ? NaN : Number(retryAfter);
+      const retryAt = Number.isFinite(seconds)
+        ? Date.now() + seconds * 1_000
+        : Date.parse(retryAfter ?? "");
+      sessionRetryAt = Number.isFinite(retryAt)
+        ? Math.max(Date.now() + 1_000, retryAt)
+        : Date.now() + (resp.status === 429 ? 60_000 : 10_000);
+      sessionRetryError = error;
+    }
+    throw error;
+  }
   const data = (await resp.json()) as { access_token?: string };
   if (!data.access_token) throw httpError(502, "Resposta de sessão indisponível");
   return data.access_token;
@@ -492,6 +511,11 @@ export const api = {
     return req<{ credits: number }>("/v1/credits");
   },
   async createProject(input: {
+    title?: string;
+    gender?: "f" | "m";
+    languages?: string[];
+    themeDescription?: string;
+    characters?: string;
     theme?: string;
     childName?: string;
     dedication?: string;
@@ -505,6 +529,11 @@ export const api = {
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
+        title: input.title?.trim() || undefined,
+        gender: input.gender,
+        languages: input.languages,
+        theme_description: input.themeDescription,
+        characters: input.characters,
         style: input.style ?? "cgi_3d",
         theme,
         book_size: input.bookSize,
@@ -519,16 +548,35 @@ export const api = {
   async getProject(id: string) {
     return req<Project>(`/v1/projects/${id}`);
   },
+  async myProjects() {
+    return req<Project[]>("/v1/projects");
+  },
+  async savePreviewChanges(id: string, body: { title: string; theme_description: string; story_text: string; photo_notes: string }) {
+    return req<JobAccepted>(`/v1/projects/${id}/preview/changes`, { method: "PUT", body: JSON.stringify(body) });
+  },
+  async saveQuotation(id: string) {
+    return req<Project>(`/v1/projects/${id}/quotation`, { method: "POST" });
+  },
+  async setPrintSpecification(id: string, book_size: string, cover_type: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/specification`, { method: "PUT", body: JSON.stringify({ book_size, cover_type }) });
+  },
+  async generatePurchasedBook(id: string) {
+    return req<JobAccepted>(`/v1/projects/${id}/book/generate`, { method: "POST" });
+  },
+  async requestBookChanges(id: string, notes: string) {
+    return req<JobAccepted>(`/v1/projects/${id}/book/changes`, { method: "POST", body: JSON.stringify({ notes }) });
+  },
   // URLs (assinadas) dos resultados de cada etapa.
   async getAssets(id: string) {
     return req<{
+      previews?: import("./studio/assets").BookImage[];
+      page_versions?: import("./studio/assets").BookImage[];
       character_url: string | null;
       realistic_url: string | null;
       extra_characters: { name: string; url: string }[];
       page_images: string[];
       cover_url?: string | null;
       in_hand_url?: string | null;
-      generic_images?: boolean;
       ebook_url: string | null;
       video_url: string | null;
       narrated_video_url: string | null;
@@ -686,8 +734,20 @@ export const api = {
     stepInFlight.set(cacheKey, promise);
     return promise;
   },
-  /** Cadeia automática: avatar → história → ebook → vídeo (prévia no Studio). */
-  startPreview(id: string, body: { brief?: string } = {}): Promise<JobAccepted> {
+  async approvePreview(id: string) {
+    return req<Project>(`/v1/projects/${id}/preview/approve`, { method: "POST" });
+  },
+  async approveStory(id: string) {
+    return req<Project>(`/v1/projects/${id}/story/approve`, { method: "POST" });
+  },
+  nextBookPage(id: string, body: { page?: number; adjustment?: string } = {}) {
+    return req<JobAccepted>(`/v1/projects/${id}/pages/next`, {
+      method: "POST", headers: { "Idempotency-Key": getOrCreateStepIdempotencyKey(id, "page") },
+      body: JSON.stringify(body),
+    }).then((result) => { releaseStepIdempotencyKey(id, "page"); return result; });
+  },
+  /** Three separate previews, then explicit approval in the Studio. */
+  startPreview(id: string, body: { brief?: string; image?: string; language?: string; adjustment?: string } = {}): Promise<JobAccepted> {
     const step = "preview";
     const cacheKey = stepCacheKey(id, step);
     const inFlight = stepInFlight.get(cacheKey);

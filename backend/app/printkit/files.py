@@ -52,6 +52,7 @@ def build_print_pdfs(
     cover_type: str,
     spec: PrintSpec,
     interior_pages: list[bytes],
+    front_cover: bytes | None = None,
 ) -> tuple[bytes, bytes]:
     gaps = spec.missing(cover_type)
     if gaps:
@@ -61,7 +62,9 @@ def build_print_pdfs(
     trim = trim_mm(book_size)
     bleed = float(spec.bleed_mm or 0)
     hinge = float((spec.spine_mm if cover_type == "hard" else spec.score_mm) or 0)
-    cover = _cover_pdf(order_code, spec, cover_type, trim, bleed, hinge, interior_pages)
+    cover = _cover_pdf(
+        order_code, spec, cover_type, trim, bleed, hinge, interior_pages, front_cover
+    )
     interior = _interior_pdf(order_code, spec, trim, bleed, interior_pages)
     return cover, interior
 
@@ -74,6 +77,7 @@ def _cover_pdf(
     bleed: float,
     hinge: float,
     pages: list[bytes],
+    front_cover: bytes | None = None,
 ) -> bytes:
     width = _pt(bleed + trim + hinge + trim + bleed)
     height = _pt(bleed + trim + bleed)
@@ -84,7 +88,7 @@ def _cover_pdf(
     c = canvas.Canvas(buf, pagesize=(width, height))
     _begin(c, code, spec)
     back = _image(pages[-1])
-    front = _image(pages[0])
+    front = _image(front_cover or pages[0])
     c.drawImage(back, bleed_pt, bleed_pt, trim_pt, trim_pt, preserveAspectRatio=False, anchor="c")
     c.drawImage(
         front,

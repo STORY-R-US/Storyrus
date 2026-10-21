@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from pydantic_core import PydanticCustomError
@@ -207,6 +208,13 @@ class OwnerUsersOut(BaseModel):
 
 # ---- Projects ----
 class ProjectCreateIn(BaseModel):
+    theme_description: str | None = Field(default=None, max_length=500)
+    characters: str | None = Field(default=None, max_length=500)
+    title: str | None = Field(default=None, max_length=120)
+    gender: str | None = Field(default=None, pattern="^(f|m)$")
+    languages: list[Literal["pt-BR", "en", "es"]] | None = Field(
+        default=None, min_length=1, max_length=3
+    )
     style: ProjectStyle = ProjectStyle.CGI_3D
     # Tema narrativo da história (aventura, princesas, espaco, ...). Aberto por design.
     theme: str | None = Field(default=None, max_length=32)
@@ -247,6 +255,7 @@ class ProjectOut(BaseModel):
     child_trait: str | None = None
     child_interest: str | None = None
     language: str | None
+    book_profile: dict | None = None
     extra_characters: list[dict] | None = None
     story_text: str | None
     ebook_url: str | None
@@ -254,6 +263,7 @@ class ProjectOut(BaseModel):
     narrated_video_url: str | None = None
     character_approved_at: datetime | None = None
     book_approved_at: datetime | None = None
+    purchase_flow: dict | None = None
     print_requested_at: datetime | None = None
     print_status: str | None = None
     created_at: datetime
@@ -297,6 +307,9 @@ class StoryRequestIn(BaseModel):
 
 
 class PreviewRequestIn(BaseModel):
+    image: Literal["01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"] | None = None
+    language: Literal["pt-BR", "en", "es"] | None = None
+    adjustment: str | None = Field(default=None, max_length=500)
     """Dispara a cadeia automática de prévia (avatar → história → ebook → vídeo)."""
 
     brief: str | None = Field(default=None, max_length=2000)

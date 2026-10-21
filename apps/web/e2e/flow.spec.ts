@@ -328,7 +328,7 @@ test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
   await expect(page.getByTestId("landing-hero-cta")).toBeVisible();
 });
 
-test("avisos ficam nos campos e gerar o livro cria a prévia", async ({ page }) => {
+test("avisos ficam nos campos e titulo opcional permite criar a previa", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
   await loginViaEntrar(page);
@@ -336,7 +336,9 @@ test("avisos ficam nos campos e gerar o livro cria a prévia", async ({ page }) 
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-error-name")).toHaveText("Preencha o nome.");
   await expect(page.getByTestId("studio-error-age")).toHaveText("Preencha a idade.");
-  await expect(page.getByTestId("studio-error-title")).toHaveText("Preencha o título.");
+  await expect(page.getByTestId("studio-error-title")).toHaveCount(0);
+  await expect(page.getByLabel("Título do livro")).toHaveValue("");
+  await expect(page.getByText("Se deixar em branco, sugerimos um título.")).toBeVisible();
   await expect(page.getByTestId("studio-error-theme")).toHaveText("Preencha o tema.");
   await expect(page.getByTestId("studio-error-photo")).toBeVisible();
   await expect(page.getByTestId("studio-error-consent")).toBeVisible();
@@ -345,7 +347,6 @@ test("avisos ficam nos campos e gerar o livro cria a prévia", async ({ page }) 
 
   await page.getByLabel("Nome do protagonista").fill("Lila");
   await page.getByRole("spinbutton", { name: "Idade" }).fill("5");
-  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",

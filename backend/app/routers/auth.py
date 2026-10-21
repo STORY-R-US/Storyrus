@@ -199,7 +199,7 @@ def refresh(user: User = Depends(get_current_user)) -> TokenOut:
 
 @router.post("/resume", response_model=TokenOut)
 def resume(body: ResumeIn, request: Request, db: Session = Depends(get_db)) -> TokenOut:
-    rate_limit.check_guest(request)
+    rate_limit.check_session_resume(request)
     payload = decode_access_token_allow_expired(body.access_token)
     if not payload or "sub" not in payload:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token invalido")
@@ -225,6 +225,7 @@ def resume(body: ResumeIn, request: Request, db: Session = Depends(get_db)) -> T
     if user is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sessao invalida")
 
+    rate_limit.check_session_resume(request, user_id=str(user.id))
     return TokenOut(access_token=create_access_token(str(user.id)))
 
 

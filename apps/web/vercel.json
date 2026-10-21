@@ -37,7 +37,7 @@
       ]
     },
     {
-      "source": "/(entrar|cadastro|verificar-email|esqueci-senha|redefinir-senha|app|conta|landing|privacy|terms)",
+      "source": "/(entrar|cadastro|verificar-email|esqueci-senha|redefinir-senha|app|conta|meus-pedidos|landing|privacy|terms)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
@@ -58,13 +58,14 @@
     }
   ],
   "rewrites": [
-    { "source": "/v1/:path*", "destination": "https://storyrus-api-ul8u.onrender.com/v1/:path*" },
-    { "source": "/health", "destination": "https://storyrus-api-ul8u.onrender.com/health" },
+    { "source": "/v1/:path*", "destination": "https://storyrus-api.onrender.com/v1/:path*" },
+    { "source": "/health", "destination": "https://storyrus-api.onrender.com/health" },
     { "source": "/catalogo", "destination": "/catalogo.html" },
     { "source": "/exemplos", "destination": "/exemplos.html" },
     { "source": "/gastos", "destination": "/gastos.html" },
     { "source": "/pedidos", "destination": "/pedidos.html" },
     { "source": "/usuarios", "destination": "/usuarios.html" },
-    { "source": "/conta", "destination": "/conta.html" }
+    { "source": "/conta", "destination": "/conta.html" },
+    { "source": "/meus-pedidos", "destination": "/meus-pedidos.html" }
   ]
 }

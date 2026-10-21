@@ -162,12 +162,12 @@ describe("Studio — avisos nos campos", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-error-name")).toHaveTextContent(/preencha o nome/i);
     expect(screen.getByTestId("studio-error-age")).toHaveTextContent(/preencha a idade/i);
-    expect(screen.getByTestId("studio-error-title")).toHaveTextContent(/preencha o título/i);
+    expect(screen.queryByTestId("studio-error-title")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-error-theme")).toHaveTextContent(/preencha o tema/i);
     expect(screen.getByTestId("studio-error-photo")).toHaveTextContent(/selecione a foto/i);
     expect(screen.getByTestId("studio-error-consent")).toHaveTextContent(/consentimento/i);
     expect(screen.getByLabelText(/nome do protagonista/i)).toHaveAttribute("aria-invalid", "true");
-    expect(screen.getByLabelText(/título do livro/i)).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText(/título do livro/i)).not.toHaveAttribute("aria-invalid", "true");
     expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
   });
 
@@ -575,6 +575,39 @@ describe("Prévia automática", () => {
     expect(await screen.findByText(/500: Erro interno/i)).toBeInTheDocument();
     expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-retry-preview")).toBeInTheDocument();
+    expect(new URLSearchParams(window.location.search).get("projeto")).toBeTruthy();
+    expect(new URLSearchParams(window.location.search).has("project")).toBe(false);
+  });
+
+  it("reusa o mesmo projeto se o envio da foto falha", async () => {
+    state.credits = 20;
+    const create = vi.spyOn(api, "createProject");
+    const upload = vi.spyOn(api, "uploadPhoto");
+    upload.mockRejectedValueOnce(new Error("500: falha no envio"));
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
+
+    expect(await screen.findByText(/falha no envio/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
+    expect(create).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
+    expect(await screen.findByTestId("studio-order-sent")).toBeInTheDocument();
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(upload).toHaveBeenCalledTimes(2);
   });
 
   it("MSW encadeia avatar → story → ebook e monta o trio (sem vídeo)", async () => {

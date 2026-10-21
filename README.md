@@ -1,90 +1,101 @@
 # Story R Us
 
-Transforma uma foto em um personagem ilustrado, gera uma história, monta um ebook
-e (opcional) um vídeo animado. Pipeline assíncrono de IA com jobs
-idempotentes, moderação/segurança e provedores reais (Nano Banana Pro, Claude, Kling).
-A cobrança é a ordem de serviço do livro impresso.
+Base inicial única do aplicativo Story R Us, consolidada em 15/10/2026.
+Esta pasta é o ponto de partida para o desenvolvimento a partir de agora.
 
-## Monorepo
+## Estrutura
 
-```
-backend/      # API (FastAPI) + workers + clients de IA   → backend/README.md
-apps/web/     # Frontend (Vite + React + TS) + testes (Vitest/MSW) + E2E (Playwright)
-apps/mobile/  # App Expo (React Native): mesmo fluxo no celular → apps/mobile/README.md
-.github/      # CI: ruff+pytest (backend), tsc+vitest+build (web), Playwright (e2e)
-```
+- `backend/`: API FastAPI, workers, integrações de IA, banco e migrações.
+- `apps/web/`: site e estúdio em React, Vite e TypeScript.
+- `apps/mobile/`: aplicativo Expo e configuração EAS.
+- `.github/workflows/`: verificações automáticas do projeto.
+- `docs/`: arquitetura e definição da base inicial.
 
-## CI
+Há apenas uma cópia de cada aplicação neste pacote. Assets utilizados pelo código
+estão incluídos como arquivos reais; o pacote não depende de ponteiros Git LFS.
 
-`.github/workflows/ci.yml` roda em push/PR:
+## Começar em desenvolvimento
 
-- **backend** — `ruff check` + `pytest`.
-- **frontend** — `tsc --noEmit` + `vitest run` + `vite build`.
-- **e2e** — `playwright test` (navegador real, API mockada), com relatório anexado.
+Requisitos: Python 3.11 ou superior, Node.js 20 ou superior e Docker Compose.
 
-## Rodar local
+1. Copie `backend/.env.example` para `backend/.env` e preencha as configurações do ambiente.
+2. Execute `docker compose -f backend/docker-compose.yml up --build -d`.
+3. Em `apps/web`, execute `npm ci` e `npm run dev`.
+4. Para o mobile, entre em `apps/mobile`, execute `npm ci` e `npm start`.
 
-Na raiz, o `Makefile` orquestra o stack real em `backend/docker-compose.yml`
-(**Postgres + Redis + API + worker**). Não sobe frontend nem MinIO.
+A API local usa `http://localhost:8000` e o site usa `http://localhost:5173`.
+O mobile precisa apontar para uma API acessível pelo aparelho; confira seu README.
+O Makefile também reúne os comandos do ambiente local.
 
-```bash
-make init          # copia backend/.env.example → backend/.env (se faltar)
-make up            # docker compose -f backend/docker-compose.yml up --build -d
-#  API: http://localhost:8000/docs
-make web           # Vite em apps/web — proxy /v1 e /health → :8000
-#  Web: http://localhost:5173
-make down          # para o stack do backend
-```
+## Configurações da empresa
 
-Popular dados e validar o fluxo da API (com o stack no ar):
+Use contas da Story R Us e mantenha as chaves somente nas variáveis do servidor.
+O pacote inclui modelos de configuração, sem arquivos `.env` reais ou backups de banco.
+Configure explicitamente os emails de administração, destinatários de avisos,
+armazenamento, cobrança e limites de gasto antes de habilitar o ambiente de produção.
+Cadastro em plataformas e transferência de contas são etapas externas ao pacote.
 
-```bash
-make seed          # demo@storyrus.app / demo12345 (50 créditos)
-make demo          # signup → projeto → upload → etapas → jobs
-```
+## Verificações
 
-Sem `make`, os equivalentes são:
+Backend, dentro de `backend/`:
 
-```bash
-cp backend/.env.example backend/.env
-docker compose -f backend/docker-compose.yml up --build -d
-docker compose -f backend/docker-compose.yml run --rm api python scripts/seed.py
-cd apps/web && npm install && npm run dev   # VITE_API_PROXY default → localhost:8000
+```sh
+pip install -e ".[dev]"
+ruff check app tests
+ruff format --check app tests
+pytest -q
 ```
 
-`make help` lista os alvos. Deploy em produção: `DEPLOY.md` (Vercel + Render).
-Detalhes da API: `backend/README.md`.
+Web, dentro de `apps/web/`:
 
-## Chaves a preencher (`backend/.env`)
+```sh
+npm ci
+npm run lint
+npx tsc --noEmit
+npm run test:run
+npm run build
+npm run e2e
+```
 
-Tudo funciona offline para desenvolvimento, mas o pipeline real precisa de:
+Para executar o navegador em uma porta exclusiva desta base, use
+`npx playwright test --config=playwright.baseline.config.ts`.
 
-| Variável | Para quê |
-|---|---|
-| `OPENAI_API_KEY` | GPT Image (avatar, cenas, ebook) + juiz de história |
-| `ANTHROPIC_API_KEY` | Claude (geração da história) |
-| `KLING_API_KEY` (ou `KLING_ACCESS_KEY`/`KLING_SECRET_KEY` legado) | Kling (único provedor de vídeo) |
-| `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` / `STORAGE_BUCKET` / `STORAGE_ENDPOINT_URL` | R2/S3 (uploads e entregáveis) |
-| `JWT_SECRET` / `WEBHOOK_SIGNING_SECRET` | segredos da aplicação |
+Mobile, dentro de `apps/mobile/`:
 
-Sem as chaves de IA/storage, a API e os workers sobem e o fluxo de
-jobs/idempotência roda; as chamadas de geração falham de forma controlada
-(estado `FAILED`).
+```sh
+npm ci
+npm run typecheck
+npm test
+```
 
-Storage local: configure `STORAGE_*` apontando para **Cloudflare R2** (ou outro
-S3-compatible). O compose **não** sobe MinIO — veja `DEPLOY.md`.
+## Documentação
 
-## Fluxo
+- [Definição do ponto de partida](docs/BASE_INICIAL.md)
+- [Validação da base e do fluxo de impressão](docs/VALIDACAO.md)
+- [Fluxo de impressão e exportação](docs/FLUXO_IMPRESSAO.md)
+- [Arquitetura e fluxo da aplicação](docs/ARQUITETURA.md)
+- [Configuração e implantação](DEPLOY.md)
+- [API e workers](backend/README.md)
+- [Mobile](apps/mobile/README.md)
 
-1. Na landing, **Entrar** (`/entrar`) ou **Criar conta** (`/cadastro`) — JWT de conta
-   via `POST /v1/auth/login` ou `/signup`.
-2. Só com conta registrada abre o estúdio (`/app`). Mutações de livro no backend
-   rejeitam convidados (`403 Cadastro necessario`).
-3. Cria projeto e escolhe o estilo.
-4. Envia a foto (URL assinada).
-5. Dispara as etapas (avatar → história → ebook → vídeo). Cada uma enfileira um
-   job e responde **202**; o worker processa e o front acompanha o progresso ao
-   vivo. Gerar o livro não gasta créditos. O impresso se fatura na OS do pedido.
+O desenvolvimento continua no histórico Git desta base consolidada. Os diretórios de
+trabalhos anteriores permanecem fora desta base. Publicar o código ou alterar
+o ambiente em produção exige configurar o destino e executar o procedimento de deploy.
 
-Guest (`POST /v1/auth/guest`) e upgrade (`/upgrade`) permanecem na API para
-compatibilidade, mas não liberam criação de livros.
+## Depois da prévia
+
+A família escolhe **Gostei, continuar com meu livro** ou **Quero ajustar**.
+Os ajustes salvam título, tema, história e orientações visuais e geram uma nova
+prévia para revisão. Aprovar a prévia abre o resumo com tamanho, acabamento,
+quantidade, endereço e frete. **Salvar cotação e acompanhar** mantém o pedido
+acessível em `/meus-pedidos`, inclusive após recarregar a página.
+
+Enquanto não houver provedor de pagamento configurado, o pedido permanece como
+cotação, sem cobrança. A confirmação real de pagamento enfileira uma única
+geração do livro completo. A família revisa todas as páginas e o PDF, pode pedir
+ajustes e precisa autorizar expressamente a impressão. A aprovação da prévia
+nunca vale como aprovação do livro completo. Pedidos antigos continuam legíveis.
+
+Antes de executar esta versão em um banco existente, rode `alembic upgrade head`
+na pasta `backend` para criar o campo persistente `projects.purchase_flow`.
+Validação sem credenciais de produção: `python backend/scripts/validate_purchase.py tests`.

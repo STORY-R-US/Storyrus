@@ -49,7 +49,7 @@ function categoryDescription(name: string): string {
 export const STATIC_PAGES: readonly HtmlPage[] = [
   {
     path: "/",
-    title: "Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho",
+    title: "Transformamos fotos em livros personalizados, histórias em memórias eternas.",
     description: HOME_DESCRIPTION,
     sitemap: true,
   },
@@ -108,7 +108,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/landing",
-    title: "Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho",
+    title: "Transformamos fotos em livros personalizados, histórias em memórias eternas.",
     description: HOME_DESCRIPTION,
     canonicalPath: "/",
     robots: "noindex, nofollow",
@@ -162,6 +162,14 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
     description: "Atualize nome, telefone e endereço da sua conta Story R Us.",
     robots: "noindex, nofollow",
     sitemap: false,
+  },
+  {
+    path: "/meus-pedidos",
+    title: "Meus Pedidos — Story R Us",
+    description: "Acompanhe a cotação, a produção e a entrega dos seus livros personalizados.",
+    robots: "noindex, nofollow",
+    sitemap: false,
+    prerender: false,
   },
 ];
 

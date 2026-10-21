@@ -1,12 +1,19 @@
-"""História pelo GPT, sem chamar a API real."""
+"""TextProvider OpenAI (sem API real)."""
 
 from __future__ import annotations
 
 import pytest
 
-from app.ai_clients import text_openai as gpt
+from app.ai_clients import text_openai as oai
 from app.ai_clients.base import ProviderError
 from app.ai_clients.factory import get_text_provider
+
+
+def _ok(text: str = "Título: Luna\nPágina 1: Era uma vez.") -> dict:
+    return {
+        "choices": [{"message": {"content": text}}],
+        "usage": {"prompt_tokens": 1000, "completion_tokens": 500},
+    }
 
 
 class _FakeResponse:
@@ -20,8 +27,8 @@ class _FakeResponse:
 
 
 class _FakeAsyncClient:
-    calls: list[dict] = []
     script: list = []
+    calls: list[dict] = []
 
     def __init__(self, *args, **kwargs):
         pass
@@ -29,89 +36,72 @@ class _FakeAsyncClient:
     async def __aenter__(self):
         return self
 
-    async def __aexit__(self, *exc):
+    async def __aexit__(self, *args):
         return False
 
-    async def post(self, url, **kwargs):
-        _FakeAsyncClient.calls.append({"url": url, **kwargs})
-        item = _FakeAsyncClient.script[len(_FakeAsyncClient.calls) - 1]
-        if isinstance(item, Exception):
-            raise item
-        return item
+    async def post(self, url, json=None, headers=None):
+        self.calls.append({"url": url, "json": json, "headers": headers})
+        status, payload = self.script.pop(0)
+        return _FakeResponse(status, payload)
 
 
-@pytest.fixture(autouse=True)
-def _reset(monkeypatch):
-    _FakeAsyncClient.calls = []
+@pytest.fixture
+def client(monkeypatch):
     _FakeAsyncClient.script = []
-    monkeypatch.setattr(gpt.httpx, "AsyncClient", _FakeAsyncClient)
-    monkeypatch.setattr(gpt.settings, "openai_api_key", "test-key")
-    monkeypatch.setattr(gpt.settings, "openai_text_model", "gpt-4.1")
-
-
-def _chat(text: str) -> _FakeResponse:
-    return _FakeResponse(
-        200,
-        {
-            "choices": [{"message": {"content": text}}],
-            "usage": {"prompt_tokens": 100, "completion_tokens": 50},
-        },
-    )
+    _FakeAsyncClient.calls = []
+    monkeypatch.setattr(oai.httpx, "AsyncClient", _FakeAsyncClient)
+    monkeypatch.setattr(oai.settings, "openai_api_key", "sk-test")
+    monkeypatch.setattr(oai.settings, "openai_text_model", "gpt-4.1")
+    return _FakeAsyncClient
 
 
 @pytest.mark.asyncio
-async def test_generate_story_uses_chat_completions():
-    _FakeAsyncClient.script = [_chat("Título: Ana e o Mar\nPágina 1: O mar chamou.")]
-    provider = gpt.OpenAITextProvider()
-    result = await provider.generate_story(
-        brief="Ana gosta do mar", style="aquarela", pages=1, language="pt-BR", age=5
-    )
-    assert result.text.startswith("Título:")
-    assert result.meta["model"] == "gpt-4.1"
-    call = _FakeAsyncClient.calls[0]
+async def test_generate_story_uses_chat_completions(client):
+    client.script = [(200, _ok())]
+    provider = oai.OpenAITextProvider()
+    result = await provider.generate_story(brief="Luna e a floresta", style="cartoon", pages=1)
+    call = client.calls[0]
     assert call["url"].endswith("/chat/completions")
-    body = call["json"]
-    assert body["model"] == "gpt-4.1"
-    assert body["messages"][0]["role"] == "system"
-    assert "Ana gosta do mar" in body["messages"][1]["content"]
-    assert "response_format" not in body
+    assert call["json"]["model"] == "gpt-4.1"
+    assert call["headers"]["Authorization"] == "Bearer sk-test"
+    assert call["json"]["messages"][0]["role"] == "system"
+    assert "Luna e a floresta" in call["json"]["messages"][1]["content"]
+    assert result.text.startswith("Título:")
+    assert result.meta["provider"] == "openai"
+    assert result.cost_usd > 0
 
 
 @pytest.mark.asyncio
-async def test_storyboard_asks_for_json():
-    _FakeAsyncClient.script = [_chat('{"title":"Ana","scenes":[]}')]
-    provider = gpt.OpenAITextProvider()
-    await provider.generate_storyboard(story="Página 1: oi", theme="mar", title="Ana")
-    assert _FakeAsyncClient.calls[0]["json"]["response_format"] == {"type": "json_object"}
+async def test_summarize_pages_splits_lines(client):
+    client.script = [(200, _ok("A lua sorriu.\nO rio cantou."))]
+    lines = await oai.OpenAITextProvider().summarize_pages(pages=["um", "dois"])
+    assert lines == ["A lua sorriu.", "O rio cantou."]
 
 
 @pytest.mark.asyncio
-async def test_summarize_pages_splits_lines():
-    _FakeAsyncClient.script = [_chat("O mar chamou.\nAna sorriu.")]
-    lines = await gpt.OpenAITextProvider().summarize_pages(
-        pages=["trecho 1", "trecho 2"], language="pt-BR"
-    )
-    assert lines == ["O mar chamou.", "Ana sorriu."]
+async def test_prepare_book_profile_sends_photo(client):
+    client.script = [(200, _ok('{"title":"Luna"}'))]
+    photo = b"\xff\xd8\xfffake"
+    await oai.OpenAITextProvider().prepare_book_profile(ficha={"name": "Luna"}, photos=[photo])
+    parts = client.calls[0]["json"]["messages"][1]["content"]
+    assert parts[0]["type"] == "image_url"
+    assert parts[0]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+    assert parts[1]["type"] == "text"
 
 
 @pytest.mark.asyncio
-async def test_missing_key_and_transient_status(monkeypatch):
-    monkeypatch.setattr(gpt.settings, "openai_api_key", None)
-    provider = gpt.OpenAITextProvider(api_key="")
+async def test_missing_key_and_transient_error(client, monkeypatch):
+    monkeypatch.setattr(oai.settings, "openai_api_key", None)
     with pytest.raises(ProviderError, match="OPENAI_API_KEY"):
-        await provider.generate_story(brief="x", style="s", pages=1)
-    monkeypatch.setattr(gpt.settings, "openai_api_key", "test-key")
-    _FakeAsyncClient.script = [_FakeResponse(429, text="slow")]
+        await oai.OpenAITextProvider(api_key="").generate_story(brief="x", style="s", pages=1)
+
+    monkeypatch.setattr(oai.settings, "openai_api_key", "sk-test")
+    client.script = [(429, {"error": "slow"})]
     with pytest.raises(ProviderError, match="429") as exc:
-        await gpt.OpenAITextProvider().generate_story(brief="x", style="s", pages=1)
+        await oai.OpenAITextProvider().generate_story(brief="x", style="s", pages=1)
     assert exc.value.transient is True
 
 
-def test_factory_defaults_story_to_gpt(monkeypatch):
-    from app.config import settings
-
-    monkeypatch.setattr(settings, "text_provider", "openai")
-    provider = get_text_provider()
-    assert provider.name == "openai"
-    assert get_text_provider("gpt").name == "openai"
-    assert get_text_provider("claude").name == "claude"
+def test_factory_text_provider_is_openai():
+    assert get_text_provider("openai").name == "openai"
+    assert get_text_provider("claude").name == "openai"

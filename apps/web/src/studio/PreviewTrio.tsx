@@ -4,11 +4,10 @@ type Props = {
   coverUrl: string | null;
   pageUrl: string | null;
   inHandUrl: string | null;
-  genericImages?: boolean;
 };
 
-/** Strip capa / livro aberto / criança com o livro — trio do perfil mestre. */
-export function PreviewTrio({ coverUrl, pageUrl, inHandUrl, genericImages = false }: Props) {
+/** Strip capa / página / na mão — mesmo trio da landing. */
+export function PreviewTrio({ coverUrl, pageUrl, inHandUrl }: Props) {
   const { t } = useStudioI18n();
   if (!coverUrl && !pageUrl && !inHandUrl) return null;
 
@@ -29,11 +28,6 @@ export function PreviewTrio({ coverUrl, pageUrl, inHandUrl, genericImages = fals
         {t.previewTrioTitle}
       </h3>
       <p className="muted">{t.previewTrioHint}</p>
-      {genericImages ? (
-        <p className="muted" data-testid="studio-generic-images" role="status">
-          {t.genericImagesNotice}
-        </p>
-      ) : null}
       <div
         className="studio-preview-trio"
         role="list"
@@ -54,8 +48,8 @@ export function PreviewTrio({ coverUrl, pageUrl, inHandUrl, genericImages = fals
                 loading="lazy"
                 style={{
                   width: "100%",
-                  aspectRatio: "1 / 1",
-                  objectFit: "cover",
+                  aspectRatio: shot.testId === "studio-preview-page" ? "2 / 1" : "1 / 1",
+                  objectFit: "contain",
                   borderRadius: 10,
                   display: "block",
                 }}

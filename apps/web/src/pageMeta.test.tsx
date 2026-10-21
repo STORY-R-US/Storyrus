@@ -19,13 +19,13 @@ import {
 const INDEX = `<!doctype html>
 <html lang="pt-BR">
   <head>
-    <title>Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho</title>
+    <title>Transformamos fotos em livros personalizados, histórias em memórias eternas.</title>
     <meta name="description" content="Envie uma foto." />
     <link rel="canonical" href="https://storyrus.ai/" />
     <meta property="og:url" content="https://storyrus.ai/" />
-    <meta property="og:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
+    <meta property="og:title" content="Transformamos fotos em livros personalizados, histórias em memórias eternas." />
     <meta property="og:description" content="Uma foto vira personagem." />
-    <meta name="twitter:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
+    <meta name="twitter:title" content="Transformamos fotos em livros personalizados, histórias em memórias eternas." />
     <meta name="twitter:description" content="Transforme uma foto." />
   </head>
   <body>
@@ -76,15 +76,13 @@ describe("catálogo no sitemap", () => {
 });
 
 describe("HTML por rota", () => {
-  it("home usa Title Case no title e no Open Graph (preview WhatsApp)", () => {
+  it("home usa a frase no title e no Open Graph (preview WhatsApp)", () => {
     const page = staticPageMeta("/");
     expect(page).not.toBeNull();
-    expect(page!.title).toBe("Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho");
-    expect(page!.title).not.toMatch(/histórias ilustradas com a foto/);
+    expect(page!.title).toBe("Transformamos fotos em livros personalizados, histórias em memórias eternas.");
     const html = applyPageMeta(INDEX, page!);
-    expect(html).toContain('property="og:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho"');
-    expect(html).toContain('name="twitter:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho"');
-    expect(html).not.toContain("histórias ilustradas com a foto do seu filho");
+    expect(html).toContain('property="og:title" content="Transformamos fotos em livros personalizados, histórias em memórias eternas."');
+    expect(html).toContain('name="twitter:title" content="Transformamos fotos em livros personalizados, histórias em memórias eternas."');
   });
 
   it("troca title, open graph e coloca texto no #root", () => {
@@ -95,7 +93,7 @@ describe("HTML por rota", () => {
     expect(html).toContain(`property="og:title" content="${page!.title}"`);
     expect(html).toContain(`property="og:url" content="https://storyrus.ai/cartoon"`);
     expect(html).toContain(`<h1>${page!.title}</h1>`);
-    expect(html).not.toContain("Histórias Ilustradas Com A Foto Do Seu Filho");
+    expect(html).not.toContain("Transformamos fotos em livros personalizados, histórias em memórias eternas.");
   });
 
   it("marca a página 404 com noindex", () => {

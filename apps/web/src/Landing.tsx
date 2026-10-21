@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { studioEntryHref } from "./Auth";
@@ -149,9 +149,10 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   23: "cartoon-capa-lucas.png",
   30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
   33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
-  37: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
-  38: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
-  42: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
+  39: { pt: "cartoon-capa-meus-sobrinhos.png", en: "cartoon-capa-meus-sobrinhos-en.png", es: "cartoon-capa-meus-sobrinhos-es.png" },
+  40: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
+  41: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
+  42: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -245,12 +246,12 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
   "capa-gael-economia.jpg",
   "capa-mariajesus-hockey.jpg",
+  { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
+  { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
+  { pt: "capa-meus-sobrinhos.png", en: "capa-meus-sobrinhos-en.png", es: "capa-meus-sobrinhos-es.png" },
+  { pt: "capa-tio-favorito.png", en: "capa-tio-favorito-en.png", es: "capa-tio-favorito-es.png" },
   { pt: "capa-grace-aniversario.png", en: "capa-grace-aniversario-en.png", es: "capa-grace-aniversario-es.png" },
   { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
-  { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
-  { pt: "capa-mamae-e-eu.png", en: "capa-mamae-e-eu-en.png", es: "capa-mamae-e-eu-es.png" },
-  { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
-  { pt: "capa-tio-favorito.png", en: "capa-tio-favorito-en.png", es: "capa-tio-favorito-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -258,15 +259,8 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   0: { cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", photo: "foto-martin-goleiro.jpg" },
   1: { cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", photo: "foto-emilia-bailarina.jpg" },
   2: { cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", photo: "foto-antonio-bicicleta.jpg" },
-  3: {
-    cover: "capa-sofia-alfabeto.png",
-    page: { pt: "pagina-sofia-alfabeto.jpg", en: "pagina-sofia-alfabeto-en.png", es: "pagina-sofia-alfabeto-es.png" },
-    photo: "foto-sofia.png",
-  },
-  4: {
-    cover: "capa-cristobal-esporte.png",
-    page: { pt: "pagina-cristobal-esporte.jpg", en: "pagina-cristobal-esporte-en.png", es: "pagina-cristobal-esporte-es.png" },
-  },
+  3: { cover: "capa-sofia-alfabeto.png", page: "pagina-sofia-alfabeto.jpg", photo: "foto-sofia.png" },
+  4: { cover: "capa-cristobal-esporte.png", page: "pagina-cristobal-esporte.jpg" },
   5: { cover: "capa-nicolas-maefilho.png", page: "pagina-nicolas-maefilho.jpg", photo: "foto-nicolas-maefilho.jpg" },
   6: {
     cover: { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
@@ -303,132 +297,60 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-mako-amigofiel.jpg", en: "pagina-mako-amigofiel-en.jpg", es: "pagina-mako-amigofiel-es.jpg" },
     photo: { pt: "foto-mako-amigofiel.jpg", en: "foto-mako-amigofiel-en.jpg", es: "foto-mako-amigofiel-es.jpg" },
   },
-  13: {
-    cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" },
-    page: { pt: "pagina-ester.png", en: "pagina-ester-en.png", es: "pagina-ester-es.png" },
-    photo: { pt: "foto-ester.png", en: "foto-ester-en.png", es: "foto-ester-es.png" },
-  },
-  14: {
-    cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" },
-    page: { pt: "pagina-raquel-papai.png", en: "pagina-raquel-papai-en.png", es: "pagina-raquel-papai-es.png" },
-    photo: { pt: "foto-raquel-papai.png", en: "foto-raquel-papai-en.png", es: "foto-raquel-papai-es.png" },
-  },
-  15: {
-    cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" },
-    page: { pt: "pagina-rebeca.png", en: "pagina-rebeca-en.png", es: "pagina-rebeca-es.png" },
-    photo: { pt: "foto-rebeca.png", en: "foto-rebeca-en.png", es: "foto-rebeca-es.png" },
-  },
-  16: {
-    cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" },
-    page: { pt: "pagina-abigail.png", en: "pagina-abigail-en.png", es: "pagina-abigail-es.png" },
-    photo: { pt: "foto-abigail.png", en: "foto-abigail-en.png", es: "foto-abigail-es.png" },
-  },
-  17: {
-    cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" },
-    page: { pt: "pagina-miriam.png", en: "pagina-miriam-en.png", es: "pagina-miriam.png" },
-    photo: { pt: "foto-miriam.png", en: "foto-miriam-en.png", es: "foto-miriam.png" },
-  },
-  18: {
-    cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" },
-    page: { pt: "pagina-noe.png", en: "pagina-noe-en.png", es: "pagina-noe-es.png" },
-    photo: { pt: "foto-noe.png", en: "foto-noe-en.png", es: "foto-noe-es.png" },
-  },
+  13: { cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" }, photo: "foto-ester.png" },
+  14: { cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" }, photo: "foto-raquel-papai.png" },
+  15: { cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" }, photo: "foto-rebeca.png" },
+  16: { cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" }, photo: "foto-abigail.png" },
+  17: { cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" }, photo: "foto-miriam.png" },
+  18: { cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" }, photo: "foto-noe.png" },
   19: { cover: "capa-amordetia.png", page: "pagina-amordetia.png", photo: "foto-amordetia.png" },
   20: { cover: "capa-davi-pastor.png", page: "pagina-davi-pastor.png", photo: "foto-davi-pastor.png" },
   21: { cover: "capa-meupai-heroi.png", page: "pagina-meupai-heroi.png", photo: "foto-meupai-heroi.png" },
   22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
   23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
   24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
-  25: { cover: "capa-construtor.png", page: "pagina-construtor.png", photo: "foto-construtor.png" },
-  26: {
-    cover: { pt: "capa-heroi-bombeiro.png", en: "capa-heroi-bombeiro-en.png", es: "capa-heroi-bombeiro-es.png" },
-    page: { pt: "pagina-heroi-bombeiro.png", en: "pagina-heroi-bombeiro-en.png", es: "pagina-heroi-bombeiro-es.png" },
-    photo: { pt: "foto-heroi-bombeiro.png", en: "foto-heroi-bombeiro-en.png", es: "foto-heroi-bombeiro-es.png" },
-  },
-  27: {
-    cover: { pt: "capa-heroi-policia.png", en: "capa-heroi-policia-en.png", es: "capa-heroi-policia-es.png" },
-    page: { pt: "pagina-heroi-policia.png", en: "pagina-heroi-policia-en.png", es: "pagina-heroi-policia-es.png" },
-    photo: { pt: "foto-heroi-policia.png", en: "foto-heroi-policia-en.png", es: "foto-heroi-policia-es.png" },
-  },
-  28: {
-    cover: { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
-    page: { pt: "pagina-heroi-aranha.png", en: "pagina-heroi-aranha-en.png", es: "pagina-heroi-aranha-es.png" },
-    photo: { pt: "foto-heroi-aranha.png", en: "foto-heroi-aranha-en.png", es: "foto-heroi-aranha-es.png" },
-  },
-  29: {
-    cover: { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
-    page: { pt: "pagina-tia-especial.png", en: "pagina-tia-especial-en.png", es: "pagina-tia-especial-es.png" },
-    photo: { pt: "foto-tia-especial.png", en: "foto-tia-especial-en.png", es: "foto-tia-especial-es.png" },
-  },
-  30: {
-    cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" },
-    page: { pt: "pagina-amor-de-avo.png", en: "pagina-amor-de-avo-en.png", es: "pagina-amor-de-avo-en.png" },
-    photo: { pt: "foto-amor-de-avo.png", en: "foto-amor-de-avo-en.png", es: "foto-amor-de-avo-en.png" },
-  },
-  31: {
-    cover: { pt: "capa-pascoa.png", en: "capa-pascoa-en.png", es: "capa-pascoa-es.png" },
-    page: { pt: "pagina-pascoa.png", en: "pagina-pascoa-en.png", es: "pagina-pascoa-es.png" },
-    photo: { pt: "foto-pascoa.png", en: "foto-pascoa-en.png", es: "foto-pascoa-es.png" },
-  },
+  30: { cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" } },
   34: {
     cover: { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
-    page: { pt: "pagina-bruno-animais.jpg", en: "pagina-bruno-animais-en.png", es: "pagina-bruno-animais-es.png" },
+    page: "pagina-bruno-animais.jpg",
   },
-  36: { cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", photo: "foto-mariajesus-hockey.jpg" },
+  36: { cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg" },
   37: {
-    cover: { pt: "capa-grace-aniversario.png", en: "capa-grace-aniversario-en.png", es: "capa-grace-aniversario-es.png" },
-    page: { pt: "pagina-grace-aniversario.jpg", en: "pagina-grace-aniversario-en.jpg", es: "pagina-grace-aniversario-es.jpg" },
-    photo: { pt: "foto-grace-aniversario.jpg", en: "foto-grace-aniversario-en.jpg", es: "foto-grace-aniversario-es.jpg" },
-  },
-  38: {
-    cover: { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
-    page: { pt: "pagina-grace-andar.jpg", en: "pagina-grace-andar-en.jpg", es: "pagina-grace-andar-es.jpg" },
-    photo: { pt: "foto-grace-andar.jpg", en: "foto-grace-andar-en.jpg", es: "foto-grace-andar-es.jpg" },
-  },
-  39: {
     cover: { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
     page: { pt: "pagina-quatro-geracoes.jpg", en: "pagina-quatro-geracoes-en.jpg", es: "pagina-quatro-geracoes-es.jpg" },
     photo: { pt: "foto-quatro-geracoes.jpg", en: "foto-quatro-geracoes-en.jpg", es: "foto-quatro-geracoes-es.jpg" },
   },
-  40: {
-    cover: { pt: "capa-mamae-e-eu.png", en: "capa-mamae-e-eu-en.png", es: "capa-mamae-e-eu-es.png" },
-    page: { pt: "pagina-mamae-e-eu.jpg", en: "pagina-mamae-e-eu-en.jpg", es: "pagina-mamae-e-eu-es.jpg" },
-    photo: { pt: "foto-mamae-e-eu.jpg", en: "foto-mamae-e-eu-en.jpg", es: "foto-mamae-e-eu-es.jpg" },
-  },
-  41: {
+  38: {
     cover: { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
     page: { pt: "pagina-pedro-amem-se.jpg", en: "pagina-pedro-amem-se-en.jpg", es: "pagina-pedro-amem-se-es.jpg" },
     photo: { pt: "foto-pedro-amem-se.jpg", en: "foto-pedro-amem-se-en.jpg", es: "foto-pedro-amem-se-es.jpg" },
   },
-  42: {
+  39: {
+    cover: { pt: "capa-meus-sobrinhos.png", en: "capa-meus-sobrinhos-en.png", es: "capa-meus-sobrinhos-es.png" },
+    page: { pt: "pagina-meus-sobrinhos.jpg", en: "pagina-meus-sobrinhos-en.jpg", es: "pagina-meus-sobrinhos-es.jpg" },
+    photo: { pt: "foto-meus-sobrinhos.jpg", en: "foto-meus-sobrinhos-en.jpg", es: "foto-meus-sobrinhos-es.jpg" },
+  },
+  40: {
     cover: { pt: "capa-tio-favorito.png", en: "capa-tio-favorito-en.png", es: "capa-tio-favorito-es.png" },
     page: { pt: "pagina-tio-favorito.jpg", en: "pagina-tio-favorito-en.jpg", es: "pagina-tio-favorito-es.jpg" },
     photo: { pt: "foto-tio-favorito.jpg", en: "foto-tio-favorito-en.jpg", es: "foto-tio-favorito-es.jpg" },
   },
-};
-/** Série cartoon (capa, página, foto) quando o livro tem as três imagens em desenho. */
-const CARTOON_SERIES: Record<number, CatalogSeriesShot> = {
-  37: {
-    cover: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
-    page: { pt: "cartoon-pagina-grace-aniversario.jpg", en: "cartoon-pagina-grace-aniversario-en.jpg", es: "cartoon-pagina-grace-aniversario-es.jpg" },
-    photo: { pt: "cartoon-foto-grace-aniversario.jpg", en: "cartoon-foto-grace-aniversario-en.jpg", es: "cartoon-foto-grace-aniversario-es.jpg" },
-  },
-  38: {
-    cover: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
-    page: { pt: "cartoon-pagina-grace-andar.jpg", en: "cartoon-pagina-grace-andar-en.jpg", es: "cartoon-pagina-grace-andar-es.jpg" },
-    photo: { pt: "cartoon-foto-grace-andar.jpg", en: "cartoon-foto-grace-andar-en.jpg", es: "cartoon-foto-grace-andar-es.jpg" },
+  41: {
+    cover: { pt: "capa-grace-aniversario.png", en: "capa-grace-aniversario-en.png", es: "capa-grace-aniversario-es.png" },
+    page: { pt: "pagina-grace-aniversario.jpg", en: "pagina-grace-aniversario-en.jpg", es: "pagina-grace-aniversario-es.jpg" },
+    photo: { pt: "foto-grace-aniversario.jpg", en: "foto-grace-aniversario-en.jpg", es: "foto-grace-aniversario-es.jpg" },
   },
   42: {
-    cover: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
-    page: { pt: "cartoon-pagina-tio-favorito.jpg", en: "cartoon-pagina-tio-favorito-en.jpg", es: "cartoon-pagina-tio-favorito-es.jpg" },
-    photo: { pt: "cartoon-foto-tio-favorito.jpg", en: "cartoon-foto-tio-favorito-en.jpg", es: "cartoon-foto-tio-favorito-es.jpg" },
+    cover: { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
+    page: { pt: "pagina-grace-andar.jpg", en: "pagina-grace-andar-en.jpg", es: "pagina-grace-andar-es.jpg" },
+    photo: { pt: "foto-grace-andar.jpg", en: "foto-grace-andar-en.jpg", es: "foto-grace-andar-es.jpg" },
   },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
-function catalogSeriesShots(i: number, lang: Lang, variant: "photo" | "cartoon" = "photo"): { key: CatalogSeriesKind; src: string }[] {
-  const series = (variant === "cartoon" ? CARTOON_SERIES[i] : undefined) ?? CATALOG_SERIES[i];
+function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
+  const series = CATALOG_SERIES[i];
   if (!series) {
-    const cover = catalogCoverFile(i, lang, variant);
+    const cover = catalogCoverFile(i, lang, "photo");
     return cover ? [{ key: "cover", src: cover }] : [];
   }
   const shots: { key: CatalogSeriesKind; src: string }[] = [
@@ -476,12 +398,12 @@ const CATALOG_THEMES = [
   "animais_sons",
   "economia",
   "sport",
-  "birthday",
-  "family_love",
-  "family_love",
-  "mothers_day",
+  "grandparents_love",
   "biblico",
   "family_love",
+  "family_love",
+  "birthday",
+  "recem_nascidos",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -492,7 +414,7 @@ const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
 const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [42, 41, 40, 39, 37, 38, 25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -614,23 +536,24 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   princess: [1],
   superhero: [15, 26, 27],
   sport: [0, 4, 36],
-  mothers_day: [40, 5, 6],
+  mothers_day: [5, 6],
   fathers_day: [21, 14],
-  grandparents_love: [8],
+  grandparents_love: [8, 37],
   grandfather_love: [30],
-  dia_do_idoso: [8, 30],
-  family_love: [42, 7, 29, 38, 39],
-  birthday: [37],
+  dia_do_idoso: [8, 30, 37],
+  family_love: [7, 29, 39, 40, 42],
+  recem_nascidos: [42],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
-  tio_tia: [42, 19, 29],
+  tio_tia: [19, 29, 39, 40],
   christmas: [9],
+  birthday: [41],
   easter: [31],
   animais_sons: [34],
   economia: [35],
   higiene_desfralde: [24],
-  biblico: [41, 20],
+  biblico: [20, 38],
 };
 function catalogSectionId(theme: string | null | undefined): string {
   if (!theme) return "aventuras";
@@ -715,10 +638,8 @@ const HERO_BY_CATALOG: Record<number, string> = {
   17: "Miriam",
   18: "Noé",
   20: "Davi",
-  37: "Grace",
-  38: "Grace",
-  39: "Matteo",
-  41: "Pedro",
+  41: "Grace",
+  42: "Grace",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -742,6 +663,199 @@ function personalizeHref(opts: {
   return studioEntryHref(`/app?${q.toString()}`);
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
+
+/** Recorte inicial dentro de familia-original.jpg. cx/cy e side são frações da foto. */
+const FRAME_START: Record<string, { cx: number; cy: number; side: number }> = {
+  "dica-boa.png": { cx: 0.5, cy: 0.43, side: 0.34 },
+  "dica-multi.png": { cx: 0.5, cy: 0.34, side: 1 },
+};
+
+function clampPan(
+  pan: { x: number; y: number },
+  zoom: number,
+  side: number,
+  nat: { w: number; h: number },
+) {
+  const cover = Math.max(side / nat.w, side / nat.h);
+  const displayW = nat.w * cover * zoom;
+  const displayH = nat.h * cover * zoom;
+  const maxX = Math.max(0, (displayW - side) / 2);
+  const maxY = Math.max(0, (displayH - side) / 2);
+  return {
+    x: Math.min(maxX, Math.max(-maxX, pan.x)),
+    y: Math.min(maxY, Math.max(-maxY, pan.y)),
+  };
+}
+
+/** Arrastar e aproximar a foto original dentro do quadrado do card. Só no dev, com ?enquadrar=1. */
+function PassoFrame({ file, alt, n }: { file: "dica-boa.png" | "dica-multi.png"; alt: string; n: number }) {
+  const media = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const drag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
+  const placed = useRef(false);
+  const [side, setSide] = useState(0);
+  const [nat, setNat] = useState({ w: 0, h: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const el = media.current;
+    if (!el) return;
+    const measure = () => setSide(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const el = media.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setZoom((z) => Math.min(5, Math.max(1, +(z + (e.deltaY < 0 ? 0.08 : -0.08)).toFixed(2))));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  useEffect(() => {
+    if (placed.current || !side || !nat.w) return;
+    placed.current = true;
+    const saved = localStorage.getItem(`passo-frame:${file}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as { zoom: number; x: number; y: number };
+        const nextZoom = Math.min(5, Math.max(1, parsed.zoom));
+        setZoom(nextZoom);
+        setPan(clampPan(parsed, nextZoom, side, nat));
+        return;
+      } catch { /* usa o recorte inicial */ }
+    }
+    const start = FRAME_START[file];
+    const srcSide = start.side * nat.w;
+    const displayScale = side / srcSide;
+    const cover = Math.max(side / nat.w, side / nat.h);
+    const nextZoom = Math.min(5, Math.max(1, displayScale / cover));
+    const displayW = nat.w * cover * nextZoom;
+    const displayH = nat.h * cover * nextZoom;
+    const left = -(start.cx * nat.w - srcSide / 2) * (cover * nextZoom);
+    const top = -(start.cy * nat.h - srcSide / 2) * (cover * nextZoom);
+    const nextPan = clampPan(
+      { x: left - (side - displayW) / 2, y: top - (side - displayH) / 2 },
+      nextZoom,
+      side,
+      nat,
+    );
+    setZoom(nextZoom);
+    setPan(nextPan);
+  }, [file, nat, side]);
+
+  useEffect(() => {
+    if (!placed.current || !side || !nat.w) return;
+    setPan((current) => clampPan(current, zoom, side, nat));
+  }, [zoom, side, nat]);
+
+  useEffect(() => {
+    if (!placed.current) return;
+    localStorage.setItem(`passo-frame:${file}`, JSON.stringify({ zoom, ...pan }));
+  }, [file, zoom, pan]);
+
+  const cover = side && nat.w ? Math.max(side / nat.w, side / nat.h) : 1;
+  const scale = cover * zoom;
+
+  function onPointerDown(e: RPointerEvent<HTMLDivElement>) {
+    if ((e.target as HTMLElement).closest(".frame-controls")) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { px: e.clientX, py: e.clientY, x: pan.x, y: pan.y };
+  }
+  function onPointerMove(e: RPointerEvent<HTMLDivElement>) {
+    if (!drag.current || !side || !nat.w) return;
+    setPan(clampPan(
+      { x: drag.current.x + e.clientX - drag.current.px, y: drag.current.y + e.clientY - drag.current.py },
+      zoom,
+      side,
+      nat,
+    ));
+  }
+  function onPointerUp() {
+    drag.current = null;
+  }
+
+  async function save() {
+    const box = media.current;
+    const img = imgRef.current;
+    if (!box || !img || !nat.w) return;
+    setStatus("Guardando…");
+    const S = box.clientWidth;
+    const displayScale = Math.max(S / nat.w, S / nat.h) * zoom;
+    const displayW = nat.w * displayScale;
+    const displayH = nat.h * displayScale;
+    const left = (S - displayW) / 2 + pan.x;
+    const top = (S - displayH) / 2 + pan.y;
+    const canvas = document.createElement("canvas");
+    canvas.width = 768;
+    canvas.height = 768;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(img, -left / displayScale, -top / displayScale, S / displayScale, S / displayScale, 0, 0, 768, 768);
+    const res = await fetch("/__enquadre", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ file, png: canvas.toDataURL("image/png") }),
+    });
+    setStatus(res.ok ? "Guardado" : "Não guardou");
+  }
+
+  return (
+    <>
+      <div
+        className="howex-media howex-frame"
+        ref={media}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
+        <img
+          ref={imgRef}
+          src={exUrl("familia-original.jpg")}
+          alt={alt}
+          draggable={false}
+          onLoad={(e) => setNat({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: nat.w || undefined,
+            height: nat.h || undefined,
+            maxWidth: "none",
+            transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+            transformOrigin: "center center",
+          }}
+        />
+        <span className="howex-num">{n}</span>
+      </div>
+      <div className="frame-controls">
+        <label>
+          Aproximar
+          <input
+            type="range"
+            min={1}
+            max={5}
+            step={0.01}
+            value={zoom}
+            aria-label={`Aproximar ${alt}`}
+            onChange={(e) => setZoom(Number(e.target.value))}
+          />
+        </label>
+        <button type="button" onClick={save}>Guardar quadro</button>
+        {status ? <span className="frame-status">{status}</span> : null}
+      </div>
+    </>
+  );
+}
 
 /** Vídeo de exemplo: carrega e toca só quando entra na tela. */
 function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
@@ -860,7 +974,7 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Vovô e Eu", "Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Vovô e Eu", "Nossa Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Eu", "Nossa Família", "O Amor de Mãe"],
       },
       {
@@ -1015,12 +1129,12 @@ const I18N = {
       { t: "Bruno Em Uma Aventura Animal", p: "Leão, girafa e zebra ao redor: Bruno descobre os animais e aprende a cuidar de cada um.", cover: "Hard", size: "M", tag: "Animais", quote: "Pequenas aventuras, grandes descobertas." },
       { t: "Aprendendo Economia Com O Gael", p: "Cofrinho, moedas e um plano: Gael aprende a guardar hoje para realizar um sonho amanhã.", cover: "Hard", size: "M", tag: "Economia", quote: "Cada moedinha ajuda o sonho a crescer." },
       { t: "Maria Jesus E A Disciplina No Hockey", p: "Patins, treino e um sorriso no gelo: disciplina e coragem para chegar ao gol.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Patinar, aprender e sorrir." },
-      { t: "Feliz Aniversário, Grace", p: "Vela, bolo e o abraço da família: o primeiro aniversário vira uma história para guardar.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Uma vela acesa, um desejo no ar." },
-      { t: "Aprendendo A Andar Com Grace", p: "Os primeiros passos no parque, com a mamãe de braços abertos: cada passinho vira uma história para guardar.", cover: "Hard", size: "M", tag: "Primeiros passos", quote: "Um passo de cada vez, já vai caminhar." },
-      { t: "Quatro Gerações de Amor, Nosso Maior Valor", p: "Matteo, a mamãe Ana, Lullys e Iolanda: quatro gerações num só abraço, uma história para guardar.", cover: "Hard", size: "M", tag: "Quatro gerações", quote: "O amor da família sempre permanece." },
-      { t: "Mamãe e Eu, Presente que Deus me Deu", p: "No colo da mamãe, amor e proteção: um presente de Deus vira uma história para guardar.", cover: "Hard", size: "M", tag: "Mamãe e eu", quote: "Presente que Deus me deu." },
-      { t: "Amem-se Sinceramente uns aos Outros", p: "Pedro ouve o chamado, deixa as redes e aprende com Jesus a amar: uma história de fé para guardar.", cover: "Hard", size: "M", tag: "1 Pedro 4:8", quote: "Quem ama, perdoa e sabe servir." },
-      { t: "Tio Favorito e Sem Igual, Você é Sensacional", p: "Enzo e Davi com o Tio Nico, na água e na diversão: uma aventura para guardar.", cover: "Hard", size: "P", tag: "Tio favorito", quote: "Com você, tudo é sensacional." },
+      { t: "Quatro Gerações De Amor, Nosso Maior Valor", p: "Bisavós, avós, pais e crianças no mesmo abraço: o amor que atravessa gerações, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor entre gerações", quote: "Quatro gerações, um só amor." },
+      { t: "Amem-se Sinceramente Uns Aos Outros", p: "O amor sincero de 1 Pedro 4:8, vivido em família: uma história bíblica para guardar no coração.", cover: "Hard", size: "M", tag: "Fé e amor", quote: "O amor cobre uma multidão de pecados." },
+      { t: "Meus Sobrinhos, Minha Alegria", p: "Enzo, Davi e a tia Ana: riso, colo e a alegria de ser tia, numa história só da família.", cover: "Hard", size: "P", tag: "Alegria de tia", quote: "Sobrinho é alegria que a família nos dá." },
+      { t: "Tio Favorito E Sem Igual", p: "Um tio que é sensacional: passeio, risada e um amor que não tem outro igual.", cover: "Hard", size: "P", tag: "Amor de tio", quote: "Tio favorito, você é sensacional." },
+      { t: "Feliz Aniversário, Grace", p: "Velas, abraços e um dia só dela: o aniversário da Grace vira uma história para guardar.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Mais um ano de alegria, Grace!" },
+      { t: "Aprendendo A Andar Com A Grace", p: "Um passo, depois outro: a Grace descobre o chão, o equilíbrio e a coragem de seguir.", cover: "Hard", size: "P", tag: "Primeiros passos", quote: "Um passinho de cada vez." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1094,7 +1208,7 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Grandpa and Me", "Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Grandpa and Me", "Our Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
         feats: ["Mommy and Me", "Grandma and Me", "Our Family", "A Mother's Love"],
       },
       {
@@ -1249,12 +1363,12 @@ const I18N = {
       { t: "Bruno On An Animal Adventure", p: "A lion, a giraffe and a zebra all around: Bruno meets the animals and learns to care for each one.", cover: "Hard", size: "M", tag: "Animals", quote: "Small adventures, big discoveries." },
       { t: "Learning Savings With Gael", p: "A piggy bank, coins and a plan: Gael learns to save today so a dream can happen tomorrow.", cover: "Hard", size: "M", tag: "Savings", quote: "Every little coin helps the dream grow." },
       { t: "Maria Jesus And Discipline In Hockey", p: "Skates, practice and a smile on the ice: discipline and courage to reach the goal.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Skate, learn and smile." },
-      { t: "Happy Birthday, Grace", p: "A candle, a cake and the family's hug: a first birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "Birthday", quote: "A candle lit, a wish in the air." },
-      { t: "Learning To Walk With Grace", p: "First steps in the park, with mom's arms open: every little step becomes a story to keep.", cover: "Hard", size: "M", tag: "First steps", quote: "One step at a time, and then she walks." },
-      { t: "Four Generations of Love, Our Greatest Treasure", p: "Matteo, Mommy Ana, Lullys and Iolanda: four generations in one embrace, a story to keep.", cover: "Hard", size: "M", tag: "Four generations", quote: "Through every generation, love grows." },
-      { t: "Mommy and Me, a Gift God Gave to Me", p: "In Mommy's arms, love and protection: a gift from God becomes a story to keep.", cover: "Hard", size: "M", tag: "Mommy and me", quote: "A gift God gave to me." },
-      { t: "Love One Another Sincerely", p: "Peter hears the call, leaves his nets and learns from Jesus how to love: a story of faith to keep.", cover: "Hard", size: "M", tag: "1 Peter 4:8", quote: "Whoever loves, forgives and knows how to serve." },
-      { t: "Favorite Uncle, One of a Kind, You're Amazing", p: "Enzo and Davi with Uncle Nico, on the water and in the fun: an adventure to keep.", cover: "Hard", size: "P", tag: "Favorite uncle", quote: "With you, everything is amazing." },
+      { t: "Four Generations Of Love, Our Greatest Treasure", p: "Great-grandparents, grandparents, parents and children in one hug: love that crosses generations, to treasure forever.", cover: "Hard", size: "M", tag: "Love across generations", quote: "Four generations, one love." },
+      { t: "Love One Another Sincerely", p: "The sincere love of 1 Peter 4:8, lived in the family: a biblical story to keep in the heart.", cover: "Hard", size: "M", tag: "Faith and love", quote: "Love covers a multitude of sins." },
+      { t: "My Nephews, My Joy", p: "Enzo, Davi and Aunt Ana: laughter, a hug and the joy of being an aunt, in a story just for the family.", cover: "Hard", size: "P", tag: "An aunt's joy", quote: "A nephew is joy the family gives us." },
+      { t: "Favorite Uncle, One Of A Kind", p: "An uncle who is amazing: an outing, a laugh and a love unlike any other.", cover: "Hard", size: "P", tag: "Uncle's love", quote: "Favorite uncle, you are amazing." },
+      { t: "Happy Birthday, Grace", p: "Candles, hugs and a day just for her: Grace's birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "Birthday", quote: "One more year of joy, Grace!" },
+      { t: "Learning To Walk With Grace", p: "One step, then another: Grace finds the floor, her balance and the courage to keep going.", cover: "Hard", size: "P", tag: "First steps", quote: "One little step at a time." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1328,7 +1442,7 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Abuelo y Yo", "Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Abuelo y Yo", "Nuestra Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Yo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
@@ -1483,12 +1597,12 @@ const I18N = {
       { t: "Bruno En Una Aventura Animal", p: "León, jirafa y cebra alrededor: Bruno conoce a los animales y aprende a cuidar de cada uno.", cover: "Hard", size: "M", tag: "Animales", quote: "Pequeñas aventuras, grandes descubrimientos." },
       { t: "Aprendiendo Economía Con Gael", p: "Alcancía, monedas y un plan: Gael aprende a guardar hoy para cumplir un sueño mañana.", cover: "Hard", size: "M", tag: "Economía", quote: "Cada monedita ayuda a crecer el sueño." },
       { t: "Maria Jesus Y La Disciplina En El Hockey", p: "Patines, entrenamiento y una sonrisa en el hielo: disciplina y coraje para llegar al gol.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Patinar, aprender y sonreír." },
-      { t: "Feliz Cumpleaños, Grace", p: "Vela, pastel y el abrazo de la familia: el primer cumpleaños se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "Una vela encendida, un deseo en el aire." },
-      { t: "Aprendiendo A Caminar Con Grace", p: "Los primeros pasos en el parque, con los brazos de mamá abiertos: cada pasito se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Primeros pasos", quote: "Un paso a la vez, y ya va a caminar." },
-      { t: "Cuatro Generaciones de Amor, Nuestro Mayor Tesoro", p: "Matteo, mamá Ana, Lullys e Iolanda: cuatro generaciones en un abrazo, una historia para guardar.", cover: "Hard", size: "M", tag: "Cuatro generaciones", quote: "El amor de familia siempre permanece." },
-      { t: "Mamá y Yo, el Regalo que Dios me Dio", p: "En los brazos de mamá, amor y protección: un regalo de Dios se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Mamá y yo", quote: "El regalo que Dios me dio." },
-      { t: "Ámense Sinceramente Unos a Otros", p: "Pedro escucha el llamado, deja las redes y aprende de Jesús a amar: una historia de fe para guardar.", cover: "Hard", size: "M", tag: "1 Pedro 4:8", quote: "Quien ama, perdona y sabe servir." },
-      { t: "Tío Favorito y Sin Igual, Eres Sensacional", p: "Enzo y Davi con el tío Nico, en el agua y en la diversión: una aventura para guardar.", cover: "Hard", size: "P", tag: "Tío favorito", quote: "Contigo, todo es sensacional." },
+      { t: "Cuatro Generaciones De Amor, Nuestro Mayor Tesoro", p: "Bisabuelos, abuelos, padres y niños en un mismo abrazo: el amor que atraviesa generaciones, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor entre generaciones", quote: "Cuatro generaciones, un solo amor." },
+      { t: "Ámense Sinceramente Unos A Otros", p: "El amor sincero de 1 Pedro 4:8, vivido en familia: una historia bíblica para guardar en el corazón.", cover: "Hard", size: "M", tag: "Fe y amor", quote: "El amor cubre multitud de pecados." },
+      { t: "Mis Sobrinos, Mi Alegría", p: "Enzo, Davi y la tía Ana: risa, abrazo y la alegría de ser tía, en una historia solo de la familia.", cover: "Hard", size: "P", tag: "Alegría de tía", quote: "El sobrino es alegría que da la familia." },
+      { t: "Tío Favorito Y Sin Igual", p: "Un tío que es sensacional: paseo, risa y un amor que no tiene otro igual.", cover: "Hard", size: "P", tag: "Amor de tío", quote: "Tío favorito, eres sensacional." },
+      { t: "Feliz Cumpleaños, Grace", p: "Velas, abrazos y un día solo de ella: el cumpleaños de Grace se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Un año más de alegría, Grace!" },
+      { t: "Aprendiendo A Caminar Con Grace", p: "Un paso, y luego otro: Grace descubre el suelo, el equilibrio y el coraje de seguir.", cover: "Hard", size: "P", tag: "Primeros pasos", quote: "Un pasito a la vez." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -1572,15 +1686,11 @@ function FlipBook({
   index,
   onIndex,
   labels,
-  fit = "natural",
-  altPrefix,
 }: {
   pages: string[];
   index: number;
   onIndex: (next: number) => void;
-  labels: { prev: string; next: string; turn: string; cover: string; photo: string; spread?: string };
-  fit?: "natural" | "square";
-  altPrefix?: string;
+  labels: { prev: string; next: string; turn: string; cover: string; photo: string };
 }) {
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(index);
@@ -1709,7 +1819,7 @@ function FlipBook({
     const slot = ((idx % 3) + 3) % 3;
     if (slot === 0) return labels.cover;
     if (slot === 2) return labels.photo;
-    return labels.spread ?? labels.turn;
+    return labels.turn;
   };
   const bookBase = Math.floor(index / 3) * 3;
   const bookDots = [bookBase, bookBase + 1, bookBase + 2].filter((i) => i < pages.length);
@@ -1741,7 +1851,7 @@ function FlipBook({
   };
   return (
     <div
-      className={`flipbook${fit === "square" ? " flipbook-square" : ""}`}
+      className="flipbook"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -1758,13 +1868,7 @@ function FlipBook({
           role={single ? "img" : "button"}
           tabIndex={single ? undefined : 0}
           aria-label={single ? pageLabel(index) : labels.turn}
-          style={
-            fit === "square"
-              ? { width: "100%", maxWidth: "100%", height: "auto", aspectRatio: "1 / 1", flex: "1 1 auto", minWidth: 0 }
-              : frame
-                ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" }
-                : undefined
-          }
+          style={frame ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" } : undefined}
         >
           <span className="fb-spine" />
           <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
@@ -1773,7 +1877,7 @@ function FlipBook({
             className={`fb-leaf fb-fx-${FLIP_FX}${anim ? ` ${anim}` : ""}`}
             onAnimationEnd={(e) => onLeafEnd(e)}
           >
-            <img className={`fb-page fb-leaf-front ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={altPrefix ? `${altPrefix} — ${pageLabel(index)}` : pageLabel(index)} data-testid="landing-hero-flip" />
+            <img className={`fb-page fb-leaf-front ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(index)} data-testid="landing-hero-flip" />
             {folding ? <FoldMesh src={exUrl(leafSrc)} kind={pageKind(leafIdx)} /> : null}
             {folding ? <span className="fb-leaf-back" aria-hidden /> : null}
             {folding ? <span className="fb-leaf-shade" aria-hidden /> : null}
@@ -1859,50 +1963,63 @@ export type CatalogCardBook = {
   story?: string;
   quote?: string;
 };
-const BOOK_PAGE_COPY: Record<Lang, {
-  summary: string;
-  details: string;
-  cover: string;
-  page: string;
-  photo: string;
-  prev: string;
-  next: string;
-  turn: string;
-}> = {
-  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro", cover: "Capa", page: "Página", photo: "Foto", prev: "Página Anterior", next: "Próxima Página", turn: "Virar Página" },
-  en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo", prev: "Previous Page", next: "Next Page", turn: "Turn Page" },
-  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto", prev: "Página Anterior", next: "Página Siguiente", turn: "Pasar Página" },
+const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: string; page: string; photo: string }> = {
+  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro", cover: "Capa", page: "Página", photo: "Foto" },
+  en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo" },
+  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
 };
-/** Página do livro: capa, página e foto no mesmo flipbook, com as setas do hero. */
+/** Galeria manual da página do livro: capa, página e foto disponíveis. */
 function BookImageGallery({
   shots,
   alt,
+  size,
   labels,
 }: {
   shots: { key: CatalogSeriesKind; src: string }[];
   alt: string;
-  labels: { cover: string; page: string; photo: string; prev: string; next: string; turn: string };
+  size: CatalogSizeChoice;
+  labels: { prev: string; next: string; turn: string; cover: string; page: string; photo: string };
 }) {
   const [index, setIndex] = useState(0);
-  const pages = shots.map((shot) => shot.src);
-  const safeIndex = pages.length ? Math.min(index, pages.length - 1) : 0;
+  const count = shots.length;
+  const multi = count > 1;
+  const shotLabel = (key: CatalogSeriesKind) =>
+    key === "page" ? labels.page : key === "photo" ? labels.photo : labels.cover;
+  const current = shots[Math.min(index, count - 1)];
   return (
     <div className="cat-display book-series" data-testid="book-series">
-      <FlipBook
-        pages={pages}
-        index={safeIndex}
-        onIndex={setIndex}
-        fit="square"
-        altPrefix={alt}
-        labels={{
-          prev: labels.prev,
-          next: labels.next,
-          turn: labels.turn,
-          cover: labels.cover,
-          photo: labels.photo,
-          spread: labels.page,
-        }}
-      />
+      <figure className={`book-series-shot is-${current.key}`} data-testid={`book-series-${current.key}`}>
+        <div className="book-series-frame">
+          <div className="cat-book" data-size={current.key === "cover" ? size : "M"}>
+            <img src={exUrl(current.src)} alt={`${alt} — ${shotLabel(current.key)}`} loading="lazy" />
+          </div>
+          {multi ? (
+            <>
+              <button type="button" className="cat-flip-nav prev" aria-label={labels.prev} onClick={() => setIndex((i) => (i - 1 + count) % count)}>
+                ‹
+              </button>
+              <button type="button" className="cat-flip-nav next" aria-label={labels.next} onClick={() => setIndex((i) => (i + 1) % count)}>
+                ›
+              </button>
+              <div className="cat-flip-dots" role="tablist" aria-label={labels.turn}>
+                {shots.map((shot, i) => (
+                  <button
+                    key={shot.key}
+                    type="button"
+                    role="tab"
+                    className={`fb-dot${i === index ? " on" : ""}`}
+                    aria-selected={i === index}
+                    aria-label={shotLabel(shot.key)}
+                    data-testid="catalog-flip-dot"
+                    onClick={() => setIndex(i)}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+        <figcaption aria-live="polite">{shotLabel(current.key)}</figcaption>
+      </figure>
     </div>
   );
 }
@@ -1927,9 +2044,15 @@ export function CatalogBookCard({
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
   const copy = FORMAT_COPY[lang];
   const pageCopy = BOOK_PAGE_COPY[lang];
-  const bookHref = book.catalogI != null
-    ? `/livro/${book.catalogI}${modo === "cartoon" && CARTOON_SERIES[book.catalogI] ? "?estilo=cartoon" : ""}`
-    : null;
+  const flipLabels = {
+    prev: I18N[lang].cf_prev,
+    next: I18N[lang].cf_next,
+    turn: I18N[lang].fb_turn,
+    cover: pageCopy.cover,
+    page: pageCopy.page,
+    photo: pageCopy.photo,
+  };
+  const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
   const linked = linkBook && bookHref != null;
   const notes = (
     <div className="cat-notes">
@@ -1996,11 +2119,11 @@ export function CatalogBookCard({
   if (layout === "page") {
     const series =
       book.catalogI != null
-        ? catalogSeriesShots(book.catalogI, lang, modo === "cartoon" ? "cartoon" : "photo")
+        ? catalogSeriesShots(book.catalogI, lang)
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} labels={pageCopy} />
+        <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={flipLabels} />
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
           <h1 title={book.t}>{book.t}</h1>
@@ -2205,6 +2328,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const hiwSteps = t.hiw_main;
   const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
   const passoImgs = variant === "cartoon" ? PASSO_CARTOON_IMGS : PASSO_IMGS;
+  const framing = import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
     if (variant !== "cartoon") return [book];
@@ -2394,34 +2518,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
 
       carousel.style.setProperty("--hero-w", `${Math.round(spanW)}px`);
 
-      // No Safari, width:100% desta faixa (flex column + align-items:center)
-      // fica menor que a linha do título. A altura era calculada pela linha,
-      // as fotos quadradas transbordavam e o overflow cortava as laterais.
-      const parent = carousel.parentElement;
-      const parentStyle = parent ? getComputedStyle(parent) : null;
-      const pad = parentStyle
-        ? (parseFloat(parentStyle.paddingLeft) || 0) + (parseFloat(parentStyle.paddingRight) || 0)
-        : 0;
-      const parentInner = parent ? parent.clientWidth - pad : spanW;
-      const cap = parentInner > 32 ? parentInner : spanW;
-      const target = Math.min(Math.round(spanW), Math.round(cap));
-      carousel.style.width = `${target}px`;
-      carousel.style.maxWidth = `${Math.round(cap)}px`;
-
-      const clearShot = (img: HTMLImageElement) => {
-        img.style.width = "";
-        img.style.height = "";
-        img.style.maxWidth = "";
-        img.style.objectFit = "";
-        const shot = img.parentElement as HTMLElement | null;
-        if (!shot) return;
-        shot.style.width = "";
-        shot.style.minWidth = "";
-        shot.style.maxWidth = "";
-        shot.style.flex = "";
-      };
-
-      carousel.querySelectorAll<HTMLElement>(".hero-series-inner").forEach((inner) => {
+      // Moldura (border 1px em cada lado) + 2 filetes de 2px. Sem padding interno.
+      // A altura usa a largura real da faixa, para as três fotos caberem inteiras.
+      const imgBudget = Math.max(1, carousel.clientWidth - 1 * 2 - 2 * 2);
+      const inners = Array.from(carousel.querySelectorAll<HTMLElement>(".hero-series-inner"));
+      const firstCopy = inners.slice(0, Math.ceil(inners.length / 2));
+      let maxShot = 0;
+      firstCopy.forEach((inner) => {
         const imgs = Array.from(inner.querySelectorAll("img"));
         let ratio = 0;
         let ready = imgs.length > 0;
@@ -2429,40 +2532,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           if (img.naturalWidth && img.naturalHeight) ratio += img.naturalWidth / img.naturalHeight;
           else ready = false;
         }
-        if (!ready || !ratio) {
-          imgs.forEach(clearShot);
-          inner.style.width = "";
-          inner.style.maxWidth = "";
-          return;
-        }
-        // Moldura (border 1px em cada lado) + filete de 2px entre as fotos.
-        const gaps = 2 * Math.max(0, imgs.length - 1);
-        const border = 2;
-        const imgBudget = Math.max(0, target - border - gaps);
-        const h = Math.round(Math.min(420, Math.max(70, imgBudget / ratio)));
+        if (!ready || !ratio) return;
+        const h = Math.max(1, Math.round(Math.min(420, imgBudget / ratio)));
         inner.style.setProperty("--hero-shot-h", `${h}px`);
-        let widths = imgs.map((img) => h * (img.naturalWidth / img.naturalHeight));
-        const sum = widths.reduce((acc, w) => acc + w, 0);
-        if (sum > imgBudget && sum > 0) widths = widths.map((w) => w * (imgBudget / sum));
-        const px = widths.map((w) => Math.max(1, Math.floor(w)));
-        imgs.forEach((img, i) => {
-          const w = px[i];
-          const shot = img.parentElement as HTMLElement | null;
-          if (shot) {
-            shot.style.width = `${w}px`;
-            shot.style.minWidth = `${w}px`;
-            shot.style.maxWidth = `${w}px`;
-            shot.style.flex = `0 0 ${w}px`;
-          }
-          img.style.width = "100%";
-          img.style.height = "100%";
-          img.style.maxWidth = "none";
-          img.style.objectFit = "cover";
-        });
-        const row = px.reduce((acc, w) => acc + w, 0) + gaps + border;
-        inner.style.width = `${row}px`;
-        inner.style.maxWidth = "none";
+        maxShot = Math.max(maxShot, h);
       });
+      if (maxShot) carousel.style.setProperty("--hero-shot-max", `${maxShot}px`);
     };
 
     layout();
@@ -2902,14 +2977,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
         <div className="hero-carousel" ref={heroCarouselRef} aria-label={t.book_carousel}>
-          <div
-            className="hero-carousel-track"
-            style={{ transform: `translateX(-${(Math.floor(heroPick / 3) % heroStrip.length) * 100}%)` }}
-          >
+          <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
               const shots = [book.cover[lang], book.page[lang], book.photo[lang]];
-              const activeSeries = Math.floor(heroPick / 3) % heroStrip.length;
-              const isActiveSeries = activeSeries === seriesIndex;
+              const activeSeries = Math.floor(heroPick / 3) % Math.max(heroStrip.length, 1);
+              const isActiveSeries = copy === 0 && activeSeries === seriesIndex;
               return (
                 <div
                   className={`hero-series${isActiveSeries ? " on" : ""}`}
@@ -2991,17 +3063,24 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection ksection-como" id="passo">
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.passo_title}</h2>
+          {framing && (
+            <p className="ksub frame-hint">Arraste a foto dentro do quadro. A barra aproxima. Guardar grava este card.</p>
+          )}
           <div className="howex">
             {t.passo.map((h, i) => (
               <Fragment key={h.t}>
-                <figure className="howex-card howex-card-scene">
+                <figure className={`howex-card howex-card-scene${framing && i < 2 ? " howex-card-frame" : ""}`}>
                   <div className="howex-lead">
                     <h3>{h.t}</h3>
                   </div>
-                  <div className="howex-media">
-                    <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" />
-                    <span className="howex-num">{i + 1}</span>
-                  </div>
+                  {framing && i < 2 && (passoImgs[i] === "dica-boa.png" || passoImgs[i] === "dica-multi.png") ? (
+                    <PassoFrame file={passoImgs[i]} alt={h.t} n={i + 1} />
+                  ) : (
+                    <div className="howex-media">
+                      <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" />
+                      <span className="howex-num">{i + 1}</span>
+                    </div>
+                  )}
                   <figcaption>
                     <p>{h.p}</p>
                   </figcaption>

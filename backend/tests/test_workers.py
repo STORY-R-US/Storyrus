@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.ai_clients.base import CreditsExhaustedError, ImageResult, ProviderError, TextResult, VideoJob
+from app.ai_clients.base import ImageResult, ProviderError, TextResult, VideoJob
 from app.database import Base
 from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus, User
 from app.workers import handlers, runner
@@ -305,59 +305,6 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert float(j.cost_usd) == 0.07
 
 
-async def test_avatar_credits_exhausted_returns_generic_image(db, mem_storage, monkeypatch):
-    class OutOfCredits:
-        async def generate_character(self, **_k):
-            raise CreditsExhaustedError("insufficient_quota", status_code=429)
-
-        async def generate_realistic(self, **_k):
-            raise AssertionError("nao deve tentar outro caminho pago")
-
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: OutOfCredits())
-    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    _, p = _seed(db)
-    p.child_name = "Lia"
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
-    db.commit()
-    j = _job(db, p, "AVATAR")
-
-    await runner.process_job(db, j)
-
-    db.refresh(p)
-    db.refresh(j)
-    assert j.status == JobStatus.DONE.value
-    assert p.character_ref["provider"] == "generic"
-    assert p.character_ref["generic"] is True
-    assert mem_storage[p.character_ref["storage_key"]].startswith(b"\x89PNG")
-
-
-async def test_ebook_page_credits_exhausted_returns_generic_image(db, mem_storage, monkeypatch):
-    class OutOfCredits:
-        async def generate_scene(self, **_k):
-            raise CreditsExhaustedError("insufficient_quota", status_code=429)
-
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: OutOfCredits())
-    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
-    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    _, p = _seed(db)
-    p.child_name = "Lia"
-    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
-    p.story_text = "Página 1: Lia atravessa o jardim."
-    p.status = ProjectStatus.STORY_READY.value
-    mem_storage["char1"] = b"CHAR"
-    db.commit()
-
-    await runner.process_job(db, _job(db, p, "EBOOK"))
-    db.refresh(p)
-    pages = db.scalars(
-        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
-    ).all()
-    assert p.status == ProjectStatus.EBOOK_READY.value
-    assert len(pages) == 1
-    assert pages[0].meta["generic"] is True
-    assert mem_storage[pages[0].storage_key].startswith(b"\x89PNG")
-
-
 async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch):
     """Nota alta nao pula o refine: o retrato e a ancora das paginas."""
     heads: list[int] = []
@@ -379,6 +326,30 @@ async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch
 
     await runner.process_job(db, _job(db, p, "AVATAR"))
     assert heads == [1]
+
+
+async def test_avatar_skips_local_face_judge_when_disabled(db, mem_storage, monkeypatch):
+    """Instancias pequenas usam o refine da OpenAI sem carregar o buffalo_l."""
+    score_calls: list[int] = []
+
+    async def score_must_not_run(_photo, _scene, **_k):
+        score_calls.append(1)
+        return 0.91
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", score_must_not_run)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "avatar_face_match", False)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+
+    db.refresh(p)
+    assert score_calls == []
+    assert p.character_ref
+    assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
 
 
 async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypatch):

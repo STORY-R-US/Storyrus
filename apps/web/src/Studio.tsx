@@ -15,11 +15,17 @@ import {
 import logo from "./assets/logo.png";
 import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
+import { PostPreviewFlow } from "./studio/PostPreviewFlow";
+import { purchaseCopy } from "./studio/purchaseCopy";
 import { PreviewTrio } from "./studio/PreviewTrio";
+import { MasterBookFlow } from "./studio/MasterBookFlow";
 import {
+  masterPreviewEta,
+  masterPreviewSteps,
   previewChainSteps,
   previewEtaMinutes,
   previewImageActivity,
+  type MasterPreviewStepId,
   type PreviewStepId,
 } from "./studio/previewSteps";
 import { useStudioPolling } from "./studio/useStudioPolling";
@@ -54,6 +60,20 @@ function previewStepHint(
   if (imageActivity === "hand") return t.previewImageHand;
   if (imageActivity === "book") return t.previewImageBook;
   return t.previewStepImagesHint;
+}
+
+function masterStepLabel(t: StudioCopy, id: MasterPreviewStepId): string {
+  if (id === "ficha") return t.previewFicha;
+  if (id === "01_CAPA") return t.previewCover;
+  if (id === "02_LIVRO_ABERTO") return t.previewOpenBook;
+  return t.previewInHand;
+}
+
+function masterStepHint(t: StudioCopy, id: MasterPreviewStepId): string {
+  if (id === "ficha") return t.previewFichaHint;
+  if (id === "01_CAPA") return t.previewCoverHint;
+  if (id === "02_LIVRO_ABERTO") return t.previewOpenHint;
+  return t.previewInHandHint;
 }
 
 function previewStepStateLabel(t: StudioCopy, state: "wait" | "queued" | "now" | "done"): string {
@@ -233,6 +253,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [bookTitle, setBookTitle] = useState("");
+  const [bookLanguages, setBookLanguages] = useState<string[]>([]);
   const [themeText, setThemeText] = useState("");
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
@@ -258,6 +279,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [storyDraft, setStoryDraft] = useState("");
   const [photoNotes, setPhotoNotes] = useState("");
   const [changesSent, setChangesSent] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewDirty, setReviewDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState<Partial<Record<FieldKey, true>>>({});
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
@@ -268,6 +291,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [mediaConsent, setMediaConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const startLock = useRef(false);
+  const draftRef = useRef<{ project: Project; fingerprint: string; signature: string; uploaded: number } | null>(null);
   const [colorTheme, setColorTheme] = useState<"light" | "dark">(() => {
     try {
       const s = localStorage.getItem("theme");
@@ -295,6 +319,36 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setStoryDraft(demo.project.story_text ?? "");
     setOrderSent(true);
     setJobs([]);
+  }, [isDemo]);
+
+  useEffect(() => {
+    if (isDemo) return;
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get("projeto") || q.get("project");
+    if (!id) return;
+    let cancelled = false;
+    setBusy(true);
+    void Promise.all([api.getProject(id), api.getAssets(id), api.listJobs(id)]).then(([p, a, j]) => {
+      if (cancelled) return;
+      setProject(p); setAssets(a); setJobs(j);
+      const previewActive = j.some(
+        (job) =>
+          (job.status === "PENDING" || job.status === "RUNNING") &&
+          Boolean(job.result?.payload?.preview_chain),
+      );
+      setOrderSent(!(p.book_profile?.stage === "ficha" && !previewActive));
+      setBookTitle(p.purchase_flow?.title || p.book_profile?.title || p.story_text?.match(/^T[íi]tulo:\s*([^\n]+)/i)?.[1] || "");
+      setThemeText(p.purchase_flow?.theme_description || p.theme || "");
+      setStoryDraft(p.story_text || ""); setPhotoNotes(p.purchase_flow?.photo_notes || "");
+      setChildName(p.child_name || ""); setChildAge(String(p.child_age ?? ""));
+      if (p.book_profile?.gender === "f" || p.book_profile?.gender === "m") setGender(p.book_profile.gender);
+      if (p.style === "cartoon") setArtMode("cartoon");
+      if (p.style === "realistic") setArtMode("realista");
+      setBookSize(p.book_size || "M"); setCoverType(p.cover_type || "soft");
+      setReviewDirty(false);
+    }).catch((e: Error) => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setBusy(false); });
+    return () => { cancelled = true; };
   }, [isDemo]);
 
   useEffect(() => {
@@ -421,7 +475,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       Boolean(j.result?.payload?.preview_chain),
   );
   const previewReady = Boolean(
-    project?.story_text?.trim() &&
+    project?.book_profile ? project.book_profile.stage !== "ficha" : project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
   );
   const previewFailed = Boolean(previewFailedJob) && !previewChainActive;
@@ -483,13 +537,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (childAge.trim() === "") next.age = true;
     if (alsoWho && !alsoName.trim()) next.alsoName = true;
     if (!onlyName) {
-      if (!bookTitle.trim()) next.title = true;
       if (!themeText.trim()) next.theme = true;
     }
     if (askGender && !gender) next.gender = true;
     if (askGender && alsoWho && !alsoGender) next.alsoGender = true;
     buyerGaps(next);
-    if (photos.length === 0) next.photo = true;
+    const serverHasPhoto =
+      (assets?.photo_count ?? 0) > 0 && project?.book_profile?.stage === "ficha";
+    if (photos.length === 0 && !serverHasPhoto) next.photo = true;
     if (!agreed) next.consent = true;
     if (applyMissing(next, BOOK_FIELD_ORDER)) {
       setError(null);
@@ -516,16 +571,56 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       const age = Number(childAge);
       const language = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
       const themeLabel = (onlyName ? bookTitle || themeText : themeText || bookTitle).trim();
-      const p = await api.createProject({
+      const languages = [...new Set([language, ...bookLanguages])];
+      const fingerprint = JSON.stringify({
+        title: bookTitle,
+        gender,
+        languages,
+        themeDescription: themeText.trim() || bookTitle,
+        characters: [extraNames.trim(), alsoName.trim()].filter(Boolean).join(", "),
         theme: temaId || themeText.trim(),
         childName,
         dedication,
-        childAge: Number.isNaN(age) ? undefined : age,
-        style: artMode === "cartoon" ? "cartoon" : "realistic",
+        childAge: Number.isNaN(age) ? null : age,
+        style: artMode,
         bookSize,
         coverType,
         language,
       });
+      const signature = photos.map((item) => `${item.file.name}:${item.file.size}:${item.file.lastModified}`).join("|");
+      const serverHasPhoto = (assets?.photo_count ?? 0) > 0 && project?.book_profile?.stage === "ficha";
+      const draft = draftRef.current;
+      const sameDraft =
+        draft !== null &&
+        draft.fingerprint === fingerprint &&
+        draft.signature === signature;
+      let p: Project | null = null;
+      if (sameDraft && draft) {
+        p = draft.project;
+      } else if (serverHasPhoto && project && !previewChainActive) {
+        p = project;
+      } else if (project?.book_profile?.stage === "ficha" && !previewChainActive && (assets?.photo_count ?? 0) === 0 && photos.length > 0) {
+        p = project;
+        draftRef.current = { project, fingerprint, signature, uploaded: 0 };
+      } else {
+        p = await api.createProject({
+          title: bookTitle,
+          gender: gender ?? undefined,
+          languages,
+          themeDescription: themeText.trim() || bookTitle,
+          characters: [extraNames.trim(), alsoName.trim()].filter(Boolean).join(", "),
+          theme: temaId || themeText.trim(),
+          childName,
+          dedication,
+          childAge: Number.isNaN(age) ? undefined : age,
+          style: artMode === "cartoon" ? "cartoon" : "realistic",
+          bookSize,
+          coverType,
+          language,
+        });
+        draftRef.current = { project: p, fingerprint, signature, uploaded: 0 };
+        window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}`);
+      }
       setMediaConsent(true);
       const uploadMeta = {
         language,
@@ -542,14 +637,20 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         clientAddress: buyer.address,
         clientNotes: buyerNotes || undefined,
       };
-      for (let i = 0; i < photos.length; i += 1) {
-        await api.uploadPhoto(p.id, photos[i].file, {
-          ...uploadMeta,
-          finalize: i === photos.length - 1,
-        });
+      const skipUpload = serverHasPhoto && photos.length === 0;
+      const uploaded = draftRef.current?.project.id === p.id ? draftRef.current.uploaded : 0;
+      if (!skipUpload) {
+        for (let i = uploaded; i < photos.length; i += 1) {
+          await api.uploadPhoto(p.id, photos[i].file, {
+            ...uploadMeta,
+            finalize: i === photos.length - 1,
+          });
+          if (draftRef.current?.project.id === p.id) draftRef.current.uploaded = i + 1;
+        }
       }
       accepted = true;
       setProject(p);
+      window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}`);
       setJobs([]);
       setAssets(null);
       setOrderSent(true);
@@ -588,21 +689,29 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     orderSent && !isDemo && !error && !previewFailed && (previewChainActive || !previewReady);
   const showPreviewRetry =
     orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
-  const previewSteps = previewChainSteps(jobs);
   const imageJob = [...jobs].reverse().find((job) => job.type === "EBOOK" && job.result?.payload?.preview_chain);
+  const chainSteps = previewChainSteps(jobs);
+  const masterSteps = project?.book_profile
+    ? masterPreviewSteps(imageJob, previewChainActive)
+    : null;
+  const previewSteps = masterSteps ?? chainSteps;
   const imageActivity =
-    previewSteps.find((step) => step.id === "EBOOK")?.state === "now"
+    chainSteps.find((step) => step.id === "EBOOK")?.state === "now"
       ? previewImageActivity(imageJob?.result?.progress?.done)
       : null;
   const imageProgress = imageJob?.result?.progress;
-  const previewEta = previewEtaMinutes(
-    previewSteps,
-    imageProgress && typeof imageProgress.done === "number" && typeof imageProgress.total === "number"
-      ? { done: imageProgress.done, total: imageProgress.total }
-      : null,
-  );
+  const previewEta = masterSteps
+    ? masterPreviewEta(masterSteps)
+    : previewEtaMinutes(
+        chainSteps,
+        imageProgress && typeof imageProgress.done === "number" && typeof imageProgress.total === "number"
+          ? { done: imageProgress.done, total: imageProgress.total }
+          : null,
+      );
   const previewHeadline = previewReady && !showPreviewLoading && !showPreviewRetry
-    ? t.previewReadyTitle
+    ? project?.purchase_flow?.full_book_ready_at
+      ? (project.book_approved_at ? purchaseCopy(lang).approved : purchaseCopy(lang).full)
+      : project?.purchase_flow?.stage === "generating_book" ? purchaseCopy(lang).generating : t.previewReadyTitle
     : t.orderSent;
 
   const [previewWaitedSec, setPreviewWaitedSec] = useState(0);
@@ -657,12 +766,15 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      const nextStory = storyDraft.trim();
-      if (nextStory) {
-        const updated = await api.setStoryText(project.id, nextStory);
-        setProject(updated);
-        setStoryDraft(updated.story_text ?? nextStory);
-      }
+      const accepted = await api.savePreviewChanges(project.id, {
+        title: bookTitle.trim(), theme_description: themeText.trim(),
+        story_text: storyDraft.trim(), photo_notes: photoNotes.trim(),
+      });
+      setJobs((prev) => [...prev, { id: accepted.job_id, project_id: project.id, type: "EBOOK",
+        status: "PENDING", provider: null, cost_credits: 0, attempts: 0, error: null,
+        created_at: new Date().toISOString(), result: { payload: { preview_chain: true } } }]);
+      setReviewDirty(false); setReviewOpen(false); storyTouched.current = false;
+      void api.getProject(project.id).then(setProject).catch(() => {});
       setChangesSent(true);
     } catch (e) {
       setError((e as Error).message);
@@ -672,6 +784,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   function resetProject() {
+    const projectUrl = new URL(window.location.href);
+    projectUrl.searchParams.delete("project");
+    window.history.replaceState({}, "", `${projectUrl.pathname}${projectUrl.search}${projectUrl.hash}`);
+    draftRef.current = null;
     setProject(null);
     setAssets(null);
     setPhotos((cur) => {
@@ -679,6 +795,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       return [];
     });
     setOrderSent(false);
+    setReviewDirty(false); setReviewOpen(false);
+    window.history.replaceState({}, "", "/app");
     setExtraNames("");
     setMediaConsent(false);
     setChildName("");
@@ -723,7 +841,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     });
   }
 
-  const fieldsLocked = !!project;
+  const fieldsLocked = !!project && (orderSent || project.book_profile?.stage !== "ficha");
   const showBook = isDemo || clientDone || accountKind === "account";
   const showClient = !isDemo && !clientDone && accountKind === "guest";
 
@@ -894,7 +1012,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     </span>
                   </button>
                   {onLogout && (
-                    <a className="kutil" href="/pedidos" data-testid="studio-orders">
+                    <a className="kutil" href={isOwner ? "/pedidos" : "/meus-pedidos"} data-testid="studio-orders">
                       {t.orders}
                     </a>
                   )}
@@ -974,9 +1092,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                         {step.state === "done" ? "✓" : ""}
                       </span>
                       <span className="preview-step-copy">
-                        <span>{previewStepLabel(t, step.id)}</span>
+                        <span>{masterSteps
+                          ? masterStepLabel(t, step.id as MasterPreviewStepId)
+                          : previewStepLabel(t, step.id as PreviewStepId)}</span>
                         <span className="preview-step-hint">
-                          {previewStepHint(t, step.id, step.id === "EBOOK" ? imageActivity : null)}
+                          {masterSteps
+                            ? masterStepHint(t, step.id as MasterPreviewStepId)
+                            : previewStepHint(t, step.id as PreviewStepId, step.id === "EBOOK" ? imageActivity : null)}
                         </span>
                       </span>
                       <span className="preview-step-state">{previewStepStateLabel(t, step.state)}</span>
@@ -984,7 +1106,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   ))}
                 </ol>
                 <p className="studio-slogan preview-must-move" data-testid="studio-preview-must-move">
-                  {t.previewMustMove}
+                  {masterSteps ? t.previewMasterMove : t.previewMustMove}
                 </p>
                 <p className="studio-slogan preview-eta" data-testid="studio-preview-eta">
                   {t.previewEta(previewEta.min, previewEta.max)}
@@ -994,8 +1116,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
                 <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
+                {project?.book_profile && <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} />}
               </div>
-            ) : showPreviewRetry ? null : (
+            ) : showPreviewRetry ? null : project?.book_profile ? (
+              <>
+                <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} />
+                <button type="button" className="link" onClick={resetProject}>{t.newProject}</button>
+              </>
+            ) : (
               <>
                 <p className="studio-slogan">{t.orderFollowup}</p>
 
@@ -1035,7 +1163,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </div>
 
                 <PreviewTrio
-                  genericImages={Boolean(assets?.generic_images)}
                   coverUrl={assets?.cover_url ?? assets?.page_images?.[0] ?? null}
                   pageUrl={
                     assets?.page_images?.[assets.cover_url ? 0 : 1] ??
@@ -1045,6 +1172,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   inHandUrl={assets?.in_hand_url ?? null}
                 />
 
+                {project && <PostPreviewFlow project={project} assets={assets} jobs={jobs}
+                  isDemo={isDemo} dirty={reviewDirty} onProject={setProject} onJobs={setJobs}
+                  onAdjust={() => setReviewOpen(true)} />}
+
+                {!project?.purchase_flow?.full_book_ready_at && project?.purchase_flow?.stage !== "generating_book" && <details className="purchase-adjustments" open={reviewOpen} onToggle={(e) => setReviewOpen(e.currentTarget.open)}>
+                  <summary>{purchaseCopy(lang).adjust}</summary>
                 <div
                   className="studio-review-changes"
                   data-testid="studio-review-changes"
@@ -1060,7 +1193,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       value={bookTitle}
                       onChange={(e) => {
                         titleTouched.current = true;
-                        setBookTitle(e.target.value);
+                        setBookTitle(e.target.value); setReviewDirty(true); setChangesSent(false);
                       }}
                       placeholder={t.bookTitlePh}
                       maxLength={120}
@@ -1072,7 +1205,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     {t.themeFree}
                     <textarea
                       value={themeText}
-                      onChange={(e) => setThemeText(e.target.value)}
+                      onChange={(e) => { setThemeText(e.target.value); setReviewDirty(true); setChangesSent(false); }}
                       placeholder={t.themeFreePh}
                       maxLength={500}
                       rows={3}
@@ -1086,7 +1219,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       value={storyDraft}
                       onChange={(e) => {
                         storyTouched.current = true;
-                        setStoryDraft(e.target.value);
+                        setStoryDraft(e.target.value); setReviewDirty(true); setChangesSent(false);
                       }}
                       placeholder={t.storyPlaceholder}
                       rows={8}
@@ -1098,7 +1231,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     {t.photoChanges}
                     <textarea
                       value={photoNotes}
-                      onChange={(e) => setPhotoNotes(e.target.value)}
+                      onChange={(e) => { setPhotoNotes(e.target.value); setReviewDirty(true); setChangesSent(false); }}
                       placeholder={t.photoChangesPh}
                       maxLength={500}
                       rows={3}
@@ -1122,6 +1255,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     </button>
                   )}
                 </div>
+
+                </details>}
 
                 <button
                   type="button"
@@ -1404,6 +1539,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   className={missing.title ? "is-invalid" : undefined}
                 />
                 {fieldAlert("title", t.errTitle)}
+                <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
               </label>
 
               <label className="studio-field">
@@ -1431,6 +1567,17 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           )}
 
           <div className="studio-choices">
+            <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
+              <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>
+              <div className="studio-actions">
+                {([['pt-BR', 'Português'], ['en', 'English'], ['es', 'Español']] as const).map(([code, label]) => {
+                  const primaryLanguage = lang === "pt" ? "pt-BR" : lang;
+                  return <label key={code}><input type="checkbox" checked={code === primaryLanguage || bookLanguages.includes(code)}
+                    disabled={fieldsLocked || code === primaryLanguage}
+                    onChange={(e) => setBookLanguages((cur) => e.target.checked ? [...cur, code] : cur.filter((item) => item !== code))} /> {label}</label>;
+                })}
+              </div>
+            </div>
             <div className="studio-choice" role="group" aria-label={t.artStyle}>
               <span className="studio-choice-label">{t.artStyle}</span>
               <div className="studio-actions">

@@ -1,7 +1,7 @@
 # Story R Us — API (núcleo)
 
 MVP do backend: **foto → personagem → ebook → vídeo animado**. Pipeline assíncrono com
-jobs idempotentes, moderação/segurança e clients reais de IA (OpenAI GPT Image, Claude, Kling). A geração não debita créditos; o impresso se fatura na OS. FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
+jobs idempotentes, moderação/segurança e clients reais de IA (OpenAI para texto e imagem, Kling). A geração não debita créditos; o impresso se fatura na OS. FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
 
 ## Estrutura
 
@@ -22,7 +22,7 @@ backend/
       auth.py credits.py projects.py jobs.py webhooks.py
     ai_clients/
       base.py            # interfaces ImageProvider/TextProvider/VideoProvider
-      image_openai.py  text_anthropic.py  video_kling.py  factory.py
+      image_openai.py  text_openai.py  video_kling.py  factory.py
     workers/
       runner.py          # loop: claim + retry/backoff + estorno
       handlers.py        # AVATAR/STORY/EBOOK/STORYBOARD/VIDEO
@@ -115,7 +115,7 @@ Runner (`app/workers/runner.py`):
 Handlers (`app/workers/handlers.py`):
 
 - `AVATAR` gera o personagem e grava `character_ref` (reusado em todas as cenas).
-- `STORY` gera o texto (Claude).
+- `STORY` gera o texto (OpenAI).
 - `EBOOK` ilustra cada página reusando o personagem e monta o PDF.
 - `STORYBOARD` gera keyframes; `VIDEO` dispara o Kling (único provedor de vídeo)
   e faz polling até concluir (ou conclui via webhook), republicando o arquivo no

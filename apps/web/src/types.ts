@@ -57,6 +57,20 @@ export interface ExtraCharacter {
 }
 
 export interface Project {
+  book_profile?: {
+    version: number;
+    stage: string;
+    title: string;
+    gender: string;
+    languages: string[];
+    current_page: number;
+    costume?: string;
+    palette?: string;
+    trait?: string;
+    interest?: string;
+    locales?: Record<string, { title: string; left: string; right: string }>;
+    stories?: Record<string, string>;
+  } | null;
   id: string;
   status: string;
   style: string | null;
@@ -73,6 +87,18 @@ export interface Project {
   narrated_video_url?: string | null;
   character_approved_at?: string | null;
   book_approved_at?: string | null;
+  book_size?: "M" | "P" | null;
+  cover_type?: "soft" | "hard" | null;
+  purchase_flow?: {
+    title?: string | null;
+    theme_description?: string | null;
+    photo_notes?: string;
+    stage?: string;
+    preview_ready_at?: string | null;
+    preview_approved_at?: string | null;
+    full_book_ready_at?: string | null;
+    quoted_at?: string | null;
+  } | null;
   print_requested_at?: string | null;
   print_status?: string | null;
   created_at: string;
@@ -97,7 +123,7 @@ export interface Job {
   created_at: string;
   result?: {
     progress?: JobProgress;
-    payload?: { preview_chain?: boolean; brief?: string; duration_s?: number };
+    payload?: { preview_chain?: boolean; purchase_full_book?: boolean; brief?: string; duration_s?: number };
   } | null;
 }
 

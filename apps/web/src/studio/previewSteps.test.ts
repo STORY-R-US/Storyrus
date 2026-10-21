@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Job } from "../types";
-import { previewChainSteps, previewEtaMinutes, previewImageActivity } from "./previewSteps";
+import {
+  masterPreviewEta,
+  masterPreviewSteps,
+  previewChainSteps,
+  previewEtaMinutes,
+  previewImageActivity,
+} from "./previewSteps";
 
 function job(type: Job["type"], status: Job["status"]): Job {
   return {
@@ -57,6 +63,26 @@ describe("previewChainSteps", () => {
     expect(previewImageActivity(1)).toBe("page");
     expect(previewImageActivity(2)).toBe("hand");
     expect(previewImageActivity(3)).toBe("book");
+  });
+
+  it("na prévia nova, a ficha aparece antes da capa", () => {
+    expect(masterPreviewSteps(undefined, true).map((step) => step.state)).toEqual([
+      "queued",
+      "wait",
+      "wait",
+      "wait",
+    ]);
+    const cover = masterPreviewSteps(
+      { status: "RUNNING", result: { progress: { stage: "01_CAPA" } } },
+      true,
+    );
+    expect(cover.map((step) => [step.id, step.state])).toEqual([
+      ["ficha", "done"],
+      ["01_CAPA", "now"],
+      ["02_LIVRO_ABERTO", "wait"],
+      ["03_LEITURA", "wait"],
+    ]);
+    expect(masterPreviewEta(cover)).toEqual({ min: 3, max: 6 });
   });
 
   it("trata etapa anterior ausente como pronta se a seguinte já começou", () => {

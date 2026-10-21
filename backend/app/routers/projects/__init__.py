@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,8 +17,9 @@ from app.database import get_db
 from app.deps import get_current_user, require_registered_user
 from app.models import Asset, AssetKind, Job, Project, User
 from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut
+from app.services import book_profile
 
-from . import approvals, photos, steps
+from . import approvals, book_flow, photos, purchase, steps
 from . import print as print_mod
 from .common import get_owned_project
 
@@ -44,6 +45,8 @@ def create_project(
         child_trait=(body.child_trait or None),
         child_interest=(body.child_interest or None),
         language=(body.language or "pt-BR"),
+        purchase_flow={"title": body.title, "theme_description": body.theme_description},
+        book_profile=book_profile.initial_profile(body) if body.gender or body.languages else None,
     )
     db.add(project)
     db.commit()
@@ -53,8 +56,9 @@ def create_project(
 
 @router.get("", response_model=list[ProjectOut])
 def list_projects(
-    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[Project]:
+    response.headers["Cache-Control"] = "private, no-store"
     return list(
         db.scalars(
             select(Project).where(Project.user_id == user.id).order_by(Project.created_at.desc())
@@ -103,6 +107,9 @@ def project_assets(
     )
     realistic_url = url_for(realistic.storage_key) if realistic else None
 
+    photos = db.scalars(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+    ).all()
     pages = db.scalars(
         select(Asset).where(
             Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value
@@ -124,11 +131,6 @@ def project_assets(
         .order_by(Asset.created_at.desc())
     )
     in_hand_url = url_for(in_hand.storage_key) if in_hand else None
-
-    def _generic(asset: Asset | None) -> bool:
-        return bool(asset and (asset.meta or {}).get("generic"))
-
-    generic_images = _generic(cover) or _generic(in_hand) or any(_generic(page) for page in pages)
 
     ebook_url = url_for(project.ebook_url) if project.ebook_url else None
 
@@ -179,17 +181,33 @@ def project_assets(
             )
 
     return {
+        "previews": [
+            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            for a in db.scalars(
+                select(Asset)
+                .where(Asset.project_id == project.id)
+                .order_by(Asset.created_at, Asset.id)
+            ).all()
+            if (a.meta or {}).get("workflow") == 1
+            and (a.meta or {}).get("role") in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+        ],
+        "page_versions": [
+            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            for a in pages
+            if (a.meta or {}).get("workflow") == 1
+            and (a.meta or {}).get("role") in {"sem_texto", "com_texto"}
+        ],
         "character_url": character_url,
         "realistic_url": realistic_url,
         "extra_characters": extra_characters_out,
         "page_images": page_images,
         "cover_url": cover_url,
         "in_hand_url": in_hand_url,
-        "generic_images": generic_images,
         "ebook_url": ebook_url,
         "storyboard_url": storyboard_url,
         "video_url": video_url,
         "narrated_video_url": narrated_video_url,
+        "photo_count": len(photos),
     }
 
 
@@ -217,4 +235,7 @@ def list_jobs(
 router.include_router(photos.router)
 router.include_router(steps.router)
 router.include_router(approvals.router)
+router.include_router(book_flow.router)
 router.include_router(print_mod.router)
+
+router.include_router(purchase.router)

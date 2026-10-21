@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients.base import ImageResult, ProviderError
+from app.ai_clients.base import ProviderError
 from app.ai_clients.face_detect import face_reference
 from app.models import Asset, AssetKind, Job, Project, ProjectStatus
 from app.services.usage_ledger import append_usage, image_provider_name, usage_line
@@ -59,18 +59,6 @@ def _offline_png(
     buf = BytesIO()
     image.save(buf, format="PNG")
     return buf.getvalue()
-
-
-def generic_book_image(
-    label: str, *, palette: tuple[tuple[int, int, int], tuple[int, int, int]]
-) -> ImageResult:
-    """Figura local quando a conta de imagem da OpenAI fica sem credito."""
-    return ImageResult(
-        image_bytes=_offline_png(label, palette=palette),
-        mime_type="image/png",
-        cost_usd=0.0,
-        meta={"provider": "generic", "generic": True, "reason": "openai_credits"},
-    )
 
 
 def _offline_gif(label: str) -> bytes:

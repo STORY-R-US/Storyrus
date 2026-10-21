@@ -13,8 +13,7 @@ import random
 
 import httpx
 
-from app.ai_clients.base import CreditsExhaustedError, ImageResult, ProviderError
-from app.ai_clients.openai_quota import openai_credits_exhausted
+from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
@@ -49,14 +48,6 @@ def _retry_after_s(resp: httpx.Response) -> float | None:
     if value <= 0:
         return None
     return min(value, settings.openai_retry_max_s)
-
-
-def _raise_if_credits_exhausted(resp: httpx.Response) -> None:
-    if openai_credits_exhausted(resp.status_code, resp.text):
-        raise CreditsExhaustedError(
-            f"OpenAI sem creditos ({resp.status_code}): {resp.text[:300]}",
-            status_code=resp.status_code,
-        )
 
 
 def _parse_b64_response(data: dict) -> tuple[bytes, str, dict]:
@@ -156,8 +147,6 @@ class OpenAIImageProvider:
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
 
-            _raise_if_credits_exhausted(resp)
-
             if resp.status_code in _TRANSIENT_STATUS:
                 delay = _retry_after_s(resp) or _retry_delay(attempt)
                 last_error = ProviderError(
@@ -233,8 +222,6 @@ class OpenAIImageProvider:
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
 
-            _raise_if_credits_exhausted(resp)
-
             if resp.status_code in _TRANSIENT_STATUS:
                 delay = _retry_after_s(resp) or _retry_delay(attempt)
                 last_error = ProviderError(
@@ -292,16 +279,28 @@ class OpenAIImageProvider:
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
         reference_role: str = "character",
+        landscape: bool = False,
     ) -> ImageResult:
-        _ = photo
         extras = [img for img in (extra_refs or []) if img]
+        size = "1536x1024" if landscape else settings.openai_image_size_square
+        if photo:
+            # Original photographs always outrank any generated avatar or cover.
+            from app.services.book_profile import IDENTITY
+
+            role = "CAPA aprovada" if reference_role == "cover" else "avatar ou continuidade visual"
+            secondary = [character_ref] if character_ref and character_ref != photo else []
+            reference_note = f"SEGUNDA imagem: {role}. " if secondary else ""
+            text = (
+                f"PRIMEIRA imagem: FOTO ORIGINAL, fonte definitiva da identidade. "
+                f"{reference_note}Referencias seguintes: fotos adicionais e "
+                f"continuidade, conforme a ficha. {IDENTITY}\nEstilo: {style}.\n{prompt}"
+            )
+            return await self._generate_with_refs(text, [photo] + secondary + extras, size=size)
         if reference_role == "cover":
             # Preserve the product prompt: this reference is a book cover,
             # never an avatar or an instruction to illustrate the real person.
             text = f"{prompt}\nEstilo da fotografia: {style}."
-            return await self._generate_with_refs(
-                text, [character_ref] + extras, size=settings.openai_image_size_square
-            )
+            return await self._generate_with_refs(text, [character_ref] + extras, size=size)
         identity = (
             "A primeira imagem e o AVATAR (unica fonte de verdade do rosto, "
             "cabelo, idade e proporcoes). NAO copie a roupa dele. "
@@ -355,9 +354,18 @@ class OpenAIImageProvider:
 
         Ordem: (1) avatar; (2) cena. `photo` e ignorado de proposito.
         """
-        _ = style, photo
         if not character_ref or not scene:
             raise ProviderError("refine_scene OpenAI exige avatar e cena", transient=False)
+        if photo:
+            from app.services.book_profile import IDENTITY
+
+            return await self._generate_with_refs(
+                f"{IDENTITY} Corrija somente a identidade na TERCEIRA imagem (cena); "
+                "PRIMEIRA = foto original, SEGUNDA = avatar de continuidade. Preserve "
+                f"figurino, pose, expressao, enquadramento e cenario. Estilo: {style}.",
+                [photo, character_ref, scene],
+                size=settings.openai_image_size_square,
+            )
         return await self._generate_with_refs(
             REFINE_SCENE_PROMPT,
             [character_ref, scene],

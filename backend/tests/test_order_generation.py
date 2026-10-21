@@ -77,16 +77,5 @@ def test_preview_status_reports_demo_and_partial_truthfully(auth_client, monkeyp
         orders = auth_client.get("/v1/usage/orders/mine").json()
         assert orders[0]["generation_status"] == "partial"
         assert orders[0]["image_provider"] == "openai"
-        job.result = {
-            "image_provider": "generic",
-            "generic_images": True,
-            "preview_complete": True,
-            "payload": {"preview_chain": True},
-        }
-        job.cost_usd = 0
-        db.commit()
-        orders = auth_client.get("/v1/usage/orders/mine").json()
-        assert orders[0]["generation_status"] == "demo"
-        assert orders[0]["image_provider"] == "generic"
     finally:
         db.close()

@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients.base import CreditsExhaustedError, ImageResult, ProviderError
+from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
     AVATAR_STYLE,
@@ -40,7 +40,6 @@ from .common import (
     _project,
     _set_status,
     _tag_image,
-    generic_book_image,
 )
 
 logger = logging.getLogger("worker")
@@ -58,6 +57,13 @@ def _pkg():
 
 async def handle_avatar(db: Session, job: Job) -> None:
     project = _project(db, job)
+    from app.services import book_profile
+
+    if book_profile.enabled(project):
+        from . import master_book
+
+        await master_book.avatar(db, job, project)
+        return
     update_trace(
         metadata={**job_metadata(job), "theme": project.theme, "language": project.language},
         tags=["AVATAR"],
@@ -84,39 +90,32 @@ async def handle_avatar(db: Session, job: Job) -> None:
         # GPT Image gera o corpo CGI; refine_identity trava o rosto.
         provider = _pkg().get_image_provider(job.provider)
         style = book_art_direction(project.style) if project.style == "cartoon" else AVATAR_STYLE
-        gen_refs = (await identity_images(refs[0])) + refs[1:]
+        gen_refs = (await identity_images(refs[0], use_detector=settings.avatar_face_match)) + refs[
+            1:
+        ]
         face = gen_refs[0]
         try:
-            try:
-                result = await provider.generate_character(
-                    prompt=AVATAR_PROMPT,
-                    reference_images=gen_refs,
-                    style=style,
-                )
-                _tag_image(result, action="generate_character", label="Avatar — geração")
-            except CreditsExhaustedError:
-                raise
-            except ProviderError:
-                result = await provider.generate_realistic(
-                    photo=face, prompt=AVATAR_PROMPT, style=style
-                )
-                _tag_image(result, action="generate_realistic", label="Avatar — geração (fallback)")
-            # Na prévia, juiz sem nota (ilustração/cartoon ou InsightFace fora)
-            # não pode interromper a história e o ebook. O portão STO-37 fica
-            # no avatar avulso.
-            result = await _lock_avatar_identity(
-                provider,
-                face,
-                result,
-                style,
-                fail_closed=not preview_chain.is_preview_chain(job),
+            result = await provider.generate_character(
+                prompt=AVATAR_PROMPT,
+                reference_images=gen_refs,
+                style=style,
             )
-        except CreditsExhaustedError:
-            logger.warning("OpenAI sem creditos no avatar; imagem generica")
-            result = generic_book_image(
-                f"Personagem de {project.child_name or 'livro'}",
-                palette=((245, 239, 229), (255, 247, 240)),
+            _tag_image(result, action="generate_character", label="Avatar — geração")
+        except ProviderError:
+            result = await provider.generate_realistic(
+                photo=face, prompt=AVATAR_PROMPT, style=style
             )
+            _tag_image(result, action="generate_realistic", label="Avatar — geração (fallback)")
+        # Na prévia, juiz sem nota (ilustração/cartoon ou InsightFace fora)
+        # não pode interromper a história e o ebook. O portão STO-37 fica
+        # no avatar avulso.
+        result = await _lock_avatar_identity(
+            provider,
+            face,
+            result,
+            style,
+            fail_closed=not preview_chain.is_preview_chain(job),
+        )
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -128,13 +127,10 @@ async def handle_avatar(db: Session, job: Job) -> None:
             meta={"mime": result.mime_type},
         )
     )
-    generic = bool((result.meta or {}).get("generic"))
     image_meta = {
-        "provider": "generic" if generic else "demo" if settings.offline_fallback else "openai",
-        "model": None if generic or settings.offline_fallback else settings.openai_image_model,
+        "provider": "demo" if settings.offline_fallback else "openai",
+        "model": None if settings.offline_fallback else settings.openai_image_model,
     }
-    if generic:
-        image_meta["generic"] = True
     project.character_ref = {"storage_key": key, "mime": result.mime_type, **image_meta}
     project.character_approved_at = None
     project.book_approved_at = None
@@ -239,6 +235,9 @@ async def _lock_avatar_identity(provider, face: bytes, result, style, *, fail_cl
     first = await _refine_identity(
         provider, face, result, style, passes=1, method="refine_identity"
     )
+    if not settings.avatar_face_match:
+        logger.info("Juiz local de rosto do avatar desligado; usando o refine da OpenAI")
+        return first
     threshold = settings.avatar_face_match_min
     score = await _score_avatar_face(face, first.image_bytes)
     if score is not None and score >= threshold:
@@ -336,27 +335,20 @@ async def handle_extra_character(db: Session, job: Job) -> None:
             )
         else:
             refs = await identity_images(photo_bytes)
-            try:
-                result = await provider.generate_character(
-                    prompt=f"Retrato do personagem '{ec.get('name', '')}', corpo inteiro, fundo neutro.",
-                    reference_images=refs,
-                    style=BOOK_STYLE,
-                )
-                _tag_image(
-                    result,
-                    action="generate_character",
-                    label=f"Extra — {ec.get('name') or idx + 1} geração",
-                )
-                result = await _refine_identity(provider, refs[0], result, BOOK_STYLE)
-                for line in lines_of(result):
-                    if line.get("label", "").startswith("Avatar — refine"):
-                        line["label"] = f"Extra — {ec.get('name') or idx + 1} refine"
-            except CreditsExhaustedError:
-                logger.warning("OpenAI sem creditos no personagem extra; imagem generica")
-                result = generic_book_image(
-                    f"Personagem extra: {ec.get('name', idx + 1)}",
-                    palette=((245, 239, 229), (255, 247, 240)),
-                )
+            result = await provider.generate_character(
+                prompt=f"Retrato do personagem '{ec.get('name', '')}', corpo inteiro, fundo neutro.",
+                reference_images=refs,
+                style=BOOK_STYLE,
+            )
+            _tag_image(
+                result,
+                action="generate_character",
+                label=f"Extra — {ec.get('name') or idx + 1} geração",
+            )
+            result = await _refine_identity(provider, refs[0], result, BOOK_STYLE)
+            for line in lines_of(result):
+                if line.get("label", "").startswith("Avatar — refine"):
+                    line["label"] = f"Extra — {ec.get('name') or idx + 1} refine"
 
         char_key = storage.new_key(project.id, "extra_character", _ext(result.mime_type))
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
@@ -423,21 +415,11 @@ async def handle_realistic(db: Session, job: Job) -> None:
 
     photo_bytes = storage.get_bytes(photos[0].storage_key)
     provider = _pkg().get_image_provider(job.provider)
-    try:
-        result = await provider.generate_realistic(
-            photo=photo_bytes,
-            prompt=REALISTIC_PROMPT,
-            negative=REALISTIC_NEGATIVE,
-            style="realistic",
-        )
-        _tag_image(result, action="generate_realistic", label="Retrato — geração")
-        result = await _refine_identity(provider, photo_bytes, result, "realistic")
-    except CreditsExhaustedError:
-        logger.warning("OpenAI sem creditos no retrato; imagem generica")
-        result = generic_book_image(
-            "Retrato",
-            palette=((245, 239, 229), (255, 247, 240)),
-        )
+    result = await provider.generate_realistic(
+        photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
+    )
+    _tag_image(result, action="generate_realistic", label="Retrato — geração")
+    result = await _refine_identity(provider, photo_bytes, result, "realistic")
     for line in lines_of(result):
         if line.get("label", "").startswith("Avatar — refine"):
             line["label"] = "Retrato — refine"

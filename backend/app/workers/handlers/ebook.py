@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients.base import CreditsExhaustedError, ImageResult, ProviderError
+from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
 )
@@ -21,7 +21,6 @@ from app.ai_clients.book_prompts import (
     name_scene_extras_for_template,
     preview_cover_prompt,
     preview_in_hand_prompt,
-    preview_open_book_prompt,
     scene_extras_for_template,
 )
 from app.ai_clients.identity_lock import require_character_ref
@@ -44,7 +43,6 @@ from .common import (
     _set_status,
     _short_captions,
     _tag_image,
-    generic_book_image,
 )
 from .story import (
     _book_costume_line,
@@ -108,8 +106,6 @@ async def _bounded_preview_image(factory):
     except TimeoutError:
         logger.warning("preview image excedeu %.0fs", timeout)
         return None
-    except CreditsExhaustedError:
-        raise
     except ProviderError as exc:
         logger.warning("preview image falhou: %s", exc)
         return None
@@ -132,16 +128,11 @@ async def _save_preview_image(
 ) -> None:
     """Grava a figura e só então substitui a anterior. Falha de storage não apaga o que já está no banco."""
     mime = result.mime_type or "image/png"
-    generic = bool((result.meta or {}).get("generic"))
     meta = {
         "mime": mime,
-        "provider": (
-            "generic" if generic else "demo" if settings.offline_fallback else "openai"
-        ),
-        "model": None if generic or settings.offline_fallback else settings.openai_image_model,
+        "provider": "demo" if settings.offline_fallback else "openai",
+        "model": None if settings.offline_fallback else settings.openai_image_model,
     }
-    if generic:
-        meta["generic"] = True
     ext = "png" if "png" in mime else "jpg"
     key = storage.new_key(project.id, kind, ext)
     await _store_preview_bytes(key, result.image_bytes, mime)
@@ -168,18 +159,18 @@ async def _save_preview_image(
 
 
 async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
-    """Prévia do perfil mestre: capa + livro aberto + criança com o livro.
+    """Prévia estilo landing: capa + 1 página + foto na mão (OpenAI GPT Image).
 
-    A capa sai primeiro. Livro aberto e cena na mão usam a capa como referência;
-    a cena na mão também usa a foto original. Cada figura é gravada assim que
-    chega. Se uma estoura o tempo, as outras seguem.
+    Capa e página saem em paralelo; a foto "na mão" começa assim que a capa fica
+    pronta (usa a capa como referência). Cada figura é gravada assim que chega.
+    Se uma estoura o tempo, as outras seguem e o livro fecha com o que já existe —
+    a tela não fica presa em Imagens esperando a última chamada.
     """
     ref = project.character_ref if isinstance(project.character_ref, dict) else {}
     char_key = ref.get("storage_key")
     if not char_key:
         raise ProviderError("Personagem ausente: rode AVATAR antes", transient=False)
     char_bytes = await asyncio.to_thread(_character_bytes_from_key, str(char_key))
-    photo_bytes = await _project_photo_bytes(db, project)
     image_provider = _pkg().get_image_provider()
     language = project.language or "pt-BR"
     child_name = (project.child_name or "").strip()
@@ -202,12 +193,26 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         theme=project.theme,
         language=language,
     )
-    open_book_prompt = preview_open_book_prompt(
-        title=title,
-        page_text=page_text,
-        language=language,
+    page_brief = _scene_to_brief({}, page_text, page_index=0, layout="story")
+    page_brief["shot"] = identity_shot(page_brief.get("shot"), layout="story")
+    page_prompt = build_scene_prompt(
+        page=1,
+        text=page_text[:260],
+        scene=(page_brief.get("scene") or page_text)[:900],
+        expression=page_brief.get("expression"),
+        extras=costume_extras_for_theme(project.theme),
+        child_name=child_name,
+        shot=page_brief.get("shot") or "",
+        text_band=page_brief.get("text_band") or "",
     )
     in_hand_prompt = preview_in_hand_prompt(language=language)
+    flow = project.purchase_flow or {}
+    adjustments = "\nTema solicitado: " + (flow.get("theme_description") or project.theme or "")
+    if flow.get("photo_notes"):
+        adjustments += "\nAjustes visuais solicitados: " + flow["photo_notes"]
+    cover_prompt += adjustments
+    page_prompt += adjustments
+    in_hand_prompt += adjustments
 
     if settings.offline_fallback:
         cover = ImageResult(
@@ -217,7 +222,7 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         )
         page = ImageResult(
             image_bytes=_offline_png(
-                f"Livro aberto: {page_text[:28]}",
+                f"Pagina 1: {page_text[:28]}",
                 palette=((233, 242, 255), (255, 255, 255)),
             ),
             mime_type="image/png",
@@ -232,86 +237,59 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         _commit_preview_progress(db, job, 0)
         persist_lock = asyncio.Lock()
         saved = 0
-        credits_out = False
-
-        async def _scene_or_generic(factory, *, label: str, palette) -> ImageResult | None:
-            nonlocal credits_out
-            if credits_out:
-                return generic_book_image(label, palette=palette)
-            try:
-                result = await _bounded_preview_image(factory)
-            except CreditsExhaustedError:
-                logger.warning("OpenAI sem creditos na previa (%s); imagem generica", label)
-                credits_out = True
-                return generic_book_image(label, palette=palette)
-            return result
 
         async def _persist(kind: str, result: ImageResult, page: int | None = None) -> None:
             nonlocal saved
             async with persist_lock:
                 labels = {
                     "cover": "Prévia — capa",
-                    "page_image": "Prévia — livro aberto",
-                    "in_hand": "Prévia — criança com o livro",
+                    "page_image": "Prévia — página",
+                    "in_hand": "Prévia — livro na mão",
                 }
                 _tag_image(result, action=f"preview_{kind}", label=labels[kind])
                 await _save_preview_image(db, project, kind=kind, result=result, page=page)
                 saved += 1
                 _commit_preview_progress(db, job, saved)
 
-        cover = await _scene_or_generic(
-            lambda: image_provider.generate_scene(
-                prompt=cover_prompt,
-                character_ref=char_bytes,
-                style=art_style,
-                photo=photo_bytes,
-            ),
-            label="Capa",
-            palette=((255, 236, 210), (255, 255, 255)),
-        )
-        if cover is not None:
-            await _persist(AssetKind.COVER.value, cover)
-
-        async def _open_book() -> ImageResult | None:
-            if cover is None:
-                return None
-            page = await _scene_or_generic(
+        async def _cover_then_hand() -> tuple[ImageResult | None, ImageResult | None]:
+            # A capa sai primeiro; a foto "na mão" usa a capa como referência.
+            cover = await _bounded_preview_image(
                 lambda: image_provider.generate_scene(
-                    prompt=open_book_prompt,
-                    character_ref=cover.image_bytes,
+                    prompt=cover_prompt,
+                    character_ref=char_bytes,
                     style=art_style,
-                    photo=photo_bytes,
-                    extra_refs=[char_bytes],
+                )
+            )
+            if cover is not None:
+                await _persist(AssetKind.COVER.value, cover)
+            if cover is None:
+                return None, None
+            hand = await _bounded_preview_image(
+                lambda: image_provider.generate_scene(
+                    prompt=in_hand_prompt,
+                    character_ref=cover.image_bytes,
+                    style="photoreal lifestyle product photo",
                     reference_role="cover",
-                ),
-                label="Livro aberto",
-                palette=((233, 242, 255), (255, 255, 255)),
+                )
+            )
+            if hand is not None:
+                await _persist(AssetKind.IN_HAND.value, hand)
+            return cover, hand
+
+        async def _page_only() -> ImageResult | None:
+            # A página não depende da capa: corre em paralelo com ela.
+            page = await _bounded_preview_image(
+                lambda: image_provider.generate_scene(
+                    prompt=page_prompt,
+                    character_ref=char_bytes,
+                    style=art_style,
+                )
             )
             if page is not None:
                 await _persist(AssetKind.PAGE_IMAGE.value, page, page=1)
             return page
 
-        async def _in_hand() -> ImageResult | None:
-            if cover is None:
-                return None
-            extras = [img for img in (photo_bytes, char_bytes) if img]
-            hand = await _scene_or_generic(
-                lambda: image_provider.generate_scene(
-                    prompt=in_hand_prompt,
-                    character_ref=cover.image_bytes,
-                    style="photoreal lifestyle product photo",
-                    photo=photo_bytes,
-                    extra_refs=extras,
-                    reference_role="cover",
-                ),
-                label="Na mao",
-                palette=((240, 248, 255), (255, 250, 240)),
-            )
-            if hand is not None:
-                await _persist(AssetKind.IN_HAND.value, hand)
-            return hand
-
-        page, in_hand = await asyncio.gather(_open_book(), _in_hand())
+        (cover, in_hand), page = await asyncio.gather(_cover_then_hand(), _page_only())
 
     made = [img for img in (cover, page, in_hand) if img is not None]
     if not made:
@@ -325,27 +303,15 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
     _commit_preview_progress(db, job, len(made))
     result_meta = dict(job.result or {})
     result_meta["preview_complete"] = len(made) == 3
-    generic_flags = [bool((img.meta or {}).get("generic")) for img in made]
-    result_meta["generic_images"] = any(generic_flags)
-    if settings.offline_fallback:
-        result_meta["image_provider"] = "demo"
-    elif generic_flags and all(generic_flags):
-        result_meta["image_provider"] = "generic"
-    else:
-        result_meta["image_provider"] = "openai"
-    result_meta["image_model"] = (
-        None
-        if settings.offline_fallback or result_meta["image_provider"] == "generic"
-        else settings.openai_image_model
-    )
-    result_meta["studio_master_profile"] = True
+    result_meta["image_provider"] = "demo" if settings.offline_fallback else "openai"
+    result_meta["image_model"] = None if settings.offline_fallback else settings.openai_image_model
     job.result = result_meta
     cover_bytes = cover.image_bytes if cover is not None else None
     page_for_pdf = page
     pdf_ready = False
     try:
         if cover_bytes is None or page_for_pdf is None:
-            raise ValueError("O PDF da prévia precisa da capa e do livro aberto")
+            raise ValueError("O PDF da prévia precisa da capa e da página geradas")
         blob = await asyncio.to_thread(
             ebook_builder.build_pdf,
             title,
@@ -399,6 +365,18 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
 
 async def handle_ebook(db: Session, job: Job) -> None:
     project = _project(db, job)
+    from app.services import book_profile
+
+    if book_profile.enabled(project):
+        from . import master_book
+
+        if preview_chain.job_payload(job).get("master_preview"):
+            book_profile.require_stage(project, "ficha", "preview_ready")
+            _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
+            await master_book.preview(db, job, project)
+        else:
+            await master_book.page(db, job, project)
+        return
     update_trace(metadata=job_metadata(job), tags=["EBOOK"])
     if not project.story_text:
         raise ProviderError("Historia ausente: rode STORY antes", transient=False)
@@ -492,12 +470,17 @@ async def handle_ebook(db: Session, job: Job) -> None:
             else _scene_to_brief({}, full_text, page_index=idx - 1, layout=layout)
         )
         brief["shot"] = identity_shot(brief.get("shot"), layout=layout)
+        flow = project.purchase_flow or {}
+        notes = " ".join(
+            str(flow.get(key) or "") for key in ("theme_description", "photo_notes", "final_notes")
+        )
+        if notes.strip():
+            brief["scene"] = str(brief.get("scene") or "") + " Ajustes do responsável: " + notes
         if layout != "dedication":
             work.append((idx, caption, brief, layout))
 
     generated: dict[int, ImageResult] = {}
     persist_lock = asyncio.Lock()
-    credits_out = False
     _clear_page_images(db, project)
     _set_job_progress(job, stage="pages", done=0, total=len(work))
     db.commit()
@@ -527,40 +510,25 @@ async def handle_ebook(db: Session, job: Job) -> None:
         art_style = book_art_direction(project.style)
 
         async def _one(item: tuple[int, str, dict, str]) -> tuple[int, ImageResult]:
-            nonlocal credits_out
             idx, caption, brief, layout = item
             page_extras = (
                 name_scene_extras_for_template(template_id) if layout == "name" else extras
             )
-            if credits_out:
-                result = generic_book_image(
-                    f"Pagina {idx}",
-                    palette=((233, 242, 255), (255, 255, 255)),
+            async with sem:
+                result = await _illustrate_page(
+                    image_provider,
+                    idx=idx,
+                    caption=caption,
+                    brief=brief,
+                    extras=page_extras,
+                    child_name=child_name,
+                    char_bytes=char_bytes,
+                    photo_bytes=photo_bytes,
+                    bible=bible,
+                    style_lock=style_lock,
+                    good_style=good_style,
+                    art_style=art_style,
                 )
-            else:
-                try:
-                    async with sem:
-                        result = await _illustrate_page(
-                            image_provider,
-                            idx=idx,
-                            caption=caption,
-                            brief=brief,
-                            extras=page_extras,
-                            child_name=child_name,
-                            char_bytes=char_bytes,
-                            photo_bytes=photo_bytes,
-                            bible=bible,
-                            style_lock=style_lock,
-                            good_style=good_style,
-                            art_style=art_style,
-                        )
-                except CreditsExhaustedError:
-                    logger.warning("OpenAI sem creditos na pagina %s; imagem generica", idx)
-                    credits_out = True
-                    result = generic_book_image(
-                        f"Pagina {idx}",
-                        palette=((233, 242, 255), (255, 255, 255)),
-                    )
             await _store_finished(idx, result)
             return idx, result
 
@@ -581,14 +549,6 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 "layout": layout,
             }
         )
-
-    generic_flags = [bool((scene.meta or {}).get("generic")) for scene in generated.values()]
-    if any(generic_flags):
-        job.result = {
-            **(job.result or {}),
-            "generic_images": True,
-            "image_provider": "generic" if all(generic_flags) else "openai",
-        }
 
     name = (project.child_name or "").strip()
     is_en = (language or "").lower().startswith("en")
@@ -612,15 +572,19 @@ async def handle_ebook(db: Session, job: Job) -> None:
             except Exception:  # noqa: BLE001
                 pass
 
+    approved_cover = db.scalar(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
+    )
     blob = ebook_builder.build_pdf(
         title=title,
         pages=pages,
+        cover=storage.get_bytes(approved_cover.storage_key) if approved_cover else None,
         dedication=(project.dedication or None),
         portrait=char_bytes,
         child_name=(name or None),
         language=language,
         extra_characters=extra_chars or None,
-        preview_pages=3,
+        preview_pages=None,
         cover_palette=ebook_builder.cover_palette_for(template_id, project.theme),
         page_cm=20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
     )
@@ -650,3 +614,10 @@ async def handle_ebook(db: Session, job: Job) -> None:
         ebook_lines.extend(lines_of(scene))
     flush_usage(db, job, ebook_lines)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
+    if preview_chain.job_payload(job).get("purchase_full_book"):
+        from app.services import purchase_flow
+
+        purchase_flow.update(
+            project, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready"
+        )
+        db.commit()

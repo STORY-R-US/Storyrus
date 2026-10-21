@@ -57,8 +57,43 @@ function routeHtml(): Plugin {
   };
 }
 
+function frameSave(): Plugin {
+  return {
+    name: "frame-save",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use("/__enquadre", (req, res) => {
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end();
+          return;
+        }
+        const chunks: Buffer[] = [];
+        req.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+        req.on("end", () => {
+          try {
+            const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as { file?: string; png?: string };
+            const allow = new Set(["dica-boa.png", "dica-multi.png"]);
+            if (!body.file || !allow.has(body.file) || typeof body.png !== "string") throw new Error("bad");
+            const buf = Buffer.from(body.png.replace(/^data:image\/png;base64,/, ""), "base64");
+            if (buf.length < 1000 || buf.length > 8_000_000) throw new Error("size");
+            writeFileSync(resolve(server.config.root, "public/exemplos", body.file), buf);
+            res.setHeader("content-type", "application/json");
+            res.end(JSON.stringify({ ok: true }));
+          } catch {
+            res.statusCode = 400;
+            res.setHeader("content-type", "application/json");
+            res.end(JSON.stringify({ ok: false }));
+          }
+        });
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), routeHtml()],
+  cacheDir: ".vite",
+  plugins: [react(), routeHtml(), frameSave()],
   server: {
     host: true,
     port: 5173,

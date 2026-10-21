@@ -393,61 +393,26 @@ STYLE = (
     "nas paginas; sem texto"
 )
 
-# Perfil mestre do Studio (docs/chatgpt/perfil-mestre.txt): identidade e produto.
-_STUDIO_IDENTITY_LOCK = (
-    "PERFIL MESTRE STORY R US: a fotografia original do cliente e a fonte "
-    "definitiva de identidade. Ordem: (1) foto original, (2) ficha/avatar da "
-    "foto, (3) capa aprovada, (4) imagens anteriores so para continuidade. "
-    "Nunca substitua a foto por uma geracao anterior em caso de conflito. "
-    "Trave formato do rosto, olhos e cor, sobrancelhas, nariz, boca, sorriso, "
-    "bochechas, cabelo (cor, textura, comprimento, linha), idade, tom de pele e "
-    "proporcoes. Sem crianca generica, sem embelezar, sem mudar etnia ou idade. "
-    "Identidade vem antes da estetica: se o rosto estiver errado, a imagem falhou. "
-)
-
-_STUDIO_TYPOGRAPHY_LOCK = (
-    "TIPOGRAFIA TRAVADA: rounded sans-serif editorial infantil (Nunito / Avenir "
-    "Next Rounded / Sofia Pro Soft), Medium ou SemiBold, titulos em Bold, cor "
-    "dark navy #172A3A. Proibido cursiva, manuscrita, serifada, Comic Sans ou "
-    "fonte decorativa. A mesma familia em capa, miolo e cena com o livro."
-)
-
-_STUDIO_ANIMAL_LOCK = (
-    "Se houver animal na foto: preserve raca, porte, cor, pelagem, manchas, "
-    "focinho, olhos, orelhas e anatomia. Se for inventado, fixe a aparencia uma "
-    "vez e nao mude no livro."
-)
-
 _PAGE_LOCK = (
-    "FORMATO DO LIVRO (grafica): pagina quadrada 1:1 (20x20 cm no M, 15x15 cm no P), "
-    "sangria total, arte ate a borda, sem deformar. Rosto, maos e texto a 5 mm da "
-    "borda e da dobra (area de seguranca). A estrofe fica so numa faixa calma no "
-    "topo ou na base, longe da dobra, nunca numa coluna ao lado da cena e nunca "
-    "sobre o rosto. Sem marca d'agua e sem texto solto na cena. "
-    + _STUDIO_TYPOGRAPHY_LOCK
+    "FORMATO DO LIVRO: cada pagina e um quadrado 1:1 em sangria total, corte reto, "
+    "sem cantos arredondados e sem deformar. A estrofe fica so numa faixa calma "
+    "no topo ou na base, longe da dobra, nunca numa coluna ao lado da cena e "
+    "nunca sobre o rosto. Sem marca d'agua e sem texto solto na cena."
 )
 
 _REALISTA = (
-    "MODO REALISTA PREMIUM: fotografia editorial infantil, realismo delicado, "
-    "pele e cabelo naturais, iluminacao suave, cenario elegante, profundidade "
-    "fotografica, qualidade comercial, sem aparencia artificial exagerada. "
-    "Iris nitida na mesma fracao do rosto da foto, cabelo fio a fio. "
+    "fotografia editorial infantil premium, realismo natural, quente e refinado. "
+    "Pele com luz suave, iris nitida na mesma fracao do rosto da foto, cabelo fio a fio. "
     "Sem cartoon, anime, caricatura, chibi, 3D plastico, olho de boneca, ombros largos, "
-    "bracos volumosos ou corpo esticado. "
-    + _STUDIO_IDENTITY_LOCK
-    + _STUDIO_ANIMAL_LOCK
-    + _PAGE_LOCK
+    "bracos volumosos ou corpo esticado. Identidade rigorosa das fotos. " + _PAGE_LOCK
 )
 
 _CARTOON = (
-    "MODO CARTOON PREMIUM: ilustracao claramente DESENHADA (nao foto com filtro), "
-    "linhas suaves, volumes arredondados, expressoes infantis, cores alegres e "
-    "sofisticadas, cartoon moderno editorial de alto nivel. Olhos levemente maiores, "
-    "ainda assim o rosto deriva da foto. Sem anime, manga, chibi extremo, caricatura "
-    "extrema, 3D plastico ou personagem generico. "
-    + _STUDIO_IDENTITY_LOCK
-    + _STUDIO_ANIMAL_LOCK
-    + _PAGE_LOCK
+    "ilustracao cartoon premium de livro infantil, claramente cartoon: tracos desenhados, "
+    "contornos suaves, formas arredondadas, olhos no tamanho natural da foto, expressoes ludicas, "
+    "cores alegres, acabamento editorial. Nao e uma foto suavizada. "
+    "Sem anime, manga, chibi extremo, caricatura extrema, 3D plastico ou personagem generico. "
+    "Identidade rigorosa das fotos. " + _PAGE_LOCK
 )
 
 
@@ -665,7 +630,6 @@ def build_scene_prompt(
     if text_band:
         parts.append(text_band_directive(text_band))
     parts.append(_PAGE_LOCK)
-    parts.append(_STUDIO_IDENTITY_LOCK)
     return " ".join(parts)
 
 
@@ -960,116 +924,64 @@ def preview_cover_prompt(
     theme: str | None,
     language: str = "pt-BR",
 ) -> str:
-    """Prompt OpenAI para a capa da prévia (perfil mestre + landing)."""
+    """Prompt OpenAI para a capa da prévia (estilo landing)."""
     name = (child_name or "").strip()
     theme_bit = (theme or "").strip()
     is_en = (language or "").lower().startswith("en")
     is_es = (language or "").lower().startswith("es")
-    locks = f" {_STUDIO_IDENTITY_LOCK} {_STUDIO_TYPOGRAPHY_LOCK} {_STUDIO_ANIMAL_LOCK}"
     if is_en:
         who = f" featuring {name}" if name else ""
         theme_line = f" Theme mood: {theme_bit}." if theme_bit else ""
         return (
-            f"Premium children's book COVER{who}. Exact title text: '{title}'.{theme_line} "
-            "Front-facing square cover 20x20 cm look, soft rounded book corners, hero large and "
-            "centered, warm cinematic light, rich illustrated background, commercial catalog "
-            "quality. Print the exact title in locked rounded sans-serif navy #172A3A, fully "
-            "legible, inside the safe margin. No barcode, no photo frame, no watermark, no "
-            "extra text. Same face as the photo/avatar reference." + locks
+            f"Children's book COVER illustration{who}. Title concept: '{title}'.{theme_line} "
+            "Square book cover, hero character centered and large, warm cinematic light, "
+            "rich illustrated background, premium print look. No barcode, no photo frame, "
+            "no watermark. Leave a calm upper band for a title. Same face as the avatar reference."
         )
     if is_es:
         who = f" con {name}" if name else ""
         theme_line = f" Ambiente del tema: {theme_bit}." if theme_bit else ""
         return (
-            f"Portada premium de libro infantil{who}. Título exacto: '{title}'.{theme_line} "
-            "Portada cuadrada frontal 20x20 cm, esquinas suaves del libro físico, héroe grande "
-            "y centrado, luz cinematográfica cálida, fondo ilustrado rico, calidad de catálogo. "
-            "Escribe el título exacto en tipografía rounded sans-serif navy #172A3A, legible, "
-            "dentro del margen de seguridad. Sin código de barras, marco, marca de agua ni texto "
-            "extra. Misma cara que la foto/avatar." + locks
+            f"Portada de libro infantil ilustrada{who}. Concepto del título: '{title}'.{theme_line} "
+            "Formato cuadrado, personaje héroe grande y centrado, luz cinematográfica cálida, "
+            "fondo ilustrado rico, aspecto de impresión premium. Sin código de barras ni marco "
+            "de foto. Deja una franja superior tranquila para el título. Misma cara que el avatar."
         )
     who = f" com {name}" if name else ""
     theme_line = f" Clima do tema: {theme_bit}." if theme_bit else ""
     return (
-        f"Capa premium de livro infantil{who}. Titulo exato: '{title}'.{theme_line} "
-        "Capa de frente, quadrada 20x20 cm, cantos suaves do livro fisico, heroi grande e "
-        "central, luz cinematografica quente, cenario ilustrado rico, qualidade de catalogo. "
-        "Escreva o titulo exato na tipografia rounded sans-serif navy #172A3A, totalmente "
-        "legivel, dentro da margem de seguranca. Sem codigo de barras, moldura, marca d'agua "
-        "nem texto extra. Mesmo rosto da foto/avatar de referencia." + locks
-    )
-
-
-def preview_open_book_prompt(
-    *,
-    title: str,
-    page_text: str,
-    language: str = "pt-BR",
-) -> str:
-    """Prompt do livro aberto da prévia (duas páginas 20×20 lado a lado)."""
-    stanza = " ".join((page_text or "").strip().split())[:320]
-    is_en = (language or "").lower().startswith("en")
-    is_es = (language or "").lower().startswith("es")
-    locks = f" {_STUDIO_IDENTITY_LOCK} {_STUDIO_TYPOGRAPHY_LOCK}"
-    if is_en:
-        return (
-            f"Photoreal product shot of an OPEN square hardcover children's book. Title '{title}'. "
-            "Two square 20x20 cm pages side by side (~2:1), same size, natural center gutter, "
-            "no stretching. Left page: short warm stanza (2-5 lines) far from the gutter with "
-            f"matching illustration. Right page: natural continuation and illustration. Stanza "
-            f"to use: «{stanza}». Same locked rounded sans-serif navy typography as the cover. "
-            "Same child identity as the avatar/photo. Book fills most of the frame, studio light, "
-            "no collage, no watermark." + locks
-        )
-    if is_es:
-        return (
-            f"Foto de producto de un libro infantil de tapa dura ABIERTO. Título '{title}'. "
-            "Dos páginas cuadradas 20x20 cm lado a lado (~2:1), mismo tamaño, lomo central "
-            "natural, sin estirar. Página izquierda: estrofa corta (2-5 líneas) lejos del "
-            f"pliegue con ilustración. Página derecha: continuación e ilustración. Estrofa: "
-            f"«{stanza}». Misma tipografía rounded sans-serif navy de la portada. Misma "
-            "identidad del niño. El libro ocupa casi todo el cuadro. Sin collage ni marca de agua."
-            + locks
-        )
-    return (
-        f"Foto de produto de um livro infantil de capa dura ABERTO. Titulo '{title}'. "
-        "Duas paginas quadradas 20x20 cm lado a lado (~2:1), mesmo tamanho, dobra central "
-        "natural, sem esticar. Pagina esquerda: estrofe curta (2 a 5 linhas) longe da dobra "
-        f"com ilustracao. Pagina direita: continuacao e ilustracao. Estrofe: «{stanza}». "
-        "Mesma tipografia rounded sans-serif navy da capa. Mesma identidade da crianca. "
-        "O livro ocupa quase todo o quadro. Sem collage, sem marca d'agua." + locks
+        f"Capa de livro infantil ilustrada{who}. Conceito do título: '{title}'.{theme_line} "
+        "Formato quadrado, personagem herói grande e central, luz cinematográfica quente, "
+        "cenário ilustrado rico, visual de impressão premium. Sem código de barras, sem moldura "
+        "de foto, sem marca d'água. Deixe uma faixa superior calma para o título. "
+        "Mesmo rosto do avatar de referência."
     )
 
 
 def preview_in_hand_prompt(*, language: str = "pt-BR") -> str:
-    """Prompt da cena com a criança da foto original segurando o livro."""
+    """Prompt OpenAI para a foto lifestyle 'na mão' (como na landing)."""
     is_en = (language or "").lower().startswith("en")
     is_es = (language or "").lower().startswith("es")
-    locks = f" {_STUDIO_IDENTITY_LOCK}"
     if is_en:
         return (
-            "Photoreal lifestyle photo: the SAME child from the ORIGINAL PHOTO reference "
-            "holding or reading their hardcover square children's book. Warm home light, "
-            "shallow depth of field, pride and joy. The FIRST reference image is the BOOK "
-            "COVER — print that exact cover art on the physical book; do not reinvent the "
-            "cover. Extra references include the child's photo — use that face, not a generic "
-            "kid. Natural skin and hands, no illustration style on the person. Square crop, "
-            "marketing quality." + locks
+            "Photoreal lifestyle photo: a child or parent holding an open hardcover children's "
+            "book in their hands, cozy home light, shallow depth of field. The FIRST reference "
+            "image is the BOOK COVER — print that exact cover art on the front of the physical "
+            "book being held. Natural skin, real hands, no illustration style on the person. "
+            "Square crop, marketing quality like a product hero shot."
         )
     if is_es:
         return (
-            "Foto lifestyle fotorrealista: el MISMO niño de la FOTO ORIGINAL sostiene o lee "
-            "su libro infantil cuadrado de tapa dura. Luz hogareña, orgullo y alegría. La "
-            "PRIMERA imagen de referencia es la PORTADA — imprímela exactamente en el libro "
-            "físico; no reinventes la portada. Las referencias extra incluyen la foto del "
-            "niño — usa esa cara, no un niño genérico. Piel y manos reales. Recorte cuadrado."
-            + locks
+            "Foto lifestyle fotorrealista: un niño o un adulto sostiene un libro infantil de "
+            "tapa dura abierto entre las manos, luz hogareña cálida, poca profundidad de campo. "
+            "La PRIMERA imagen de referencia es la PORTADA — imprime exactamente ese arte en la "
+            "tapa del libro físico. Piel y manos reales, sin estilo ilustrado en la persona. "
+            "Recorte cuadrado, calidad de foto publicitaria."
         )
     return (
-        "Foto lifestyle fotorrealista: a MESMA crianca da FOTO ORIGINAL segura ou le o "
-        "proprio livro infantil quadrado de capa dura. Luz de casa, carinho e orgulho. A "
-        "PRIMEIRA imagem de referencia e a CAPA — imprima exatamente essa arte no livro "
-        "fisico; nao reinvente a capa. As referencias extras incluem a foto da crianca — "
-        "use esse rosto, nao uma crianca generica. Pele e maos reais, sem estilo ilustrado "
-        "na pessoa. Enquadramento quadrado, qualidade de catalogo." + locks
+        "Foto lifestyle fotorrealista: uma criança ou um adulto segura um livro infantil de capa "
+        "dura aberto nas mãos, luz aconchegante de casa, pouca profundidade de campo. A PRIMEIRA "
+        "imagem de referência é a CAPA — imprima exatamente essa arte na capa do livro físico. "
+        "Pele e mãos reais, sem estilo ilustrado na pessoa. Enquadramento quadrado, qualidade de "
+        "foto de produto/marketing."
     )

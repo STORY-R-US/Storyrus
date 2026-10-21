@@ -599,6 +599,13 @@ LEARNING_GOALS: dict[str, dict[str, dict[str, str]]] = {
 
 async def handle_story(db: Session, job: Job) -> None:
     project = _project(db, job)
+    from app.services import book_profile
+
+    if book_profile.enabled(project):
+        from . import master_book
+
+        await master_book.story(db, job, project)
+        return
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
 
     theme = project.theme or "adventure"
@@ -955,7 +962,7 @@ async def _compose_storyboard(
     require_ai: bool = False,
     job: Job | None = None,
 ) -> dict:
-    """Carrega o storyboard se bater com as paginas; senao gera (GPT ou fallback)."""
+    """Carrega o storyboard se bater com as paginas; senao gera (OpenAI ou fallback)."""
     existing = _latest_storyboard(db, project)
     if existing and len(existing.get("scenes") or []) == len(pages):
         return existing
@@ -1376,16 +1383,12 @@ def _set_job_progress(job: Job, *, stage: str, done: int, total: int) -> None:
 def _persist_page_image(db: Session, project: Project, idx: int, scene: ImageResult) -> None:
     img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
     storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
-    meta: dict = {"page": idx}
-    if (scene.meta or {}).get("generic"):
-        meta["generic"] = True
-        meta["provider"] = "generic"
     db.add(
         Asset(
             project_id=project.id,
             kind=AssetKind.PAGE_IMAGE.value,
             storage_key=img_key,
-            meta=meta,
+            meta={"page": idx},
         )
     )
 

@@ -128,10 +128,16 @@ export type StudioCopy = {
   previewRetry: string;
   previewTrioTitle: string;
   previewTrioHint: string;
-  genericImagesNotice: string;
   previewCover: string;
+  previewCoverHint: string;
   previewPage: string;
   previewInHand: string;
+  previewInHandHint: string;
+  previewFicha: string;
+  previewFichaHint: string;
+  previewOpenBook: string;
+  previewOpenHint: string;
+  previewMasterMove: string;
   changesTitle: string;
   photoChanges: string;
   photoChangesPh: string;
@@ -443,7 +449,7 @@ const pt: StudioCopy = {
   orderSent: "Projeto criado",
   orderFollowup: "Revise a história e as imagens. Se quiser mudar algo, diga abaixo.",
   previewCta: "Gerar prévia",
-  previewHint: "Gera personagem, história e o trio da prévia: capa, livro aberto e criança com o livro.",
+  previewHint: "Gera personagem, história e o trio da prévia: capa, 1 página e foto na mão (OpenAI).",
   previewRunning: "Gerando prévia…",
   previewBuilding: "Estamos montando sua prévia…",
   previewStay: "Fique nesta tela. Ela atualiza sozinha.",
@@ -475,12 +481,17 @@ const pt: StudioCopy = {
   },
   previewRetry: "Tentar prévia de novo",
   previewTrioTitle: "Prévia do livro",
-  previewTrioHint: "Capa, livro aberto e criança com o livro — como na vitrine.",
-  genericImagesNotice:
-    "A geração de imagens está sem créditos. Estas figuras são genéricas para você continuar a criação do livro.",
+  previewTrioHint: "Capa, página e foto na mão — como na vitrine.",
   previewCover: "Capa",
-  previewPage: "Livro aberto",
-  previewInHand: "Criança com o livro",
+  previewCoverHint: "A capa usa a foto e o título.",
+  previewPage: "Página",
+  previewInHand: "Na mão",
+  previewInHandHint: "A leitura mostra o livro impresso.",
+  previewFicha: "Ficha",
+  previewFichaHint: "A foto define figurino, paleta e os textos da prévia.",
+  previewOpenBook: "Livro aberto",
+  previewOpenHint: "As duas páginas usam o texto da ficha.",
+  previewMasterMove: "A ficha sai primeiro. Em seguida vêm a capa, o livro aberto e a leitura.",
   changesTitle: "Quer alterar algo?",
   photoChanges: "Alterações nas fotos",
   photoChangesPh: "Ex.: trocar a foto do protagonista, incluir o irmão…",
@@ -696,7 +707,7 @@ const en: StudioCopy = {
   orderSent: "Project created",
   orderFollowup: "Review the story and images. If you want changes, tell us below.",
   previewCta: "Generate preview",
-  previewHint: "Builds character, story, and the preview trio: cover, open book, and child with the book.",
+  previewHint: "Builds character, story, and the preview trio: cover, 1 page, and in-hand photo (OpenAI).",
   previewRunning: "Generating preview…",
   previewBuilding: "We're building your preview…",
   previewStay: "Stay on this screen. It updates on its own.",
@@ -728,12 +739,17 @@ const en: StudioCopy = {
   },
   previewRetry: "Retry preview",
   previewTrioTitle: "Book preview",
-  previewTrioHint: "Cover, open book, and child with the book — like the storefront.",
-  genericImagesNotice:
-    "Image generation is out of credits. These pictures are generic so you can keep creating the book.",
+  previewTrioHint: "Cover, page, and in-hand shot — like the storefront.",
   previewCover: "Cover",
-  previewPage: "Open book",
-  previewInHand: "Child with the book",
+  previewCoverHint: "The cover uses the photo and the title.",
+  previewPage: "Page",
+  previewInHand: "In hand",
+  previewInHandHint: "The reading shot shows the printed book.",
+  previewFicha: "Profile",
+  previewFichaHint: "The photo sets the costume, palette, and preview text.",
+  previewOpenBook: "Open book",
+  previewOpenHint: "Both pages use the text from the profile.",
+  previewMasterMove: "The profile comes first. Then the cover, the open book, and the reading shot.",
   changesTitle: "Want to change something?",
   photoChanges: "Photo changes",
   photoChangesPh: "e.g. swap the hero photo, include a sibling…",
@@ -949,7 +965,7 @@ const es: StudioCopy = {
   orderSent: "Proyecto creado",
   orderFollowup: "Revisa la historia y las imágenes. Si quieres cambiar algo, escríbelo abajo.",
   previewCta: "Generar vista previa",
-  previewHint: "Genera personaje, historia y el trío de vista previa: portada, libro abierto y niño con el libro.",
+  previewHint: "Genera personaje, historia y el trío de vista previa: portada, 1 página y foto en mano (OpenAI).",
   previewRunning: "Generando vista previa…",
   previewBuilding: "Estamos preparando tu vista previa…",
   previewStay: "Quédate en esta pantalla. Se actualiza sola.",
@@ -981,12 +997,17 @@ const es: StudioCopy = {
   },
   previewRetry: "Reintentar vista previa",
   previewTrioTitle: "Vista previa del libro",
-  previewTrioHint: "Portada, libro abierto y niño con el libro — como en la vitrina.",
-  genericImagesNotice:
-    "La generación de imágenes está sin créditos. Estas figuras son genéricas para que puedas seguir creando el libro.",
+  previewTrioHint: "Portada, página y foto en mano — como en la vitrina.",
   previewCover: "Portada",
-  previewPage: "Libro abierto",
-  previewInHand: "Niño con el libro",
+  previewCoverHint: "La portada usa la foto y el título.",
+  previewPage: "Página",
+  previewInHand: "En mano",
+  previewInHandHint: "La lectura muestra el libro impreso.",
+  previewFicha: "Ficha",
+  previewFichaHint: "La foto define vestuario, paleta y los textos de la vista previa.",
+  previewOpenBook: "Libro abierto",
+  previewOpenHint: "Las dos páginas usan el texto de la ficha.",
+  previewMasterMove: "Primero sale la ficha. Después vienen la portada, el libro abierto y la lectura.",
   changesTitle: "¿Quieres cambiar algo?",
   photoChanges: "Cambios en las fotos",
   photoChangesPh: "Ej.: cambiar la foto del protagonista, incluir al hermano…",

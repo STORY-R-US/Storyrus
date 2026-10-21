@@ -374,14 +374,12 @@ def _collect_orders(
                 elif latest.type == "EBOOK":
                     # Legacy zero-cost preview jobs were produced by the old
                     # default demo mode, before provenance was recorded.
-                    if provider in {"demo", "generic"} or (
+                    if provider == "demo" or (
                         provider is None
                         and latest.cost_usd == 0
                         and _meta_dict(result.get("payload")).get("preview_chain")
                     ):
-                        generation_status = "demo"
-                        if provider != "generic":
-                            provider = "demo"
+                        generation_status, provider = "demo", "demo"
                     elif result.get("preview_complete") is False:
                         generation_status = "partial"
                     else:

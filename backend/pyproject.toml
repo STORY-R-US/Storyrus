@@ -54,7 +54,7 @@ asyncio_mode = "auto"
 [tool.coverage.run]
 branch = false
 source = ["app"]
-omit = ["app/ai_clients/text_anthropic.py"]
+omit = []
 
 [tool.coverage.report]
 show_missing = true

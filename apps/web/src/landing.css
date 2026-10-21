@@ -494,38 +494,48 @@ a.kcat-group-name.is-chip:focus-visible {
 .khero-intro .keyebrow { margin: 0; }
 .hero-carousel {
   overflow: hidden;
-  align-self: center;
-  /* Largura medida da linha do título ("inesquecível" → "protagonista").
-     O JS grava width em px: no Safari, width:100% num flex column com
-     align-items:center encolhe a faixa e corta as fotos. */
-  width: min(100%, var(--hero-w, 848px));
-  max-width: 100%;
-  margin: 8px auto 0;
-  padding: 14px 0 16px;
-  box-sizing: border-box;
-}
-.hero-carousel-track {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  background: #0b1226;
-  transition: transform 0.4s ease;
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-}
-
-.hero-series {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 0;
-  border-radius: 10px;
-  margin: 0;
-  flex: 0 0 100%;
+  width: 100%;
+  /* Largura medida da linha do título ("inesquecível" → "protagonista"). */
+  max-width: var(--hero-w, 848px);
+  margin: 8px auto 0;
+  padding: 14px 0 16px;
+  /* Reserva a altura do trio mais alto para a faixa não empurrar o livro abaixo. */
+  min-height: calc(var(--hero-shot-max, 64px) + 32px);
   box-sizing: border-box;
+}
+.hero-carousel-track {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  background: transparent;
+}
+
+.hero-series {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  visibility: hidden;
+  pointer-events: none;
+}
+.hero-series.on {
+  position: relative;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .hero-series-inner {
@@ -546,21 +556,19 @@ a.kcat-group-name.is-chip:focus-visible {
 }
 
 .hero-series.on .hero-series-inner {
-  border-color: #fff;
-  box-shadow: 0 0 0 1px #fff, 0 0 10px rgba(255, 255, 255, 0.7), 0 8px 18px rgba(0, 0, 0, 0.16);
+  border-color: transparent;
+  box-shadow: 0 14px 32px rgba(11, 18, 38, 0.28);
 }
 .hero-shot {
-  height: var(--hero-shot-h, clamp(150px, 13vw, 190px));
+  height: var(--hero-shot-h, clamp(64px, 18vw, 220px));
   width: auto;
-  max-width: none;
+  max-width: 100%;
   flex: 0 0 auto;
-  min-width: auto;
+  min-width: 0;
   margin: 0;
   border: 0;
   border-radius: 0;
   padding: 0;
-  appearance: none;
-  -webkit-appearance: none;
   /* Fundo branco: varias capas do hero sao PNG com transparencia e, com fundo
      escuro aqui, o azul-marinho aparecia atras delas. */
   background: #fff;
@@ -571,22 +579,23 @@ a.kcat-group-name.is-chip:focus-visible {
   line-height: 0;
   overflow: hidden;
   box-sizing: border-box;
-  transition: box-shadow 0.2s ease;
-  opacity: 1;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+  opacity: 0.85;
 }
 /* O filete entre as fotos é o fundo branco da moldura visto pelo gap de 2px. */
 .hero-shot:hover:not(:disabled) {
   box-shadow: none;
+  opacity: 0.95;
 }
 .hero-shot.on {
   box-shadow: none;
+  opacity: 1;
 }
 .hero-shot img {
   display: block;
   height: 100%;
   width: auto;
-  max-width: none;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
   box-sizing: border-box;
   border: 0;
@@ -835,7 +844,6 @@ a.kcat-group-name.is-chip:focus-visible {
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 12px; gap: 14px; }
   .khero-intro { gap: 32px; }
-  .hero-shot { height: min(180px, 52vw); width: auto; flex-basis: auto; }
   .khero-flipbook .fb-board { gap: 0; }
   .khero-flipbook .fb-nav {
     position: absolute; z-index: 4; width: 40px; height: 40px; font-size: 1.4rem;
@@ -1380,6 +1388,26 @@ a.kcat-group-name.is-chip:focus-visible {
 }
 .howex-card .howex-lead h3 { margin: 0; color: #fff; font-size: 1.08rem; line-height: 1.25; min-height: 0; text-wrap: balance; }
 .howex-card .howex-lead p { margin: 0; color: #b9c2dc; font-weight: 600; font-size: .92rem; line-height: 1.4; }
+.howex > .howex-card-frame {
+  display: flex; flex-direction: column; grid-template-rows: none;
+}
+.howex-card-frame .howex-media { flex: none; }
+.howex-frame { cursor: grab; touch-action: none; }
+.howex-frame:active { cursor: grabbing; }
+.howex-frame img { user-select: none; -webkit-user-drag: none; }
+.frame-hint { margin: 0 0 12px; }
+.frame-controls {
+  display: grid; gap: 6px; padding: 8px 10px 0;
+}
+.frame-controls label {
+  display: grid; gap: 4px; color: #b9c2dc; font-size: .8rem; font-weight: 700;
+}
+.frame-controls input[type="range"] { width: 100%; accent-color: var(--yellow); }
+.frame-controls button {
+  border: 0; border-radius: 999px; background: var(--yellow); color: #1f3568;
+  font: inherit; font-weight: 800; padding: 8px 12px; cursor: pointer;
+}
+.frame-status { color: #d7e2ff; font-size: .8rem; font-weight: 700; text-align: center; }
 .howex-arrow { color: var(--yellow); align-self: center; animation: nudge 1.5s ease-in-out infinite; }
 .howex-arrow svg { width: 34px; height: 20px; }
 
@@ -1541,17 +1569,8 @@ img.ex-tab-cover {
     will-change: auto;
     transform: none;
   }
-  .hero-carousel-track {
-    animation: none;
-    transition: none;
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-    will-change: auto;
-    transform: none;
-  }
+  .hero-carousel-track { transition: none; }
   .rev-carousel .rev-photo { width: min(168px, 42vw); flex-basis: min(168px, 42vw); }
-  .hero-shot { height: min(180px, 52vw); width: auto; flex-basis: auto; }
 }
 .rev-photo {
   margin: 0;
@@ -1780,36 +1799,44 @@ img.ex-tab-cover {
   aspect-ratio: auto;
   height: auto;
   overflow: visible;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   border-radius: 0;
+}
+#catalogo.book-page .book-series-shot {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#catalogo.book-page .book-series-frame {
+  position: relative;
   width: 100%;
-}
-#catalogo.book-page .book-series .flipbook-square {
-  width: 100%;
-}
-#catalogo.book-page .book-series .flipbook-square .fb-board {
-  gap: 0;
-}
-#catalogo.book-page .book-series .flipbook-square .fb-stage {
-  background: transparent;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 10px;
-  filter: drop-shadow(0 18px 32px rgba(31, 53, 104, 0.22));
 }
-#catalogo.book-page .book-series .flipbook-square .fb-stage::before { display: none; }
-#catalogo.book-page .book-series .flipbook-square .fb-spine { display: none; }
-#catalogo.book-page .book-series .flipbook-square img.fb-page {
-  object-fit: contain;
-  object-position: center;
-  background: transparent;
-  border-radius: 10px;
-}
-#catalogo.book-page .book-series .flipbook-square .fb-nav {
+#catalogo.book-page .book-series-shot .cat-book {
   position: absolute;
-  z-index: 4;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
-#catalogo.book-page .book-series .flipbook-square .fb-nav:first-child { left: 10px; }
-#catalogo.book-page .book-series .flipbook-square .fb-nav:last-of-type { right: 10px; }
+#catalogo.book-page .book-series-shot .cat-book[data-size="P"] {
+  inset: 12.5%;
+  width: auto;
+  height: auto;
+}
+#catalogo.book-page .book-series-shot figcaption {
+  margin: 0;
+  font-family: "Baloo 2", cursive;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--yellow);
+}
+[data-theme="light"] .kid .book-page .book-series-shot figcaption { color: #1f3568; }
 .book-page .book-tag {
   display: inline-block;
   align-self: flex-start;

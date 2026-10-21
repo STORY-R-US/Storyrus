@@ -67,10 +67,18 @@ def _next_payload(source_job: Job, next_type: JobType) -> dict:
 
 
 def finalize_preview_ebook(db: Session, project: Project, source_job: Job) -> None:
-    """Marca o livro aprovado ao fim da prévia (sem enfileirar vídeo)."""
+    """A prévia pronta aguarda a aprovação explícita da família."""
     if not is_preview_chain(source_job):
         return
-    project.book_approved_at = _now()
+    from app.services import purchase_flow
+
+    project.book_approved_at = None
+    purchase_flow.update(
+        project,
+        preview_ready_at=purchase_flow.timestamp(),
+        preview_approved_at=None,
+        stage="preview_ready",
+    )
     # Só avisa o cliente uma vez: a marca é gravada antes do envio (at-most-once).
     notify_email = _preview_recipient(db, project) if project.preview_notified_at is None else None
     if project.preview_notified_at is None:
@@ -80,7 +88,7 @@ def finalize_preview_ebook(db: Session, project: Project, source_job: Job) -> No
     try:
         from app.printkit.service import open_print_order
 
-        open_print_order(db, project, requested=False)
+        open_print_order(db, project, requested=False, prepare=False)
         nested.commit()
     except Exception:
         nested.rollback()

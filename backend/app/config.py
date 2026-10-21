@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     guest_rate_limit_per_ip: int = 10
     guest_rate_limit_per_fingerprint: int = 5
     guest_rate_limit_window_s: int = 3600
+    # Recuperar uma conta existente tem cota própria; não cria convidados/créditos.
+    session_resume_rate_limit_per_ip: int = 120
+    session_resume_rate_limit_per_user: int = 30
+    session_resume_rate_limit_window_s: int = 60
     # Verificação de e-mail + envio (Resend opcional).
     email_verify_ttl_min: int = 60 * 24
     # Redefinição de senha (JWT purpose=password_reset).
@@ -128,9 +132,6 @@ class Settings(BaseSettings):
     # Alarmes no /gastos: razao do teto USD e piso absoluto opcional.
     spend_anomaly_warn_ratio: float = 0.8
     spend_anomaly_usd: float = 0.0
-    price_claude_input_per_mtok: float = 15.0
-    price_claude_output_per_mtok: float = 75.0
-    # GPT-4.1: texto da história, do roteiro e das legendas.
     price_openai_text_input_per_mtok: float = 2.0
     price_openai_text_output_per_mtok: float = 8.0
     price_kling_per_second_usd: float = 0.10
@@ -170,15 +171,13 @@ class Settings(BaseSettings):
     webhook_max_age_s: float = 300.0
 
     # Provedores de IA
-    anthropic_api_key: str | None = None  # só se TEXT_PROVIDER=claude
     # Video Kling: preferir KLING_API_KEY (Bearer novo). AK/SK = legado JWT.
     kling_api_key: str | None = None
     kling_access_key: str | None = None
     kling_secret_key: str | None = None
     elevenlabs_api_key: str | None = None  # TTS video narrado
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
-    openai_api_key: str | None = None  # GPT Image, história e juiz
-    openai_text_model: str = "gpt-4.1"
+    openai_api_key: str | None = None  # texto, GPT Image e juiz de historia
     openai_image_model: str = "gpt-image-1"
     openai_image_quality: Literal["auto", "low", "medium", "high"] = "high"
     openai_image_size_portrait: str = "1024x1536"
@@ -190,8 +189,12 @@ class Settings(BaseSettings):
     openai_retry_base_s: float = 2.0
     openai_retry_max_s: float = 60.0
     openai_story_judge_model: str = "gpt-4o-mini"
+    openai_text_model: str = "gpt-4.1"
     # Retries do juiz de rosto (InsightFace) no avatar/paginas.
     face_match_retries: int = 3
+    # O modelo local buffalo_l consome mais memoria do que a instancia web
+    # pequena do Render suporta. Em ambientes maiores, pode ser reativado.
+    avatar_face_match: bool = True
     # TLS do cliente Opik: true | system | false
     opik_ssl_verify: str = "true"
 

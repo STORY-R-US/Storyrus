@@ -87,7 +87,9 @@ def request_print(
 ) -> Project:
     """Abre o pedido impresso. Sem spec completa, não publica arquivo de produção."""
     project = get_owned_project(db, user, project_id)
-    if not project.book_approved_at:
+    if not project.book_approved_at and not (project.purchase_flow or {}).get(
+        "preview_approved_at"
+    ):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Aprove o livro antes de pedir o impresso")
     if not project.ebook_url:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "E-book ausente")
@@ -115,7 +117,10 @@ def save_print_address(
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
-    apply_address(order, body.model_dump())
+    try:
+        apply_address(order, body.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     if not address_complete(order):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Endereço de entrega incompleto.")
     db.commit()
@@ -147,12 +152,14 @@ def quote_print_freight(
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
+    if order.payment_status in {"paid", "pending"}:
+        raise HTTPException(409, "O frete não pode mudar depois de iniciar o pagamento.")
     try:
         options = quote_order(order)
     except ShippingNotConfigured as exc:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
-            "Frete ainda não configurado: " + ", ".join(exc.gaps),
+            "A cotação automática de frete está indisponível. Salve o pedido como cotação para continuar depois.",
         ) from exc
     except ShippingError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
@@ -171,6 +178,8 @@ def choose_print_freight(
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
+    if order.payment_status in {"paid", "pending"}:
+        raise HTTPException(409, "O frete não pode mudar depois de iniciar o pagamento.")
     try:
         select_freight(order, body.service_id)
     except ShippingError as exc:
@@ -188,6 +197,7 @@ def checkout_print(
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
+    db.refresh(order, with_for_update=True)
     try:
         charge = start_checkout(order, body.installments)
     except GatewayNotConfigured as exc:

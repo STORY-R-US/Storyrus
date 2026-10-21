@@ -37,8 +37,8 @@ from app.schemas import (
     StoryTextIn,
     VideoRequestIn,
 )
+from app.services import book_profile, preview_chain, purchase_flow
 from app.services import jobs as jobs_svc
-from app.services import preview_chain
 
 from .common import accept_job, get_owned_project
 
@@ -55,6 +55,12 @@ def start_avatar(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
+    book_profile.require_stage(project, "story_approved", "preview_approved", "avatar_ready")
     has_photo = db.scalar(
         select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
     )
@@ -105,8 +111,16 @@ def start_story(
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
-    """Inventar uma história com IA (GPT)."""
+    """Inventar uma história com IA (OpenAI)."""
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        stage = (project.book_profile or {}).get("stage")
+        if stage not in {"preview_ready", "story_ready"}:
+            purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
+    book_profile.require_stage(project, "preview_ready", "preview_approved", "story_ready")
     payload: dict | None = None
     brief = (body.brief if body else None) or None
     if brief and brief.strip():
@@ -132,10 +146,12 @@ def start_preview(
 ) -> JobAcceptedOut:
     """Gera a prévia no Studio: avatar → história → ebook (3 págs) → vídeo.
 
-    Auto-aprova personagem e livro ao longo da cadeia. Requer foto. Bloqueia se
+    Aprova o personagem durante a cadeia; a família aprova a prévia e o livro. Requer foto. Bloqueia se
     já houver uma prévia PENDING/RUNNING no projeto.
     """
     project = get_owned_project(db, user, project_id)
+    purchase_flow.require_unpaid(db, project)
+    purchase_flow.reset_preview(project, force=True)
     has_photo = db.scalar(
         select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
     )
@@ -146,12 +162,37 @@ def start_preview(
     if idempotency_key:
         existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
         if existing is not None:
+            if existing.project_id != project.id:
+                raise HTTPException(409, "Chave de geracao ja utilizada em outro projeto")
             return accept_job(existing)
 
     if preview_chain.has_active_preview(db, project.id):
         raise HTTPException(
             status.HTTP_409_CONFLICT,
             "Já existe uma prévia em andamento para este projeto",
+        )
+
+    if book_profile.enabled(project):
+        book_profile.require_stage(project, "ficha", "preview_ready")
+        photos = db.scalars(
+            select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+        ).all()
+        book_profile.validate_ficha(project, photos)
+        payload = {preview_chain.PREVIEW_FLAG: True, "master_preview": True}
+        if body:
+            payload.update(body.model_dump(exclude_none=True, exclude={"brief"}))
+        if payload.get("language") and payload["language"] not in project.book_profile["languages"]:
+            raise HTTPException(400, "Idioma nao pertence a ficha deste livro")
+        project.book_approved_at = None
+        return accept_job(
+            jobs_svc.enqueue_job(
+                db,
+                user=user,
+                project=project,
+                job_type=JobType.EBOOK,
+                idempotency_key=idempotency_key,
+                payload=payload,
+            )
         )
 
     payload: dict = {preview_chain.PREVIEW_FLAG: True}
@@ -215,10 +256,27 @@ def set_story_text(
 ) -> Project:
     """Usar uma história fornecida pelo usuário (digitada ou colada). Sem IA, sem créditos."""
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
+    book_profile.require_stage(project, "story_ready")
     text = body.story_text.strip()
     if not text:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "História vazia")
     project.story_text = text
+    if book_profile.enabled(project):
+        from app.workers.handlers.common import _parse_pages, _parse_title
+
+        if (
+            len(_parse_pages(text)) != 16
+            or _parse_title(text) != project.book_profile["locales"][project.language]["title"]
+        ):
+            raise HTTPException(400, "Preserve o titulo aprovado e as 16 paginas")
+        book_profile.update(
+            project, stories={**project.book_profile["stories"], project.language: text}
+        )
     project.status = ProjectStatus.STORY_READY.value
     rid = get_request_id()
     # Registra um job concluído para a história aparecer no progresso, sem custo.
@@ -262,6 +320,13 @@ def apply_story_template(
     padrão ('Título:' + 'Página N:'), com {NOME} substituído pelo nome do projeto.
     """
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        purchase_flow.require_paid(db, project)
+    else:
+        purchase_flow.require_unpaid(db, project)
+        purchase_flow.reset_preview(project)
+    if book_profile.enabled(project):
+        raise HTTPException(409, "A historia deste livro e criada depois de aprovar a previa")
     name = (project.child_name or "").strip()
     if not name:
         raise HTTPException(
@@ -338,6 +403,12 @@ def start_ebook(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
     project = get_owned_project(db, user, project_id)
+    if book_profile.enabled(project):
+        raise HTTPException(409, "Use a etapa de paginas: uma pagina por vez apos aprovar o rosto")
+    if (project.purchase_flow or {}).get("stage"):
+        from .purchase import generate_book
+
+        return generate_book(project_id, user, db)
     project.book_approved_at = None
     # Pedido impresso antigo não pode impedir o ebook.
     try:

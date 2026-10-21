@@ -33,24 +33,12 @@ def image_cost(usage: dict | None = None) -> float:
 
 
 def text_cost(usage: dict | None = None) -> float:
-    """Custo Claude a partir do bloco `usage` da Messages API."""
+    """Custo do texto OpenAI a partir de `prompt_tokens` e `completion_tokens`."""
     usage = usage or {}
-    inp = _f(usage.get("input_tokens", usage.get("inputTokens")))
-    out = _f(usage.get("output_tokens", usage.get("outputTokens")))
-    if not inp and not out:
-        return 0.0
-    total = (
-        inp / 1_000_000 * settings.price_claude_input_per_mtok
-        + out / 1_000_000 * settings.price_claude_output_per_mtok
+    inp = _f(usage.get("prompt_tokens", usage.get("input_tokens", usage.get("inputTokens"))))
+    out = _f(
+        usage.get("completion_tokens", usage.get("output_tokens", usage.get("outputTokens")))
     )
-    return round(total, 6)
-
-
-def openai_text_cost(usage: dict | None = None) -> float:
-    """Custo do GPT a partir do `usage` do Chat Completions."""
-    usage = usage or {}
-    inp = _f(usage.get("prompt_tokens", usage.get("input_tokens")))
-    out = _f(usage.get("completion_tokens", usage.get("output_tokens")))
     if not inp and not out:
         return 0.0
     total = (
@@ -86,7 +74,7 @@ def estimate_job_usd(job_type: str | Any) -> float:
     if t == "STORYBOARD":
         return round(img * 2.0, 6)
     if t == "STORY":
-        # História curta no GPT: ~ordem de alguns centavos.
+        # Texto curto: ~ordem de alguns centavos.
         return 0.05
     if t == "EBOOK":
         pages = max(int(settings.ebook_pages or 1), 1)

@@ -68,6 +68,16 @@ def _page_images(db: Session, project: Project) -> list[bytes]:
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
         .order_by(Asset.created_at.asc())
     ).all()
+    if (project.book_profile or {}).get("version") == 1:
+        rows = [
+            row
+            for row in rows
+            if (row.meta or {}).get("workflow") == 1
+            and (row.meta or {}).get("role") == "com_texto"
+            and (row.meta or {}).get("language") == project.language
+        ]
+        if len(rows) != 16:
+            return []
     ordered = sorted(rows, key=lambda row: int((row.meta or {}).get("page") or 0))
     images: list[bytes] = []
     for row in ordered:
@@ -86,7 +96,20 @@ def _store_pdf(project_id: uuid.UUID, kind: str, blob: bytes) -> str:
 
 def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     """Gera capa e miolo só com a spec completa. Caso contrário não publica arquivo."""
-    if order.status in {"sent_for_validation", "approved"} or order.payment_status == "paid":
+    flow = project.purchase_flow or {}
+    if flow.get("preview_ready_at") and not flow.get("full_book_ready_at"):
+        order.status = "awaiting_payment" if order.payment_status != "paid" else "generating_book"
+        order.cover_key = order.interior_key = None
+        _sync(project, order)
+        return
+    if flow.get("full_book_ready_at") and not project.book_approved_at:
+        order.status = "awaiting_customer_approval"
+        order.cover_key = order.interior_key = None
+        _sync(project, order)
+        return
+    if order.status in {"sent_for_validation", "approved"} or (
+        order.payment_status == "paid" and order.cover_key and order.interior_key
+    ):
         return
     order.book_size = project.book_size
     order.cover_type = project.cover_type
@@ -134,6 +157,7 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
             cover_type=order.cover_type,
             spec=spec,
             interior_pages=pages,
+            front_cover=_approved_cover(db, project),
         )
     except PrintPagesMissing:
         order.status = "awaiting_pages"
@@ -154,6 +178,18 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     order.status = "files_ready"
     order.block_reason = None
     _sync(project, order)
+
+
+def _approved_cover(db: Session, project: Project) -> bytes | None:
+    if not (project.book_profile or {}).get("version") == 1:
+        return None
+    rows = db.scalars(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
+    ).all()
+    for row in rows:
+        if (row.meta or {}).get("language") == project.language:
+            return storage.get_bytes(row.storage_key)
+    return None
 
 
 def _seed_delivery(order: PrintOrder, project: Project) -> None:
@@ -267,6 +303,10 @@ def package_zip(order: PrintOrder) -> bytes:
 
 
 def advance_validation(order: PrintOrder, target: str) -> None:
+    if (order.project.purchase_flow or {}).get("preview_approved_at") and (
+        not order.project.book_approved_at or order.payment_status != "paid"
+    ):
+        raise ValueError("A família precisa aprovar o livro completo e confirmar o pagamento")
     allowed = _FORWARD.get(order.status, frozenset())
     if target not in allowed:
         raise ValueError(order.status)
@@ -292,9 +332,21 @@ def set_quantity(order: PrintOrder, quantity: int) -> None:
     if order.payment_status in {"paid", "pending"}:
         raise ValueError("A quantidade não pode mudar depois do pagamento.")
     order.quantity = quantity
+    _clear_freight(order)
+
+
+def _clear_freight(order: PrintOrder) -> None:
+    order.freight_options = None
+    order.freight_service_id = None
+    order.freight_service_name = None
+    order.freight_price_cents = None
+    order.freight_days = None
 
 
 def apply_address(order: PrintOrder, data: dict) -> None:
+    if order.payment_status in {"paid", "pending"}:
+        raise ValueError("O endereço não pode mudar depois de iniciar o pagamento.")
+    _clear_freight(order)
     order.recipient_name = data["recipient_name"].strip()
     order.postal_code = "".join(ch for ch in data["postal_code"] if ch.isdigit())
     order.street = data["street"].strip()
@@ -310,7 +362,7 @@ def quote_order(order: PrintOrder):
 
     if not address_complete(order):
         raise ShippingError("Endereço de entrega incompleto.")
-    options = quote_freight(order.postal_code or "")
+    options = quote_freight(order.postal_code or "", quantity=max(1, order.quantity or 1))
     order.freight_options = [item.as_dict() for item in options]
     order.freight_service_id = None
     order.freight_service_name = None
@@ -338,7 +390,15 @@ def start_checkout(order: PrintOrder, installments: int):
         raise ValueError("Tamanho do livro ausente.")
     if order.status == "held":
         raise ValueError(order.block_reason or "Formato ainda não liberado.")
-    if order.status not in _FILE_STATUSES:
+    purchase = bool((order.project.purchase_flow or {}).get("preview_approved_at"))
+    if purchase and (
+        (order.project.purchase_flow or {}).get("stage") != "awaiting_payment"
+        or any(job.status in {"PENDING", "RUNNING"} for job in order.project.jobs)
+    ):
+        raise ValueError("Revise a prévia atualizada antes de iniciar o pagamento.")
+    if order.payment_status in {"paid", "pending"}:
+        raise ValueError("Este pedido já está pago ou tem um pagamento em andamento.")
+    if order.status not in _FILE_STATUSES and not (purchase and order.status == "awaiting_payment"):
         raise ValueError("Os arquivos de produção ainda não estão prontos.")
     if not address_complete(order):
         raise ValueError("Endereço de entrega incompleto.")
@@ -354,6 +414,10 @@ def start_checkout(order: PrintOrder, installments: int):
         installments=installments,
     )
     order.payment_status = "pending"
+    if purchase:
+        from app.services import purchase_flow
+
+        purchase_flow.update(order.project, stage="awaiting_payment_confirmation")
     order.payment_provider = charge.provider
     order.payment_reference = charge.reference
     order.amount_cents = amount
@@ -363,6 +427,21 @@ def start_checkout(order: PrintOrder, installments: int):
 def fulfill_payment(db: Session, order: PrintOrder) -> None:
     if order.payment_status != "paid":
         order.payment_status = "paid"
+    if (order.project.purchase_flow or {}).get("preview_approved_at"):
+        from app.services.purchase_flow import enqueue_paid_book
+
+        enqueue_paid_book(db, order)
+        return
+    prepare_shipping_label(db, order)
+
+
+def prepare_shipping_label(db: Session, order: PrintOrder) -> None:
+    if (order.project.purchase_flow or {}).get("preview_approved_at") and (
+        order.payment_status != "paid"
+        or not order.project.book_approved_at
+        or order.status != "approved"
+    ):
+        return
     if order.tracking_code:
         return
     try:

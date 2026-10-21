@@ -1,31 +1,11 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { formatCep, useCepLookup } from "../cepLookup";
-import type { PrintAddress, PrintOrder } from "../types";
+import type { PrintAddress, PrintOrder, Project } from "../types";
 import { useStudioI18n } from "./useStudioI18n";
+import { money, purchaseCopy } from "./purchaseCopy";
 
-type QtyMode = "one" | "copies" | "package";
-
-function modeFor(quantity: number): QtyMode {
-  if (quantity >= 11) return "package";
-  if (quantity >= 2) return "copies";
-  return "one";
-}
-
-function countFor(mode: QtyMode, copies: string, pack: string): number {
-  if (mode === "one") return 1;
-  const raw = Number(mode === "copies" ? copies : pack);
-  const n = Math.floor(raw);
-  if (mode === "copies") return Math.max(2, Math.min(10, Number.isNaN(n) ? 2 : n));
-  return Math.max(11, Math.min(500, Number.isNaN(n) ? 11 : n));
-}
-
-function money(cents: number | null): string {
-  if (cents == null) return "—";
-  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-const emptyAddress: PrintAddress = {
+const empty: PrintAddress = {
   recipient_name: "",
   postal_code: "",
   street: "",
@@ -36,272 +16,383 @@ const emptyAddress: PrintAddress = {
   state: "",
 };
 
-/** Endereço, frete e pagamento do impresso. O gateway só abre quando estiver configurado. */
-export function PrintCheckout({ projectId }: { projectId: string }) {
-  const { t } = useStudioI18n();
+export function PrintCheckout({
+  projectId,
+  onProject,
+}: {
+  projectId: string;
+  onProject?: (project: Project) => void;
+}) {
+  const { lang } = useStudioI18n();
+  const t = purchaseCopy(lang);
   const [order, setOrder] = useState<PrintOrder | null>(null);
-  const [address, setAddress] = useState<PrintAddress>(emptyAddress);
-  const [installments, setInstallments] = useState(1);
+  const [address, setAddress] = useState<PrintAddress>(empty);
+  const [savedAddress, setSavedAddress] = useState<PrintAddress>(empty);
   const [note, setNote] = useState<string | null>(null);
-  const [mode, setMode] = useState<QtyMode>("one");
-  const [copies, setCopies] = useState("2");
-  const [pack, setPack] = useState("11");
-  const cepStatus = useCepLookup(address.postal_code, true, (addr) => {
-    setAddress((prev) => ({
-      ...prev,
-      postal_code: addr.postal_code,
-      street: addr.street || prev.street,
-      district: addr.district || prev.district,
-      city: addr.city || prev.city,
-      state: addr.state || prev.state,
-    }));
-  });
+  const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const [attempt, setAttempt] = useState(0);
+  const [installments, setInstallments] = useState(1);
+  const [quantity, setQuantity] = useState("1");
+  useCepLookup(
+    address.postal_code,
+    address.postal_code !== savedAddress.postal_code &&
+      order?.payment_status !== "paid" &&
+      order?.payment_status !== "pending",
+    (a) =>
+      setAddress((prev) => ({
+        ...prev,
+        postal_code: a.postal_code,
+        street: a.street || prev.street,
+        district: a.district || prev.district,
+        city: a.city || prev.city,
+        state: a.state || prev.state,
+      })),
+  );
 
   useEffect(() => {
     let cancel = false;
-    (async () => {
-      try {
-        const [next, me] = await Promise.all([
-          api.printOrder(projectId),
-          api.me().catch(() => null),
-        ]);
+    setNote(null);
+    void api
+      .printOrder(projectId)
+      .then((next) => {
         if (cancel) return;
         setOrder(next);
-        const qty = next.quantity || 1;
-        setMode(modeFor(qty));
-        if (qty >= 2 && qty <= 10) setCopies(String(qty));
-        if (qty >= 11) setPack(String(qty));
-        const fromOrder = Boolean(next.postal_code || next.street);
-        setAddress({
-          recipient_name:
-            next.recipient_name ||
-            (!fromOrder ? me?.full_name || "" : "") ||
-            "",
-          postal_code: next.postal_code || (!fromOrder ? me?.postal_code || "" : "") || "",
-          street: next.street || (!fromOrder ? me?.street || "" : "") || "",
-          number: next.number || (!fromOrder ? me?.number || "" : "") || "",
-          complement: next.complement || (!fromOrder ? me?.complement || "" : "") || "",
-          district: next.district || (!fromOrder ? me?.district || "" : "") || "",
-          city: next.city || (!fromOrder ? me?.city || "" : "") || "",
-          state: next.state || (!fromOrder ? me?.state || "" : "") || "",
-        });
-      } catch (err) {
-        if (!cancel) setNote(err instanceof Error ? err.message : "Erro ao carregar pedido.");
-      }
-    })();
+        setQuantity(String(next.quantity));
+        const a = Object.fromEntries(
+          Object.keys(empty).map((key) => [
+            key,
+            next[key as keyof PrintOrder] || "",
+          ]),
+        ) as unknown as PrintAddress;
+        setAddress(a);
+        setSavedAddress(a);
+      })
+      .catch((err: Error) => {
+        if (!cancel) setNote(err.message);
+      });
     return () => {
       cancel = true;
     };
-  }, [projectId]);
+  }, [projectId, attempt]);
 
-  const quantityLocked = order?.payment_status === "paid" || order?.payment_status === "pending";
+  const refresh = useCallback(async () => {
+    const [next, project] = await Promise.all([
+      api.printOrder(projectId),
+      api.getProject(projectId),
+    ]);
+    setOrder(next);
+    onProject?.(project);
+  }, [projectId, onProject]);
+  useEffect(() => {
+    if (order?.payment_status !== "pending") return;
+    const id = window.setInterval(() => {
+      void refresh().catch(() => {});
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [order?.payment_status, refresh]);
 
-  async function applyQuantity(nextMode: QtyMode, nextCopies = copies, nextPack = pack) {
-    const quantity = countFor(nextMode, nextCopies, nextPack);
-    setMode(nextMode);
+  async function run(action: () => Promise<void>) {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
     setNote(null);
+    setSaved(false);
     try {
-      setOrder(await api.setPrintQuantity(projectId, quantity));
+      await action();
     } catch (err) {
-      setNote(err instanceof Error ? err.message : "Não foi possível salvar a quantidade.");
+      setNote((err as Error).message);
+    } finally {
+      lock.current = false;
+      setBusy(false);
     }
   }
-
-  async function saveAddress(ev: FormEvent) {
-    ev.preventDefault();
-    setNote(null);
-    try {
-      setOrder(await api.savePrintAddress(projectId, address));
-    } catch (err) {
-      setNote(err instanceof Error ? err.message : "Endereço inválido.");
-    }
-  }
-
-  async function quote() {
-    setNote(null);
-    try {
-      setOrder(await api.quotePrintFreight(projectId));
-    } catch (err) {
-      setNote(err instanceof Error ? err.message : "Frete indisponível.");
-    }
-  }
-
-  async function choose(serviceId: number) {
-    setNote(null);
-    try {
-      setOrder(await api.selectPrintFreight(projectId, serviceId));
-    } catch (err) {
-      setNote(err instanceof Error ? err.message : "Não foi possível escolher o frete.");
-    }
-  }
-
-  async function pay() {
-    setNote(null);
-    try {
-      const next = await api.checkoutPrint(projectId, installments);
-      setOrder(next);
-      if (next.checkout_url) window.location.assign(next.checkout_url);
-    } catch (err) {
-      setNote(err instanceof Error ? err.message : "Pagamento indisponível.");
-    }
-  }
-
-  if (!order) return note ? <p className="muted">{note}</p> : null;
-
-  return (
-    <div style={{ marginTop: 12 }}>
-      <p className="muted">
-        {order.code}
-        {order.book_price_cents != null
-          ? ` · Livro ${money(order.book_price_cents)} × ${order.quantity} = ${money(order.book_price_cents * order.quantity)}`
-          : ""}
-        {order.block_reason ? ` · ${order.block_reason}` : ""}
-      </p>
-      <div className="studio-choice print-quantity" role="group" aria-label={t.quantity}>
-        <span className="studio-choice-label">{t.quantity}</span>
-        <div className="studio-actions">
-          {(["one", "copies", "package"] as const).map((choice) => (
-            <button
-              key={choice}
-              type="button"
-              className={mode === choice ? "studio-pick is-on" : "studio-pick"}
-              aria-pressed={mode === choice}
-              disabled={quantityLocked}
-              onClick={() => void applyQuantity(choice)}
-            >
-              {choice === "one" ? t.quantityOne : choice === "copies" ? t.quantityCopies : t.quantityPackage}
-            </button>
-          ))}
-        </div>
-        {mode === "copies" && (
-          <label className="studio-field">
-            {t.quantityCopies}
-            <input
-              type="number"
-              inputMode="numeric"
-              min={2}
-              max={10}
-              disabled={quantityLocked}
-              value={copies}
-              data-testid="print-quantity-copies"
-              onChange={(e) => {
-                const value = e.target.value;
-                setCopies(value);
-                const n = Number(value);
-                if (value !== "" && n >= 2 && n <= 10) void applyQuantity("copies", value, pack);
-              }}
-            />
-          </label>
+  if (!order)
+    return (
+      <div role="status">
+        {note || t.loading}
+        {note && (
+          <button type="button" onClick={() => setAttempt((n) => n + 1)}>
+            {t.retry}
+          </button>
         )}
-        {mode === "copies" && <p className="muted field-hint">{t.quantityCopiesHint}</p>}
-        {mode === "package" && (
-          <label className="studio-field">
-            {t.quantityPackage}
-            <input
-              type="number"
-              inputMode="numeric"
-              min={11}
-              max={500}
-              disabled={quantityLocked}
-              value={pack}
-              data-testid="print-quantity-package"
-              onChange={(e) => {
-                const value = e.target.value;
-                setPack(value);
-                const n = Number(value);
-                if (value !== "" && n >= 11 && n <= 500) void applyQuantity("package", copies, value);
-              }}
-            />
-          </label>
-        )}
-        {mode === "package" && <p className="muted field-hint">{t.quantityPackageHint}</p>}
       </div>
-      {order.tracking_code && <p role="status">Rastreio {order.tracking_code}</p>}
-      <form onSubmit={(ev) => void saveAddress(ev)} style={{ display: "grid", gap: 8, marginTop: 8 }}>
+    );
+  const locked = busy || ["pending", "paid"].includes(order.payment_status);
+  const addressDirty = JSON.stringify(address) !== JSON.stringify(savedAddress);
+  const total =
+    order.book_price_cents != null && order.freight_price_cents != null
+      ? order.book_price_cents * order.quantity + order.freight_price_cents
+      : null;
+  const ready =
+    !addressDirty && total != null && order.freight_service_id != null;
+  const quantityDirty = quantity !== String(order.quantity);
+  function saveAddress(event: FormEvent) {
+    event.preventDefault();
+    void run(async () => {
+      setOrder(await api.savePrintAddress(projectId, address));
+      setSavedAddress({ ...address });
+    });
+  }
+  return (
+    <section className="purchase-checkout" aria-label={t.summary}>
+      <p className="purchase-order-code">
+        <strong>{order.code}</strong>
+      </p>
+      <p className="muted">{t.includes}</p>
+      <fieldset disabled={locked} className="purchase-fields">
         <label>
-          Nome
+          {t.size}
+          <select
+            value={order.book_size || "M"}
+            onChange={(e) => {
+              const size = e.target.value;
+              void run(async () =>
+                setOrder(
+                  await api.setPrintSpecification(
+                    projectId,
+                    size,
+                    order.cover_type || "soft",
+                  ),
+                ),
+              );
+            }}
+          >
+            <option value="M">20 × 20 cm</option>
+            <option value="P">15 × 15 cm</option>
+          </select>
+        </label>
+        <label>
+          {t.cover}
+          <select
+            value={order.cover_type || "soft"}
+            onChange={(e) => {
+              const cover = e.target.value;
+              void run(async () =>
+                setOrder(
+                  await api.setPrintSpecification(
+                    projectId,
+                    order.book_size || "M",
+                    cover,
+                  ),
+                ),
+              );
+            }}
+          >
+            <option value="soft">{t.soft}</option>
+            <option value="hard">{t.hard}</option>
+          </select>
+        </label>
+        <label>
+          {t.quantity}
           <input
-            value={address.recipient_name}
-            onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
+            type="number"
+            min={1}
+            max={500}
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            onBlur={() => {
+              const n = Number(quantity);
+              if (Number.isInteger(n) && n >= 1 && n <= 500 && quantityDirty)
+                void run(async () =>
+                  setOrder(await api.setPrintQuantity(projectId, n)),
+                );
+              else setQuantity(String(order.quantity));
+            }}
           />
         </label>
-        <label>
-          CEP
-          <input
-            value={address.postal_code}
-            inputMode="numeric"
-            maxLength={9}
-            autoComplete="postal-code"
-            onChange={(e) => setAddress({ ...address, postal_code: formatCep(e.target.value) })}
-          />
-          {cepStatus === "loading" && <small>Buscando endereço…</small>}
-          {cepStatus === "ok" && <small>Endereço preenchido. Confira e informe o número.</small>}
-          {cepStatus === "miss" && <small>CEP não encontrado. Preencha o endereço.</small>}
-          {cepStatus === "error" && (
-            <small>Não foi possível buscar o CEP. Preencha o endereço.</small>
-          )}
-        </label>
-        <label>
-          Rua
-          <input value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} />
-        </label>
-        <label>
-          Número
-          <input value={address.number} onChange={(e) => setAddress({ ...address, number: e.target.value })} />
-        </label>
-        <label>
-          Bairro
-          <input
-            value={address.district}
-            onChange={(e) => setAddress({ ...address, district: e.target.value })}
-          />
-        </label>
-        <label>
-          Cidade
-          <input value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
-        </label>
-        <label>
-          UF
-          <input
-            value={address.state}
-            maxLength={2}
-            onChange={(e) => setAddress({ ...address, state: e.target.value })}
-          />
-        </label>
-        <button type="submit">Salvar endereço</button>
+      </fieldset>
+      <form onSubmit={saveAddress}>
+        <h4>{t.delivery}</h4>
+        <fieldset disabled={locked} className="purchase-fields">
+          {(Object.keys(empty) as (keyof PrintAddress)[]).map((key) => (
+            <label key={key}>
+              {
+                {
+                  recipient_name: t.name,
+                  postal_code: t.cep,
+                  street: t.street,
+                  number: t.number,
+                  complement: t.complement,
+                  district: t.district,
+                  city: t.city,
+                  state: t.state,
+                }[key]
+              }
+              <input
+                required={key !== "complement"}
+                value={address[key] || ""}
+                maxLength={
+                  key === "state" ? 2 : key === "postal_code" ? 9 : 160
+                }
+                autoComplete={
+                  key === "postal_code"
+                    ? "postal-code"
+                    : key === "recipient_name"
+                      ? "name"
+                      : undefined
+                }
+                onChange={(e) =>
+                  setAddress({
+                    ...address,
+                    [key]:
+                      key === "postal_code"
+                        ? formatCep(e.target.value)
+                        : key === "state"
+                          ? e.target.value.toUpperCase()
+                          : e.target.value,
+                  })
+                }
+              />
+            </label>
+          ))}
+        </fieldset>
+        <button
+          className="kbtn"
+          disabled={locked || !addressDirty}
+          type="submit"
+        >
+          {t.saveAddress}
+        </button>
       </form>
-      <button type="button" style={{ marginTop: 8 }} onClick={() => void quote()}>
-        Calcular frete
+      <button
+        className="kbtn"
+        disabled={locked || addressDirty || quantityDirty}
+        type="button"
+        onClick={() =>
+          void run(async () => setOrder(await api.quotePrintFreight(projectId)))
+        }
+      >
+        {t.calculate}
       </button>
-      {(order.freight_options ?? []).length > 0 && (
-        <ul>
-          {order.freight_options.map((item) => (
-            <li key={item.service_id}>
-              <button type="button" onClick={() => void choose(item.service_id)}>
-                {item.service_name} · {money(item.price_cents)}
-                {item.delivery_days == null ? " · prazo não informado" : ` · ${item.delivery_days} dias`}
+      {!!order.freight_options?.length && (
+        <fieldset disabled={locked} className="purchase-freight">
+          <legend>{t.choose}</legend>
+          {order.freight_options.map((option) => (
+            <label key={option.service_id}>
+              <input
+                type="radio"
+                name={`freight-${projectId}`}
+                checked={order.freight_service_id === option.service_id}
+                onChange={() =>
+                  void run(async () =>
+                    setOrder(
+                      await api.selectPrintFreight(
+                        projectId,
+                        option.service_id,
+                      ),
+                    ),
+                  )
+                }
+              />
+              {option.service_name} · {money(option.price_cents)}
+              {option.delivery_days != null &&
+                ` · ${option.delivery_days} ${t.days}`}
+            </label>
+          ))}
+        </fieldset>
+      )}
+      <dl className="purchase-totals">
+        <div>
+          <dt>
+            {t.book} ({order.quantity})
+          </dt>
+          <dd>
+            {money(
+              order.book_price_cents == null
+                ? null
+                : order.book_price_cents * order.quantity,
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>{t.freight}</dt>
+          <dd>
+            {order.freight_price_cents == null
+              ? t.pendingFreight
+              : money(order.freight_price_cents)}
+          </dd>
+        </div>
+        <div>
+          <dt>{t.total}</dt>
+          <dd>{money(total)}</dd>
+        </div>
+      </dl>
+      {order.payment_status === "paid" ? (
+        <p role="status">{t.paid}</p>
+      ) : order.payment_status === "pending" ? (
+        <p role="status">{t.paymentPending}</p>
+      ) : (
+        <>
+          {order.checkout_available ? (
+            <>
+              <label>
+                {t.installments}
+                <select
+                  disabled={busy}
+                  value={installments}
+                  onChange={(e) => setInstallments(Number(e.target.value))}
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i + 1}>
+                      {i + 1}x
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                className="kbtn kbtn-primary"
+                type="button"
+                disabled={locked || !ready || quantityDirty}
+                onClick={() =>
+                  void run(async () => {
+                    const next = await api.checkoutPrint(
+                      projectId,
+                      installments,
+                    );
+                    setOrder(next);
+                    if (next.checkout_url)
+                      window.location.assign(next.checkout_url);
+                  })
+                }
+              >
+                {t.pay}
               </button>
-            </li>
-          ))}
-        </ul>
+            </>
+          ) : (
+            <>
+              <h4>{t.quotation}</h4>
+              <p className="muted">{t.unavailable}</p>
+            </>
+          )}
+          <button
+            className="kbtn"
+            disabled={locked || addressDirty || quantityDirty}
+            type="button"
+            onClick={() =>
+              void run(async () => {
+                const project = await api.saveQuotation(projectId);
+                onProject?.(project);
+                setSaved(true);
+              })
+            }
+          >
+            {busy ? t.wait : t.quote}
+          </button>
+        </>
       )}
-      <label style={{ display: "block", marginTop: 8 }}>
-        Parcelas
-        <select value={installments} onChange={(e) => setInstallments(Number(e.target.value))}>
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
-            <option key={n} value={n}>
-              {n}x
-            </option>
-          ))}
-        </select>
-      </label>
-      <button type="button" disabled={!order.checkout_available} onClick={() => void pay()}>
-        Pagar impresso
-      </button>
-      {!order.checkout_available && (
-        <p className="muted">O gateway de pagamento ainda não foi escolhido. O pedido segue como cotação.</p>
+      {saved && <p role="status">{t.saved}</p>}
+      {order.tracking_code && (
+        <p>
+          {t.tracking}: <strong>{order.tracking_code}</strong>
+        </p>
       )}
-      {note && <p className="muted">{note}</p>}
-    </div>
+      {note && (
+        <p role="alert" className="studio-error">
+          {note}
+        </p>
+      )}
+    </section>
   );
 }

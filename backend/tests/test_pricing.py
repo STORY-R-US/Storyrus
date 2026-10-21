@@ -1,4 +1,4 @@
-"""Tabela de preço: imagem OpenAI, tokens Claude e vídeo."""
+"""Tabela de preço: imagem OpenAI, tokens de texto e vídeo."""
 
 from app.services import pricing
 
@@ -8,17 +8,11 @@ def test_image_cost_flat_without_usage():
     assert pricing.image_cost({}) == pricing.settings.price_openai_image_usd
 
 
-def test_text_cost_claude_tokens():
-    # 1M in + 1M out = 15 + 75
-    assert pricing.text_cost({"input_tokens": 1_000_000, "output_tokens": 1_000_000}) == 90.0
+def test_text_cost_openai_tokens():
+    # 1M in + 1M out = 2 + 8
+    assert pricing.text_cost({"prompt_tokens": 1_000_000, "completion_tokens": 1_000_000}) == 10.0
+    assert pricing.text_cost({"input_tokens": 1_000_000, "output_tokens": 1_000_000}) == 10.0
     assert pricing.text_cost({}) == 0.0
-
-
-def test_openai_text_cost_chat_tokens():
-    # 1M prompt + 1M completion = 2 + 8
-    usage = {"prompt_tokens": 1_000_000, "completion_tokens": 1_000_000}
-    assert pricing.openai_text_cost(usage) == 10.0
-    assert pricing.openai_text_cost({}) == 0.0
 
 
 def test_video_cost_per_second():

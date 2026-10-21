@@ -21,13 +21,6 @@ class ProviderError(Exception):
         self.status_code = status_code
 
 
-class CreditsExhaustedError(ProviderError):
-    """Conta do provedor sem credito. Nao e rate limit: nao adianta esperar."""
-
-    def __init__(self, message: str, *, status_code: int | None = None):
-        super().__init__(message, transient=False, status_code=status_code)
-
-
 # --------------------------------------------------------------------------- #
 # Resultados
 # --------------------------------------------------------------------------- #
@@ -78,11 +71,12 @@ class ImageProvider(Protocol):
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
         reference_role: str = "character",
+        landscape: bool = False,
     ) -> ImageResult:
         """Gera uma ilustracao de pagina reutilizando o avatar (`character_ref`).
 
-        `photo` e aceito por compatibilidade e ignorado: a foto real so entra
-        no lock do avatar / face-swap, nao na geracao da cena.
+        `photo` e a fonte principal de identidade e deve preceder o avatar/capa.
+        `landscape` reserva o enquadramento do livro aberto.
         """
 
     async def generate_realistic(

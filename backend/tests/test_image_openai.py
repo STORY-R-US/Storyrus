@@ -7,7 +7,7 @@ import base64
 import pytest
 
 from app.ai_clients import image_openai as oai
-from app.ai_clients.base import CreditsExhaustedError, ProviderError
+from app.ai_clients.base import ProviderError
 
 
 def _ok_payload(image: bytes = b"png-bytes") -> dict:
@@ -101,6 +101,24 @@ async def test_generate_scene_uses_edits_with_avatar():
 
 
 @pytest.mark.asyncio
+async def test_scene_and_reading_receive_original_photo_before_generated_reference():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload())]
+    provider = oai.OpenAIImageProvider()
+    await provider.generate_scene(
+        prompt="Same child reading the approved book",
+        character_ref=b"cover",
+        photo=b"original-photo",
+        extra_refs=[b"pet-photo"],
+        style="cartoon",
+        reference_role="cover",
+    )
+    call = _FakeAsyncClient.calls[0]
+    assert [value[1] for _, value in call["files"]] == [b"original-photo", b"cover", b"pet-photo"]
+    assert "FOTO ORIGINAL" in call["data"]["prompt"]
+    assert "unica fonte de verdade do rosto" not in call["data"]["prompt"]
+
+
+@pytest.mark.asyncio
 async def test_product_photo_preserves_cover_prompt_and_reference_role():
     _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"product"))]
     provider = oai.OpenAIImageProvider()
@@ -162,28 +180,6 @@ async def test_transient_503_retries_then_ok():
     result = await provider.generate_character(prompt="x", reference_images=[], style="s")
     assert result.image_bytes == b"ok"
     assert len(_FakeAsyncClient.calls) == 2
-
-
-@pytest.mark.asyncio
-async def test_insufficient_quota_does_not_retry():
-    body = (
-        '{"error":{"message":"You exceeded your current quota, please check your plan and billing details.",'
-        '"type":"insufficient_quota","code":"insufficient_quota"}}'
-    )
-    _FakeAsyncClient.script = [_FakeResponse(429, text=body), _FakeResponse(200, _ok_payload(b"no"))]
-    provider = oai.OpenAIImageProvider()
-    with pytest.raises(CreditsExhaustedError):
-        await provider.generate_character(prompt="x", reference_images=[], style="s")
-    assert len(_FakeAsyncClient.calls) == 1
-
-
-@pytest.mark.asyncio
-async def test_billing_402_is_credits_exhausted():
-    _FakeAsyncClient.script = [_FakeResponse(402, text="Payment Required")]
-    provider = oai.OpenAIImageProvider()
-    with pytest.raises(CreditsExhaustedError):
-        await provider.generate_scene(prompt="forest", character_ref=b"avatar", style="cgi")
-    assert len(_FakeAsyncClient.calls) == 1
 
 
 @pytest.mark.asyncio

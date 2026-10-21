@@ -19,7 +19,7 @@ function isChainJob(job: Job): boolean {
 
 /** Minutos típicos de cada etapa ainda aberta.
  * Personagem: uma imagem e o ajuste de rosto. História: o texto.
- * Imagens: capa, livro aberto e criança com o livro.
+ * Imagens: capa, página e foto na mão, uma depois da outra.
  * Fila e nova tentativa alongam; o texto na tela diz "cerca de".
  */
 const STEP_MINUTES: Record<PreviewStepId, [number, number]> = {
@@ -50,6 +50,62 @@ export function previewEtaMinutes(
       lo = Math.max(1, left);
       hi = lo;
     }
+    min += lo;
+    max += hi;
+  }
+  if (min < 1) min = 1;
+  if (max < min) max = min;
+  return { min, max };
+}
+
+export const MASTER_PREVIEW_STEPS = ["ficha", "01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"] as const;
+
+export type MasterPreviewStepId = (typeof MASTER_PREVIEW_STEPS)[number];
+
+export type MasterPreviewStep = {
+  id: MasterPreviewStepId;
+  state: PreviewStepState;
+};
+
+const MASTER_MINUTES: Record<MasterPreviewStepId, [number, number]> = {
+  ficha: [1, 1],
+  "01_CAPA": [1, 2],
+  "02_LIVRO_ABERTO": [1, 2],
+  "03_LEITURA": [1, 2],
+};
+
+const MASTER_STAGE_INDEX: Record<string, number> = {
+  ficha: 0,
+  "01_CAPA": 1,
+  "02_LIVRO_ABERTO": 2,
+  "03_LEITURA": 3,
+};
+
+/** Barra da prévia nova: ficha visual, depois capa, livro aberto e leitura. */
+export function masterPreviewSteps(
+  job: { status: string; result?: { progress?: { stage?: string } } | null } | undefined,
+  active: boolean,
+): MasterPreviewStep[] {
+  if (job?.status === "DONE") {
+    return MASTER_PREVIEW_STEPS.map((id) => ({ id, state: "done" }));
+  }
+  const stage = job?.result?.progress?.stage;
+  const known = stage ? MASTER_STAGE_INDEX[stage] : undefined;
+  const index = known ?? (active ? 0 : -1);
+  const current: PreviewStepState =
+    !job || job.status === "PENDING" ? "queued" : "now";
+  return MASTER_PREVIEW_STEPS.map((id, i) => ({
+    id,
+    state: index < 0 ? "wait" : i < index ? "done" : i === index ? current : "wait",
+  }));
+}
+
+export function masterPreviewEta(steps: MasterPreviewStep[]): { min: number; max: number } {
+  let min = 0;
+  let max = 0;
+  for (const step of steps) {
+    if (step.state === "done") continue;
+    const [lo, hi] = MASTER_MINUTES[step.id];
     min += lo;
     max += hi;
   }

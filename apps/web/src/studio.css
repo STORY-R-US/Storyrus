@@ -842,6 +842,7 @@
 
 /* Tema claro — cartões claros como antes do restyle escuro */
 [data-theme="light"] .studio-app.kid {
+  --studio-link: #185a99;
   --studio-surface: #fff;
   --studio-surface-border: rgba(31, 53, 104, 0.1);
   --studio-input-bg: #fffdf8;
@@ -906,6 +907,36 @@
 }
 
 /* Pedido/meta summary only — keep scoped so story pages never get the 9rem label grid */
+.purchase-flow { margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--studio-surface-border); border-radius: 20px; background: var(--studio-input-bg); }
+.purchase-flow h3 { margin-top: 0.75rem; }
+.purchase-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem; list-style: none; padding: 0; margin: 0 0 1.5rem; }
+.purchase-steps li { color: var(--studio-muted); font-size: 0.8rem; display: grid; gap: 0.4rem; }
+.purchase-steps span { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid currentColor; }
+.purchase-steps .is-reached span { background: #3f8f7d; border-color: #3f8f7d; color: #fff; }
+.purchase-steps [aria-current="step"] { color: inherit; font-weight: 700; }
+.purchase-checkout { margin-top: 1.5rem; }
+.purchase-checkout small { color: var(--studio-muted); font-size: 0.8rem; display: block; margin-top: 0.4rem; }
+.purchase-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; border: 0; padding: 0; margin: 1rem 0; }
+.purchase-fields label, .purchase-checkout > label { display: grid; gap: 0.5rem; font-weight: 600; }
+.purchase-fields input, .purchase-fields select, .purchase-checkout select { box-sizing: border-box; width: 100%; min-width: 0; padding: 0.8rem; border: 1px solid var(--studio-input-border); border-radius: 10px; background: var(--studio-input-bg); color: inherit; font: inherit; }
+.purchase-checkout .kbtn { margin: 0.5rem 0.5rem 0.5rem 0; }
+.purchase-freight { display: grid; gap: 0.75rem; border: 1px solid var(--studio-surface-border); border-radius: 10px; margin: 1rem 0; }
+.purchase-freight input, .purchase-confirm input { margin-right: 0.6rem; width: auto; }
+.purchase-totals { display: grid; gap: 0.7rem; margin: 1.5rem 0; padding: 1rem 0; border-block: 1px solid var(--studio-surface-border); }
+.purchase-totals div { display: flex; justify-content: space-between; gap: 1rem; }
+.purchase-totals dd { margin: 0; font-weight: 700; }
+.purchase-totals div:last-child { font-size: 1.2rem; }
+.purchase-orders-link { display: inline-block; margin-top: 1.5rem; }
+.purchase-pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1rem 0; }
+.purchase-pages a { display: grid; gap: 0.4rem; text-align: center; }
+.purchase-pages img { width: 100%; border-radius: 12px; }
+.purchase-confirm { display: block; margin: 1.5rem 0; }
+.purchase-adjustments { margin: 1.5rem 0; }
+.purchase-adjustments summary, .purchase-flow summary { cursor: pointer; padding: 0.75rem 0; font-weight: 700; }
+.purchase-orders { max-width: 960px; margin: 2rem auto; }
+.purchase-order-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.purchase-order-list article { border: 1px solid var(--studio-surface-border); border-radius: 16px; padding: 1.25rem; }
+@media (max-width: 600px) { .purchase-flow { padding: 1rem; } .purchase-steps { grid-template-columns: 1fr; } .purchase-steps li { display: flex; align-items: center; gap: 0.75rem; } .purchase-fields { grid-template-columns: 1fr; } .purchase-orders { margin: 1rem; } }
 .studio-order-meta {
   margin: 0.75rem 0 0;
   padding: 0.9rem 1rem;
@@ -919,4 +950,29 @@
 .studio-order-meta dd { margin: 0; }
 @media (max-width: 720px) {
   .studio-order-meta dl > div { grid-template-columns: 1fr; }
+}
+.studio-master-flow a {
+  color: var(--studio-link, #76baff);
+  display: inline-block;
+  margin: 8px 10px 8px 0;
+}
+
+.studio-master-flow button {
+  margin: 6px 8px 6px 0;
+}
+
+.studio-master-flow figure {
+  margin: 20px 0;
+}
+
+.studio-master-flow figcaption {
+  margin-bottom: 8px;
+}
+
+.studio-master-flow textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88px;
+  margin: 8px 0;
 }

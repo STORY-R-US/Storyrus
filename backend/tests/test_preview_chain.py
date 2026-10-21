@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.ai_clients.base import CreditsExhaustedError, ImageResult, ProviderError
+from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.database import Base
 from app.models import (
@@ -271,7 +271,8 @@ async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, mo
     db.refresh(p)
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.EBOOK_READY.value
-    assert p.book_approved_at is not None
+    assert p.book_approved_at is None
+    assert p.purchase_flow["stage"] == "preview_ready"
 
     covers = db.scalars(
         select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.COVER.value)
@@ -366,7 +367,8 @@ def test_preview_ready_email_failure_is_swallowed(db, monkeypatch):
     job = _job(db, p, "EBOOK", payload={"preview_chain": True})
     preview_chain.finalize_preview_ebook(db, p, job)  # não levanta
     db.refresh(p)
-    assert p.book_approved_at is not None
+    assert p.book_approved_at is None
+    assert p.purchase_flow["stage"] == "preview_ready"
 
 
 @pytest.mark.asyncio
@@ -516,46 +518,6 @@ async def test_preview_ebook_falha_uma_vez_se_nenhuma_imagem_sai(db, mem_storage
     assert j.status == JobStatus.FAILED.value
     assert j.attempts == 1
     assert "imagens" in (j.error or "").lower()
-
-
-@pytest.mark.asyncio
-async def test_preview_ebook_uses_generic_images_when_openai_credits_run_out(
-    db, mem_storage, monkeypatch
-):
-    monkeypatch.setattr("app.workers.handlers.ebook.settings.offline_fallback", False)
-    calls = 0
-
-    class OutOfCredits:
-        async def generate_scene(self, **_kwargs):
-            nonlocal calls
-            calls += 1
-            raise CreditsExhaustedError("insufficient_quota", status_code=429)
-
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: OutOfCredits())
-    p = _preview_project(db, mem_storage)
-    j = _job(db, p, "EBOOK", payload={"preview_chain": True})
-    await runner.process_job(db, j)
-    db.refresh(j)
-    db.refresh(p)
-    assert j.status == JobStatus.DONE.value
-    assert j.result["generic_images"] is True
-    assert j.result["image_provider"] == "generic"
-    assert calls == 1
-    kinds = {
-        AssetKind.COVER.value: 0,
-        AssetKind.PAGE_IMAGE.value: 0,
-        AssetKind.IN_HAND.value: 0,
-    }
-    for asset in db.scalars(select(Asset).where(Asset.project_id == p.id)).all():
-        if asset.kind in kinds:
-            kinds[asset.kind] += 1
-            assert (asset.meta or {}).get("generic") is True
-            assert mem_storage[asset.storage_key].startswith(b"\x89PNG")
-    assert kinds == {
-        AssetKind.COVER.value: 1,
-        AssetKind.PAGE_IMAGE.value: 1,
-        AssetKind.IN_HAND.value: 1,
-    }
 
 
 @pytest.mark.asyncio
