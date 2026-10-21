@@ -1,0 +1,100 @@
+{
+  "id": "cores_basicas",
+  "titulo": "{NOME} e as Cores — Misturar e Nomear",
+  "genero": "unissex",
+  "idade": "2-6",
+  "tematica": "Cores básicas e mistura de primárias",
+  "emoji": "🎨",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para você, {NOME} pequeno aventureiro,\nque seu coração seja valente,\ne que a cor o leve a lugares\nincríveis e surpreendentes.\n\nAqui cada cor mora num objeto do mundo real. Nomear o que você vê é também desfazer a confusão e deixar tudo no lugar certo.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "story",
+      "text": "O preto é a noite, o giz, o gato que passa. É escuro e forte, uma cor que se encaixa.",
+      "illustration_note": "{NOME} numa cena de alto contraste: giz preto, gato preto amigavel e ceu de noite; cor dominante PRETO; agrupamento de objetos pretos reais; sem texto legivel."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "O branco é a nuvem, o leite, a folha de papel. É claro e limpo, um começo bem fiel.",
+      "illustration_note": "{NOME} com um copo de leite, uma folha de papel e nuvens brancas; cor dominante BRANCO; alto contraste; objetos brancos reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "O vermelho é o morango, a bola, o caminhão. É quente e vivo, um pulo no coração.",
+      "illustration_note": "{NOME} com morangos, uma bola vermelha e um caminhao de brinquedo vermelho; cor dominante VERMELHO; alto contraste; objetos vermelhos reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "O verde é a folha, o sapo, o limão no pé. É fresco e calmo, a cor do jardim que você vê.",
+      "illustration_note": "{NOME} no jardim com folhas, um sapo verde amigavel e limoes no pe; cor dominante VERDE; objetos verdes reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "O amarelo é o sol, a banana, o pintinho. É claro e alegre, um ouro pequenino.",
+      "illustration_note": "{NOME} ao sol com uma banana e um pintinho amarelo; cor dominante AMARELO; alto contraste; objetos amarelos reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "O azul é o céu, o mar, a borboleta que voa. É largo e fundo, a cor que o olhar abençoa.",
+      "illustration_note": "{NOME} sob o ceu azul junto ao mar, uma borboleta azul; cor dominante AZUL; objetos azuis reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "O marrom é a terra, o tronco, o chocolate. É quente e firme, um abraço de aconchego barato.",
+      "illustration_note": "{NOME} junto a um tronco, terra e um pedaco de chocolate; cor dominante MARROM; objetos marrons reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "O roxo é a uva, a flor, o suco no copo. É fundo e doce, um mistério um pouco oposto.",
+      "illustration_note": "{NOME} com uvas roxas, uma flor roxa e um copo de suco roxo; cor dominante ROXO; objetos roxos reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "O rosa é o algodão-doce, a flor, o flamingozinho. É leve e doce, um beijo pequenino.",
+      "illustration_note": "{NOME} com algodao-doce rosa, uma flor rosa e um flamingo amigavel ao fundo; cor dominante ROSA; objetos rosa reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "O laranja é a fruta, a cenoura, o pôr do sol. É quente e vivo, um brilho que aquece o farol.",
+      "illustration_note": "{NOME} com uma laranja, uma cenoura e o por do sol alaranjado; cor dominante LARANJA; objetos laranja reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "O cinza é a pedra, a nuvem de chuva, o elefante. É suave e quieto, um meio-termo elegante.",
+      "illustration_note": "{NOME} com pedras cinza, nuvem de chuva e um elefante amigavel; cor dominante CINZA; objetos cinza reais agrupados; sem texto legivel."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "Vermelho com amarelo se misturam no chão. Nasce o laranja, a cor da fruta na mão.",
+      "illustration_note": "{NOME} numa caixa de tintas misturando pigmento vermelho e amarelo; o laranja aparece no meio; dois potes de tinta e o resultado; sem texto, palavras ou legendas na arte."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "Amarelo com azul fazem uma dança no prato. Nasce o verde, a cor da folha no mato.",
+      "illustration_note": "{NOME} misturando pigmento amarelo e azul num prato; o verde aparece no meio; resultado claro; sem texto legivel na arte."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "Azul com vermelho giram no copinho. Nasce o roxo, a cor da uva no galhinho.",
+      "illustration_note": "{NOME} misturando pigmento azul e vermelho num copinho; o roxo aparece no meio; resultado claro; sem texto legivel na arte. Clima de descoberta alegre."
+    }
+  ]
+}

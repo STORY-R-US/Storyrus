@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /exemplos/
+Disallow: /app
+
+Sitemap: https://storyrus.ai/sitemap.xml

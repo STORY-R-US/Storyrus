@@ -1,0 +1,25 @@
+{
+  "name": "Story R Us",
+  "short_name": "Story R Us",
+  "lang": "pt-BR",
+  "description": "Histórias ilustradas com a foto do seu filho.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf6ec",
+  "theme_color": "#1d2b63",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
