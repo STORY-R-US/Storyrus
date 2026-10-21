@@ -1,0 +1,24 @@
+{
+  "title": "Meu Pai, Meu Herói",
+  "pages": [
+    "capa.png",
+    "pagina-02.jpg",
+    "pagina-03.jpg",
+    "pagina-04.jpg",
+    "pagina-05.jpg",
+    "pagina-06.jpg",
+    "pagina-07.jpg",
+    "pagina-08.jpg",
+    "pagina-09.jpg",
+    "pagina-10.jpg",
+    "pagina-11.jpg",
+    "pagina-12.jpg",
+    "pagina-13.jpg",
+    "pagina-14.jpg",
+    "pagina-15.jpg",
+    "pagina-16.jpg",
+    "contracapa.jpg"
+  ],
+  "pdf": "../ebook-meupai-heroi.pdf",
+  "skipped_alternate": "pagina-09-alternativa-blocos.jpg"
+}

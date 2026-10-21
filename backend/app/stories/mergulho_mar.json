@@ -1,0 +1,112 @@
+{
+  "id": "mergulho_mar",
+  "titulo": "{NOME} em um mergulho no fundo do mar",
+  "genero": "unissex",
+  "idade": "3-6",
+  "tematica": "Aventura submarina",
+  "emoji": "🐠",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para você, {NOME}, com carinho e muita imaginação,\nque cada mergulho traga descoberta e diversão.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "story",
+      "text": "{NOME} mergulhou nas águas azuis para explorar. Logo viu um GOLFINHO alegre nadando pelo mar.",
+      "illustration_note": "{NOME} entrando num mar azul cristalino, um golfinho alegre nada perto entre bolhas e raios de sol; um animal so; sem texto legivel."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "A TARTARUGA-MARINHA seguia tranquila pelo oceano azul. Com suas grandes nadadeiras, nadava de norte a sul.",
+      "illustration_note": "Tartaruga-marinha nadando calmamente perto de {NOME}, com corais e pequenos peixes ao fundo; um animal so; sem texto legivel."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "O PEIXE-PALHAÇO apareceu entre corais cheios de cor. Pequeno e laranja, nadava buscando um abrigo e proteção em seu lar.",
+      "illustration_note": "Peixe-palhaco entre anemonas e corais coloridos, {NOME} observando atentamente a pequena morada marinha; um animal so; sem texto legivel."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "O CAVALO-MARINHO flutuava devagar entre plantas do mar. Com sua cauda enrolada, ajuda a se segurar e descansar.",
+      "illustration_note": "Cavalo-marinho preso suavemente a uma planta marinha, {NOME} olhando curioso; um animal so; sem texto legivel."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "O POLVO surgiu entre as pedras com oito braços prontos para explorar. Muito inteligente, consegue mudar de cor para se esconder e se proteger no mar.",
+      "illustration_note": "Polvo entre pedras e corais, mudando suavemente de tonalidade para se misturar ao ambiente, {NOME} por perto; um animal so; sem texto legivel."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "A ESTRELA-DO-MAR descansava sobre a areia dourada. Com cinco braços abertos, ela vive no oceano e usa seus pequenos pés para mover.",
+      "illustration_note": "Estrela-do-mar no fundo arenoso, cercada por conchas, com detalhes delicados de seus pequenos pes enquanto {NOME} a observa; um animal so; sem texto legivel."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "A ARRAIA deslizava elegante, parecendo voar. Suas grandes nadadeiras ajudam seu corpo a nadar.",
+      "illustration_note": "Arraia deslizando sobre a areia com movimentos elegantes, {NOME} nadando ao lado; um animal so; sem texto legivel."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "O TUBARÃO seguia atento pelas águas do mar. Seu corpo forte e vários dentes ajudam esse grande peixe a se alimentar.",
+      "illustration_note": "Tubarao nadando de forma calma e majestosa em mar aberto, {NOME} observando a uma distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "Uma grande BALEIA nadava tranquila no oceano azul. Seu corpo enorme atravessava o oceano de norte a sul.",
+      "illustration_note": "Baleia gigante nadando acima de {NOME}, criando uma sensacao de grandeza e encantamento; um animal so; sem texto legivel."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "A ÁGUA-VIVA flutuava leve acompanhando a corrente do mar. Seu corpo macio e transparente é perigoso e pode queimar.",
+      "illustration_note": "Agua-viva translucida e luminosa flutuando em aguas azuis, {NOME} observando de longe a uma distancia segura; um animal so; sem texto legivel."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "A LAGOSTA caminhava entre pedras no fundo do mar. Com suas grandes antenas, gostava de tudo observar.",
+      "illustration_note": "Lagosta vermelha entre pedras e corais, {NOME} proximo e pequenos peixes ao redor; um animal so; sem texto legivel."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "O CARANGUEJO andava de lado pela areia brilhante. Com suas pinças bem fortes, parecia muito elegante.",
+      "illustration_note": "Caranguejo caminhando de lado sobre a areia, perto de conchas e plantas marinhas, {NOME} observando; um animal so; sem texto legivel."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "O PEIXE-ESPADA passou veloz pelo oceano a brilhar. Com seu focinho comprido, parecia uma flecha no mar.",
+      "illustration_note": "Peixe-espada nadando rapidamente em aguas abertas, {NOME} observando ao fundo; um animal so; sem texto legivel."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "A FOCA nadava alegre, girando devagar. Com seu corpo macio, brincava dentro e sob o mar.",
+      "illustration_note": "Foca nadando de forma divertida entre bolhas, {NOME} sorrindo e acompanhando; um animal so; sem texto legivel."
+    },
+    {
+      "page": 16,
+      "layout": "story",
+      "text": "A ORCA surgiu elegante com seu preto e branco a brilhar. Forte e inteligente, cruzava tranquila o grande mar.",
+      "illustration_note": "Orca nadando em aguas profundas, {NOME} observando de uma distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 17,
+      "layout": "story",
+      "text": "{NOME} voltou feliz depois de tanta coisa aprender e admirar. No fundo do mar, cada animal deixou uma lembrança para guardar.",
+      "illustration_note": "{NOME} cercado de forma harmoniosa por varios animais vistos durante a aventura, com corais, bolhas e luz entrando pela superficie; sem texto legivel."
+    }
+  ]
+}

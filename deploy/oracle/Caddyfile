@@ -1,0 +1,7 @@
+{
+	email {$CADDY_EMAIL}
+}
+
+api.storyrus.ai {
+	reverse_proxy api:8000
+}

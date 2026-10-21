@@ -1,0 +1,100 @@
+{
+  "id": "grande_pequeno",
+  "titulo": "{NOME} e os Opostos — Grande e Pequeno",
+  "genero": "unissex",
+  "idade": "2-6",
+  "tematica": "Opostos e relações espaciais",
+  "emoji": "↕️",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para você, {NOME} pequeno aventureiro,\nque seu coração seja valente,\ne que o espaço o leve a lugares\nincríveis e surpreendentes.\n\nAqui cada palavra tem um par: grande e pequeno, dentro e fora. Nomear o lugar é também achar o caminho certo.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "story",
+      "text": "Grande é o elefante, a casa, o pé de manga no quintal. {NOME} olha pra cima: o mundo cabe no visual.",
+      "illustration_note": "{NOME} ao lado de um elefante amigavel enorme e uma casa; contraste de escala obvio, {NOME} parece pequeno; sem texto legivel."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "Pequeno é o botão, a semente, o grão de arroz. {NOME} chega pertinho e o miúdo aparece de vez.",
+      "illustration_note": "{NOME} em close olhando um botao, uma semente e um grao de arroz na palma; escala miuda obvia; sem texto legivel."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "Em cima é o telhado, o pássaro, a prateleira do alto. {NOME} levanta o olhar e o céu responde num salto.",
+      "illustration_note": "{NOME} olhando para CIMA: passaro no telhado e prateleira alta; direcao para cima bem marcada; sem texto legivel."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "Embaixo é o tapete, a formiga, o sapato no chão. {NOME} abaixa o corpo e acha o tesouro então.",
+      "illustration_note": "{NOME} agachado olhando para BAIXO: formiga amigavel, sapato e tapete; direcao para baixo bem marcada; sem texto legivel."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "Dentro é a caixa, a casa, o bolso do casaco. {NOME} abre a tampa e o brinquedo aparece no pacote.",
+      "illustration_note": "{NOME} abrindo uma caixa GRANDE e olhando PARA DENTRO; brinquedo visivel no interior; contraste dentro/fora; sem texto legivel."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "Fora é o quintal, a rua, o sol no terreiro. {NOME} atravessa a porta e o mundo fica inteiro.",
+      "illustration_note": "{NOME} FORA da casa no quintal ensolarado, porta aberta atras; contraste claro com o interior; sem texto legivel."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "Perto é o abraço, o copo na mesa, o pé no chão. {NOME} estica a mão e alcança na mesma sessão.",
+      "illustration_note": "{NOME} com a mao no copo bem PERTO, na mesa ao alcance; distancia curta obvia; sem texto legivel."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "Longe é o morro, o avião, a estrela no céu. {NOME} aponta distante e o olho viaja no véu.",
+      "illustration_note": "{NOME} apontando para LONGE: aviao pequeno no ceu e morro distante; profundidade obvia; sem texto legivel."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "Aberto é a janela, o livro, o portão do jardim. {NOME} empurra devagar e a luz entra assim.",
+      "illustration_note": "{NOME} abrindo uma janela e um livro ABERTO; portao do jardim aberto ao fundo; estado aberto obvio; sem texto legivel."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "Fechado é a caixa, o olho, a porta com jeito. {NOME} fecha com calma e guarda o segredo direito.",
+      "illustration_note": "{NOME} fechando uma caixa e uma porta; olhos gentilmente fechados num momento; estado FECHADO obvio; sem texto legivel."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "Cheio é o balde, o prato, o cesto de pão. {NOME} vê transbordar a água na mão.",
+      "illustration_note": "{NOME} com um balde CHEIO de agua e um cesto cheio de pao; volume cheio obvio; sem texto legivel."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "Vazio é o copo, a caixa, o bolso sem nada. {NOME} olha por dentro: a espera é a jornada.",
+      "illustration_note": "{NOME} olhando um copo VAZIO e uma caixa vazia; interior oco bem visivel; contraste com cheio; sem texto legivel."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "Claro é o dia, a lâmpada, a janela no sol. Escuro é a noite, o canto, o quarto sem farol.",
+      "illustration_note": "Cena dividida: {NOME} no lado CLARO (janela ensolarada, lampada) e o mesmo quarto no lado ESCURO (noite, canto sombreado); os dois extremos visiveis e obvios; sem texto legivel."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "Grande e pequeno, dentro e fora, {NOME} achou o par. Oposto é um mapa: um sim, um não, um lugar.",
+      "illustration_note": "{NOME} no parquinho entre um escorrega ALTO e um banco BAIXO, porta da casinha aberta; recapitulacao alegre dos opostos; sem texto legivel."
+    }
+  ]
+}
