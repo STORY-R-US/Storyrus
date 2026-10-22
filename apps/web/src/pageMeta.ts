@@ -24,9 +24,18 @@ export type CatalogBookSeo = {
 const HOME_DESCRIPTION =
   "Envie uma foto e a Story R Us cria um personagem ilustrado, um livro em PDF e um vídeo narrado com seu filho como herói.";
 
+const HOME_PHRASE = "Transformamos fotos em livros personalizados, histórias em memórias eternas.";
+
+/** Título de SEO e de aba: a marca fica no começo. */
+export function siteTitle(label: string): string {
+  const stripped = label.replace(/\s*[—–-]\s*Story R Us\s*$/u, "").trim();
+  if (/^Story R Us - /i.test(stripped)) return stripped;
+  return `Story R Us - ${stripped}`;
+}
+
 export const NOT_FOUND_PAGE: HtmlPage = {
   path: "/404",
-  title: "Página Não Encontrada — Story R Us",
+  title: siteTitle("Página Não Encontrada"),
   description: "Esse endereço não existe. Volte à página inicial ou abra o estúdio.",
   robots: "noindex, nofollow",
   canonicalPath: "/404",
@@ -49,48 +58,48 @@ function categoryDescription(name: string): string {
 export const STATIC_PAGES: readonly HtmlPage[] = [
   {
     path: "/",
-    title: "Transformamos fotos em livros personalizados, histórias em memórias eternas.",
+    title: siteTitle(HOME_PHRASE),
     description: HOME_DESCRIPTION,
     sitemap: true,
   },
   {
     path: "/cartoon",
-    title: "Livros Cartoon — Story R Us",
+    title: siteTitle("Livros Cartoon"),
     description:
       "Livros ilustrados em desenho, com a foto do seu filho como herói. Veja os exemplos cartoon e crie o seu.",
     sitemap: true,
   },
   {
     path: "/catalogo",
-    title: "Nossos Livros — Story R Us",
+    title: siteTitle("Nossos Livros"),
     description:
       "Catálogo de livros ilustrados personalizados. Escolha um tema e crie com a foto da criança.",
     sitemap: true,
   },
   {
     path: "/exemplos",
-    title: "Exemplos Da Plataforma — Story R Us",
+    title: siteTitle("Exemplos Da Plataforma"),
     description:
       "As fotos e vídeos de demonstração do site são materiais da Story R Us, separados do que você envia no estúdio.",
     sitemap: true,
   },
   {
     path: "/privacidade",
-    title: "Política De Privacidade — Story R Us",
+    title: siteTitle("Política De Privacidade"),
     description:
       "Quais dados a Story R Us trata, para quê, com quem compartilha e como pedir acesso ou exclusão.",
     sitemap: true,
   },
   {
     path: "/termos",
-    title: "Termos De Uso — Story R Us",
+    title: siteTitle("Termos De Uso"),
     description:
       "Regras de uso da Story R Us para criar livros ilustrados personalizados e pedir a impressão.",
     sitemap: true,
   },
   {
     path: "/privacy",
-    title: "Política De Privacidade — Story R Us",
+    title: siteTitle("Política De Privacidade"),
     description:
       "Quais dados a Story R Us trata, para quê, com quem compartilha e como pedir acesso ou exclusão.",
     canonicalPath: "/privacidade",
@@ -99,7 +108,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/terms",
-    title: "Termos De Uso — Story R Us",
+    title: siteTitle("Termos De Uso"),
     description:
       "Regras de uso da Story R Us para criar livros ilustrados personalizados e pedir a impressão.",
     canonicalPath: "/termos",
@@ -108,7 +117,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/landing",
-    title: "Transformamos fotos em livros personalizados, histórias em memórias eternas.",
+    title: siteTitle(HOME_PHRASE),
     description: HOME_DESCRIPTION,
     canonicalPath: "/",
     robots: "noindex, nofollow",
@@ -116,56 +125,56 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/entrar",
-    title: "Entrar — Story R Us",
+    title: siteTitle("Entrar"),
     description: "Entre na sua conta para criar livros ilustrados personalizados.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/cadastro",
-    title: "Criar Conta — Story R Us",
+    title: siteTitle("Criar Conta"),
     description: "Crie sua conta Story R Us para transformar uma foto em um livro ilustrado.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/verificar-email",
-    title: "Confirmar E-mail — Story R Us",
+    title: siteTitle("Confirmar E-mail"),
     description: "Confirme o e-mail da sua conta Story R Us.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/esqueci-senha",
-    title: "Esqueci A Senha — Story R Us",
+    title: siteTitle("Esqueci A Senha"),
     description: "Peça um link para redefinir a senha da sua conta Story R Us.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/redefinir-senha",
-    title: "Redefinir Senha — Story R Us",
+    title: siteTitle("Redefinir Senha"),
     description: "Escolha uma nova senha para a sua conta Story R Us.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/app",
-    title: "Estúdio — Story R Us",
+    title: siteTitle("Estúdio"),
     description: "Estúdio para criar o livro ilustrado a partir da foto.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/conta",
-    title: "Meu Perfil — Story R Us",
+    title: siteTitle("Meu Perfil"),
     description: "Atualize nome, telefone e endereço da sua conta Story R Us.",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/meus-pedidos",
-    title: "Meus Pedidos — Story R Us",
+    title: siteTitle("Meus Pedidos"),
     description: "Acompanhe a cotação, a produção e a entrega dos seus livros personalizados.",
     robots: "noindex, nofollow",
     sitemap: false,
@@ -181,7 +190,7 @@ export function staticPageMeta(pathname: string): HtmlPage | null {
 export function categoryPageMeta(id: string, name: string): HtmlPage {
   return {
     path: `/catalogo/${id}`,
-    title: `${name} — Story R Us`,
+    title: siteTitle(name),
     description: categoryDescription(name),
     sitemap: true,
   };
@@ -190,7 +199,7 @@ export function categoryPageMeta(id: string, name: string): HtmlPage {
 export function bookPageMeta(book: CatalogBookSeo): HtmlPage {
   return {
     path: `/livro/${book.index}`,
-    title: `${book.title} — Story R Us`,
+    title: siteTitle(book.title),
     description: book.description,
     sitemap: true,
   };
@@ -232,15 +241,16 @@ function upsertCanonical(html: string, href: string): string {
 }
 
 export function applyPageMeta(html: string, page: HtmlPage): string {
-  const title = escapeHtml(page.title);
+  const branded = siteTitle(page.title);
+  const title = escapeHtml(branded);
   const description = escapeHtml(page.description);
   const canonical = `${SITE_ORIGIN}${page.canonicalPath ?? page.path}`;
   let next = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
   next = upsertMetaTag(next, "name", "description", page.description);
-  next = upsertMetaTag(next, "property", "og:title", page.title);
+  next = upsertMetaTag(next, "property", "og:title", branded);
   next = upsertMetaTag(next, "property", "og:description", page.description);
   next = upsertMetaTag(next, "property", "og:url", canonical);
-  next = upsertMetaTag(next, "name", "twitter:title", page.title);
+  next = upsertMetaTag(next, "name", "twitter:title", branded);
   next = upsertMetaTag(next, "name", "twitter:description", page.description);
   next = upsertCanonical(next, canonical);
   if (page.robots) {
@@ -293,14 +303,15 @@ export function usePageMeta(page: HtmlPage | null) {
   const robots = page?.robots ?? null;
   useEffect(() => {
     if (!title || !description || !path) return;
+    const branded = siteTitle(title);
     const previousTitle = document.title;
-    document.title = title;
+    document.title = branded;
     const restore: Array<() => void> = [
       upsertHeadMeta("name", "description", description),
-      upsertHeadMeta("property", "og:title", title),
+      upsertHeadMeta("property", "og:title", branded),
       upsertHeadMeta("property", "og:description", description),
       upsertHeadMeta("property", "og:url", `${SITE_ORIGIN}${path}`),
-      upsertHeadMeta("name", "twitter:title", title),
+      upsertHeadMeta("name", "twitter:title", branded),
       upsertHeadMeta("name", "twitter:description", description),
     ];
     const canonical = document.head.querySelector('link[rel="canonical"]');
