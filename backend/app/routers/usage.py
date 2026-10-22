@@ -65,6 +65,52 @@ _BOOK_LABELS = {
 }
 
 
+def _preview_image_count(files: list[OrderFileOut]) -> int:
+    return sum(file.kind in {"cover", "page_image", "in_hand"} for file in files)
+
+
+def _generation_view(
+    latest: Job | None,
+    files: list[OrderFileOut],
+    provider: str | None,
+    result: dict,
+) -> tuple[str, str | None, str | None]:
+    """Selo da prévia, erro para mostrar e provedor.
+
+    A história entra na fila depois das imagens. Ela não pode apagar a prévia
+    nem deixar um livro pronto como se ainda estivesse na fila.
+    """
+    images = _preview_image_count(files)
+    if latest is None:
+        return ("ready" if files else "queued", None, provider)
+    if latest.status == "PENDING":
+        return ("queued", None, provider)
+    if latest.status == "RUNNING":
+        return ("generating", None, provider)
+    error = _opt_str(latest.error) if latest.status == "FAILED" else None
+    if latest.status == "FAILED":
+        if images and latest.type == "STORY":
+            return ("ready", error, provider)
+        if images:
+            return ("partial", error, provider)
+        return ("failed", error, provider)
+    if latest.type == "EBOOK":
+        if provider == "demo" or (
+            provider is None
+            and latest.cost_usd == 0
+            and _meta_dict(result.get("payload")).get("preview_chain")
+        ):
+            return ("demo", None, "demo")
+        if result.get("preview_complete") is False:
+            return ("partial", None, provider)
+        return ("ready", None, provider)
+    if images >= 3:
+        return ("ready", None, provider)
+    if images:
+        return ("partial", None, provider)
+    return ("queued", None, provider)
+
+
 def _signed(key: str | None) -> str | None:
     if not key:
         return None
@@ -359,33 +405,13 @@ def _collect_orders(
             latest = latest_jobs.get(ticket.project_id)
             result = _meta_dict(latest.result) if latest else {}
             provider = _opt_str(result.get("image_provider"))
-            image_count = sum(file.kind in {"cover", "page_image", "in_hand"} for file in files)
+            image_count = _preview_image_count(files)
             progress = _meta_dict(result.get("progress"))
             if latest and latest.type == "EBOOK" and isinstance(progress.get("done"), int):
                 image_count = progress["done"]
-            generation_status = "ready" if files else "queued"
-            if latest:
-                if latest.status == "PENDING":
-                    generation_status = "queued"
-                elif latest.status == "RUNNING":
-                    generation_status = "generating"
-                elif latest.status == "FAILED":
-                    generation_status = "failed"
-                elif latest.type == "EBOOK":
-                    # Legacy zero-cost preview jobs were produced by the old
-                    # default demo mode, before provenance was recorded.
-                    if provider == "demo" or (
-                        provider is None
-                        and latest.cost_usd == 0
-                        and _meta_dict(result.get("payload")).get("preview_chain")
-                    ):
-                        generation_status, provider = "demo", "demo"
-                    elif result.get("preview_complete") is False:
-                        generation_status = "partial"
-                    else:
-                        generation_status = "ready"
-                else:
-                    generation_status = "queued"
+            generation_status, generation_error, provider = _generation_view(
+                latest, files, provider, result
+            )
             orders.append(
                 OrderTicketOut(
                     id=ticket.id,
@@ -404,9 +430,7 @@ def _collect_orders(
                     generated_images=image_count,
                     image_provider=provider,
                     image_model=_opt_str(result.get("image_model")),
-                    generation_error=(
-                        _opt_str(latest.error) if latest and latest.status == "FAILED" else None
-                    ),
+                    generation_error=generation_error,
                     print_order_id=printed.id if printed else None,
                     print_code=_opt_str(printed.code) if printed else None,
                     print_status=_opt_str(printed.status) if printed else None,

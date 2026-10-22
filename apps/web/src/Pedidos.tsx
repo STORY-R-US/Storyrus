@@ -61,8 +61,11 @@ function printRequirements(reason: string): string {
 
 function generationFailure(error?: string | null): string {
   const text = error ?? "";
-  if (/credit_balance_exhausted|insufficient_quota|no credits remaining/i.test(text)) {
+  if (/credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota/i.test(text)) {
     return "A conta da OpenAI está sem créditos. Recarregue o saldo e clique em gerar de novo. Os dados e as fotos continuam salvos.";
+  }
+  if (/^OpenAI 429\b/i.test(text)) {
+    return "A OpenAI recusou esta geração por saldo ou limite de uso. Confira a conta e clique em gerar de novo. Os dados e as fotos continuam salvos.";
   }
   if (/Ficha visual/i.test(text)) {
     return "A ficha visual veio incompleta. Clique em gerar de novo para completar e seguir com as imagens.";
@@ -74,8 +77,10 @@ function generationFailure(error?: string | null): string {
 
 function OrderPreview({ order }: { order: OrderTicket }) {
   const files = order.book_files ?? [];
+  const hasCharacter = files.some((file) => file.kind === "character" || file.label === "Personagem");
   const slots = [
-    { kind: "character", label: "Personagem" }, { kind: "cover", label: "Capa" },
+    ...(hasCharacter ? [{ kind: "character", label: "Personagem" }] : []),
+    { kind: "cover", label: "Capa" },
     { kind: "page_image", label: "Página 1" }, { kind: "in_hand", label: "Livro na mão" },
   ];
   const pdf = files.find((file) => file.kind === "ebook" || file.label === "PDF do livro");
@@ -103,7 +108,7 @@ function OrderPreview({ order }: { order: OrderTicket }) {
       </div>
       {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
       {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
-      {order.generation_status === "failed" && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
+      {(order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
       {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
     </section>
   );

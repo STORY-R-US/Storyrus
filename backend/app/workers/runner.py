@@ -23,6 +23,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import httpx
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -233,6 +234,11 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                     jobs_svc.mark_failed_and_refund(db, job, str(exc))
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
+            except HTTPException as exc:
+                db.rollback()
+                detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+                jobs_svc.mark_failed_and_refund(db, job, detail[:2000])
+                return
             except Exception as exc:
                 # A SQL error leaves the transaction unusable. Roll it back so
                 # the failure is saved instead of leaving RUNNING stuck forever.

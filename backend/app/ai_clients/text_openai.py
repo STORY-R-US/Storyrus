@@ -8,6 +8,7 @@ import json
 import httpx
 
 from app.ai_clients.base import ProviderError, TextResult
+from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.services.pricing import text_cost
 
@@ -311,14 +312,13 @@ class OpenAITextProvider:
                 resp = await client.post(_API_URL, json=payload, headers=headers)
         except httpx.RequestError as exc:
             raise ProviderError(f"Falha de rede: {exc}", transient=True) from exc
-        if resp.status_code in _TRANSIENT:
-            raise ProviderError(
-                f"OpenAI {resp.status_code}", transient=True, status_code=resp.status_code
-            )
         if resp.status_code >= 400:
+            body = (resp.text or "")[:300]
+            # 429 de limite volta a tentar. 429 de saldo esgotado para na hora.
+            transient = resp.status_code in _TRANSIENT and not billing_exhausted(body)
             raise ProviderError(
-                f"OpenAI {resp.status_code}: {resp.text[:300]}",
-                transient=False,
+                f"OpenAI {resp.status_code}: {body}",
+                transient=transient,
                 status_code=resp.status_code,
             )
         data = resp.json()

@@ -20,6 +20,7 @@ from app.ai_clients.book_prompts import (
     REFINE_SCENE_PROMPT,
     SCENE_GEN_PREFIX,
 )
+from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.observability.opik_trace import track, update_span
 from app.services.pricing import openai_image_cost
@@ -28,6 +29,16 @@ logger = logging.getLogger(__name__)
 
 _OPENAI_BASE = "https://api.openai.com/v1"
 _TRANSIENT_STATUS = frozenset({429, 500, 502, 503, 504})
+
+
+def _error_from_response(resp: httpx.Response) -> ProviderError:
+    body = (resp.text or "")[:300]
+    transient = resp.status_code in _TRANSIENT_STATUS and not billing_exhausted(body)
+    return ProviderError(
+        f"OpenAI {resp.status_code}: {body}",
+        transient=transient,
+        status_code=resp.status_code,
+    )
 
 
 def _retry_delay(attempt: int) -> float:
@@ -147,15 +158,11 @@ class OpenAIImageProvider:
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
 
-            if resp.status_code in _TRANSIENT_STATUS:
-                delay = _retry_after_s(resp) or _retry_delay(attempt)
-                last_error = ProviderError(
-                    f"OpenAI {resp.status_code}: {resp.text[:300]}",
-                    transient=True,
-                    status_code=resp.status_code,
-                )
-                if attempt >= attempts:
+            if resp.status_code >= 400:
+                last_error = _error_from_response(resp)
+                if not last_error.transient or attempt >= attempts:
                     raise last_error
+                delay = _retry_after_s(resp) or _retry_delay(attempt)
                 logger.warning(
                     "OpenAI %s (tentativa %s/%s); retry em %.1fs",
                     resp.status_code,
@@ -165,13 +172,6 @@ class OpenAIImageProvider:
                 )
                 await asyncio.sleep(delay)
                 continue
-
-            if resp.status_code >= 400:
-                raise ProviderError(
-                    f"OpenAI {resp.status_code}: {resp.text[:300]}",
-                    transient=False,
-                    status_code=resp.status_code,
-                )
 
             data = resp.json()
             image_bytes, mime, usage = _parse_b64_response(data)
@@ -222,24 +222,20 @@ class OpenAIImageProvider:
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
 
-            if resp.status_code in _TRANSIENT_STATUS:
-                delay = _retry_after_s(resp) or _retry_delay(attempt)
-                last_error = ProviderError(
-                    f"OpenAI {resp.status_code}: {resp.text[:300]}",
-                    transient=True,
-                    status_code=resp.status_code,
-                )
-                if attempt >= attempts:
+            if resp.status_code >= 400:
+                last_error = _error_from_response(resp)
+                if not last_error.transient or attempt >= attempts:
                     raise last_error
+                delay = _retry_after_s(resp) or _retry_delay(attempt)
+                logger.warning(
+                    "OpenAI %s (tentativa %s/%s); retry em %.1fs",
+                    resp.status_code,
+                    attempt,
+                    attempts,
+                    delay,
+                )
                 await asyncio.sleep(delay)
                 continue
-
-            if resp.status_code >= 400:
-                raise ProviderError(
-                    f"OpenAI {resp.status_code}: {resp.text[:300]}",
-                    transient=False,
-                    status_code=resp.status_code,
-                )
 
             payload = resp.json()
             image_bytes, mime, usage = _parse_b64_response(payload)

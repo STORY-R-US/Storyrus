@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
@@ -21,6 +22,16 @@ from app.ai_clients.base import ProviderError
 T = TypeVar("T")
 
 OUTAGE_STATUS = frozenset({429, 500, 502, 503, 504})
+_BILLING_EXHAUSTED = re.compile(
+    r"credit_balance_exhausted|insufficient_quota|billing_hard_limit_reached|"
+    r"no credits remaining|exceeded your current quota",
+    re.IGNORECASE,
+)
+
+
+def billing_exhausted(body: str) -> bool:
+    """Saldo ou teto de cobrança da OpenAI. Não adianta repetir a mesma chamada."""
+    return _BILLING_EXHAUSTED.search(body or "") is not None
 
 
 class OutageError(ProviderError):

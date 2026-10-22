@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from app.ai_clients import text_openai as oai
@@ -20,7 +22,7 @@ class _FakeResponse:
     def __init__(self, status_code: int, json_data: dict | None = None, text: str = ""):
         self.status_code = status_code
         self._json = json_data or {}
-        self.text = text or f"status {status_code}"
+        self.text = text or (json.dumps(self._json) if json_data else f"status {status_code}")
 
     def json(self):
         return self._json
@@ -102,6 +104,12 @@ async def test_missing_key_and_transient_error(client, monkeypatch):
     with pytest.raises(ProviderError, match="429") as exc:
         await oai.OpenAITextProvider().generate_story(brief="x", style="s", pages=1)
     assert exc.value.transient is True
+
+    client.script = [(429, {"error": {"code": "credit_balance_exhausted"}})]
+    client.calls.clear()
+    with pytest.raises(ProviderError, match="credit_balance_exhausted") as blocked:
+        await oai.OpenAITextProvider().generate_story(brief="x", style="s", pages=1)
+    assert blocked.value.transient is False
 
 
 def test_factory_text_provider_is_openai():

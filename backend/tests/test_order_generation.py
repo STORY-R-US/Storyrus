@@ -1,5 +1,7 @@
 """Owner regeneration keeps the existing order and story, and reports provenance."""
 
+from datetime import UTC, datetime, timedelta
+
 from app.config import settings
 from app.models import Asset, Job, OrderTicket, Project, User
 from tests.test_usage import _session
@@ -66,6 +68,94 @@ def test_master_book_order_starts_preview_not_avatar(auth_client, monkeypatch):
         assert job.result["payload"]["preview_chain"] is True
     finally:
         db.close()
+
+
+def _preview_files(db, project_id):
+    for kind, key in (
+        ("cover", "cover.png"),
+        ("page_image", "page.png"),
+        ("in_hand", "hand.png"),
+    ):
+        db.add(Asset(project_id=project_id, kind=kind, storage_key=key))
+
+
+def test_story_failure_keeps_saved_preview(auth_client):
+    ticket_id, project_id = _order(auth_client)
+    db = _session(auth_client)
+    try:
+        now = datetime.now(UTC)
+        _preview_files(db, project_id)
+        db.add(
+            Job(
+                project_id=project_id,
+                type="EBOOK",
+                status="DONE",
+                cost_usd=0.2,
+                result={"image_provider": "openai", "preview_complete": True},
+                created_at=now - timedelta(minutes=2),
+            )
+        )
+        db.add(
+            Job(
+                project_id=project_id,
+                type="STORY",
+                status="FAILED",
+                error="OpenAI 429: credit_balance_exhausted",
+                created_at=now,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+    orders = auth_client.get("/v1/usage/orders/mine").json()
+    order = next(item for item in orders if item["id"] == str(ticket_id))
+    assert order["generation_status"] == "ready"
+    assert "credit_balance_exhausted" in order["generation_error"]
+    assert {item["kind"] for item in order["book_files"]} >= {"cover", "page_image", "in_hand"}
+
+
+def test_finished_story_reports_preview_ready(auth_client):
+    ticket_id, project_id = _order(auth_client)
+    db = _session(auth_client)
+    try:
+        _preview_files(db, project_id)
+        db.add(
+            Job(
+                project_id=project_id,
+                type="STORY",
+                status="DONE",
+                created_at=datetime.now(UTC),
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+    orders = auth_client.get("/v1/usage/orders/mine").json()
+    order = next(item for item in orders if item["id"] == str(ticket_id))
+    assert order["generation_status"] == "ready"
+    assert order["generation_error"] is None
+
+
+def test_failed_preview_without_images_stays_failed(auth_client):
+    ticket_id, project_id = _order(auth_client)
+    db = _session(auth_client)
+    try:
+        db.add(
+            Job(
+                project_id=project_id,
+                type="EBOOK",
+                status="FAILED",
+                error="OpenAI 429: insufficient_quota",
+                created_at=datetime.now(UTC),
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+    orders = auth_client.get("/v1/usage/orders/mine").json()
+    order = next(item for item in orders if item["id"] == str(ticket_id))
+    assert order["generation_status"] == "failed"
+    assert order["generation_error"] == "OpenAI 429: insufficient_quota"
 
 
 def test_regeneration_rejects_demo_mode(auth_client, monkeypatch):
