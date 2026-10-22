@@ -570,7 +570,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const age = Number(childAge);
       const language = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
-      const themeLabel = (onlyName ? bookTitle || themeText : themeText || bookTitle).trim();
+      const themeLabel = (onlyName ? themeText || bookTitle : themeText || bookTitle).trim();
       const languages = [...new Set([language, ...bookLanguages])];
       const fingerprint = JSON.stringify({
         title: bookTitle,
@@ -1513,35 +1513,35 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </label>
           )}
 
+          <label className="studio-field">
+            {t.bookTitle}
+            <input
+              id="studio-field-title"
+              aria-label={t.bookTitle}
+              disabled={fieldsLocked}
+              value={bookTitle}
+              onChange={(e) => {
+                titleTouched.current = true;
+                setBookTitle(e.target.value);
+                if (e.target.value.trim()) clearMissing("title");
+              }}
+              placeholder={t.bookTitlePh}
+              maxLength={120}
+              aria-invalid={missing.title || undefined}
+              aria-describedby={missing.title ? "studio-field-title-error" : undefined}
+              className={missing.title ? "is-invalid" : undefined}
+            />
+            {fieldAlert("title", t.errTitle)}
+            <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
+          </label>
+
           {onlyName ? (
-            <p className="studio-chosen" role="status">
-              <span>{t.chosenBook}</span>
-              <b>{bookTitle || themeText}</b>
+            <p className="studio-chosen" role="status" data-testid="studio-locked-theme">
+              <span>{t.themeLocked}</span>
+              <b>{themeText || bookTitle}</b>
             </p>
           ) : (
             <>
-              <label className="studio-field">
-                {t.bookTitle}
-                <input
-                  id="studio-field-title"
-                  aria-label={t.bookTitle}
-                  disabled={fieldsLocked}
-                  value={bookTitle}
-                  onChange={(e) => {
-                    titleTouched.current = true;
-                    setBookTitle(e.target.value);
-                    if (e.target.value.trim()) clearMissing("title");
-                  }}
-                  placeholder={t.bookTitlePh}
-                  maxLength={120}
-                  aria-invalid={missing.title || undefined}
-                  aria-describedby={missing.title ? "studio-field-title-error" : undefined}
-                  className={missing.title ? "is-invalid" : undefined}
-                />
-                {fieldAlert("title", t.errTitle)}
-                <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
-              </label>
-
               <label className="studio-field">
                 {t.themeFree}
                 <textarea

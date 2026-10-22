@@ -251,9 +251,9 @@ describe("Studio — tema do banner", () => {
     render(<Studio />);
     await openBook(user);
 
-    expect(screen.getByText(/livro escolhido/i)).toBeInTheDocument();
-    expect(screen.getByText(/papai herói/i)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/título do livro/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId("studio-locked-theme")).toHaveTextContent(/tema/i);
+    expect(screen.getByTestId("studio-locked-theme")).toHaveTextContent(/papai herói/i);
+    expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Papai herói");
     expect(screen.queryByLabelText(/insira o tema desejado/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/nome do pai/i)).toHaveValue("");
     expect(screen.getByLabelText(/idade do pai/i)).toHaveValue(null);
@@ -396,7 +396,8 @@ describe("Studio — tema do banner", () => {
     await user.click(screen.getByRole("button", { name: /^masculino$/i }));
     expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
     await user.type(screen.getByLabelText(/nome do pet/i), "Thor");
-    expect(screen.getByText(/thor, minha cachorra/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Thor, Minha Cachorra");
+    expect(screen.getByTestId("studio-locked-theme")).toHaveTextContent("Amizade");
   });
 
   it("pede a criança e o pet quando o livro tem os dois", async () => {

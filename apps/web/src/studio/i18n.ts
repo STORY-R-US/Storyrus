@@ -62,6 +62,7 @@ export type StudioCopy = {
   artRealistic: string;
   artCartoon: string;
   chosenBook: string;
+  themeLocked: string;
   clientTitle: string;
   clientName: string;
   clientNamePh: string;
@@ -403,6 +404,7 @@ const pt: StudioCopy = {
   artRealistic: "Realista",
   artCartoon: "Cartoon",
   chosenBook: "Livro escolhido",
+  themeLocked: "Tema",
   clientTitle: "Cadastro do cliente",
   clientName: "Nome do cliente",
   clientNamePh: "Ex.: Ana Souza",
@@ -661,6 +663,7 @@ const en: StudioCopy = {
   artRealistic: "Realistic",
   artCartoon: "Cartoon",
   chosenBook: "Chosen book",
+  themeLocked: "Theme",
   clientTitle: "Client details",
   clientName: "Client name",
   clientNamePh: "e.g. Ana Souza",
@@ -919,6 +922,7 @@ const es: StudioCopy = {
   artRealistic: "Realista",
   artCartoon: "Cartoon",
   chosenBook: "Libro elegido",
+  themeLocked: "Tema",
   clientTitle: "Datos del cliente",
   clientName: "Nombre del cliente",
   clientNamePh: "Ej.: Ana Souza",
