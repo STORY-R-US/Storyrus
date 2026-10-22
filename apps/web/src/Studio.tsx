@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
+import { siteTitle } from "./pageMeta";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import { themePreset } from "./studioPreset";
@@ -729,7 +730,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   useEffect(() => {
     if (!orderSent) return;
-    const title = `${previewHeadline} — Story R Us`;
+    const title = siteTitle(previewHeadline);
     const apply = () => {
       document.title = title;
     };
@@ -738,7 +739,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const id = window.setTimeout(apply, 0);
     return () => {
       window.clearTimeout(id);
-      document.title = "Estúdio — Story R Us";
+      document.title = siteTitle("Estúdio");
     };
   }, [orderSent, previewHeadline]);
 
@@ -1061,7 +1062,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             )}
-            {(error || (previewFailed && previewFailedJob?.error)) && (
+            {(error || (previewFailed && previewFailedJob?.error && !/credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota|^OpenAI 429\b/i.test(previewFailedJob.error))) && (
               <p className="studio-error" role="alert">
                 {error || previewFailedJob?.error}
               </p>

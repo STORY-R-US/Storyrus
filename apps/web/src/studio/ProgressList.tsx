@@ -36,7 +36,7 @@ export function ProgressList({ jobs }: { jobs: Job[] }) {
                   {t.attempt} {j.attempts}
                 </span>
               )}
-              {j.error && (
+              {j.error && !/credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota|^OpenAI 429\b/i.test(j.error) && (
                 <span className="error" role="alert">
                   {j.error}
                 </span>

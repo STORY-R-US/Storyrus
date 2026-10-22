@@ -101,6 +101,35 @@ def _mark_free(job, project) -> None:
     logger.warning("OpenAI sem creditos; etapa gratuita project=%s", project.id)
 
 
+def _free_path(job, project) -> bool:
+    return bool(
+        (job.result or {}).get("credits_fallback")
+        or (project.book_profile or {}).get("credits_fallback")
+    )
+
+
+def _enqueue_free(db, job, project, job_type, payload, key) -> None:
+    """Aprova a etapa gratuita e coloca a seguinte na fila, sem novo clique."""
+    from app.models import User
+    from app.services import jobs as jobs_svc
+
+    user = db.get(User, project.user_id)
+    if user is None:
+        return
+    try:
+        jobs_svc.enqueue_job(
+            db,
+            user=user,
+            project=project,
+            job_type=job_type,
+            idempotency_key=key,
+            payload=payload,
+            completing_job=job,
+        )
+    except Exception:
+        logger.exception("etapa gratuita nao entrou na fila project=%s key=%s", project.id, key)
+
+
 def _free_image(label: str) -> ImageResult:
     return ImageResult(
         _offline_png(label, palette=((235, 243, 250), (255, 250, 242))),
@@ -477,6 +506,11 @@ async def story(db, job, project):
         )
     project.story_text = stories[project.language]
     contract.update(project, stage="story_ready", stories=stories)
+    if _free_path(job, project):
+        from app.models import JobType
+
+        contract.update(project, stage="story_approved")
+        _enqueue_free(db, job, project, JobType.AVATAR, None, f"free-avatar-{project.id}")
     _set_status(db, project, ProjectStatus.STORY_READY)
 
 
@@ -517,6 +551,19 @@ async def avatar(db, job, project):
     }
     project.character_approved_at = None
     contract.update(project, stage="avatar_ready")
+    if _free_path(job, project):
+        from app.models import JobType, _now
+
+        project.character_approved_at = _now()
+        contract.update(project, stage="avatar_approved")
+        _enqueue_free(
+            db,
+            job,
+            project,
+            JobType.EBOOK,
+            {"master_page": True, "page": 1},
+            f"free-page-{project.id}-1",
+        )
     _account(db, job, result, "Avatar — foto original")
     _set_status(db, project, ProjectStatus.AVATAR_READY)
 
@@ -593,10 +640,22 @@ async def page(db, job, project):
                 name=contract.filename(language, f"PAGINA_{number:02d}_{role.upper()}", title),
             )
         db.commit()
+    finished_frontier = number == current + 1
     current = max(current, number)
     contract.update(
         project, current_page=current, stage="book_ready" if current == 16 else "page_ready"
     )
+    if _free_path(job, project) and finished_frontier and current < 16:
+        from app.models import JobType
+
+        _enqueue_free(
+            db,
+            job,
+            project,
+            JobType.EBOOK,
+            {"master_page": True, "page": current + 1},
+            f"free-page-{project.id}-{current + 1}",
+        )
     if current == 16:
         for language in profile["languages"]:
             cover = _assets(db, project, workflow=1, language=language, role="01_CAPA")[-1]

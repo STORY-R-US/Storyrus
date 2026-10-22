@@ -110,7 +110,7 @@ def test_story_failure_keeps_saved_preview(auth_client):
     orders = auth_client.get("/v1/usage/orders/mine").json()
     order = next(item for item in orders if item["id"] == str(ticket_id))
     assert order["generation_status"] == "ready"
-    assert "credit_balance_exhausted" in order["generation_error"]
+    assert order["generation_error"] is None
     assert {item["kind"] for item in order["book_files"]} >= {"cover", "page_image", "in_hand"}
 
 
@@ -155,7 +155,7 @@ def test_failed_preview_without_images_stays_failed(auth_client):
     orders = auth_client.get("/v1/usage/orders/mine").json()
     order = next(item for item in orders if item["id"] == str(ticket_id))
     assert order["generation_status"] == "failed"
-    assert order["generation_error"] == "OpenAI 429: insufficient_quota"
+    assert order["generation_error"] is None
 
 
 def test_regeneration_rejects_demo_mode(auth_client, monkeypatch):

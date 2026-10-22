@@ -203,6 +203,46 @@ async def test_missing_credits_uses_a_free_preview_and_moves_on(studio, monkeypa
     assert {item["role"] for item in previews} == {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
 
 
+@pytest.mark.asyncio
+async def test_missing_credits_approves_each_stage_and_continues(studio, monkeypatch):
+    client, db, pid, _ = studio
+
+    class Text:
+        async def prepare_book_profile(self, *, ficha, photos):
+            raise ProviderError("OpenAI 429: credit_balance_exhausted", transient=False)
+
+        async def generate_story(self, **kwargs):
+            raise ProviderError("OpenAI 429: credit_balance_exhausted", transient=False)
+
+    class Images:
+        async def generate_scene(self, **kwargs):
+            raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
+
+        async def generate_character(self, **kwargs):
+            raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Text())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Images())
+    await _run(studio, "preview")
+    story = db.scalar(select(Job).where(Job.project_id == uuid.UUID(pid), Job.type == "STORY"))
+    assert story is not None
+    await runner.process_job(db, story)
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "story_approved"
+    avatar = db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "AVATAR"))
+    assert avatar is not None and avatar.status == "PENDING"
+    await runner.process_job(db, avatar)
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "avatar_approved"
+    assert project.character_approved_at is not None
+    page = db.scalar(select(Job).where(Job.idempotency_key == f"free-page-{pid}-1"))
+    assert page is not None and page.status == "PENDING"
+    assert client.get(f"/v1/projects/{pid}").status_code == 200
+
+
 def test_filename_style_and_size_contract():
     assert (
         book_profile.filename("pt-BR", "01_CAPA", "Lía e as estrelas!")

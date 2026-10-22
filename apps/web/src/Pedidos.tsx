@@ -59,14 +59,12 @@ function printRequirements(reason: string): string {
     .replace(/\b(bleed_mm|safety_mm|spine_mm|score_mm|pdf_x|color_profile|filename_pattern)\b/g, (key) => labels[key]);
 }
 
+function isBillingError(error?: string | null): boolean {
+  return /credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota|^OpenAI 429\b/i.test(error ?? "");
+}
+
 function generationFailure(error?: string | null): string {
   const text = error ?? "";
-  if (/credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota/i.test(text)) {
-    return "A conta da OpenAI está sem créditos. Recarregue o saldo e clique em gerar de novo. Os dados e as fotos continuam salvos.";
-  }
-  if (/^OpenAI 429\b/i.test(text)) {
-    return "A OpenAI recusou esta geração por saldo ou limite de uso. Confira a conta e clique em gerar de novo. Os dados e as fotos continuam salvos.";
-  }
   if (/Ficha visual/i.test(text)) {
     return "A ficha visual veio incompleta. Clique em gerar de novo para completar e seguir com as imagens.";
   }
@@ -108,8 +106,7 @@ function OrderPreview({ order }: { order: OrderTicket }) {
       </div>
       {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
       {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
-      {order.credits_fallback && <p className="order-notice">A conta da OpenAI está sem créditos. Esta etapa usou uma imagem genérica gratuita e seguiu para a próxima.</p>}
-      {(order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
+      {!isBillingError(order.generation_error) && (order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
       {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
     </section>
   );

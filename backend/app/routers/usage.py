@@ -14,6 +14,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app import storage
+from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
@@ -88,6 +89,8 @@ def _generation_view(
     if latest.status == "RUNNING":
         return ("generating", None, provider)
     error = _opt_str(latest.error) if latest.status == "FAILED" else None
+    if error and billing_exhausted(error):
+        error = None
     if latest.status == "FAILED":
         if images and latest.type == "STORY":
             return ("ready", error, provider)
