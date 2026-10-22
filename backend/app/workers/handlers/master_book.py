@@ -88,6 +88,54 @@ def _text(value) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
+def _billing_blocked(exc: BaseException) -> bool:
+    from app.ai_clients.resilience import billing_exhausted
+
+    return isinstance(exc, ProviderError) and billing_exhausted(str(exc))
+
+
+def _mark_free(job, project) -> None:
+    """Saldo esgotado não trava o livro: a etapa segue com material gratuito."""
+    contract.update(project, credits_fallback=True)
+    job.result = {**(job.result or {}), "image_provider": "demo", "credits_fallback": True}
+    logger.warning("OpenAI sem creditos; etapa gratuita project=%s", project.id)
+
+
+def _free_image(label: str) -> ImageResult:
+    return ImageResult(
+        _offline_png(label, palette=((235, 243, 250), (255, 250, 242))),
+        cost_usd=0,
+        meta={"provider": "demo", "credits_fallback": True},
+    )
+
+
+def _free_ficha(project, title: str) -> dict:
+    child = project.child_name or "a criança"
+    return {
+        "visual_identity": f"{child}, com o rosto das fotos enviadas.",
+        "costume": "roupa de aventura azul",
+        "palette": "azul, creme e dourado",
+        "animal": "",
+        "trait": "curiosidade",
+        "interest": "descobertas",
+        "locales": {
+            lang: {
+                "title": title,
+                "left": f"{child} explora.\nUma surpresa chegou!",
+                "right": "Vamos descobrir juntos.\nA aventura comecou!",
+            }
+            for lang in project.book_profile["languages"]
+        },
+    }
+
+
+def _free_story(project, title: str) -> str:
+    return f"Título: {title}\n" + "\n\n".join(
+        f"Página {i}:\n{project.child_name} descobre algo novo.\nA aventura continua."
+        for i in range(1, 17)
+    )
+
+
 def _fill_visual_ficha(
     prepared: dict,
     *,
@@ -162,33 +210,42 @@ async def _prepare(db, job, project, photos):
             },
         }
     else:
-        result = (
-            await _pkg()
-            .get_text_provider()
-            .prepare_book_profile(
-                ficha={
-                    "name": project.child_name,
-                    "age": project.child_age,
-                    "gender": profile["gender"],
-                    "title": profile.get("title"),
-                    "theme": profile.get("theme_description") or project.theme,
-                    "style": project.style,
-                    "languages": profile["languages"],
-                    "characters": {
-                        "names": profile.get("characters", ""),
-                        "photos": [ec.get("name") for ec in project.extra_characters or []],
-                    },
-                },
-                photos=photos,
-            )
-        )
-        job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
         try:
-            prepared = json.loads(
-                result.text.strip().removeprefix("```json").removesuffix("```").strip()
+            result = (
+                await _pkg()
+                .get_text_provider()
+                .prepare_book_profile(
+                    ficha={
+                        "name": project.child_name,
+                        "age": project.child_age,
+                        "gender": profile["gender"],
+                        "title": profile.get("title"),
+                        "theme": profile.get("theme_description") or project.theme,
+                        "style": project.style,
+                        "languages": profile["languages"],
+                        "characters": {
+                            "names": profile.get("characters", ""),
+                            "photos": [ec.get("name") for ec in project.extra_characters or []],
+                        },
+                    },
+                    photos=photos,
+                )
             )
-        except (ValueError, TypeError) as exc:
-            raise ProviderError("Ficha visual invalida; tente novamente", transient=True) from exc
+        except ProviderError as exc:
+            if not _billing_blocked(exc):
+                raise
+            prepared = _free_ficha(project, title)
+            _mark_free(job, project)
+        else:
+            job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
+            try:
+                prepared = json.loads(
+                    result.text.strip().removeprefix("```json").removesuffix("```").strip()
+                )
+            except (ValueError, TypeError) as exc:
+                raise ProviderError(
+                    "Ficha visual invalida; tente novamente", transient=True
+                ) from exc
     if not isinstance(prepared, dict):
         raise ProviderError("Ficha visual invalida", transient=True)
     prepared = _fill_visual_ficha(
@@ -281,17 +338,23 @@ async def preview(db, job, project):
                     _offline_png(role, palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
                 )
             else:
-                result = await provider.generate_scene(
-                    prompt=prompt,
-                    character_ref=reference,
-                    photo=photos[0],
-                    extra_refs=extra_refs,
-                    style=contract.art_direction(project.style),
-                    reference_role="cover"
-                    if role != "01_CAPA" or reference != photos[0]
-                    else "character",
-                    landscape=role == "02_LIVRO_ABERTO",
-                )
+                try:
+                    result = await provider.generate_scene(
+                        prompt=prompt,
+                        character_ref=reference,
+                        photo=photos[0],
+                        extra_refs=extra_refs,
+                        style=contract.art_direction(project.style),
+                        reference_role="cover"
+                        if role != "01_CAPA" or reference != photos[0]
+                        else "character",
+                        landscape=role == "02_LIVRO_ABERTO",
+                    )
+                except ProviderError as exc:
+                    if not _billing_blocked(exc):
+                        raise
+                    result = _free_image(role)
+                    _mark_free(job, project)
             data = book_render.png(result.image_bytes, spread=role == "02_LIVRO_ABERTO")
             title = profile["locales"][language]["title"]
             _store(
@@ -380,24 +443,28 @@ async def story(db, job, project):
         if adjustment:
             brief += f"Ajuste de conteudo (preserve titulo/estrutura): {adjustment}"
         if settings.offline_fallback:
-            text = f"Título: {title}\n" + "\n\n".join(
-                f"Página {i}:\n{project.child_name} descobre algo novo.\nA aventura continua."
-                for i in range(1, 17)
-            )
+            text = _free_story(project, title)
         else:
-            result = (
-                await _pkg()
-                .get_text_provider()
-                .generate_story(
-                    brief=brief,
-                    style=contract.art_direction(project.style),
-                    pages=16,
-                    language=language,
-                    age=project.child_age,
+            try:
+                result = (
+                    await _pkg()
+                    .get_text_provider()
+                    .generate_story(
+                        brief=brief,
+                        style=contract.art_direction(project.style),
+                        pages=16,
+                        language=language,
+                        age=project.child_age,
+                    )
                 )
-            )
-            job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
-            text = result.text
+            except ProviderError as exc:
+                if not _billing_blocked(exc):
+                    raise
+                text = _free_story(project, title)
+                _mark_free(job, project)
+            else:
+                job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
+                text = result.text
         pages = _parse_pages(text)
         if len(pages) != 16:
             raise ProviderError(
@@ -422,15 +489,21 @@ async def avatar(db, job, project):
             _offline_png("Avatar DEMO", palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
         )
     else:
-        result = (
-            await _pkg()
-            .get_image_provider()
-            .generate_character(
-                prompt=contract.avatar_prompt(project),
-                reference_images=[photos[0]],
-                style=contract.art_direction(project.style),
+        try:
+            result = (
+                await _pkg()
+                .get_image_provider()
+                .generate_character(
+                    prompt=contract.avatar_prompt(project),
+                    reference_images=[photos[0]],
+                    style=contract.art_direction(project.style),
+                )
             )
-        )
+        except ProviderError as exc:
+            if not _billing_blocked(exc):
+                raise
+            result = _free_image("Avatar gratuito")
+            _mark_free(job, project)
     data = book_render.png(result.image_bytes)
     key = _store(
         db, project, "character", data, language=project.language, role="avatar", name="AVATAR.png"
@@ -438,7 +511,9 @@ async def avatar(db, job, project):
     project.character_ref = {
         "storage_key": key,
         "mime": "image/png",
-        "provider": "demo" if settings.offline_fallback else "openai",
+        "provider": "demo"
+        if settings.offline_fallback or (result.meta or {}).get("credits_fallback")
+        else "openai",
     }
     project.character_approved_at = None
     contract.update(project, stage="avatar_ready")
@@ -486,13 +561,19 @@ async def page(db, job, project):
                     cost_usd=0,
                 )
             else:
-                result = await provider.generate_scene(
-                    prompt=prompt,
-                    character_ref=avatar_bytes,
-                    photo=photos[0],
-                    extra_refs=photos[1:] + [cover_bytes],
-                    style=contract.art_direction(project.style),
-                )
+                try:
+                    result = await provider.generate_scene(
+                        prompt=prompt,
+                        character_ref=avatar_bytes,
+                        photo=photos[0],
+                        extra_refs=photos[1:] + [cover_bytes],
+                        style=contract.art_direction(project.style),
+                    )
+                except ProviderError as exc:
+                    if not _billing_blocked(exc):
+                        raise
+                    result = _free_image(f"Pagina {number} gratuita")
+                    _mark_free(job, project)
             shared_art = book_render.png(result.image_bytes)
             _account(db, job, result, f"Pagina {number} — arte compartilhada entre idiomas")
         art = shared_art

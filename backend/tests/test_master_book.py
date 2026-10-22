@@ -179,6 +179,30 @@ def test_partial_visual_ficha_is_completed_instead_of_failing():
     assert prepared["animal"] == ""
 
 
+@pytest.mark.asyncio
+async def test_missing_credits_uses_a_free_preview_and_moves_on(studio, monkeypatch):
+    client, db, pid, _ = studio
+
+    class Text:
+        async def prepare_book_profile(self, *, ficha, photos):
+            raise ProviderError("OpenAI 429: credit_balance_exhausted", transient=False)
+
+    class Images:
+        async def generate_scene(self, **kwargs):
+            raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Text())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Images())
+    job = await _run(studio, "preview")
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "preview_ready"
+    assert project.book_profile["credits_fallback"] is True
+    assert job.result["credits_fallback"] is True
+    previews = client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+    assert {item["role"] for item in previews} == {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+
+
 def test_filename_style_and_size_contract():
     assert (
         book_profile.filename("pt-BR", "01_CAPA", "Lía e as estrelas!")

@@ -32,6 +32,7 @@ const COPY = {
     summary:
       "Cada página tem a versão sem texto e a versão com texto, nessa ordem. A prévia está no início.",
     continue: "Continuar",
+    free: "A conta de imagens está sem créditos. Esta etapa usou uma imagem genérica gratuita e seguiu para a próxima.",
   },
   en: {
     preview: "Approve the preview?",
@@ -59,6 +60,7 @@ const COPY = {
     summary:
       "Each page has a version without text followed by a version with text. The preview is at the start.",
     continue: "Continue",
+    free: "The image account has no credits. This step used a free generic image and moved on.",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -86,6 +88,7 @@ const COPY = {
     summary:
       "Cada página tiene la versión sin texto y luego con texto. La vista previa está al inicio.",
     continue: "Continuar",
+    free: "La cuenta de imágenes no tiene créditos. Esta etapa usó una imagen genérica gratuita y siguió a la próxima.",
   },
 };
 
@@ -179,6 +182,7 @@ export function MasterBookFlow({
           {p.interest}
         </p>
       )}
+      {p.credits_fallback && <p className="muted">{t.free}</p>}
       <div className="studio-master-previews">
         {previews.map((shot) => (
           <figure

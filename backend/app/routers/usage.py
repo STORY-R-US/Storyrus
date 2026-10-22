@@ -431,6 +431,9 @@ def _collect_orders(
                     image_provider=provider,
                     image_model=_opt_str(result.get("image_model")),
                     generation_error=generation_error,
+                    credits_fallback=bool(
+                        project and (project.book_profile or {}).get("credits_fallback")
+                    ),
                     print_order_id=printed.id if printed else None,
                     print_code=_opt_str(printed.code) if printed else None,
                     print_status=_opt_str(printed.status) if printed else None,

@@ -108,6 +108,7 @@ function OrderPreview({ order }: { order: OrderTicket }) {
       </div>
       {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
       {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
+      {order.credits_fallback && <p className="order-notice">A conta da OpenAI está sem créditos. Esta etapa usou uma imagem genérica gratuita e seguiu para a próxima.</p>}
       {(order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
       {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
     </section>

@@ -70,6 +70,7 @@ export interface Project {
     interest?: string;
     locales?: Record<string, { title: string; left: string; right: string }>;
     stories?: Record<string, string>;
+    credits_fallback?: boolean;
   } | null;
   id: string;
   status: string;
@@ -199,6 +200,7 @@ export interface OrderTicket {
   image_provider?: string | null;
   image_model?: string | null;
   generation_error?: string | null;
+  credits_fallback?: boolean;
   print_order_id?: string | null;
   print_code?: string | null;
   print_status?: string | null;
