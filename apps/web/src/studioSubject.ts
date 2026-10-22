@@ -344,19 +344,8 @@ export function subjectCode(who: StudioWho): string {
   return CODE_OF[who];
 }
 
-export function ageLimit(who: StudioWho): number {
-  if (who === "pet") return 25;
-  if (
-    who === "father" ||
-    who === "mother" ||
-    who === "aunt" ||
-    who === "great_grandmother" ||
-    who === "grandmother" ||
-    who === "grandfather"
-  ) {
-    return 99;
-  }
-  return 12;
+export function ageLimit(_who: StudioWho): number {
+  return 120;
 }
 
 export function subjectCopy(lang: Lang, who: StudioWho, gender: StudioGender | null): Copy {
