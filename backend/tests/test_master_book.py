@@ -158,6 +158,27 @@ def test_text_overlay_preserves_pixels_outside_text_band_and_embeds_navy():
     assert (23, 42, 58) in second.getdata()
 
 
+def test_partial_visual_ficha_is_completed_instead_of_failing():
+    from app.workers.handlers.master_book import _fill_visual_ficha
+
+    prepared = _fill_visual_ficha(
+        {"visual_identity": "olhos castanhos", "costume": "  ", "locales": {"pt-BR": {}}},
+        name="Lia",
+        theme="estrelas",
+        title="Lia e as estrelas",
+        languages=["pt-BR", "en"],
+        trait="curiosidade",
+        interest="",
+    )
+    assert prepared["costume"].startswith("Roupa de aventura")
+    assert prepared["palette"]
+    assert prepared["trait"] == "curiosidade"
+    assert prepared["interest"] == "estrelas"
+    assert prepared["locales"]["pt-BR"]["title"] == "Lia e as estrelas"
+    assert "Lia" in prepared["locales"]["en"]["left"]
+    assert prepared["animal"] == ""
+
+
 def test_filename_style_and_size_contract():
     assert (
         book_profile.filename("pt-BR", "01_CAPA", "Lía e as estrelas!")

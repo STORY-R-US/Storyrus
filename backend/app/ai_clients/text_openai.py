@@ -287,7 +287,9 @@ class OpenAITextProvider:
         self._model = settings.openai_text_model
         self.last_cost_usd: float | None = None
 
-    async def _complete(self, *, system: str, user: str | list, max_tokens: int) -> TextResult:
+    async def _complete(
+        self, *, system: str, user: str | list, max_tokens: int, json_mode: bool = False
+    ) -> TextResult:
         if not self._api_key:
             raise ProviderError("OPENAI_API_KEY ausente", transient=False)
         payload = {
@@ -298,6 +300,8 @@ class OpenAITextProvider:
                 {"role": "user", "content": user},
             ],
         }
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "content-type": "application/json",
@@ -413,9 +417,12 @@ class OpenAITextProvider:
             "Retorne JSON sem markdown: visual_identity (descricao objetiva das fotos), "
             "costume (pecas e cores), palette, animal, trait, interest, locales: {codigo: "
             "{title, left, right}}. left e right: cada um 2 a 5 linhas curtas separadas "
-            "por \\n, afetivas e relacionadas ao tema, uma cena por lado."
+            "por \\n, afetivas e relacionadas ao tema, uma cena por lado. "
+            "visual_identity, costume, palette, trait e interest sao obrigatorios e "
+            "nunca vazios. animal pode ser string vazia. Cada idioma pedido precisa de "
+            "title, left e right preenchidos."
         )
-        return await self._complete(system=system, user=content, max_tokens=2200)
+        return await self._complete(system=system, user=content, max_tokens=2200, json_mode=True)
 
     async def generate_storyboard(
         self, *, story: str, theme: str, title: str = "", language: str = "pt-BR"

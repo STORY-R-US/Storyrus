@@ -84,6 +84,61 @@ def _account(db, job, result, label):
     flush_usage(db, job, lines_of(result))
 
 
+def _text(value) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _fill_visual_ficha(
+    prepared: dict,
+    *,
+    name: str,
+    theme: str,
+    title: str,
+    languages: list[str],
+    trait: str,
+    interest: str,
+) -> dict:
+    """Completa campos vazios da ficha para a prévia não parar numa resposta parcial."""
+    child = name.strip() or "a criança"
+    subject = theme.strip() or "uma aventura"
+    defaults = {
+        "visual_identity": f"{child}, com o rosto, a idade e as cores das fotos enviadas.",
+        "costume": f"Roupa de aventura ligada a {subject}, diferente da roupa da foto.",
+        "palette": "azul, creme e dourado",
+        "trait": trait.strip() or "curiosidade",
+        "interest": interest.strip() or subject,
+    }
+    filled = []
+    for key, fallback in defaults.items():
+        if not _text(prepared.get(key)):
+            prepared[key] = fallback
+            filled.append(key)
+    locales = prepared.get("locales")
+    if not isinstance(locales, dict):
+        locales = {}
+        prepared["locales"] = locales
+    for lang in languages:
+        locale = locales.get(lang)
+        if not isinstance(locale, dict):
+            locale = {}
+            locales[lang] = locale
+            filled.append(f"locales.{lang}")
+        if not _text(locale.get("title")):
+            locale["title"] = title
+            filled.append(f"{lang}.title")
+        if not _text(locale.get("left")):
+            locale["left"] = f"{child} começa a aventura.\nO caminho fala de {subject}."
+            filled.append(f"{lang}.left")
+        if not _text(locale.get("right")):
+            locale["right"] = "Uma surpresa espera no caminho.\nA história continua."
+            filled.append(f"{lang}.right")
+    if not isinstance(prepared.get("animal"), str):
+        prepared["animal"] = ""
+    if filled:
+        logger.info("ficha visual completada campos=%s", ",".join(filled))
+    return prepared
+
+
 async def _prepare(db, job, project, photos):
     profile = project.book_profile
     if profile.get("locales"):
@@ -134,19 +189,17 @@ async def _prepare(db, job, project, photos):
             )
         except (ValueError, TypeError) as exc:
             raise ProviderError("Ficha visual invalida; tente novamente", transient=True) from exc
-    if not isinstance(prepared, dict) or not isinstance(prepared.get("locales"), dict):
+    if not isinstance(prepared, dict):
         raise ProviderError("Ficha visual invalida", transient=True)
-    if not all(
-        isinstance(prepared.get(k), str) and prepared[k].strip()
-        for k in ("visual_identity", "costume", "palette", "trait", "interest")
-    ):
-        raise ProviderError("Ficha visual incompleta", transient=True)
-    for lang in profile["languages"]:
-        locale = prepared.get("locales", {}).get(lang, {})
-        if not isinstance(locale, dict) or not all(
-            isinstance(locale.get(k), str) and locale[k].strip() for k in ("title", "left", "right")
-        ):
-            raise ProviderError("Textos da previa incompletos", transient=True)
+    prepared = _fill_visual_ficha(
+        prepared,
+        name=project.child_name or "",
+        theme=profile.get("theme_description") or project.theme or "",
+        title=title,
+        languages=list(profile["languages"]),
+        trait=project.child_trait or "",
+        interest=project.child_interest or "",
+    )
     # A supplied title is immutable in the main language.
     if profile.get("title"):
         prepared["locales"][project.language]["title"] = profile["title"]
