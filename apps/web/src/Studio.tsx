@@ -1569,12 +1569,26 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           <div className="studio-choices">
             <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
               <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>
-              <div className="studio-actions">
+              <div className="studio-actions langs">
                 {([['pt-BR', 'Português'], ['en', 'English'], ['es', 'Español']] as const).map(([code, label]) => {
                   const primaryLanguage = lang === "pt" ? "pt-BR" : lang;
-                  return <label key={code}><input type="checkbox" checked={code === primaryLanguage || bookLanguages.includes(code)}
-                    disabled={fieldsLocked || code === primaryLanguage}
-                    onChange={(e) => setBookLanguages((cur) => e.target.checked ? [...cur, code] : cur.filter((item) => item !== code))} /> {label}</label>;
+                  const selected = code === primaryLanguage || bookLanguages.includes(code);
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      className={selected ? "studio-pick is-on" : "studio-pick"}
+                      aria-pressed={selected}
+                      disabled={fieldsLocked || code === primaryLanguage}
+                      onClick={() =>
+                        setBookLanguages((cur) =>
+                          cur.includes(code) ? cur.filter((item) => item !== code) : [...cur, code],
+                        )
+                      }
+                    >
+                      {label}
+                    </button>
+                  );
                 })}
               </div>
             </div>
