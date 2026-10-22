@@ -450,6 +450,7 @@ class OrderTicketOut(BaseModel):
     generated_images: int = 0
     image_provider: str | None = None
     image_model: str | None = None
+    generation_error: str | None = None
     print_order_id: uuid.UUID | None = None
     print_code: str | None = None
     print_status: str | None = None

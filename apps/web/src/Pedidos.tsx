@@ -59,6 +59,19 @@ function printRequirements(reason: string): string {
     .replace(/\b(bleed_mm|safety_mm|spine_mm|score_mm|pdf_x|color_profile|filename_pattern)\b/g, (key) => labels[key]);
 }
 
+function generationFailure(error?: string | null): string {
+  const text = error ?? "";
+  if (/credit_balance_exhausted|insufficient_quota|no credits remaining/i.test(text)) {
+    return "A conta da OpenAI está sem créditos. Recarregue o saldo e clique em gerar de novo. Os dados e as fotos continuam salvos.";
+  }
+  if (/Ficha visual/i.test(text)) {
+    return "A ficha visual veio incompleta. Clique em gerar de novo para completar e seguir com as imagens.";
+  }
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean && clean.length <= 220) return clean;
+  return "A geração foi interrompida. Seus dados e fotos continuam salvos para uma nova tentativa.";
+}
+
 function OrderPreview({ order }: { order: OrderTicket }) {
   const files = order.book_files ?? [];
   const slots = [
@@ -90,7 +103,7 @@ function OrderPreview({ order }: { order: OrderTicket }) {
       </div>
       {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
       {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
-      {order.generation_status === "failed" && <p className="order-notice">A geração foi interrompida. Seus dados e fotos continuam salvos para uma nova tentativa.</p>}
+      {order.generation_status === "failed" && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
       {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
     </section>
   );

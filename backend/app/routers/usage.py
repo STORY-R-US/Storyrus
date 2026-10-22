@@ -404,6 +404,9 @@ def _collect_orders(
                     generated_images=image_count,
                     image_provider=provider,
                     image_model=_opt_str(result.get("image_model")),
+                    generation_error=(
+                        _opt_str(latest.error) if latest and latest.status == "FAILED" else None
+                    ),
                     print_order_id=printed.id if printed else None,
                     print_code=_opt_str(printed.code) if printed else None,
                     print_status=_opt_str(printed.status) if printed else None,
@@ -644,6 +647,20 @@ def regenerate_order_images(
     project.character_approved_at = None
     project.book_approved_at = None
     project.preview_notified_at = None
+    from app.services import book_profile
+
+    # Livro novo: a prévia é capa, livro aberto e leitura. O avatar antigo
+    # exige uma etapa que esse pedido ainda não tem e a geração morre na hora.
+    if book_profile.enabled(project):
+        job = jobs_svc.enqueue_job(
+            db,
+            user=project.user,
+            project=project,
+            job_type=JobType.EBOOK,
+            idempotency_key=f"order-preview-{project.id}-{uuid.uuid4()}",
+            payload={preview_chain.PREVIEW_FLAG: True, "master_preview": True},
+        )
+        return accept_job(job)
     job = jobs_svc.enqueue_job(
         db,
         user=project.user,

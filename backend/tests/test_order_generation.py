@@ -42,6 +42,32 @@ def test_regenerate_uses_same_order_and_reuses_story(auth_client, monkeypatch):
         db.close()
 
 
+def test_master_book_order_starts_preview_not_avatar(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "owner-test")
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    ticket_id, project_id = _order(auth_client)
+    db = _session(auth_client)
+    try:
+        project = db.get(Project, project_id)
+        project.book_profile = {"version": 1, "stage": "ficha", "languages": ["pt-BR"]}
+        db.commit()
+    finally:
+        db.close()
+    result = auth_client.post(
+        f"/v1/usage/orders/{ticket_id}/generate",
+        headers={"X-Usage-Password": "owner-test"},
+    )
+    assert result.status_code == 202, result.text
+    db = _session(auth_client)
+    try:
+        job = db.query(Job).one()
+        assert job.type == "EBOOK"
+        assert job.result["payload"]["master_preview"] is True
+        assert job.result["payload"]["preview_chain"] is True
+    finally:
+        db.close()
+
+
 def test_regeneration_rejects_demo_mode(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "owner-test")
     ticket_id, _ = _order(auth_client)

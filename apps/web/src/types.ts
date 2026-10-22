@@ -198,6 +198,7 @@ export interface OrderTicket {
   generated_images?: number;
   image_provider?: string | null;
   image_model?: string | null;
+  generation_error?: string | null;
   print_order_id?: string | null;
   print_code?: string | null;
   print_status?: string | null;
