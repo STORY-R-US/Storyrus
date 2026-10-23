@@ -204,6 +204,43 @@ async def test_missing_credits_uses_a_free_preview_and_moves_on(studio, monkeypa
 
 
 @pytest.mark.asyncio
+async def test_rehearsal_skips_openai_and_keeps_each_approval(studio, monkeypatch):
+    from app.services import purchase_flow
+
+    client, db, pid, _ = studio
+
+    class Boom:
+        async def prepare_book_profile(self, **kwargs):
+            raise AssertionError("openai")
+
+        async def generate_story(self, **kwargs):
+            raise AssertionError("openai")
+
+        async def generate_scene(self, **kwargs):
+            raise AssertionError("openai")
+
+        async def generate_character(self, **kwargs):
+            raise AssertionError("openai")
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", True)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Boom())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Boom())
+    await _run(studio, "preview")
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "preview_ready"
+    purchase_flow.require_paid(db, project)
+    story = db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
+    assert story is not None
+    await runner.process_job(db, story)
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "story_ready"
+    assert project.story_text
+    assert client.get(f"/v1/projects/{pid}").status_code == 200
+
+
+@pytest.mark.asyncio
 async def test_missing_credits_approves_each_stage_and_continues(studio, monkeypatch):
     client, db, pid, _ = studio
 

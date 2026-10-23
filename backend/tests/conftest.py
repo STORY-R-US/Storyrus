@@ -56,6 +56,7 @@ def _no_insightface_in_suite(monkeypatch):
 def _demo_generation_in_tests(monkeypatch):
     """Offline test fixtures opt in explicitly; production defaults to OpenAI."""
     monkeypatch.setattr(settings, "offline_fallback", True)
+    monkeypatch.setattr(settings, "skip_openai", False)
 
 
 @pytest.fixture(autouse=True)

@@ -221,7 +221,7 @@ async def _prepare(db, job, project, photos):
     if profile.get("locales"):
         return
     title = profile.get("title") or f"A Grande Aventura de {project.child_name}"
-    if settings.offline_fallback:
+    if settings.offline_fallback or settings.skip_openai:
         prepared = {
             "visual_identity": "DEMO: identidade nao verificada",
             "costume": "roupa de aventura azul",
@@ -362,7 +362,7 @@ async def preview(db, job, project):
                         "Preserve exatamente rosto, pose, cenario, enquadramento e composicao; "
                         "SO os textos mudam. Use a capa localizada adicional no livro fisico."
                     )
-            if settings.offline_fallback:
+            if settings.offline_fallback or settings.skip_openai:
                 result = ImageResult(
                     _offline_png(role, palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
                 )
@@ -471,7 +471,7 @@ async def story(db, job, project):
         adjustment = _payload(job).get("brief")
         if adjustment:
             brief += f"Ajuste de conteudo (preserve titulo/estrutura): {adjustment}"
-        if settings.offline_fallback:
+        if settings.offline_fallback or settings.skip_openai:
             text = _free_story(project, title)
         else:
             try:
@@ -518,7 +518,7 @@ async def avatar(db, job, project):
     contract.require_stage(project, "story_approved", "preview_approved", "avatar_ready")
     photos = _photos(db, project)
     _set_status(db, project, ProjectStatus.AVATAR_RUNNING)
-    if settings.offline_fallback:
+    if settings.offline_fallback or settings.skip_openai:
         result = ImageResult(
             _offline_png("Avatar DEMO", palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
         )
@@ -546,7 +546,7 @@ async def avatar(db, job, project):
         "storage_key": key,
         "mime": "image/png",
         "provider": "demo"
-        if settings.offline_fallback or (result.meta or {}).get("credits_fallback")
+        if settings.offline_fallback or settings.skip_openai or (result.meta or {}).get("credits_fallback")
         else "openai",
     }
     project.character_approved_at = None
@@ -600,7 +600,7 @@ async def page(db, job, project):
                 f" Ajuste da cena, mantendo identidade e figurino: {_payload(job)['adjustment']}"
             )
         if shared_art is None:
-            if settings.offline_fallback:
+            if settings.offline_fallback or settings.skip_openai:
                 result = ImageResult(
                     _offline_png(
                         f"Pagina {number} DEMO", palette=((235, 243, 250), (255, 250, 242))

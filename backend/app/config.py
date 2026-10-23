@@ -102,6 +102,9 @@ class Settings(BaseSettings):
     # Demo images require an explicit opt-in in development. Never default to
     # placeholders when a deployment omits OFFLINE_FALLBACK.
     offline_fallback: bool = False
+    # Ensaio do livro: texto e imagens genéricos, sem chamada à OpenAI.
+    # Volte para False quando for usar créditos de verdade.
+    skip_openai: bool = True
 
     # Custo estimado por etapa (creditos = 1 credito ~ 1 unidade de custo)
     cost_avatar_credits: int = 1

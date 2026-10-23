@@ -640,7 +640,7 @@ def regenerate_order_images(
     db: Annotated[Session, Depends(get_db)],
 ) -> JobAcceptedOut:
     """Generate the preview again with the saved prompts, photos and story."""
-    if settings.offline_fallback:
+    if settings.offline_fallback and not settings.skip_openai:
         raise HTTPException(503, "Ative a geração OpenAI antes de gerar as imagens deste pedido.")
     ticket = db.get(OrderTicket, order_id)
     if ticket is None or ticket.project is None:

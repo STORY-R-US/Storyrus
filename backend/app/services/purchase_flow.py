@@ -39,6 +39,10 @@ def require_unpaid(db: Session, project: Project) -> None:
 
 
 def require_paid(db: Session, project: Project) -> None:
+    from app.config import settings
+
+    if settings.skip_openai:
+        return
     if not (project.purchase_flow or {}).get("preview_ready_at"):
         return
     from app.printkit.service import get_print_order
