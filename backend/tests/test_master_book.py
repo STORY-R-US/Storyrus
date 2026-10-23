@@ -428,3 +428,42 @@ async def test_partial_preview_is_never_approved_and_retry_keeps_completed_cover
     await _run(studio, "preview")
     after = client.get(f"/v1/projects/{pid}/assets").json()["previews"]
     assert next(a for a in after if a["role"] == "01_CAPA")["url"] == before[0]["url"]
+
+
+@pytest.mark.asyncio
+async def test_title_change_repaints_the_cover_and_keeps_the_story(studio):
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    story = "Título: Lia e as estrelas\n\nPágina 1:\nLia olhou o céu."
+    book_profile.update(
+        project,
+        stage="story_ready",
+        locales={"pt-BR": {"title": "Lia e as estrelas", "left": "Um", "right": "Dois"}},
+        stories={"pt-BR": story},
+        costume="roupa azul",
+        palette="azul",
+        trait="curiosidade",
+        interest="estrelas",
+        visual_identity="Lia",
+    )
+    project.story_text = story
+    db.commit()
+    response = client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Lia e o mar"})
+    assert response.status_code == 202, response.text
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    assert job.status == "DONE", job.error
+    assert project.book_profile["stage"] == "story_ready"
+    assert project.book_profile["title"] == "Lia e o mar"
+    assert project.book_profile["locales"]["pt-BR"]["title"] == "Lia e o mar"
+    assert project.story_text.startswith("Título: Lia e o mar")
+    assert "Lia olhou o céu." in project.story_text
+    cover = next(
+        item
+        for item in client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+        if item["role"] == "01_CAPA"
+    )
+    image = Image.open(io.BytesIO(store[cover["url"].removeprefix("https://test/")]))
+    assert (23, 42, 58) in list(image.getdata())

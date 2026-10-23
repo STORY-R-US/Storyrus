@@ -370,8 +370,14 @@ async def handle_ebook(db: Session, job: Job) -> None:
     if book_profile.enabled(project):
         from . import master_book
 
-        if preview_chain.job_payload(job).get("master_preview"):
-            book_profile.require_stage(project, "ficha", "preview_ready")
+        payload = preview_chain.job_payload(job)
+        if payload.get("master_preview"):
+            stages = (
+                ("preview_ready", "story_ready", "story_approved", "preview_approved")
+                if payload.get("title_refresh")
+                else ("ficha", "preview_ready")
+            )
+            book_profile.require_stage(project, *stages)
             _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
             await master_book.preview(db, job, project)
         else:

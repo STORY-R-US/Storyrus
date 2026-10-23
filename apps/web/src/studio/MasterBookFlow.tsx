@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { api } from "../api";
 import type { Job, Project } from "../types";
@@ -32,6 +32,11 @@ const COPY = {
     summary:
       "Cada página tem a versão sem texto e a versão com texto, nessa ordem. A prévia está no início.",
     continue: "Continuar",
+    images: "As imagens",
+    storyHeading: "A história",
+    titleLabel: "Título do livro",
+    titleSave: "Atualizar título",
+    titleHint: "A capa é refeita com este título. O restante da história fica.",
   },
   en: {
     preview: "Approve the preview?",
@@ -59,6 +64,11 @@ const COPY = {
     summary:
       "Each page has a version without text followed by a version with text. The preview is at the start.",
     continue: "Continue",
+    images: "Images",
+    storyHeading: "The story",
+    titleLabel: "Book title",
+    titleSave: "Update title",
+    titleHint: "The cover is remade with this title. The rest of the story stays.",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -86,8 +96,41 @@ const COPY = {
     summary:
       "Cada página tiene la versión sin texto y luego con texto. La vista previa está al inicio.",
     continue: "Continuar",
+    images: "Las imágenes",
+    storyHeading: "La historia",
+    titleLabel: "Título del libro",
+    titleSave: "Actualizar título",
+    titleHint: "La portada se rehace con este título. El resto de la historia queda.",
   },
 };
+
+type StoryBlock = { kind: "title" | "page" | "body"; label: string; lines: string[] };
+
+function verseLines(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((para) => para.replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function storyBlocks(text: string): StoryBlock[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  const parts = trimmed
+    .split(/(?=(?:T[íi]tulo\s*:|P[aá]gina\s+\d+\s*:))/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length <= 1 && !/^(?:T[íi]tulo\s*:|P[aá]gina\s+\d+\s*:)/i.test(trimmed)) {
+    return [{ kind: "body", label: "", lines: verseLines(trimmed) }];
+  }
+  return parts.map((part) => {
+    const titleMatch = part.match(/^T[íi]tulo\s*:\s*([\s\S]*)$/i);
+    if (titleMatch) return { kind: "title", label: "Título", lines: verseLines(titleMatch[1]) };
+    const pageMatch = part.match(/^(P[aá]gina\s+\d+)\s*:\s*([\s\S]*)$/i);
+    if (pageMatch) return { kind: "page", label: pageMatch[1], lines: verseLines(pageMatch[2]) };
+    return { kind: "body", label: "", lines: verseLines(part) };
+  });
+}
 
 type Props = {
   project: Project;
@@ -114,6 +157,9 @@ export function MasterBookFlow({
   const [selected, setSelected] = useState("");
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(project.book_profile?.title || "");
+  useEffect(() => {
+    setEditTitle(project.book_profile?.title || "");
+  }, [project.book_profile?.title]);
   const [editTheme, setEditTheme] = useState(
     project.purchase_flow?.theme_description || project.theme || "",
   );
@@ -168,60 +214,90 @@ export function MasterBookFlow({
     await api.approveCharacter(project.id);
     await api.nextBookPage(project.id);
   };
+  const savedTitle = (p.title || "").trim();
+  const canEditTitle =
+    p.current_page === 0 &&
+    ["preview_ready", "story_ready", "story_approved", "preview_approved"].includes(stage);
+  const chips = [p.costume, p.trait, p.interest].filter((item): item is string => Boolean(item));
+  const severalLanguages = new Set(previews.map((shot) => shot.language)).size > 1;
+  async function applyTitle(event: FormEvent) {
+    event.preventDefault();
+    const title = editTitle.trim();
+    if (!title || title === savedTitle) return;
+    await run(() => api.updatePreviewTitle(project.id, title));
+  }
   return (
     <div className="studio-master-flow" data-testid="studio-master-flow">
-      {error && <p role="alert">{error}</p>}
-      {active && <p role="status">{t.waiting}</p>}
-      {!active && failed?.error && <p role="alert">{failed.error}</p>}
-      {p.costume && (
-        <p>
-          {project.child_name} · {project.child_age} · {p.costume} · {p.trait} ·{" "}
-          {p.interest}
-        </p>
+      {error && <p className="studio-error" role="alert">{error}</p>}
+      {active && <p className="master-status" role="status">{t.waiting}</p>}
+      {!active && failed?.error && <p className="studio-error" role="alert">{failed.error}</p>}
+      {(project.child_name || chips.length > 0) && (
+        <ul className="master-chips">
+          {project.child_name && (
+            <li>
+              {project.child_name}
+              {project.child_age ? ` · ${project.child_age}` : ""}
+            </li>
+          )}
+          {chips.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       )}
-      <div className="studio-master-previews">
-        {previews.map((shot) => (
-          <figure
-            key={`${shot.language}-${shot.role}`}
-            style={{ margin: "12px 0" }}
-          >
-            <figcaption>
-              {shot.language.toUpperCase()} ·{" "}
-              {shot.role === "01_CAPA"
-                ? t.cover
-                : shot.role === "02_LIVRO_ABERTO"
-                  ? t.open
-                  : t.reading}
-            </figcaption>
-            <img
-              src={shot.url}
-              alt={shot.filename}
-              style={{
-                width: "100%",
-                maxWidth: shot.role === "02_LIVRO_ABERTO" ? 640 : 320,
-                height: "auto",
-                display: "block",
-              }}
-            />
-            <a
-              href={shot.url}
-              download={shot.filename}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t.save}
-            </a>
-            {stage === "preview_ready" && (
-              <button
-                disabled={active}
-                onClick={() => setSelected(`${shot.language}:${shot.role}`)}
-              >
-                {t.redo}
-              </button>
-            )}
-          </figure>
-        ))}
+      {previews.length > 0 && <h3 className="master-section">{t.images}</h3>}
+      <div className="master-gallery">
+        {previews.map((shot) => {
+          const label =
+            shot.role === "01_CAPA" ? t.cover : shot.role === "02_LIVRO_ABERTO" ? t.open : t.reading;
+          const shotClass =
+            shot.role === "01_CAPA" ? "is-cover" : shot.role === "02_LIVRO_ABERTO" ? "is-open" : "is-reading";
+          return (
+            <figure key={`${shot.language}-${shot.role}`} className={`master-shot ${shotClass}`}>
+              <img src={shot.url} alt={severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label} />
+              <figcaption>
+                <span>{severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label}</span>
+                <span className="master-shot-actions">
+                  <a href={shot.url} download={shot.filename} target="_blank" rel="noreferrer">
+                    {t.save}
+                  </a>
+                  {stage === "preview_ready" && (
+                    <button
+                      type="button"
+                      disabled={active}
+                      onClick={() => setSelected(`${shot.language}:${shot.role}`)}
+                    >
+                      {t.redo}
+                    </button>
+                  )}
+                </span>
+              </figcaption>
+            </figure>
+          );
+        })}
       </div>
+      {canEditTitle && (
+        <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
+          <div className="master-title-row">
+            <label className="studio-field">
+              {t.titleLabel}
+              <input
+                value={editTitle}
+                maxLength={120}
+                data-testid="studio-preview-title"
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </label>
+            <button
+              type="submit"
+              className="kbtn kbtn-soft"
+              disabled={active || !editTitle.trim() || editTitle.trim() === savedTitle}
+            >
+              {t.titleSave}
+            </button>
+          </div>
+          <p className="master-title-hint">{t.titleHint}</p>
+        </form>
+      )}
       {selected && (
         <div>
           <label>
@@ -262,18 +338,6 @@ export function MasterBookFlow({
       )}
       {stage === "preview_ready" && editing && (
         <div className="studio-review-changes">
-          <label className="studio-field">
-            {lang === "en"
-              ? "Book title"
-              : lang === "es"
-                ? "Título del libro"
-                : "Título do livro"}
-            <input
-              value={editTitle}
-              maxLength={120}
-              onChange={(e) => setEditTitle(e.target.value)}
-            />
-          </label>
           <label className="studio-field">
             {lang === "en" ? "Theme" : "Tema"}
             <textarea
@@ -317,21 +381,43 @@ export function MasterBookFlow({
       )}
       {p.stories && (
         <div data-testid="studio-master-story">
-          {p.languages.map((language) => (
-            <div key={language}>
-              <h3>{language.toUpperCase()}</h3>
-              <p style={{ whiteSpace: "pre-wrap" }}>{p.stories?.[language]}</p>
-            </div>
-          ))}
+          <h3 className="master-section">{t.storyHeading}</h3>
+          {p.languages.map((language) => {
+            const blocks = storyBlocks(p.stories?.[language] || "");
+            return (
+              <div key={language}>
+                {p.languages.length > 1 && <h4 className="master-lang">{language.toUpperCase()}</h4>}
+                <div className="master-story-book">
+                  {blocks.map((block, index) => (
+                    <article
+                      key={`${language}-${index}`}
+                      className={block.kind === "title" ? "studio-story-page is-title" : "studio-story-page"}
+                    >
+                      {block.label ? (
+                        <header className="studio-story-page-head">
+                          <span className="studio-story-page-num">{block.label}</span>
+                        </header>
+                      ) : null}
+                      <div className="studio-story-verse">
+                        {block.lines.map((line, lineIndex) => (
+                          <p key={`${language}-${index}-${lineIndex}`}>{line}</p>
+                        ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
       {stage === "story_ready" && (
-        <div>
-          <p>{t.story}</p>
-          <button disabled={active} onClick={() => void run(approveStory)}>
+        <section className="master-decision" aria-labelledby="master-story-decision">
+          <h3 id="master-story-decision">{t.story}</h3>
+          <button type="button" className="kbtn kbtn-primary" disabled={active} onClick={() => void run(approveStory)}>
             {t.yes}
           </button>
-          <label>
+          <label className="studio-field">
             {t.edit}
             <textarea
               value={adjustment}
@@ -340,6 +426,8 @@ export function MasterBookFlow({
             />
           </label>
           <button
+            type="button"
+            className="kbtn kbtn-soft"
             disabled={active || !adjustment.trim()}
             onClick={() =>
               void run(() =>
@@ -349,7 +437,7 @@ export function MasterBookFlow({
           >
             {t.send}
           </button>
-        </div>
+        </section>
       )}
       {stage === "story_approved" && !!project.purchase_flow?.preview_approved_at && (
         <button

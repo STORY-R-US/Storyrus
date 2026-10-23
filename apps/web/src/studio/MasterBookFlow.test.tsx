@@ -73,6 +73,30 @@ describe("Studio approval stages", () => {
     }));
   });
 
+  it("atualiza o título da prévia e conserva a história", async () => {
+    const ready = {
+      ...project,
+      story_text: "Título: Lia e as estrelas\n\nPágina 1:\nLia olhou o céu.",
+      book_profile: {
+        ...project.book_profile!,
+        stage: "story_ready",
+        stories: { "pt-BR": "Título: Lia e as estrelas\n\nPágina 1:\nLia olhou o céu." },
+      },
+    };
+    const update = vi.spyOn(api, "updatePreviewTitle").mockResolvedValue(accepted);
+    vi.spyOn(api, "getProject").mockResolvedValue(ready);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    vi.spyOn(api, "getAssets").mockResolvedValue(assets);
+    render(<MasterBookFlow project={ready} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} setAssets={vi.fn()} />);
+    const title = screen.getByLabelText("Título do livro");
+    expect(title).toHaveValue("Lia e as estrelas");
+    expect(screen.getByText("Lia olhou o céu.")).toBeInTheDocument();
+    await userEvent.clear(title);
+    await userEvent.type(title, "Lia e o mar");
+    await userEvent.click(screen.getByRole("button", { name: "Atualizar título" }));
+    await waitFor(() => expect(update).toHaveBeenCalledWith("master", "Lia e o mar"));
+  });
+
   it("requires face approval before requesting the first page", async () => {
     const approve = vi.spyOn(api, "approveCharacter").mockResolvedValue(project);
     const page = vi.spyOn(api, "nextBookPage").mockResolvedValue(accepted);

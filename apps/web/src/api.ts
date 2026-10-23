@@ -554,6 +554,9 @@ export const api = {
   async savePreviewChanges(id: string, body: { title: string; theme_description: string; story_text: string; photo_notes: string }) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/changes`, { method: "PUT", body: JSON.stringify(body) });
   },
+  async updatePreviewTitle(id: string, title: string) {
+    return req<JobAccepted>(`/v1/projects/${id}/preview/title`, { method: "PUT", body: JSON.stringify({ title }) });
+  },
   async saveQuotation(id: string) {
     return req<Project>(`/v1/projects/${id}/quotation`, { method: "POST" });
   },

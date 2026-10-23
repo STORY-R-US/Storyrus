@@ -978,20 +978,7 @@
 }
 .studio-master-flow a {
   color: var(--studio-link, #76baff);
-  display: inline-block;
-  margin: 8px 10px 8px 0;
-}
-
-.studio-master-flow button {
-  margin: 6px 8px 6px 0;
-}
-
-.studio-master-flow figure {
-  margin: 20px 0;
-}
-
-.studio-master-flow figcaption {
-  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .studio-master-flow textarea {
@@ -1000,4 +987,178 @@
   width: 100%;
   min-height: 88px;
   margin: 8px 0;
+}
+
+.studio-app .master-status {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(63, 143, 125, 0.16);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.studio-app .master-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 1.2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-app .master-chips li {
+  margin: 0;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(127, 178, 227, 0.16);
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.studio-app .master-section {
+  margin: 0.2rem 0 0.75rem;
+  font-size: 1.15rem;
+}
+
+.studio-app .master-gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.studio-app .master-shot {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--studio-surface-border);
+  background: var(--studio-input-bg);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.studio-app .master-shot.is-cover {
+  grid-row: span 2;
+}
+
+.studio-app .master-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.studio-app .master-shot figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.72rem 0.9rem 0.85rem;
+  font-weight: 800;
+}
+
+.studio-app .master-shot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.studio-app .master-shot-actions button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--studio-link, #76baff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.studio-app .master-title-card,
+.studio-app .master-decision {
+  margin-top: 1.25rem;
+  padding: 1.05rem 1.1rem 1.15rem;
+  border-radius: 18px;
+  border: 1px solid var(--studio-surface-border);
+  background: rgba(255, 248, 235, 0.04);
+}
+
+.studio-app .master-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.studio-app .master-title-row .studio-field {
+  flex: 1 1 16rem;
+}
+
+.studio-app .master-title-card .kbtn,
+.studio-app .master-decision .kbtn {
+  margin-top: 0.85rem;
+}
+
+.studio-app .master-title-row .kbtn {
+  margin-top: 0;
+}
+
+.studio-app .master-flow figure:not(.master-shot),
+.studio-master-flow figure:not(.master-shot) {
+  margin: 1.15rem 0;
+}
+
+.studio-app .master-title-hint {
+  margin: 0.75rem 0 0;
+  color: var(--studio-muted);
+  font-size: 0.9rem;
+}
+
+.studio-app .master-decision h3 {
+  margin: 0 0 0.15rem;
+}
+
+.studio-app .master-decision .studio-field {
+  margin-top: 1rem;
+}
+
+.studio-app .master-story-book {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.studio-app .master-lang {
+  margin: 1rem 0 0;
+  color: var(--studio-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+}
+
+.studio-app .master-story-book .studio-story-page {
+  padding: 1rem 1.1rem 1.15rem;
+}
+
+@media (min-width: 840px) {
+  .studio-app .master-story-book {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .studio-app .master-story-book .is-title {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 800px) {
+  .studio-app .master-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-app .master-shot.is-cover {
+    grid-row: auto;
+  }
 }

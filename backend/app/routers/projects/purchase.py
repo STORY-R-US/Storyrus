@@ -27,6 +27,10 @@ class PreviewChangesIn(BaseModel):
     photo_notes: str = Field(default="", max_length=500)
 
 
+class PreviewTitleIn(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+
+
 def editable(db, project):
     order = get_print_order(db, project.id)
     if order and order.payment_status in {"paid", "pending"}:
@@ -67,6 +71,34 @@ def save_specification(
     purchase_flow.update(project, quoted_at=None)
     db.commit()
     return to_print_out(order)
+
+
+@router.put("/{project_id}/preview/title", response_model=JobAcceptedOut, status_code=202)
+def save_title(
+    project_id: uuid.UUID,
+    body: PreviewTitleIn,
+    user: User = Depends(require_registered_user),
+    db: Session = Depends(get_db),
+):
+    """Atualiza o título e refaz só a capa, sem apagar a história nem voltar a etapa."""
+    project = get_owned_project(db, user, project_id)
+    editable(db, project)
+    from app.services import book_profile
+
+    book_profile.require_stage(
+        project, "preview_ready", "story_ready", "story_approved", "preview_approved"
+    )
+    book_profile.apply_title(project, body.title)
+    return accept_job(
+        jobs.enqueue_job(
+            db,
+            user=user,
+            project=project,
+            job_type=JobType.EBOOK,
+            payload={"master_preview": True, "title_refresh": True, "image": "01_CAPA"},
+            idempotency_key=f"preview-title-{project.id}-{uuid.uuid4()}",
+        )
+    )
 
 
 @router.put("/{project_id}/preview/changes", response_model=JobAcceptedOut, status_code=202)

@@ -37,6 +37,40 @@ def update(project, **values) -> dict:
     return profile
 
 
+_TITLE_LINE = re.compile(r"(?im)^(?:t[íi]tulo|title)\s*:[^\n]*")
+
+
+def retitle(text: str, title: str) -> str:
+    """Troca só a linha de título e conserva o restante da história."""
+    line = f"Título: {title}"
+    body = text.strip()
+    if not body:
+        return line
+    if _TITLE_LINE.match(body):
+        return _TITLE_LINE.sub(line, text, count=1)
+    return f"{line}\n\n{body}"
+
+
+def apply_title(project, title: str) -> None:
+    """Grava o título na ficha, nos idiomas e na história, sem voltar a etapa."""
+    from app.services import purchase_flow
+
+    title = title.strip()
+    profile = project.book_profile or {}
+    locales = {
+        lang: {**locale, "title": title} if isinstance(locale, dict) else locale
+        for lang, locale in (profile.get("locales") or {}).items()
+    }
+    stories = {
+        lang: retitle(text, title) if isinstance(text, str) else text
+        for lang, text in (profile.get("stories") or {}).items()
+    }
+    update(project, title=title, locales=locales, stories=stories)
+    if isinstance(project.story_text, str) and project.story_text.strip():
+        project.story_text = retitle(project.story_text, title)
+    purchase_flow.update(project, title=title)
+
+
 def require_stage(project, *stages: str) -> None:
     if enabled(project) and (project.book_profile or {}).get("stage") not in stages:
         raise HTTPException(409, "Conclua e aprove a etapa atual antes de continuar")

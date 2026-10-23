@@ -410,6 +410,10 @@ async def preview(db, job, project):
                 cover = data
             done += 1
             _publish_progress(db, job, stage=role, done=done, total=total, language=language)
+    if payload.get("title_refresh"):
+        job.result = {**(job.result or {}), "preview_complete": True}
+        _set_status(db, project, ProjectStatus.EBOOK_READY)
+        return
     complete = all(
         _assets(db, project, workflow=1, language=lang, role=role)
         for lang in profile["languages"]
