@@ -557,7 +557,7 @@ a.kcat-group-name.is-chip:focus-visible {
 
 .hero-series.on .hero-series-inner {
   border-color: transparent;
-  box-shadow: 0 14px 32px rgba(11, 18, 38, 0.28);
+  box-shadow: none;
 }
 .hero-shot {
   height: var(--hero-shot-h, clamp(64px, 18vw, 220px));
@@ -579,17 +579,15 @@ a.kcat-group-name.is-chip:focus-visible {
   line-height: 0;
   overflow: hidden;
   box-sizing: border-box;
-  transition: box-shadow 0.2s ease, opacity 0.2s ease;
-  opacity: 0.85;
+  transition: box-shadow 0.2s ease;
+  opacity: 1;
 }
 /* O filete entre as fotos é o fundo branco da moldura visto pelo gap de 2px. */
 .hero-shot:hover:not(:disabled) {
   box-shadow: none;
-  opacity: 0.95;
 }
 .hero-shot.on {
   box-shadow: none;
-  opacity: 1;
 }
 .hero-shot img {
   display: block;
