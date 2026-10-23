@@ -14,14 +14,15 @@ from sqlalchemy.orm import Session
 
 from app import storage, story_templates
 from app.database import get_db
-from app.deps import get_current_user, require_adult_user, require_registered_user
+from app.deps import get_current_user, require_registered_user
 from app.models import Asset, AssetKind, Job, Project, User
 from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut
 from app.services import book_profile
+from app.services.preview_mark import display_key
 
 from . import approvals, book_flow, photos, purchase, steps
 from . import print as print_mod
-from .common import get_owned_project, purge_project
+from .common import get_owned_project
 
 router = APIRouter(prefix="/v1/projects", tags=["projects"])
 
@@ -29,7 +30,7 @@ router = APIRouter(prefix="/v1/projects", tags=["projects"])
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 def create_project(
     body: ProjectCreateIn,
-    user: User = Depends(require_adult_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> Project:
     project = Project(
@@ -75,23 +76,6 @@ def list_story_templates(
     return story_templates.list_templates()
 
 
-@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(
-    project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
-    db: Session = Depends(get_db),
-) -> Response:
-    """O responsável apaga o projeto, a foto e os arquivos gerados."""
-    project = get_owned_project(db, user, project_id)
-    try:
-        purge_project(db, project.id)
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
 @router.get("/{project_id}", response_model=ProjectOut)
 def get_project(
     project_id: uuid.UUID,
@@ -113,6 +97,9 @@ def project_assets(
     def url_for(key: str | None) -> str | None:
         return storage.presign_get(key) if key else None
 
+    def shown(asset) -> str | None:
+        return storage.presign_get(display_key(db, asset)) if asset is not None else None
+
     character_url = None
     if project.character_ref and project.character_ref.get("storage_key"):
         character_url = url_for(project.character_ref["storage_key"])
@@ -133,21 +120,21 @@ def project_assets(
         )
     ).all()
     pages = sorted(pages, key=lambda a: ((a.meta or {}).get("page") or 0, str(a.created_at)))
-    page_images = [url_for(a.storage_key) for a in pages]
+    page_images = [shown(a) for a in pages]
 
     cover = db.scalar(
         select(Asset)
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
         .order_by(Asset.created_at.desc())
     )
-    cover_url = url_for(cover.storage_key) if cover else None
+    cover_url = shown(cover)
 
     in_hand = db.scalar(
         select(Asset)
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.IN_HAND.value)
         .order_by(Asset.created_at.desc())
     )
-    in_hand_url = url_for(in_hand.storage_key) if in_hand else None
+    in_hand_url = shown(in_hand)
 
     ebook_url = url_for(project.ebook_url) if project.ebook_url else None
 
@@ -199,7 +186,10 @@ def project_assets(
 
     return {
         "previews": [
-            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            {
+                **{key: value for key, value in (a.meta or {}).items() if key != "watermark_key"},
+                "url": shown(a),
+            }
             for a in db.scalars(
                 select(Asset)
                 .where(Asset.project_id == project.id)

@@ -21,6 +21,36 @@ BLEED_MM = 5
 TARGET_PX = 1316
 
 
+def preview_watermark(data: bytes) -> bytes:
+    """Repete a marca na imagem da prévia. O original do livro não passa por aqui."""
+    base = Image.open(io.BytesIO(data)).convert("RGBA")
+    width, height = base.size
+    stamp = Image.new("RGBA", (width * 3, height * 3), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(stamp)
+    font = ImageFont.truetype(str(FONT), max(28, min(width, height) // 12))
+    label = "PRÉVIA  ·  storyrus.ai"
+    span = int(draw.textlength(label, font=font)) + font.size // 2
+    step_y = int(font.size * 1.7)
+    y = 0
+    row = 0
+    while y < stamp.height:
+        x = -(span // 2) if row % 2 else 0
+        while x < stamp.width:
+            draw.text((x + 1, y + 1), label, font=font, fill=(23, 42, 58, 150))
+            draw.text((x, y), label, font=font, fill=(255, 255, 255, 180))
+            x += span
+        y += step_y
+        row += 1
+    stamp = stamp.rotate(-24, resample=Image.Resampling.BICUBIC, expand=True)
+    left = max(0, (stamp.width - width) // 2)
+    top = max(0, (stamp.height - height) // 2)
+    stamp = stamp.crop((left, top, left + width, top + height))
+    marked = Image.alpha_composite(base, stamp).convert("RGB")
+    out = io.BytesIO()
+    marked.save(out, "PNG")
+    return out.getvalue()
+
+
 def png(data: bytes, *, spread: bool = False) -> bytes:
     with Image.open(io.BytesIO(data)) as source:
         image = ImageOps.exif_transpose(source).convert("RGB")
