@@ -549,16 +549,16 @@ function AuthBody({
   if (!signedIn) {
     const clerkReady = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
     return (
-      <div className={`kid auth-kid${mode === "signup" ? " auth-kid-full" : ""}`} data-testid="auth-page">
-        <div className="auth-shell">
-          <div className="auth-card">
+      <div className="kid auth-kid" data-testid="auth-page">
+        <div className="auth-shell auth-shell-clerk">
+          <div className="auth-card auth-card-clerk">
             <div className="auth-card-head">{langSwitch}</div>
             <div className="auth-logo">
               <Link to="/">
                 <img src={logo} alt="Story R Us" />
               </Link>
             </div>
-            <SiteBackNav />
+            <SiteBackNav className="site-back-nav-center" />
             {clerkReady ? (
               mode === "login" ? (
                 <SignIn
@@ -644,7 +644,7 @@ function AuthBody({
               </div>
             </>
           )}
-          <SiteBackNav />
+          <SiteBackNav className="site-back-nav-center" />
           <header className={isSignup ? "auth-hero" : undefined}>
             <h1>{isSignup ? t.signupTitle : t.loginTitle}</h1>
             <p className="auth-lead">{isSignup ? t.signupLead : t.loginLead}</p>
@@ -671,7 +671,7 @@ function AuthBody({
               </label>
             )}
             {isSignup && (
-              <label>
+              <label className="auth-span-all">
                 {t.phone}
                 <input
                   type="tel"

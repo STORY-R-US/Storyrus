@@ -2778,12 +2778,13 @@ img.ex-tab-cover {
   max-width: none;
 }
 .auth-hero h1 {
-  text-align: left;
+  text-align: center;
   margin-bottom: 0.35rem;
   font-size: clamp(2rem, 4vw, 2.55rem);
 }
 .auth-hero .auth-lead {
-  text-align: left;
+  text-align: center;
+  margin-inline: auto;
   margin-bottom: 0;
   max-width: 36rem;
 }
@@ -2798,12 +2799,14 @@ img.ex-tab-cover {
   grid-column: 1 / -1;
 }
 .auth-form-full .auth-cta {
-  max-width: 22rem;
-  margin-top: 0.25rem;
+  width: 100%;
+  max-width: none;
+  margin-top: 0.35rem;
 }
 .auth-foot-row {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.75rem 1.5rem;
   margin-top: 1.2rem;
   max-width: none;
@@ -2846,6 +2849,60 @@ img.ex-tab-cover {
 .auth-logo img {
   height: 80px;
   width: auto;
+}
+.auth-shell-clerk {
+  width: min(100%, 480px);
+}
+.auth-card-clerk {
+  align-items: stretch;
+}
+.auth-card-clerk .auth-card-head {
+  position: absolute;
+  top: 1.05rem;
+  right: 1.15rem;
+  z-index: 2;
+  margin: 0;
+}
+.auth-card-clerk .auth-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  margin: 0.15rem 0 0.2rem;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.auth-card-clerk .site-back-nav {
+  justify-content: center;
+  margin: 0 0 0.35rem;
+}
+.auth-card-clerk .cl-rootBox,
+.auth-card-clerk .cl-cardBox,
+.auth-card-clerk .cl-card,
+.auth-card-clerk .cl-footer,
+.auth-card-clerk .cl-header,
+.auth-card-clerk .cl-main {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+.auth-card-clerk .cl-cardBox,
+.auth-card-clerk .cl-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.auth-card-clerk .cl-headerTitle,
+.auth-card-clerk .cl-headerSubtitle,
+.auth-card-clerk .cl-footer,
+.auth-card-clerk .cl-footerAction {
+  text-align: center;
 }
 .auth-card h1 {
   margin: 0 0 0.35rem;
