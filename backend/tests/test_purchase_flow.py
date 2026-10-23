@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from app.database import get_db
-from app.models import Job, Project, _now
+from app.models import Job, Project, User, _now
 from app.printkit.service import advance_validation, fulfill_payment, get_print_order
 from app.services import purchase_flow
 
@@ -102,6 +102,42 @@ def test_paid_callback_enqueues_only_once_and_waits_for_final_review(auth_client
         ).status_code
         == 409
     )
+
+
+def test_owner_confirms_payment_and_starts_the_book(auth_client):
+    pid = approve(auth_client)
+    saved = auth_client.put(
+        f"/v1/projects/{pid}/print-order/address",
+        json={
+            "recipient_name": "Ana",
+            "postal_code": "01310100",
+            "street": "Av. Paulista",
+            "number": "1000",
+            "district": "Bela Vista",
+            "city": "São Paulo",
+            "state": "SP",
+        },
+    )
+    assert saved.status_code == 200, saved.text
+    refused = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
+    assert refused.status_code == 403
+    with session(auth_client) as db:
+        user = db.scalar(select(User).where(User.email == "auth@example.com"))
+        user.is_admin = True
+        db.commit()
+    confirmed = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
+    assert confirmed.status_code == 200, confirmed.text
+    body = confirmed.json()
+    assert body["payment_status"] == "paid"
+    assert body["amount_cents"] == 17700
+    project = auth_client.get(f"/v1/projects/{pid}").json()
+    assert project["purchase_flow"]["stage"] == "generating_book"
+    with session(auth_client) as db:
+        order = get_print_order(db, uuid.UUID(pid))
+        assert order.payment_provider == "manual"
+        queued = db.scalars(select(Job).where(Job.project_id == uuid.UUID(pid))).all()
+        assert len(queued) == 1
+        assert queued[0].result["payload"]["purchase_full_book"]
 
 
 def test_customer_can_only_access_own_orders(auth_client):

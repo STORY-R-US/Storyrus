@@ -19,9 +19,11 @@ const empty: PrintAddress = {
 export function PrintCheckout({
   projectId,
   onProject,
+  canConfirmPayment = false,
 }: {
   projectId: string;
   onProject?: (project: Project) => void;
+  canConfirmPayment?: boolean;
 }) {
   const { lang } = useStudioI18n();
   const t = purchaseCopy(lang);
@@ -317,6 +319,25 @@ export function PrintCheckout({
                 }
               >
                 {t.pay}
+              </button>
+            </>
+          ) : canConfirmPayment ? (
+            <>
+              <h4>{t.confirmPayTitle}</h4>
+              <p className="muted">{t.confirmPayHint}</p>
+              <button
+                className="kbtn kbtn-primary"
+                type="button"
+                disabled={locked || !ready || quantityDirty}
+                onClick={() =>
+                  void run(async () => {
+                    const next = await api.confirmManualPayment(projectId);
+                    setOrder(next);
+                    onProject?.(await api.getProject(projectId));
+                  })
+                }
+              >
+                {t.confirmPay}
               </button>
             </>
           ) : (

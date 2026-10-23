@@ -8,12 +8,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_user, require_registered_user
+from app.deps import get_current_user, require_adult_user
 from app.models import PrintOrder, Project, User
+from app.owner_auth import user_is_admin
 from app.printkit.gateway import GatewayNotConfigured, checkout_available
 from app.printkit.service import (
     address_complete,
     apply_address,
+    confirm_manual_payment,
     get_print_order,
     open_print_order,
     price_for,
@@ -82,7 +84,7 @@ def _owned_order(db: Session, user: User, project_id: uuid.UUID) -> tuple[Projec
 @router.post("/{project_id}/print-request", response_model=ProjectOut)
 def request_print(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> Project:
     """Abre o pedido impresso. Sem spec completa, não publica arquivo de produção."""
@@ -113,7 +115,7 @@ def read_print_order(
 def save_print_address(
     project_id: uuid.UUID,
     body: PrintAddressIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
@@ -132,7 +134,7 @@ def save_print_address(
 def save_print_quantity(
     project_id: uuid.UUID,
     body: PrintQuantityIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
@@ -148,7 +150,7 @@ def save_print_quantity(
 @router.post("/{project_id}/print-order/freight", response_model=PrintOrderOut)
 def quote_print_freight(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
@@ -174,7 +176,7 @@ def quote_print_freight(
 def choose_print_freight(
     project_id: uuid.UUID,
     body: FreightSelectIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)
@@ -189,11 +191,29 @@ def choose_print_freight(
     return to_print_out(order)
 
 
+@router.post("/{project_id}/print-order/confirm-payment", response_model=PrintOrderOut)
+def confirm_print_payment(
+    project_id: uuid.UUID,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+) -> PrintOrderOut:
+    if not user_is_admin(user):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Só a conta da Story R Us confirma o pagamento manual.")
+    _project, order = _owned_order(db, user, project_id)
+    try:
+        confirm_manual_payment(db, order)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    db.commit()
+    db.refresh(order)
+    return to_print_out(order)
+
+
 @router.post("/{project_id}/print-order/checkout", response_model=PrintOrderOut)
 def checkout_print(
     project_id: uuid.UUID,
     body: PrintCheckoutIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
     _project, order = _owned_order(db, user, project_id)

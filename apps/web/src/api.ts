@@ -1,4 +1,4 @@
-import { BackendUnavailableError, backendFetch, warmBackend } from "./backendConnection";
+import { BackendUnavailableError, backendFetch } from "./backendConnection";
 import type {
   Job,
   JobAccepted,
@@ -18,8 +18,8 @@ import type {
 
 const BASE = ""; // mesmo host (proxy do Vite cobre /v1)
 const TOKEN_KEY = "storyrus_token";
-/** Renova o JWT se faltar menos que isto para o `exp` (STO-26). */
-const REFRESH_SKEW_SEC = 60 * 60 * 2;
+
+type ClerkTokenGetter = (opts?: { skipCache?: boolean }) => Promise<string | null>;
 
 function readStoredToken(): string | null {
   try {
@@ -30,15 +30,22 @@ function readStoredToken(): string | null {
 }
 
 let token: string | null = readStoredToken();
-let refreshPromise: Promise<boolean> | null = null;
-let resumePromise: Promise<boolean> | null = null;
-let sessionRetryAt = 0;
-let sessionRetryError: (Error & { status: number }) | null = null;
+/** Testes e o e2e gravam o Bearer aqui. A sessão real vem do Clerk. */
+let manualOverride = Boolean(token);
+let clerkGetToken: ClerkTokenGetter | null = null;
+let clerkSignOut: (() => Promise<void>) | null = null;
+
+export function setClerkGetToken(fn: ClerkTokenGetter | null) {
+  clerkGetToken = fn;
+}
+
+export function setClerkSignOut(fn: (() => Promise<void>) | null) {
+  clerkSignOut = fn;
+}
 
 export function setToken(t: string | null) {
   token = t;
-  sessionRetryAt = 0;
-  sessionRetryError = null;
+  manualOverride = Boolean(t);
   try {
     if (t) localStorage.setItem(TOKEN_KEY, t);
     else localStorage.removeItem(TOKEN_KEY);
@@ -47,6 +54,17 @@ export function setToken(t: string | null) {
   }
 }
 export function getToken() {
+  return token;
+}
+
+async function resolveToken(): Promise<string | null> {
+  if (manualOverride) return token;
+  if (!clerkGetToken) return token;
+  try {
+    token = await clerkGetToken();
+  } catch {
+    /* mantém o último token se o Clerk não responder */
+  }
   return token;
 }
 
@@ -63,46 +81,7 @@ export function readJwtPayload(t: string): { exp?: number; sub?: string } | null
   }
 }
 
-function tokenExpired(t: string, nowSec = Date.now() / 1000): boolean {
-  const payload = readJwtPayload(t);
-  if (!payload?.exp) return false;
-  return payload.exp <= nowSec;
-}
-
-function tokenExpiresSoon(t: string, skewSec = REFRESH_SKEW_SEC, nowSec = Date.now() / 1000): boolean {
-  const payload = readJwtPayload(t);
-  if (!payload?.exp) return false;
-  return payload.exp <= nowSec + skewSec;
-}
-
-async function postToken(
-  path: string,
-  init: RequestInit = {},
-): Promise<string | null> {
-  if (sessionRetryError && Date.now() < sessionRetryAt) throw sessionRetryError;
-  const resp = await backendFetch(`${BASE}${path}`, init, authFetchTimeoutMs);
-  if (resp.status === 401 || resp.status === 403) return null;
-  if (!resp.ok) {
-    const error = httpError(resp.status, "Não foi possível renovar a sessão agora. Tente em instantes.");
-    if (resp.status === 429 || resp.status >= 500) {
-      const retryAfter = resp.headers.get("Retry-After");
-      const seconds = retryAfter === null ? NaN : Number(retryAfter);
-      const retryAt = Number.isFinite(seconds)
-        ? Date.now() + seconds * 1_000
-        : Date.parse(retryAfter ?? "");
-      sessionRetryAt = Number.isFinite(retryAt)
-        ? Math.max(Date.now() + 1_000, retryAt)
-        : Date.now() + (resp.status === 429 ? 60_000 : 10_000);
-      sessionRetryError = error;
-    }
-    throw error;
-  }
-  const data = (await resp.json()) as { access_token?: string };
-  if (!data.access_token) throw httpError(502, "Resposta de sessão indisponível");
-  return data.access_token;
-}
-
-/** Headers dos paineis do dono: senha compartilhada e/ou JWT da sessão. */
+/** Headers dos paineis do dono: senha compartilhada e/ou sessão do Clerk. */
 function ownerHeaders(password?: string | null, extra?: HeadersInit): Headers {
   const headers = new Headers(extra);
   const secret = (password ?? "").trim();
@@ -137,80 +116,18 @@ async function ownerJson<T>(
   password?: string | null,
   init: RequestInit = {},
 ): Promise<T> {
-  await renewOwnerSession();
-  let resp = await ownerFetch(path, password, init);
-  // JWT vencido: o estúdio renova sozinho; o painel precisa do mesmo resume
-  // antes de tratar a conta logada como "senha inválida".
-  if (resp.status === 401 && token) {
-    const before = token;
-    const resumed = await resumeSession(before);
-    if (resumed && token && token !== before) {
-      resp = await ownerFetch(path, password, init);
-    }
-  }
+  await resolveToken();
+  const resp = await ownerFetch(path, password, init);
   if (!resp.ok) throw await readOwnerError(resp);
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
 
-/** Reemite JWT enquanto o atual ainda e aceito pela API. */
-export async function refreshSession(): Promise<boolean> {
-  if (!token) return false;
-  if (!refreshPromise) {
-    refreshPromise = (async () => {
-      const next = await postToken("/v1/auth/refresh", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!next) return false;
-      setToken(next);
-      return true;
-    })().finally(() => {
-      refreshPromise = null;
-    });
-  }
-  return refreshPromise;
-}
-
-/** Recupera o mesmo user_id a partir de um JWT expirado (evita orfaos). */
-export async function resumeSession(oldToken: string): Promise<boolean> {
-  if (!resumePromise) {
-    resumePromise = (async () => {
-      const next = await postToken("/v1/auth/resume", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ access_token: oldToken }),
-      });
-      if (!next) return false;
-      setToken(next);
-      return true;
-    })().finally(() => {
-      resumePromise = null;
-    });
-  }
-  return resumePromise;
-}
-
 /**
- * Garante sessão de conta (sem mintar convidado).
- * Refresh/resume se o JWT existir; sem token → 401 para a UI redirecionar.
+ * Garante sessão de conta. O Clerk renova o token; sem sessão → 401.
  */
 export async function ensureSession(): Promise<void> {
-  if (!token) {
-    throw new Error("401: Nao autenticado");
-  }
-  // O JWT pode vencer durante o cold start: valide depois que a API acordar.
-  await warmBackend();
-  if (!token) throw new Error("401: Nao autenticado");
-  if (tokenExpired(token)) {
-    const old = token;
-    const ok = await resumeSession(old);
-    if (ok) return;
-    setToken(null);
-    throw new Error("401: Nao autenticado");
-  }
-  if (tokenExpiresSoon(token)) {
-    void refreshSession().catch(() => { /* falha temporária mantém o JWT atual */ });
-  }
+  const current = await resolveToken();
+  if (!current) throw new Error("401: Nao autenticado");
 }
 
 /** @deprecated Use ensureSession — web não mintar mais guest automaticamente. */
@@ -220,6 +137,7 @@ export async function ensureGuest(): Promise<void> {
 
 export function logout(): void {
   setToken(null);
+  void clerkSignOut?.();
 }
 
 function uuid(): string {
@@ -291,42 +209,8 @@ function httpError(status: number, detail: string): Error & { status: number } {
   return err;
 }
 
-/**
- * Renova o JWT antes do painel. Não apaga o token se o Render estiver
- * acordando — a senha do painel e um novo toque em "abrir com esta sessão"
- * ainda podem entrar.
- */
-async function renewOwnerSession(): Promise<void> {
-  if (!token) return;
-  await warmBackend();
-  if (!token) return;
-  try {
-    if (tokenExpired(token)) {
-      await resumeSession(token);
-      return;
-    }
-    if (tokenExpiresSoon(token)) {
-      await refreshSession();
-    }
-  } catch {
-    /* a chamada segue com o token atual */
-  }
-}
-
 function isAuthPath(path: string): boolean {
-  return (
-    path.startsWith("/v1/auth/signup") ||
-    path.startsWith("/v1/auth/login") ||
-    path.startsWith("/v1/auth/guest") ||
-    path.startsWith("/v1/auth/resume") ||
-    path.startsWith("/v1/auth/upgrade") ||
-    path.startsWith("/v1/auth/verify-email") ||
-    path.startsWith("/v1/auth/resend-verify") ||
-    path.startsWith("/v1/auth/forgot-password") ||
-    path.startsWith("/v1/auth/reset-password") ||
-    path.startsWith("/v1/auth/me") ||
-    path.startsWith("/v1/auth/refresh")
-  );
+  return path.startsWith("/v1/auth/");
 }
 
 async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> {
@@ -341,28 +225,9 @@ async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> 
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const skipSession =
-    path.startsWith("/v1/auth/signup") ||
-    path.startsWith("/v1/auth/login") ||
-    path.startsWith("/v1/auth/guest") ||
-    path.startsWith("/v1/auth/resume") ||
-    path.startsWith("/v1/auth/verify-email") ||
-    path.startsWith("/v1/auth/resend-verify") ||
-    path.startsWith("/v1/auth/forgot-password") ||
-    path.startsWith("/v1/auth/reset-password");
-  if (!skipSession) await ensureSession();
-
-  let resp = await reqOnce(path, init);
-  // Token morto: tenta resume do JWT antigo; sem sucesso limpa a sessão.
-  if (resp.status === 401 && token && !path.startsWith("/v1/auth/")) {
-    const old = token;
-    const resumed = await resumeSession(old);
-    if (resumed) {
-      resp = await reqOnce(path, init);
-    } else {
-      setToken(null);
-    }
-  }
+  await ensureSession();
+  const resp = await reqOnce(path, init);
+  if (resp.status === 401) setToken(null);
 
   if (!resp.ok) {
     let detail = resp.statusText;
@@ -412,6 +277,8 @@ export type MeUser = {
   city: string | null;
   state: string | null;
   country: string | null;
+  terms_accepted_at?: string | null;
+  adult_confirmed_at?: string | null;
 };
 
 export type ProfileUpdatePayload = Partial<
@@ -428,72 +295,9 @@ export type ProfileUpdatePayload = Partial<
     | "state"
     | "country"
   >
->;
-
-export type SignupResult = {
-  ok: boolean;
-  message: string;
-  verify_token?: string | null;
-};
+> & { accept_terms?: boolean; confirm_adult?: boolean };
 
 export const api = {
-  /** Cadastro completo — não emite JWT; usuário deve verificar o e-mail. */
-  async signup(payload: SignupPayload) {
-    return req<SignupResult>("/v1/auth/signup", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
-  async verifyEmail(token: string) {
-    const out = await req<{ access_token: string }>("/v1/auth/verify-email", {
-      method: "POST",
-      body: JSON.stringify({ token }),
-    });
-    setToken(out.access_token);
-    return out;
-  },
-  async resendVerify(email: string) {
-    return req<SignupResult>("/v1/auth/resend-verify", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    });
-  },
-  async login(email: string, password: string) {
-    const out = await req<{ access_token: string }>("/v1/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    setToken(out.access_token);
-    return out;
-  },
-  async forgotPassword(email: string) {
-    return req<{ ok: boolean; message: string; reset_token?: string | null }>(
-      "/v1/auth/forgot-password",
-      {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      },
-    );
-  },
-  async resetPassword(token: string, password: string, passwordConfirm: string) {
-    const out = await req<{ access_token: string }>("/v1/auth/reset-password", {
-      method: "POST",
-      body: JSON.stringify({
-        token,
-        password,
-        password_confirm: passwordConfirm,
-      }),
-    });
-    setToken(out.access_token);
-    return out;
-  },
-  /** Guest → conta real no mesmo user_id (exige verificar e-mail depois). */
-  async upgrade(payload: SignupPayload) {
-    return req<SignupResult>("/v1/auth/upgrade", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
   logout,
   async me() {
     return req<MeUser>("/v1/auth/me");
@@ -503,9 +307,6 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
-  },
-  async refresh() {
-    return refreshSession();
   },
   async credits() {
     return req<{ credits: number }>("/v1/credits");
@@ -550,6 +351,9 @@ export const api = {
   },
   async myProjects() {
     return req<Project[]>("/v1/projects");
+  },
+  async deleteProject(id: string) {
+    return req<void>(`/v1/projects/${id}`, { method: "DELETE" });
   },
   async savePreviewChanges(id: string, body: { title: string; theme_description: string; story_text: string; photo_notes: string }) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/changes`, { method: "PUT", body: JSON.stringify(body) });
@@ -858,6 +662,11 @@ export const api = {
     return req<PrintOrder>(`/v1/projects/${id}/print-order/freight/select`, {
       method: "POST",
       body: JSON.stringify({ service_id: serviceId }),
+    });
+  },
+  async confirmManualPayment(id: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/confirm-payment`, {
+      method: "POST",
     });
   },
   async checkoutPrint(id: string, installments: number) {

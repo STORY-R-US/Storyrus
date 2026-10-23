@@ -421,6 +421,28 @@ def start_checkout(order: PrintOrder, installments: int):
     return charge
 
 
+def confirm_manual_payment(db: Session, order: PrintOrder) -> None:
+    """Confirma o pagamento sem cobrança enquanto não há meio de pagamento."""
+    from app.printkit.gateway import checkout_available
+    from app.services.purchase_flow import active_job
+
+    if checkout_available():
+        raise ValueError("O pagamento segue pelo meio de cobrança configurado.")
+    if not (order.project.purchase_flow or {}).get("preview_approved_at"):
+        raise ValueError("Aprove a prévia antes de confirmar o pagamento.")
+    if order.payment_status in {"paid", "pending"}:
+        raise ValueError("Este pedido já está pago ou tem um pagamento em andamento.")
+    if not address_complete(order):
+        raise ValueError("Endereço de entrega incompleto.")
+    if active_job(db, order.project):
+        raise ValueError("Aguarde a prévia atual terminar antes de confirmar o pagamento.")
+    copies = max(1, int(order.quantity or 1))
+    order.amount_cents = book_price_cents(order.book_size) * copies
+    order.payment_provider = "manual"
+    order.payment_reference = f"manual-{order.code}"
+    fulfill_payment(db, order)
+
+
 def fulfill_payment(db: Session, order: PrintOrder) -> None:
     if order.payment_status != "paid":
         order.payment_status = "paid"

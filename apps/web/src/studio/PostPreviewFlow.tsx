@@ -15,6 +15,7 @@ export function PostPreviewFlow({
   onProject,
   onJobs,
   onAdjust,
+  canConfirmPayment = false,
 }: {
   project: Project;
   assets: StudioAssets | null;
@@ -24,6 +25,7 @@ export function PostPreviewFlow({
   onProject: (project: Project) => void;
   onJobs: (jobs: Job[]) => void;
   onAdjust: () => void;
+  canConfirmPayment?: boolean;
 }) {
   const { lang } = useStudioI18n();
   const t = purchaseCopy(lang);
@@ -239,7 +241,11 @@ export function PostPreviewFlow({
           )}
           <details open={flow?.stage !== "generating_book" && !fullReady}>
             <summary>{t.summary}</summary>
-            <PrintCheckout projectId={project.id} onProject={onProject} />
+            <PrintCheckout
+              projectId={project.id}
+              onProject={onProject}
+              canConfirmPayment={canConfirmPayment}
+            />
           </details>
         </>
       )}

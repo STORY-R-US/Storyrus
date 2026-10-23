@@ -139,6 +139,7 @@ type Props = {
   setProject: (project: Project) => void;
   setJobs: (jobs: Job[]) => void;
   setAssets?: (assets: StudioAssets) => void;
+  canConfirmPayment?: boolean;
 };
 
 export function MasterBookFlow({
@@ -148,6 +149,7 @@ export function MasterBookFlow({
   setProject,
   setJobs,
   setAssets,
+  canConfirmPayment = false,
 }: Props) {
   const { lang } = useStudioI18n();
   const t = COPY[lang];
@@ -334,6 +336,7 @@ export function MasterBookFlow({
           onProject={setProject}
           onJobs={setJobs}
           onAdjust={() => setEditing(true)}
+          canConfirmPayment={canConfirmPayment}
         />
       )}
       {stage === "preview_ready" && editing && (

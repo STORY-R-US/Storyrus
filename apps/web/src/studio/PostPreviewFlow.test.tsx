@@ -62,9 +62,11 @@ const order: PrintOrder = {
 function Harness({
   initial = project,
   dirty = false,
+  canConfirm = false,
 }: {
   initial?: Project;
   dirty?: boolean;
+  canConfirm?: boolean;
 }) {
   const [p, setProject] = useState(initial);
   return (
@@ -74,6 +76,7 @@ function Harness({
       jobs={[]}
       dirty={dirty}
       isDemo={false}
+      canConfirmPayment={canConfirm}
       onProject={setProject}
       onJobs={() => {}}
       onAdjust={() => {}}
@@ -118,6 +121,40 @@ describe("continuação da prévia", () => {
       "href",
       "/meus-pedidos",
     );
+  });
+
+  it("a conta da Story R Us confirma o pagamento e segue para o livro", async () => {
+    const waiting = {
+      ...project,
+      purchase_flow: {
+        ...project.purchase_flow,
+        preview_approved_at: "2026-10-15",
+        stage: "awaiting_payment",
+      },
+    };
+    const started = {
+      ...waiting,
+      purchase_flow: { ...waiting.purchase_flow, stage: "generating_book" },
+    };
+    vi.spyOn(api, "printOrder").mockResolvedValue(order);
+    const confirm = vi.spyOn(api, "confirmManualPayment").mockResolvedValue({
+      ...order,
+      payment_status: "paid",
+      amount_cents: 17700,
+    });
+    vi.spyOn(api, "getProject").mockResolvedValue(started);
+    const user = userEvent.setup();
+    render(<Harness initial={waiting} canConfirm />);
+    expect(
+      screen.queryByRole("button", { name: /continuar para pagamento/i }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      await screen.findByRole("button", {
+        name: /confirmar pagamento e continuar/i,
+      }),
+    );
+    expect(confirm).toHaveBeenCalledWith("p1");
+    expect(await screen.findByText(/estamos preparando seu livro completo/i)).toBeInTheDocument();
   });
 
   it("impede aprovar alterações que ainda não foram enviadas", () => {

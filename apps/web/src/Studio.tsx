@@ -1133,11 +1133,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
                 <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
-                {project?.book_profile && <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} />}
+                {project?.book_profile && <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} canConfirmPayment={isOwner} />}
               </div>
             ) : showPreviewRetry ? null : project?.book_profile ? (
               <>
-                <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} />
+                <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} canConfirmPayment={isOwner} />
                 <button type="button" className="link" onClick={resetProject}>{t.newProject}</button>
               </>
             ) : (
@@ -1191,7 +1191,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
                 {project && <PostPreviewFlow project={project} assets={assets} jobs={jobs}
                   isDemo={isDemo} dirty={reviewDirty} onProject={setProject} onJobs={setJobs}
-                  onAdjust={() => setReviewOpen(true)} />}
+                  onAdjust={() => setReviewOpen(true)} canConfirmPayment={isOwner} />}
 
                 {!project?.purchase_flow?.full_book_ready_at && project?.purchase_flow?.stage !== "generating_book" && <details className="purchase-adjustments" open={reviewOpen} onToggle={(e) => setReviewOpen(e.currentTarget.open)}>
                   <summary>{purchaseCopy(lang).adjust}</summary>
@@ -1738,7 +1738,16 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     if (e.target.checked) clearMissing("consent");
                   }}
                 />
-                {t.consent}
+                <span>
+                  {t.consent}{" "}
+                  <a
+                    href={lang === "en" ? "/privacy" : "/privacidade"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t.privacyPolicy}
+                  </a>
+                </span>
               </label>
               {fieldAlert("consent", t.errConsentPhoto)}
               {error ? (

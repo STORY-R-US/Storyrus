@@ -36,6 +36,10 @@ const pt = {
   days: "dias úteis",
   installments: "Parcelas",
   pay: "Continuar para pagamento",
+  confirmPayTitle: "Confirmar pagamento",
+  confirmPay: "Confirmar pagamento e continuar",
+  confirmPayHint:
+    "Confirmação manual de hoje. Nenhum valor é cobrado. O livro completo entra em produção.",
   quote: "Salvar cotação e acompanhar",
   quotation: "Pedido em cotação",
   unavailable:
@@ -48,6 +52,11 @@ const pt = {
   wait: "Salvando…",
   myOrders: "Meus pedidos",
   empty: "Você ainda não tem pedidos. Crie a primeira prévia para começar.",
+  deleteProject: "Apagar projeto",
+  deleteConfirm:
+    "Apagar este projeto? A foto, a história e os arquivos gerados saem da sua conta. Esta ação não desfaz.",
+  deleteBusy: "Apagando…",
+  deleteFailed: "Não foi possível apagar o projeto. Tente de novo.",
   create: "Criar meu livro",
   generating: "Estamos preparando seu livro completo",
   generatingHint:
@@ -112,6 +121,10 @@ const en: Copy = {
   days: "business days",
   installments: "Installments",
   pay: "Continue to payment",
+  confirmPayTitle: "Confirm payment",
+  confirmPay: "Confirm payment and continue",
+  confirmPayHint:
+    "Manual confirmation for today. Nothing is charged. The complete book goes into production.",
   quote: "Save quotation and track order",
   quotation: "Order awaiting quotation",
   unavailable:
@@ -124,6 +137,11 @@ const en: Copy = {
   wait: "Saving…",
   myOrders: "My orders",
   empty: "You have no orders yet. Create your first preview to get started.",
+  deleteProject: "Delete project",
+  deleteConfirm:
+    "Delete this project? The photo, the story, and the generated files leave your account. This cannot be undone.",
+  deleteBusy: "Deleting…",
+  deleteFailed: "Could not delete the project. Try again.",
   create: "Create my book",
   generating: "We're preparing your complete book",
   generatingHint:
@@ -186,6 +204,10 @@ const es: Copy = {
   days: "días hábiles",
   installments: "Cuotas",
   pay: "Continuar al pago",
+  confirmPayTitle: "Confirmar pago",
+  confirmPay: "Confirmar pago y continuar",
+  confirmPayHint:
+    "Confirmación manual de hoy. No se cobra ningún valor. El libro completo entra en producción.",
   quote: "Guardar cotización y seguir pedido",
   quotation: "Pedido en cotización",
   unavailable:
@@ -198,6 +220,11 @@ const es: Copy = {
   wait: "Guardando…",
   myOrders: "Mis pedidos",
   empty: "Aún no tienes pedidos. Crea tu primera vista previa para empezar.",
+  deleteProject: "Borrar proyecto",
+  deleteConfirm:
+    "¿Borrar este proyecto? La foto, la historia y los archivos generados salen de tu cuenta. Esta acción no se deshace.",
+  deleteBusy: "Borrando…",
+  deleteFailed: "No fue posible borrar el proyecto. Inténtalo de nuevo.",
   create: "Crear mi libro",
   generating: "Estamos preparando tu libro completo",
   generatingHint:
