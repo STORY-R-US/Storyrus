@@ -13,9 +13,19 @@ from app.ai_clients.base import ImageResult, ProviderError, TextResult
 from app.config import settings
 from app.database import get_db
 from app.main import app
-from app.models import Job, Project
+from app.models import Asset, Job, Project
 from app.services import book_profile
 from app.workers import book_render, handlers, runner
+
+
+def test_preview_watermark_crosses_the_picture():
+    raw = _png()
+    marked = book_render.preview_watermark(raw)
+    original = Image.open(io.BytesIO(raw))
+    image = Image.open(io.BytesIO(marked))
+    assert image.size == original.size
+    changed = sum(1 for a, b in zip(original.getdata(), image.getdata(), strict=False) if a != b)
+    assert changed > original.size[0] * original.size[1] // 12
 
 
 def _png():
@@ -465,5 +475,13 @@ async def test_title_change_repaints_the_cover_and_keeps_the_story(studio):
         for item in client.get(f"/v1/projects/{pid}/assets").json()["previews"]
         if item["role"] == "01_CAPA"
     )
-    image = Image.open(io.BytesIO(store[cover["url"].removeprefix("https://test/")]))
-    assert (23, 42, 58) in list(image.getdata())
+    original_key = next(
+        row.storage_key
+        for row in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid)))
+        if (row.meta or {}).get("role") == "01_CAPA"
+    )
+    original = Image.open(io.BytesIO(store[original_key]))
+    served = Image.open(io.BytesIO(store[cover["url"].removeprefix("https://test/")]))
+    assert (23, 42, 58) in list(original.getdata())
+    assert list(served.getdata()) != list(original.getdata())
+    assert "watermark_key" not in cover
