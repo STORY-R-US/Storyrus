@@ -142,9 +142,14 @@ def preview_prompt(project, language: str, kind: str) -> str:
     )
     if kind == "01_CAPA":
         return (
-            f"CAPA de frente perfeitamente quadrada, sem perspectiva excessiva; "
-            f"{project.child_name} em destaque, cenario do tema {p.get('theme_description') or project.theme}. "
-            f"Titulo EXATO legivel: «{title}». Nenhum texto adicional. " + common
+            "CAPA quadrada, fotografia real em sangria total, corte reto. "
+            f"{project.child_name} em destaque, a mesma pessoa da foto, com a roupa da fotografia. "
+            f"Cenario do tema {p.get('theme_description') or project.theme}. "
+            "Ceu limpo no terco de cima, sem rosto e sem objeto, porque o titulo entra ali depois. "
+            "Sem letras, sem logo, sem moldura e sem faixa. "
+            + format_directive(project)
+            + " "
+            + continuity(project)
         )
     if kind == "02_LIVRO_ABERTO":
         return (
@@ -159,6 +164,20 @@ def preview_prompt(project, language: str, kind: str) -> str:
         "em ambiente acolhedor, com alegria e carinho. A referencia de CAPA deve ser "
         "impressa IDENTICA no livro fisico, nunca reinventada. "
         f"Titulo exato «{title}», livro quadrado claramente visivel. Enquadramento 1:1. " + common
+    )
+
+
+def back_cover_prompt(project, language: str) -> str:
+    p = project.book_profile or {}
+    return (
+        "CONTRACAPA quadrada, fotografia real em sangria total, corte reto. "
+        f"As mesmas pessoas da capa, {project.child_name}, vistas de costas, olhando a paisagem. "
+        "Roupa da fotografia original. Ceu limpo no terco de cima, sem rosto, sem objeto, "
+        f"sem letras, sem logo e sem QR. Idioma {language}; a marca entra depois. "
+        f"Tema: {p.get('theme_description') or project.theme}. "
+        + format_directive(project)
+        + " "
+        + continuity(project)
     )
 
 

@@ -394,6 +394,8 @@ async def preview(db, job, project):
                     _mark_free(job, project)
             data = book_render.png(result.image_bytes, spread=role == "02_LIVRO_ABERTO")
             title = profile["locales"][language]["title"]
+            if role == "01_CAPA":
+                data = book_render.front_cover(data, title)
             _store(
                 db,
                 project,
@@ -675,16 +677,56 @@ async def page(db, job, project):
             f"free-page-{project.id}-{current + 1}",
         )
     if current == 16:
+        size_cm = 15 if project.book_size == "P" else 20
         for language in profile["languages"]:
             cover = _assets(db, project, workflow=1, language=language, role="01_CAPA")[-1]
             pages = sorted(
                 _assets(db, project, workflow=1, language=language, role="com_texto"),
                 key=lambda a: a.meta["page"],
             )
+            cover_bytes = storage.get_bytes(cover.storage_key)
+            backs = _assets(db, project, workflow=1, language=language, role="04_CONTRACAPA")
+            if backs:
+                back_bytes = storage.get_bytes(backs[-1].storage_key)
+            else:
+                if settings.offline_fallback or settings.skip_openai:
+                    result = ImageResult(
+                        _offline_png("Contracapa DEMO", palette=((235, 243, 250), (255, 250, 242))),
+                        cost_usd=0,
+                    )
+                else:
+                    try:
+                        result = await provider.generate_scene(
+                            prompt=contract.back_cover_prompt(project, language),
+                            character_ref=cover_bytes,
+                            photo=photos[0],
+                            extra_refs=photos[1:],
+                            style=contract.art_direction(project.style),
+                        )
+                    except ProviderError as exc:
+                        logger.warning("provedor indisponivel; contracapa gratuita: %s", exc)
+                        if not _vendor_down(exc):
+                            raise
+                        result = _free_image("Contracapa gratuita")
+                        _mark_free(job, project)
+                back_bytes = book_render.back_cover(book_render.png(result.image_bytes))
+                title = profile["locales"][language]["title"]
+                _store(
+                    db,
+                    project,
+                    "cover",
+                    back_bytes,
+                    language=language,
+                    role="04_CONTRACAPA",
+                    name=contract.filename(language, "CONTRACAPA", title),
+                )
+                _account(db, job, result, f"Contracapa — {language}")
+            title = profile["locales"][language]["title"]
             blob = book_render.pdf(
-                storage.get_bytes(cover.storage_key),
+                cover_bytes,
                 [storage.get_bytes(a.storage_key) for a in pages],
-                size_cm=15 if project.book_size == "P" else 20,
+                back_bytes,
+                size_cm=size_cm,
             )
             key = _store(
                 db,
@@ -693,9 +735,18 @@ async def page(db, job, project):
                 blob,
                 language=language,
                 role="ebook",
-                name=contract.filename(
-                    language, "LIVRO", profile["locales"][language]["title"]
-                ).replace(".png", ".pdf"),
+                name=contract.filename(language, "LIVRO", title).replace(".png", ".pdf"),
+            )
+            _store(
+                db,
+                project,
+                "ebook",
+                book_render.covers_pdf(back_bytes, cover_bytes, size_cm=size_cm),
+                language=language,
+                role="capas",
+                name=contract.filename(language, "CAPA_E_CONTRACAPA", title).replace(
+                    ".png", ".pdf"
+                ),
             )
             if language == project.language:
                 project.ebook_url = key

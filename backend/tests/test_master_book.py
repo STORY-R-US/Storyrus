@@ -144,6 +144,24 @@ async def test_regenerate_only_named_preview_and_retry_reuses_other_shots(studio
         assert (new["url"] == shot["url"]) == (shot["role"] != "02_LIVRO_ABERTO")
 
 
+def test_cover_title_and_back_brand_sit_in_the_sky():
+    art = _png()
+    front = book_render.front_cover(art, "Meu pai, meu heroi")
+    back = book_render.back_cover(art)
+    original = Image.open(io.BytesIO(art))
+    titled = Image.open(io.BytesIO(front))
+    branded = Image.open(io.BytesIO(back))
+    bottom = (0, 700, 1024, 1024)
+    assert ImageChops.difference(original.crop(bottom), titled.crop(bottom)).getbbox() is None
+    assert ImageChops.difference(original.crop(bottom), branded.crop(bottom)).getbbox() is None
+    assert (23, 42, 58) in list(titled.getdata())
+    assert (23, 42, 58) in list(branded.getdata())
+    covers = PdfReader(io.BytesIO(book_render.covers_pdf(back, front, size_cm=20)))
+    assert len(covers.pages) == 2
+    assert round(float(covers.pages[0].mediabox.width) * 2.54 / 72) == 21
+    assert len(covers.pages[0].images) == 1
+
+
 def test_text_overlay_sits_in_the_sky_and_keeps_the_photo():
     art = _png()
     version = book_render.with_text(art, "Lia encontrou uma estrela.\nEra hora de brincar.", page=1)
