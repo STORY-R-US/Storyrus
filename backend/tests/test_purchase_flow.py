@@ -144,27 +144,18 @@ def test_paid_book_retry_has_one_job_per_attempt(auth_client):
         assert len(db.scalars(select(Job).where(Job.project_id == uuid.UUID(pid))).all()) == 2
 
 
-def test_shipping_waits_for_customer_and_production_approval(auth_client, monkeypatch):
+def test_printer_keeps_the_shipment_after_approval(auth_client):
     from app.printkit import service
-    from app.printkit.shipping import LabelResult
 
-    calls = []
-    monkeypatch.setattr(
-        service,
-        "buy_label",
-        lambda order: calls.append(order.id) or LabelResult(tracking="BR123", url=None),
-    )
     pid = approve(auth_client)
     with session(auth_client) as db:
         order = get_print_order(db, uuid.UUID(pid))
         order.payment_status = "paid"
-        service.prepare_shipping_label(db, order)
-        assert calls == []
         order.project.book_approved_at = _now()
         order.status = "approved"
         service.prepare_shipping_label(db, order)
-        assert len(calls) == 1
-        assert order.tracking_code == "BR123"
+        assert order.tracking_code is None
+        assert order.label_error is None
 
 
 def test_final_approval_requires_paid_complete_book(auth_client, monkeypatch):

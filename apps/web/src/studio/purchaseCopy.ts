@@ -25,6 +25,9 @@ const pt = {
   book: "Livros",
   freight: "Frete",
   total: "Total",
+  printerFreight: "Pela gráfica",
+  printerFreightHint:
+    "O envio fica com a gráfica. O valor desta etapa é só o do livro.",
   pendingFreight: "A calcular",
   delivery: "Endereço de entrega",
   calculate: "Calcular frete",
@@ -98,6 +101,9 @@ const en: Copy = {
   book: "Books",
   freight: "Shipping",
   total: "Total",
+  printerFreight: "Handled by the printer",
+  printerFreightHint:
+    "The printer ships the book. This step charges only the book.",
   pendingFreight: "To calculate",
   delivery: "Delivery address",
   calculate: "Calculate shipping",
@@ -169,6 +175,9 @@ const es: Copy = {
   book: "Libros",
   freight: "Envío",
   total: "Total",
+  printerFreight: "Por la imprenta",
+  printerFreightHint:
+    "El envío queda a cargo de la imprenta. En esta etapa se cobra solo el libro.",
   pendingFreight: "Por calcular",
   delivery: "Dirección de entrega",
   calculate: "Calcular envío",

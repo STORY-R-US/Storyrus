@@ -16,7 +16,7 @@ from app.models import Asset, AssetKind, PrintOrder, Project, _now
 from app.printkit.files import build_print_pdfs
 from app.printkit.gateway import configured_gateway
 from app.printkit.pricing import book_price_cents
-from app.printkit.shipping import ShippingError, ShippingNotConfigured, buy_label
+from app.printkit.shipping import ShippingError
 from app.printkit.spec import PrintPagesMissing, PrintSpecIncomplete, spec_from_settings
 
 _FILE_STATUSES = frozenset({"files_ready", "sent_for_validation", "approved", "rejected"})
@@ -402,12 +402,9 @@ def start_checkout(order: PrintOrder, installments: int):
         raise ValueError("Os arquivos de produção ainda não estão prontos.")
     if not address_complete(order):
         raise ValueError("Endereço de entrega incompleto.")
-    if order.freight_price_cents is None or order.freight_service_id is None:
-        raise ValueError("Selecione o frete antes de pagar.")
     gateway = configured_gateway()
     copies = max(1, int(order.quantity or 1))
-    book = book_price_cents(order.book_size) * copies
-    amount = book + int(order.freight_price_cents)
+    amount = book_price_cents(order.book_size) * copies
     charge = gateway.create_charge(
         order_code=order.code,
         amount_cents=amount,
@@ -436,29 +433,8 @@ def fulfill_payment(db: Session, order: PrintOrder) -> None:
 
 
 def prepare_shipping_label(db: Session, order: PrintOrder) -> None:
-    if (order.project.purchase_flow or {}).get("preview_approved_at") and (
-        order.payment_status != "paid"
-        or not order.project.book_approved_at
-        or order.status != "approved"
-    ):
-        return
-    if order.tracking_code:
-        return
-    try:
-        result = buy_label(order)
-    except ShippingNotConfigured as exc:
-        order.label_error = "Etiqueta não comprada: " + ", ".join(exc.gaps)
-        return
-    except ShippingError as exc:
-        order.label_error = str(exc)
-        return
-    order.tracking_code = result.tracking
-    order.label_url = result.url
-    if result.tracking:
-        order.label_error = None
-    else:
-        order.label_error = result.error or "A transportadora não devolveu código de rastreio."
-    db.add(order)
+    """O envio é da gráfica. O pedido guarda o endereço e não compra etiqueta."""
+    return
 
 
 def price_for(order: PrintOrder) -> int | None:

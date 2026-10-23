@@ -122,11 +122,10 @@ export function PrintCheckout({
   const locked = busy || ["pending", "paid"].includes(order.payment_status);
   const addressDirty = JSON.stringify(address) !== JSON.stringify(savedAddress);
   const total =
-    order.book_price_cents != null && order.freight_price_cents != null
-      ? order.book_price_cents * order.quantity + order.freight_price_cents
-      : null;
-  const ready =
-    !addressDirty && total != null && order.freight_service_id != null;
+    order.book_price_cents == null
+      ? null
+      : order.book_price_cents * order.quantity;
+  const ready = !addressDirty && total != null;
   const quantityDirty = quantity !== String(order.quantity);
   function saveAddress(event: FormEvent) {
     event.preventDefault();
@@ -256,43 +255,6 @@ export function PrintCheckout({
           {t.saveAddress}
         </button>
       </form>
-      <button
-        className="kbtn"
-        disabled={locked || addressDirty || quantityDirty}
-        type="button"
-        onClick={() =>
-          void run(async () => setOrder(await api.quotePrintFreight(projectId)))
-        }
-      >
-        {t.calculate}
-      </button>
-      {!!order.freight_options?.length && (
-        <fieldset disabled={locked} className="purchase-freight">
-          <legend>{t.choose}</legend>
-          {order.freight_options.map((option) => (
-            <label key={option.service_id}>
-              <input
-                type="radio"
-                name={`freight-${projectId}`}
-                checked={order.freight_service_id === option.service_id}
-                onChange={() =>
-                  void run(async () =>
-                    setOrder(
-                      await api.selectPrintFreight(
-                        projectId,
-                        option.service_id,
-                      ),
-                    ),
-                  )
-                }
-              />
-              {option.service_name} · {money(option.price_cents)}
-              {option.delivery_days != null &&
-                ` · ${option.delivery_days} ${t.days}`}
-            </label>
-          ))}
-        </fieldset>
-      )}
       <dl className="purchase-totals">
         <div>
           <dt>
@@ -308,17 +270,14 @@ export function PrintCheckout({
         </div>
         <div>
           <dt>{t.freight}</dt>
-          <dd>
-            {order.freight_price_cents == null
-              ? t.pendingFreight
-              : money(order.freight_price_cents)}
-          </dd>
+          <dd>{t.printerFreight}</dd>
         </div>
         <div>
           <dt>{t.total}</dt>
           <dd>{money(total)}</dd>
         </div>
       </dl>
+      <p className="muted">{t.printerFreightHint}</p>
       {order.payment_status === "paid" ? (
         <p role="status">{t.paid}</p>
       ) : order.payment_status === "pending" ? (

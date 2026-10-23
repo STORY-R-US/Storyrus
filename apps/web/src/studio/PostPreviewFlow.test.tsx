@@ -104,6 +104,10 @@ describe("continuação da prévia", () => {
     );
     expect(approve).toHaveBeenCalledWith("p1");
     expect(await screen.findByText("Pedido em cotação")).toBeInTheDocument();
+    expect(screen.getByText("Pela gráfica")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /calcular frete/i }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /continuar para pagamento/i }),
     ).not.toBeInTheDocument();

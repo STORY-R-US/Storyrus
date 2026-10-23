@@ -25,7 +25,6 @@ from app.printkit.gateway import (
     register_gateway,
     unregister_gateway,
 )
-from app.printkit.shipping import LabelResult
 from app.printkit.spec import PrintSpec, PrintSpecIncomplete
 
 
@@ -388,7 +387,7 @@ def test_quantity_is_chosen_at_checkout_and_multiplies_the_book(auth_client, mon
             f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3}
         )
         assert paid.status_code == 200, paid.text
-        assert paid.json()["amount_cents"] == 17700 * 12 + 1000
+        assert paid.json()["amount_cents"] == 17700 * 12
         locked = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 2})
         assert locked.status_code == 409
     finally:
@@ -408,17 +407,10 @@ def test_checkout_without_gateway(auth_client, monkeypatch):
     assert "Gateway" in unpaid.json()["detail"]
 
 
-def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
+def test_paid_webhook_leaves_shipping_with_the_printer(auth_client, monkeypatch):
     _apply_spec(monkeypatch)
     _freight_ready(monkeypatch)
     monkeypatch.setattr(settings, "print_gateway", "fake")
-    bought: list[str] = []
-
-    def _buy(order):
-        bought.append(order.code)
-        return LabelResult(tracking="AA123BR", url=None)
-
-    monkeypatch.setattr("app.printkit.service.buy_label", _buy)
     register_gateway(_FakeGateway())
     try:
         pid = _ready(auth_client)
@@ -431,9 +423,8 @@ def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
         )
         assert paid.status_code == 200, paid.text
         body = paid.json()
-        assert body["amount_cents"] == 17700 + 1000
+        assert body["amount_cents"] == 17700
         assert body["checkout_url"] == "https://pay.test/livro"
-        assert bought == []
         missing = auth_client.post(
             "/v1/webhooks/print-payment",
             json={"reference": "pay-ausente", "paid": True},
@@ -446,9 +437,8 @@ def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
             headers={"X-Print-Signature": "ok"},
         )
         assert hook.status_code == 200, hook.text
-        assert bought == [body["code"]]
         tracked = auth_client.get(f"/v1/projects/{pid}/print-order").json()
-        assert tracked["tracking_code"] == "AA123BR"
+        assert tracked["tracking_code"] is None
         assert tracked["payment_status"] == "paid"
     finally:
         unregister_gateway("fake")
