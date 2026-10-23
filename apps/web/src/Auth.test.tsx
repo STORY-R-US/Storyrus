@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { AppRoutes } from "./Root";
 import { Auth, accountGateHref, readAuthQueryToken, safeNextPath, studioEntryHref } from "./Auth";
 import { VerifyEmail } from "./VerifyEmail";
 import { getToken, setAuthFetchTimeoutMsForTests, setToken } from "./api";
@@ -103,6 +104,16 @@ describe("Auth", () => {
   it("mostra o login do Clerk sem sessão", async () => {
     renderAuth("login", "/app");
     expect(await screen.findByTestId("clerk-sign-in")).toBeInTheDocument();
+  });
+
+  it("mantém o login do Clerk no retorno do Google", async () => {
+    render(
+      <MemoryRouter initialEntries={["/entrar/sso-callback"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByTestId("clerk-sign-in")).toBeInTheDocument();
+    expect(screen.queryByTestId("not-found-title")).not.toBeInTheDocument();
   });
 
   it("grava o endereço e segue quando o perfil está incompleto", async () => {

@@ -77,8 +77,8 @@ export function AppRoutes() {
         <Route path="/catalogo" element={<CatalogPage />} />
         <Route path="/catalogo/:categoria" element={<CategoryCatalogPage />} />
         <Route path="/livro/:indice" element={<BookPage />} />
-        <Route path="/entrar" element={<Auth mode="login" />} />
-        <Route path="/cadastro" element={<Auth mode="signup" />} />
+        <Route path="/entrar/*" element={<Auth mode="login" />} />
+        <Route path="/cadastro/*" element={<Auth mode="signup" />} />
         <Route path="/verificar-email" element={<VerifyEmail />} />
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha" element={<ResetPassword />} />
