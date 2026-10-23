@@ -469,12 +469,16 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       (j.status === "PENDING" || j.status === "RUNNING") &&
       Boolean(j.result?.payload?.preview_chain),
   );
-  const previewFailedJob = jobs.find(
+  const jobsByTime = [...jobs].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const latestPreviewJob = [...jobsByTime].reverse().find(
     (j) =>
       (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK") &&
-      j.status === "FAILED" &&
       Boolean(j.result?.payload?.preview_chain),
   );
+  const previewFailedJob = latestPreviewJob?.status === "FAILED" ? latestPreviewJob : undefined;
+  const latestByType = new Map<string, Job>();
+  for (const job of jobsByTime) latestByType.set(job.type, job);
+  const openJobErrors = [...latestByType.values()].filter((job) => job.status === "FAILED" && job.error);
   const previewReady = Boolean(
     project?.book_profile ? project.book_profile.stage !== "ficha" : project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
@@ -1067,11 +1071,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 {error || previewFailedJob?.error}
               </p>
             )}
-            {jobs.some((job) => job.error) && (
+            {openJobErrors.length > 0 && (
               <div data-testid="studio-error-report">
                 <h3>{t.errorReport}</h3>
                 <ul>
-                  {jobs.filter((job) => job.error).map((job) => (
+                  {openJobErrors.map((job) => (
                     <li key={job.id}>
                       {job.type}: {job.error}
                     </li>
