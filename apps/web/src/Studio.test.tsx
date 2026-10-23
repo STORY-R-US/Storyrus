@@ -496,7 +496,7 @@ describe("Revisão do projeto", () => {
 
     expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
     expect(screen.getByRole("heading", { name: /prévia pronta/i })).toBeInTheDocument();
-    expect(document.title).toBe("Prévia pronta — Story R Us");
+    expect(document.title).toBe("Story R Us - Prévia pronta");
     expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/matteo/i);
@@ -550,7 +550,7 @@ describe("Prévia automática", () => {
     expect(screen.getByTestId("studio-preview-elapsed")).toHaveTextContent(/já se passaram 0:0/i);
     expect(screen.getByTestId("studio-preview-must-move")).toHaveTextContent(/não fica parado/i);
     expect(screen.getByText(/a foto vira o personagem ilustrado/i)).toBeInTheDocument();
-    expect(document.title).toBe("Projeto criado — Story R Us");
+    expect(document.title).toBe("Story R Us - Projeto criado");
   });
 
   it("mostra retry quando a prévia falha com 500", async () => {

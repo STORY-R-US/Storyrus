@@ -84,7 +84,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(sent).toHaveTextContent(/projeto criado/i);
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
     await waitFor(() => {
-      expect(document.title).toBe("Projeto criado — Story R Us");
+      expect(document.title).toBe("Story R Us - Projeto criado");
     });
     expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
@@ -98,7 +98,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(await screen.findByText(/você está vendo um exemplo pronto/i)).toBeInTheDocument();
     expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
     await waitFor(() => {
-      expect(document.title).toBe("Prévia pronta — Story R Us");
+      expect(document.title).toBe("Story R Us - Prévia pronta");
     });
     expect(await screen.findByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();

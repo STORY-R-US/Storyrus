@@ -40,9 +40,13 @@ describe("catálogo no sitemap", () => {
   it("acompanha as fichas públicas de livro", () => {
     expect(catalogEntry("pt", 10)).toBeNull();
     expect(catalogEntry("pt", 13)).toBeNull();
+    expect(catalogEntry("pt", 16)).toBeNull();
+    expect(catalogEntry("pt", 17)).toBeNull();
     expect(catalogEntry("pt", 32)).toBeNull();
     expect(books.some((book) => book.index === 10 || book.title === "Nano E Suas Aventuras")).toBe(false);
     expect(books.some((book) => book.index === 13)).toBe(false);
+    expect(books.some((book) => book.index === 16 || book.title === "Abigail Em Uma Aventura Pelo Espaço")).toBe(false);
+    expect(books.some((book) => book.index === 17 || book.title === "Miriam E Os Segredos Do Fundo Do Mar")).toBe(false);
     expect(books.some((book) => book.index === 32 || book.title === "Nossa Família")).toBe(false);
     for (const book of books) {
       expect(catalogEntry("pt", book.index)?.t).toBe(book.title);
@@ -67,6 +71,8 @@ describe("catálogo no sitemap", () => {
     expect(xml).toContain("https://storyrus.ai/exemplos");
     expect(xml).not.toContain("https://storyrus.ai/livro/10");
     expect(xml).not.toContain("https://storyrus.ai/livro/13");
+    expect(xml).not.toContain("https://storyrus.ai/livro/16");
+    expect(xml).not.toContain("https://storyrus.ai/livro/17");
     expect(xml).not.toContain("/gastos");
     expect(xml).not.toContain("/pedidos");
     expect(xml).not.toContain("/usuarios");
@@ -79,10 +85,10 @@ describe("HTML por rota", () => {
   it("home usa a frase no title e no Open Graph (preview WhatsApp)", () => {
     const page = staticPageMeta("/");
     expect(page).not.toBeNull();
-    expect(page!.title).toBe("Transformamos fotos em livros personalizados, histórias em memórias eternas.");
+    expect(page!.title).toBe("Story R Us - Transformamos fotos em livros personalizados, histórias em memórias eternas.");
     const html = applyPageMeta(INDEX, page!);
-    expect(html).toContain('property="og:title" content="Transformamos fotos em livros personalizados, histórias em memórias eternas."');
-    expect(html).toContain('name="twitter:title" content="Transformamos fotos em livros personalizados, histórias em memórias eternas."');
+    expect(html).toContain('property="og:title" content="Story R Us - Transformamos fotos em livros personalizados, histórias em memórias eternas."');
+    expect(html).toContain('name="twitter:title" content="Story R Us - Transformamos fotos em livros personalizados, histórias em memórias eternas."');
   });
 
   it("troca title, open graph e coloca texto no #root", () => {

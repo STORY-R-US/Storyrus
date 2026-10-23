@@ -154,8 +154,6 @@ describe("Landing — avaliações", () => {
       "foto-raquel-papai.png",
       "foto-rebeca.png",
       "foto-maya-cachorra-pt.jpg",
-      "foto-abigail.png",
-      "foto-miriam.png",
       "foto-mako-amigofiel.jpg",
       "foto-noe.png",
     ];
@@ -166,8 +164,10 @@ describe("Landing — avaliações", () => {
     expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Nicolas$/);
     expect(within(reviews).getByTestId("landing-review-name-2")).toHaveTextContent(/^Emilia$/);
     expect(within(reviews).getByTestId("landing-review-name-11")).toHaveTextContent(/^Raquel$/);
-    expect(within(reviews).getByTestId("landing-review-name-17")).toHaveTextContent(/^Noé$/);
-    expect(within(reviews).queryByTestId("landing-review-cover-18")).not.toBeInTheDocument();
+    expect(within(reviews).getByTestId("landing-review-name-15")).toHaveTextContent(/^Noé$/);
+    expect(within(reviews).queryByTestId("landing-review-cover-16")).not.toBeInTheDocument();
+    expect(within(reviews).queryByText(/^Abigail$/)).not.toBeInTheDocument();
+    expect(within(reviews).queryByText(/^Miriam$/)).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/^Nano$/)).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/o Grande Goleiro do Chile/i)).not.toBeInTheDocument();
     const quotes = within(reviews).getAllByRole("blockquote");
@@ -217,7 +217,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-lucas-max.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-esther-higiene.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(30);
+    expect(imgs).toHaveLength(37);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(false);
   });
 
@@ -240,8 +240,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(30);
-    expect(cards).toHaveLength(30);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(37);
+    expect(cards).toHaveLength(37);
     expect(within(catalog).queryByText(/nano e suas aventuras/i)).not.toBeInTheDocument();
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
@@ -370,7 +370,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(30);
+    expect(personalize).toHaveLength(37);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
@@ -992,7 +992,7 @@ describe("Catálogo e página do livro", () => {
     expect(within(aventuras).getByRole("heading", { name: /^princesas$/i })).toBeInTheDocument();
     expect(within(aventuras).getByRole("heading", { name: /^esportes$/i })).toBeInTheDocument();
     expect(within(aventuras).getByRole("heading", { name: /martin, o grande goleiro/i })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /^nossa família$/i })).toHaveLength(1);
+    expect(screen.queryByRole("heading", { name: /^nossa família$/i })).not.toBeInTheDocument();
     const ocasioes = document.getElementById("ocasioes") as HTMLElement;
     expect(within(ocasioes).getByRole("heading", { name: /^natal$/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /^dia das mães$/i })).toBeInTheDocument();

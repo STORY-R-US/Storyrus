@@ -14,7 +14,7 @@ describe("Pedidos", () => {
 
   it("define o titulo da pagina", () => {
     render(<Pedidos />);
-    expect(document.title).toBe("Pedidos — Story R Us");
+    expect(document.title).toBe("Story R Us - Pedidos");
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
       "content",
       "noindex, nofollow",
@@ -294,7 +294,7 @@ describe("Painel /usuarios", () => {
     expect(await screen.findByRole("heading", { name: /^usuários$/i })).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
     await waitFor(() => {
-      expect(document.title).toBe("Usuários — Story R Us");
+      expect(document.title).toBe("Story R Us - Usuários");
     });
   });
 
@@ -415,7 +415,7 @@ describe("Painel /gastos", () => {
       await screen.findByRole("heading", { name: /gastos da plataforma/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
-    expect(document.title).toBe("Gastos — Story R Us");
+    expect(document.title).toBe("Story R Us - Gastos");
   });
 
   it("pede senha e mostra totais depois do ok", async () => {

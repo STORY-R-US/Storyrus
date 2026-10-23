@@ -1002,8 +1002,8 @@ a.kcat-group-name.is-chip:focus-visible {
 .vid-thumb video { width: 100%; height: 100%; object-fit: cover; object-position: center 46%; display: block; }
 .vid-thumb video { background: #0b1224; }
 .vid-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.vid-thumb:has(video[controls])::after { display: none; }
-.vid-thumb:not(:has(video[controls]))::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(9,15,32,.5), rgba(9,15,32,0) 55%); pointer-events: none; z-index: 1; }
+.vid-thumb:has(video)::after { display: none; }
+.vid-thumb:not(:has(video))::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(9,15,32,.5), rgba(9,15,32,0) 55%); pointer-events: none; z-index: 1; }
 .vid-play-btn { appearance: none; border: 0; padding: 0; margin: 0; width: 100%; height: 100%; cursor: pointer; background: transparent; position: relative; display: block; }
 .vid-play-overlay { position: absolute; inset: 0; z-index: 2; }
 .vid-play-btn:disabled { cursor: default; }
@@ -2355,10 +2355,13 @@ img.ex-tab-cover {
   }
   .kmobile-cat-btn a {
     display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 0;
     color: inherit; text-decoration: none; font-weight: 700;
   }
   .kmobile-cat-toggle {
     margin-left: auto;
+    flex: none;
+    align-self: center;
     border: none;
     background: none;
     color: #e9eefb;
@@ -2372,7 +2375,7 @@ img.ex-tab-cover {
   .kmobile-cat-btn:hover,
   .kmobile-cat-btn:focus-within,
   .kmobile-cat.open .kmobile-cat-btn { background: #1c2748; }
-  .kmobile-cat-btn .faq-chev { margin-left: auto; color: #e9eefb; }
+  .kmobile-cat-btn .faq-chev { margin: 0; color: #e9eefb; }
   .kmobile-cat.open > .kmobile-cat-btn .faq-chev { transform: rotate(180deg); }
   .kmobile-subs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
   .kmobile-cat.open .kmobile-subs { grid-template-rows: 1fr; }

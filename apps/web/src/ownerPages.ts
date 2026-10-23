@@ -1,4 +1,4 @@
-import { applyPageMeta } from "./pageMeta";
+import { applyPageMeta, siteTitle } from "./pageMeta";
 
 export type OwnerPage = {
   path: "/gastos" | "/pedidos" | "/usuarios";
@@ -11,19 +11,19 @@ export const OWNER_PAGES: readonly OwnerPage[] = [
   {
     path: "/gastos",
     file: "gastos.html",
-    title: "Gastos — Story R Us",
+    title: siteTitle("Gastos"),
     description: "Painel privado de custos da plataforma.",
   },
   {
     path: "/pedidos",
     file: "pedidos.html",
-    title: "Pedidos — Story R Us",
+    title: siteTitle("Pedidos"),
     description: "Painel privado dos livros enviados com foto.",
   },
   {
     path: "/usuarios",
     file: "usuarios.html",
-    title: "Usuários — Story R Us",
+    title: siteTitle("Usuários"),
     description: "Painel privado das contas cadastradas.",
   },
 ];

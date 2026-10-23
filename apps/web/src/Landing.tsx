@@ -187,8 +187,6 @@ const REVIEW_PHOTOS = [
   { tab: "foto-raquel-papai.png", name: "Raquel" },
   { tab: "foto-rebeca.png", name: "Rebeca" },
   { tab: "foto-maya-cachorra-pt.jpg", name: "Maya" },
-  { tab: "foto-abigail.png", name: "Abigail" },
-  { tab: "foto-miriam.png", name: "Miriam" },
   { tab: "foto-mako-amigofiel.jpg", name: "Mako" },
   { tab: "foto-noe.png", name: "Noé" },
 ] as const;
@@ -252,6 +250,13 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-tio-favorito.png", en: "capa-tio-favorito-en.png", es: "capa-tio-favorito-es.png" },
   { pt: "capa-grace-aniversario.png", en: "capa-grace-aniversario-en.png", es: "capa-grace-aniversario-es.png" },
   { pt: "capa-grace-andar.png", en: "capa-grace-andar-en.png", es: "capa-grace-andar-es.png" },
+  { pt: "capa-maria-fundo-do-mar.png", en: "capa-maria-fundo-do-mar-en.png", es: "capa-maria-fundo-do-mar-es.png" },
+  { pt: "capa-mamae-e-eu.png", en: "capa-mamae-e-eu-en.png", es: "capa-mamae-e-eu-es.png" },
+  { pt: "capa-feliz-natal.png", en: "capa-feliz-natal-en.png", es: "capa-feliz-natal-es.png" },
+  { pt: "capa-vovo-vida-leve.png", en: "capa-vovo-vida-leve-en.png", es: "capa-vovo-vida-leve-es.png" },
+  { pt: "capa-tome-jesus.png", en: "capa-tome-jesus-en.png", es: "capa-tome-jesus-es.png" },
+  { pt: "capa-maos-motores.png", en: "capa-maos-motores-en.png", es: "capa-maos-motores-es.png" },
+  { pt: "capa-ana-espaco.png", en: "capa-ana-espaco-en.png", es: "capa-ana-espaco-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -345,6 +350,41 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-grace-andar.jpg", en: "pagina-grace-andar-en.jpg", es: "pagina-grace-andar-es.jpg" },
     photo: { pt: "foto-grace-andar.jpg", en: "foto-grace-andar-en.jpg", es: "foto-grace-andar-es.jpg" },
   },
+  43: {
+    cover: { pt: "capa-maria-fundo-do-mar.png", en: "capa-maria-fundo-do-mar-en.png", es: "capa-maria-fundo-do-mar-es.png" },
+    page: { pt: "pagina-maria-fundo-do-mar.jpg", en: "pagina-maria-fundo-do-mar-en.jpg", es: "pagina-maria-fundo-do-mar-es.jpg" },
+    photo: { pt: "foto-maria-fundo-do-mar.jpg", en: "foto-maria-fundo-do-mar-en.jpg", es: "foto-maria-fundo-do-mar-es.jpg" },
+  },
+  44: {
+    cover: { pt: "capa-mamae-e-eu.png", en: "capa-mamae-e-eu-en.png", es: "capa-mamae-e-eu-es.png" },
+    page: { pt: "pagina-mamae-e-eu.jpg", en: "pagina-mamae-e-eu-en.jpg", es: "pagina-mamae-e-eu-es.jpg" },
+    photo: { pt: "foto-mamae-e-eu.jpg", en: "foto-mamae-e-eu-en.jpg", es: "foto-mamae-e-eu-es.jpg" },
+  },
+  45: {
+    cover: { pt: "capa-feliz-natal.png", en: "capa-feliz-natal-en.png", es: "capa-feliz-natal-es.png" },
+    page: { pt: "pagina-feliz-natal.jpg", en: "pagina-feliz-natal-en.jpg", es: "pagina-feliz-natal-es.jpg" },
+    photo: { pt: "foto-feliz-natal.jpg", en: "foto-feliz-natal-en.jpg", es: "foto-feliz-natal-es.jpg" },
+  },
+  46: {
+    cover: { pt: "capa-vovo-vida-leve.png", en: "capa-vovo-vida-leve-en.png", es: "capa-vovo-vida-leve-es.png" },
+    page: { pt: "pagina-vovo-vida-leve.jpg", en: "pagina-vovo-vida-leve-en.jpg", es: "pagina-vovo-vida-leve-es.jpg" },
+    photo: { pt: "foto-vovo-vida-leve.jpg", en: "foto-vovo-vida-leve-en.jpg", es: "foto-vovo-vida-leve-es.jpg" },
+  },
+  47: {
+    cover: { pt: "capa-tome-jesus.png", en: "capa-tome-jesus-en.png", es: "capa-tome-jesus-es.png" },
+    page: { pt: "pagina-tome-jesus.jpg", en: "pagina-tome-jesus-en.jpg", es: "pagina-tome-jesus-es.jpg" },
+    photo: { pt: "foto-tome-jesus.jpg", en: "foto-tome-jesus-en.jpg", es: "foto-tome-jesus-es.jpg" },
+  },
+  48: {
+    cover: { pt: "capa-maos-motores.png", en: "capa-maos-motores-en.png", es: "capa-maos-motores-es.png" },
+    page: { pt: "pagina-maos-motores.jpg", en: "pagina-maos-motores-en.jpg", es: "pagina-maos-motores-es.jpg" },
+    photo: { pt: "foto-maos-motores.jpg", en: "foto-maos-motores-en.jpg", es: "foto-maos-motores-es.jpg" },
+  },
+  49: {
+    cover: { pt: "capa-ana-espaco.png", en: "capa-ana-espaco-en.png", es: "capa-ana-espaco-es.png" },
+    page: { pt: "pagina-ana-espaco.jpg", en: "pagina-ana-espaco-en.jpg", es: "pagina-ana-espaco-es.jpg" },
+    photo: { pt: "foto-ana-espaco.jpg", en: "foto-ana-espaco-en.jpg", es: "foto-ana-espaco-es.jpg" },
+  },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -404,17 +444,24 @@ const CATALOG_THEMES = [
   "family_love",
   "birthday",
   "recem_nascidos",
+  "underwater",
+  "mothers_day",
+  "christmas",
+  "grandfather_love",
+  "biblico",
+  "fathers_day",
+  "space",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([10, 13, 32]);
+const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -531,29 +578,29 @@ const NAV_CAT_META = [
 const MENU_BOOKS: Record<string, readonly number[]> = {
   adventure: [33, 2, 25],
   dinosaurs: [18],
-  underwater: [17],
-  space: [16],
+  underwater: [43],
+  space: [49],
   princess: [1],
   superhero: [15, 26, 27],
   sport: [0, 4, 36],
-  mothers_day: [5, 6],
-  fathers_day: [21, 14],
+  mothers_day: [5, 6, 44],
+  fathers_day: [21, 14, 48],
   grandparents_love: [8, 37],
-  grandfather_love: [30],
-  dia_do_idoso: [8, 30, 37],
+  grandfather_love: [30, 46],
+  dia_do_idoso: [8, 30, 37, 46],
   family_love: [7, 29, 39, 40, 42],
   recem_nascidos: [42],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29, 39, 40],
-  christmas: [9],
+  christmas: [9, 45],
   birthday: [41],
   easter: [31],
   animais_sons: [34],
   economia: [35],
   higiene_desfralde: [24],
-  biblico: [20, 38],
+  biblico: [20, 38, 47],
 };
 function catalogSectionId(theme: string | null | undefined): string {
   if (!theme) return "aventuras";
@@ -640,6 +687,9 @@ const HERO_BY_CATALOG: Record<number, string> = {
   20: "Davi",
   41: "Grace",
   42: "Grace",
+  43: "Maria",
+  47: "Tomé",
+  49: "Ana",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -896,7 +946,6 @@ function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
     <video
       ref={ref}
       poster={poster}
-      controls
       muted
       playsInline
       preload="metadata"
@@ -974,8 +1023,8 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Vovô e Eu", "Nossa Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
-        feats: ["Mamãe e Eu", "Vovó e Eu", "Nossa Família", "O Amor de Mãe"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Vovô e Eu", "Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
+        feats: ["Mamãe e Eu", "Vovó e Eu", "Família", "O Amor de Mãe"],
       },
       {
         name: "Ocasiões Especiais",
@@ -1135,6 +1184,13 @@ const I18N = {
       { t: "Tio Favorito E Sem Igual", p: "Um tio que é sensacional: passeio, risada e um amor que não tem outro igual.", cover: "Hard", size: "P", tag: "Amor de tio", quote: "Tio favorito, você é sensacional." },
       { t: "Feliz Aniversário, Grace", p: "Velas, abraços e um dia só dela: o aniversário da Grace vira uma história para guardar.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Mais um ano de alegria, Grace!" },
       { t: "Aprendendo A Andar Com A Grace", p: "Um passo, depois outro: a Grace descobre o chão, o equilíbrio e a coragem de seguir.", cover: "Hard", size: "P", tag: "Primeiros passos", quote: "Um passinho de cada vez." },
+      { t: "Maria E Os Segredos Do Fundo Do Mar", p: "Um mergulho só dela: a Maria descobre os segredos do fundo do mar, com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do Mar", quote: "Lá no fundo, cada segredo vira amizade." },
+      { t: "Mamãe E Eu, Presente Que Deus Me Deu", p: "No colo da mamãe, amor e proteção: um presente de Deus vira uma história para guardar.", cover: "Hard", size: "M", tag: "Mamãe e eu", quote: "Presente que Deus me deu." },
+      { t: "Feliz Natal A Todos", p: "Luzes na árvore e um abraço para todo mundo: o Natal da família vira uma história para guardar.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Feliz Natal, para todos." },
+      { t: "Vovô, Com Você A Vida É Sempre Mais Leve E Feliz", p: "No colo do vovô, um sorriso e o jardim: com ele, a vida fica mais leve e feliz.", cover: "Hard", size: "M", tag: "Amor de vovô", quote: "Com você, a vida é mais leve e feliz." },
+      { t: "Tomé Duvidou, Mas Jesus O Abraçou E Guardou O Seu Coração", p: "A dúvida de Tomé encontra o abraço de Jesus: fé e cuidado numa história para guardar no coração.", cover: "Hard", size: "M", tag: "Fé e cuidado", quote: "Jesus o abraçou e guardou o seu coração." },
+      { t: "Mãos Que Consertam Motores, Abraços Que Confortam A Alma", p: "Na oficina, o papai conserta o motor e abraça o filho: cuidado que conforta a alma.", cover: "Hard", size: "M", tag: "Papai na oficina", quote: "Abraços que confortam a alma." },
+      { t: "Ana Em Uma Aventura Pelo Espaço", p: "Com coragem no coração, a Ana explora cada constelação: foguete, planetas e uma viagem só dela.", cover: "Hard", size: "M", tag: "Espaço", quote: "Com coragem no coração, Ana explora cada constelação." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1208,8 +1264,8 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Grandpa and Me", "Our Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
-        feats: ["Mommy and Me", "Grandma and Me", "Our Family", "A Mother's Love"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Grandpa and Me", "Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
+        feats: ["Mommy and Me", "Grandma and Me", "Family", "A Mother's Love"],
       },
       {
         name: "Special Occasions",
@@ -1369,6 +1425,13 @@ const I18N = {
       { t: "Favorite Uncle, One Of A Kind", p: "An uncle who is amazing: an outing, a laugh and a love unlike any other.", cover: "Hard", size: "P", tag: "Uncle's love", quote: "Favorite uncle, you are amazing." },
       { t: "Happy Birthday, Grace", p: "Candles, hugs and a day just for her: Grace's birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "Birthday", quote: "One more year of joy, Grace!" },
       { t: "Learning To Walk With Grace", p: "One step, then another: Grace finds the floor, her balance and the courage to keep going.", cover: "Hard", size: "P", tag: "First steps", quote: "One little step at a time." },
+      { t: "Maria And The Secrets Of The Deep Sea", p: "A dive all her own: Maria discovers the secrets of the deep sea, with care and wonder.", cover: "Hard", size: "M", tag: "Under the Sea", quote: "Down deep, every secret becomes a friendship." },
+      { t: "Mommy And Me, A Gift God Gave To Me", p: "In Mommy's arms, love and protection: a gift from God becomes a story to keep.", cover: "Hard", size: "M", tag: "Mommy and me", quote: "A gift God gave to me." },
+      { t: "Merry Christmas To All", p: "Lights on the tree and a hug for everyone: the family's Christmas becomes a story to keep.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Merry Christmas, to all." },
+      { t: "Grandpa, With You Life Is Always Lighter And Happier", p: "In grandpa's arms, a smile and the garden: with him, life feels lighter and happier.", cover: "Hard", size: "M", tag: "Grandpa and me", quote: "With you, life is lighter and happier." },
+      { t: "Thomas Doubted, But Jesus Embraced Him And Guarded His Heart", p: "Thomas's doubt meets Jesus's embrace: faith and care in a story to keep in the heart.", cover: "Hard", size: "M", tag: "Faith and care", quote: "Jesus embraced him and guarded his heart." },
+      { t: "Hands That Repair Engines, Hugs That Comfort The Soul", p: "In the garage, Dad fixes the engine and hugs his boy: care that comforts the soul.", cover: "Hard", size: "M", tag: "Dad in the garage", quote: "Hugs that comfort the soul." },
+      { t: "Ana On An Adventure Through Space", p: "With courage in her heart, Ana explores every constellation: a rocket, planets and a journey all her own.", cover: "Hard", size: "M", tag: "Space", quote: "With courage in her heart, Ana explores every constellation." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1442,8 +1505,8 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Abuelo y Yo", "Nuestra Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
-        feats: ["Mamá y Yo", "Abuela y Yo", "Nuestra Familia", "El Amor de Mamá"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Abuelo y Yo", "Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
+        feats: ["Mamá y Yo", "Abuela y Yo", "Familia", "El Amor de Mamá"],
       },
       {
         name: "Ocasiones Especiales",
@@ -1603,6 +1666,13 @@ const I18N = {
       { t: "Tío Favorito Y Sin Igual", p: "Un tío que es sensacional: paseo, risa y un amor que no tiene otro igual.", cover: "Hard", size: "P", tag: "Amor de tío", quote: "Tío favorito, eres sensacional." },
       { t: "Feliz Cumpleaños, Grace", p: "Velas, abrazos y un día solo de ella: el cumpleaños de Grace se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Un año más de alegría, Grace!" },
       { t: "Aprendiendo A Caminar Con Grace", p: "Un paso, y luego otro: Grace descubre el suelo, el equilibrio y el coraje de seguir.", cover: "Hard", size: "P", tag: "Primeros pasos", quote: "Un pasito a la vez." },
+      { t: "Maria Y Los Secretos Del Fondo Del Mar", p: "Una inmersión solo de ella: Maria descubre los secretos del fondo del mar, con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del Mar", quote: "Allá en el fondo, cada secreto se vuelve amistad." },
+      { t: "Mamá Y Yo, El Regalo Que Dios Me Dio", p: "En los brazos de mamá, amor y protección: un regalo de Dios se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Mamá y yo", quote: "El regalo que Dios me dio." },
+      { t: "Feliz Navidad A Todos", p: "Luces en el árbol y un abrazo para todos: la Navidad de la familia se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "Feliz Navidad, para todos." },
+      { t: "Abuelo, Contigo La Vida Siempre Es Más Ligera Y Feliz", p: "En los brazos del abuelo, una sonrisa y el jardín: con él, la vida es más ligera y feliz.", cover: "Hard", size: "M", tag: "Abuelo y yo", quote: "Contigo, la vida es más ligera y feliz." },
+      { t: "Tomás Dudó, Pero Jesús Lo Abrazó Y Guardó Su Corazón", p: "La duda de Tomás encuentra el abrazo de Jesús: fe y cuidado en una historia para guardar en el corazón.", cover: "Hard", size: "M", tag: "Fe y cuidado", quote: "Jesús lo abrazó y guardó su corazón." },
+      { t: "Manos Que Reparan Motores, Abrazos Que Reconfortan El Alma", p: "En el taller, papá repara el motor y abraza a su hijo: un cuidado que reconforta el alma.", cover: "Hard", size: "M", tag: "Papá en el taller", quote: "Abrazos que reconfortan el alma." },
+      { t: "Ana En Una Aventura Por El Espacio", p: "Con coraje en el corazón, Ana explora cada constelación: un cohete, planetas y un viaje solo de ella.", cover: "Hard", size: "M", tag: "Espacio", quote: "Con coraje en el corazón, Ana explora cada constelación." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",

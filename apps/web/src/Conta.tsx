@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { accountGateHref } from "./Auth";
+import { siteTitle } from "./pageMeta";
 import { api, getToken, type MeUser, type ProfileUpdatePayload } from "./api";
 import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
@@ -246,7 +247,7 @@ export function Conta() {
   useEffect(() => {
     const previous = document.title;
     document.title =
-      lang === "en" ? "My Profile — Story R Us" : lang === "es" ? "Mi Perfil — Story R Us" : "Meu Perfil — Story R Us";
+      siteTitle(lang === "en" ? "My Profile" : lang === "es" ? "Mi Perfil" : "Meu Perfil");
     return () => {
       document.title = previous;
     };
