@@ -88,10 +88,16 @@ def _text(value) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def _billing_blocked(exc: BaseException) -> bool:
+def _vendor_down(exc: BaseException) -> bool:
+    """Saldo, cota ou queda da OpenAI não podem deixar o livro como falha."""
     from app.ai_clients.resilience import billing_exhausted
 
-    return isinstance(exc, ProviderError) and billing_exhausted(str(exc))
+    if not isinstance(exc, ProviderError):
+        return False
+    if billing_exhausted(str(exc)) or exc.status_code in {401, 402, 403, 429, 500, 502, 503, 504}:
+        return True
+    low = str(exc).lower()
+    return "openai" in low or "falha de rede" in low or "quota" in low or "credit" in low
 
 
 def _mark_free(job, project) -> None:
@@ -261,7 +267,8 @@ async def _prepare(db, job, project, photos):
                 )
             )
         except ProviderError as exc:
-            if not _billing_blocked(exc):
+            logger.warning("provedor indisponivel; ficha gratuita: %s", exc)
+            if not _vendor_down(exc):
                 raise
             prepared = _free_ficha(project, title)
             _mark_free(job, project)
@@ -380,7 +387,8 @@ async def preview(db, job, project):
                         landscape=role == "02_LIVRO_ABERTO",
                     )
                 except ProviderError as exc:
-                    if not _billing_blocked(exc):
+                    logger.warning("provedor indisponivel; previa gratuita: %s", exc)
+                    if not _vendor_down(exc):
                         raise
                     result = _free_image(role)
                     _mark_free(job, project)
@@ -487,7 +495,8 @@ async def story(db, job, project):
                     )
                 )
             except ProviderError as exc:
-                if not _billing_blocked(exc):
+                logger.warning("provedor indisponivel; historia gratuita: %s", exc)
+                if not _vendor_down(exc):
                     raise
                 text = _free_story(project, title)
                 _mark_free(job, project)
@@ -534,7 +543,8 @@ async def avatar(db, job, project):
                 )
             )
         except ProviderError as exc:
-            if not _billing_blocked(exc):
+            logger.warning("provedor indisponivel; avatar gratuito: %s", exc)
+            if not _vendor_down(exc):
                 raise
             result = _free_image("Avatar gratuito")
             _mark_free(job, project)
@@ -617,7 +627,8 @@ async def page(db, job, project):
                         style=contract.art_direction(project.style),
                     )
                 except ProviderError as exc:
-                    if not _billing_blocked(exc):
+                    logger.warning("provedor indisponivel; pagina gratuita: %s", exc)
+                    if not _vendor_down(exc):
                         raise
                     result = _free_image(f"Pagina {number} gratuita")
                     _mark_free(job, project)

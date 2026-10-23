@@ -204,6 +204,29 @@ async def test_missing_credits_uses_a_free_preview_and_moves_on(studio, monkeypa
 
 
 @pytest.mark.asyncio
+async def test_any_openai_error_still_finishes_the_preview(studio, monkeypatch):
+    client, db, pid, _ = studio
+
+    class Text:
+        async def prepare_book_profile(self, *, ficha, photos):
+            raise ProviderError("OpenAI 429: slow down", transient=True)
+
+    class Images:
+        async def generate_scene(self, **kwargs):
+            raise ProviderError("OpenAI 500: unavailable", transient=True)
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Text())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Images())
+    job = await _run(studio, "preview")
+    project = db.get(Project, uuid.UUID(pid))
+    assert job.status == "DONE"
+    assert project.book_profile["stage"] == "preview_ready"
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+
+
+@pytest.mark.asyncio
 async def test_rehearsal_skips_openai_and_keeps_each_approval(studio, monkeypatch):
     from app.services import purchase_flow
 
