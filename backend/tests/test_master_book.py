@@ -127,7 +127,7 @@ async def test_complete_flow_requires_each_approval_and_keeps_16_paired_pages(st
     assert p.book_approved_at is None
     pdf = PdfReader(io.BytesIO(store[p.ebook_url]))
     assert len(pdf.pages) == 18  # cover + 16 interior + back
-    assert round(float(pdf.pages[1].mediabox.width) * 2.54 / 72) == 20
+    assert round(float(pdf.pages[1].mediabox.width) * 2.54 / 72) == 21
     assert client.post(f"/v1/projects/{pid}/book/approve").status_code == 200
     assert client.post(f"/v1/projects/{pid}/pages/next").status_code == 409
 
@@ -144,18 +144,19 @@ async def test_regenerate_only_named_preview_and_retry_reuses_other_shots(studio
         assert (new["url"] == shot["url"]) == (shot["role"] != "02_LIVRO_ABERTO")
 
 
-def test_text_overlay_preserves_pixels_outside_text_band_and_embeds_navy():
+def test_text_overlay_sits_in_the_sky_and_keeps_the_photo():
     art = _png()
-    version = book_render.with_text(art, "Lia encontrou uma estrela.\nEra hora de brincar.")
+    version = book_render.with_text(art, "Lia encontrou uma estrela.\nEra hora de brincar.", page=1)
     first = Image.open(io.BytesIO(art))
     second = Image.open(io.BytesIO(version))
     assert (
         ImageChops.difference(
-            first.crop((0, 0, 1024, 700)), second.crop((0, 0, 1024, 700))
+            first.crop((0, 520, 1024, 1024)), second.crop((0, 520, 1024, 1024))
         ).getbbox()
         is None
     )
-    assert (23, 42, 58) in second.getdata()
+    assert (23, 42, 58) in list(second.getdata())
+    assert (255, 250, 242) not in list(second.getdata())
 
 
 def test_partial_visual_ficha_is_completed_instead_of_failing():

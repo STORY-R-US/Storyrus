@@ -142,8 +142,9 @@ class Settings(BaseSettings):
 
     # Impresso. Milímetros, perfil e pacote ficam vazios até a gráfica e a Ana
     # enviarem os números. Preço atual da vitrine: P R$ 157, M R$ 177.
-    print_bleed_mm: float | None = None
-    print_safety_mm: float | None = None
+    # Miolo de referência: sangria 5 mm e margem interna de 5 mm.
+    print_bleed_mm: float | None = 5
+    print_safety_mm: float | None = 5
     print_spine_mm: float | None = None
     print_score_mm: float | None = None
     print_pdf_x: str | None = None

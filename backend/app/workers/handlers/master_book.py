@@ -556,7 +556,9 @@ async def avatar(db, job, project):
         "storage_key": key,
         "mime": "image/png",
         "provider": "demo"
-        if settings.offline_fallback or settings.skip_openai or (result.meta or {}).get("credits_fallback")
+        if settings.offline_fallback
+        or settings.skip_openai
+        or (result.meta or {}).get("credits_fallback")
         else "openai",
     }
     project.character_approved_at = None
@@ -594,16 +596,18 @@ async def page(db, job, project):
         stanza = _parse_pages(profile["stories"][language])[number - 1]
         cover = _assets(db, project, workflow=1, language=language, role="01_CAPA")[-1]
         cover_bytes = storage.get_bytes(cover.storage_key)
+        sky = "canto superior direito" if number % 2 else "canto superior esquerdo"
         prompt = (
-            f"Pagina {number}. Protagonista {project.child_name}, a MESMA crianca da foto "
-            f"e avatar aprovado. Figurino {profile['costume']}. Expressao legivel no "
-            "rosto e na pose, apropriada a acao, sem aumentar olhos nem copiar cara neutra. "
-            f"Cena (lugar, luz e acao): {stanza}. "
+            f"Pagina {number}. Fotografia real em sangria total, igual a um album impresso. "
+            f"{project.child_name} e a mesma pessoa da foto: rosto, idade, cabelo, pele e "
+            "a roupa da fotografia, luz natural de dia, lugar real. "
+            f"Cena: {stanza}. "
+            f"Deixe o {sky} com ceu limpo ou fundo liso, sem rosto, sem maos e sem objeto, "
+            "porque o verso entra ali depois. Sem faixa, sem moldura, sem letras, sem numeros. "
             + contract.format_directive(project)
-            + " Luz cinematografica, cenario pintado. Reserve os 31% inferiores como faixa "
-            "calma SEM rosto/maos nem objetos importantes. "
+            + " "
             + contract.continuity(project)
-            + " Sem letras, sem numeros, sem legenda."
+            + " A roupa desta pagina e a da foto original."
         )
         if _payload(job).get("adjustment"):
             prompt += (
@@ -636,7 +640,10 @@ async def page(db, job, project):
             _account(db, job, result, f"Pagina {number} — arte compartilhada entre idiomas")
         art = shared_art
         rendered = book_render.with_text(
-            art, stanza, size_cm=15 if project.book_size == "P" else 20
+            art,
+            stanza,
+            size_cm=15 if project.book_size == "P" else 20,
+            page=number,
         )
         title = profile["locales"][language]["title"]
         for role, data in (("sem_texto", art), ("com_texto", rendered)):

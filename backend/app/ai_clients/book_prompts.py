@@ -395,9 +395,9 @@ STYLE = (
 
 _PAGE_LOCK = (
     "FORMATO DO LIVRO: cada pagina e um quadrado 1:1 em sangria total, corte reto, "
-    "sem cantos arredondados e sem deformar. A estrofe fica so numa faixa calma "
-    "no topo ou na base, longe da dobra, nunca numa coluna ao lado da cena e "
-    "nunca sobre o rosto. Sem marca d'agua e sem texto solto na cena."
+    "sem cantos arredondados e sem deformar. A foto ocupa a pagina inteira. "
+    "O canto superior esquerdo ou direito fica com ceu limpo, sem rosto e sem objeto, "
+    "para o verso. Sem faixa, sem numero de pagina e sem texto na imagem."
 )
 
 _REALISTA = (
