@@ -67,7 +67,14 @@ def test_http_exception_uses_envelope(client):
 
 
 def test_validation_error_uses_envelope(client):
-    r = client.post("/v1/auth/signup", json={"email": "not-an-email", "password": "x"})
+    from tests.conftest import signup_and_verify
+
+    token = signup_and_verify(client, "envelope@example.com")
+    r = client.patch(
+        "/v1/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"country": "12"},
+    )
     assert r.status_code == 422
     body = r.json()
     assert isinstance(body["detail"], str)

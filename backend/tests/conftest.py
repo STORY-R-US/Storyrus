@@ -2,9 +2,13 @@
 
 import os
 
+os.environ["APP_ENV"] = "test"
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET", "test-secret")
 os.environ.setdefault("IMAGE_PROVIDER", "openai")
+
+import uuid
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,7 +20,10 @@ from app import rate_limit
 from app.config import settings
 from app.database import Base, get_db
 from app.main import app
+from app.models import User
+from app.owner_auth import promote_verified_owner
 from app.services import webhook_auth
+from app.services.clerk_identity import create_test_session_token
 
 
 @pytest.fixture(autouse=True)
@@ -111,15 +118,82 @@ def signup_payload(email: str, password: str = "password123", **overrides) -> di
     return body
 
 
+def _db(client):
+    gen = client.app.dependency_overrides[get_db]()
+    return next(gen)
+
+
+def _blank_to_none(value: object) -> object:
+    if isinstance(value, str) and not value.strip():
+        return None
+    return value
+
+
 def signup_and_verify(client, email: str, password: str = "password123", **overrides) -> str:
-    """Cadastra, verifica e-mail e devolve access_token."""
-    r = client.post("/v1/auth/signup", json=signup_payload(email, password, **overrides))
-    assert r.status_code == 201, r.text
-    verify_token = r.json().get("verify_token")
-    assert verify_token, r.text
-    v = client.post("/v1/auth/verify-email", json={"token": verify_token})
-    assert v.status_code == 200, v.text
-    return v.json()["access_token"]
+    """Cria a conta direto no banco e devolve um Bearer de teste do Clerk.
+
+    `password` fica na assinatura para os testes antigos; a senha não é mais da API.
+    """
+    del password
+    body = signup_payload(email, **overrides)
+    db = _db(client)
+    try:
+        clerk_id = f"user_{uuid.uuid4().hex}"
+        now = datetime.now(UTC)
+        user = User(
+            email=str(body["email"]).strip().lower(),
+            password_hash="!clerk",
+            clerk_user_id=clerk_id,
+            credits=settings.signup_bonus_credits,
+            email_verified_at=now,
+            terms_accepted_at=now,
+            adult_confirmed_at=now,
+            full_name=body["full_name"],
+            phone=body["phone"],
+            postal_code=str(body["postal_code"]).strip(),
+            street=body["street"],
+            number=body["number"],
+            complement=_blank_to_none(body.get("complement")),
+            district=_blank_to_none(body.get("district")),
+            city=body["city"],
+            state=str(body["state"]).strip(),
+            country=str(body["country"]).strip().upper(),
+        )
+        promote_verified_owner(user)
+        db.add(user)
+        db.commit()
+        return create_test_session_token(
+            clerk_user_id=clerk_id,
+            email=user.email,
+            email_verified=True,
+        )
+    finally:
+        db.close()
+
+
+def mint_guest(client) -> str:
+    """Convidado isolado, no mesmo formato de antes, com Bearer de teste."""
+    uid = uuid.uuid4()
+    email = f"guest-{uid}@storyrus.app"
+    clerk_id = f"user_{uid.hex}"
+    db = _db(client)
+    try:
+        user = User(
+            email=email,
+            password_hash="!guest",
+            clerk_user_id=clerk_id,
+            credits=0,
+            email_verified_at=datetime.now(UTC),
+        )
+        db.add(user)
+        db.commit()
+        return create_test_session_token(
+            clerk_user_id=clerk_id,
+            email=email,
+            email_verified=True,
+        )
+    finally:
+        db.close()
 
 
 @pytest.fixture()
@@ -132,8 +206,6 @@ def auth_client(client):
 
 @pytest.fixture()
 def guest_client(client):
-    r = client.post("/v1/auth/guest")
-    assert r.status_code == 201, r.text
-    token = r.json()["access_token"]
+    token = mint_guest(client)
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client

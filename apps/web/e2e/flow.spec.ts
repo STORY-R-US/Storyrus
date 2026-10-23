@@ -39,6 +39,9 @@ function makeState() {
     district: "Bela Vista",
     city: "Sao Paulo",
     stateUf: "SP",
+    country: "BR",
+    termsAcceptedAt: "2026-01-01T00:00:00Z" as string | null,
+    adultConfirmedAt: "2026-01-01T00:00:00Z" as string | null,
     pendingVerifyToken: null as string | null,
   };
 }
@@ -145,8 +148,50 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
       district: state.district,
       city: state.city,
       state: state.stateUf,
+      country: state.country,
+      terms_accepted_at: state.termsAcceptedAt,
+      adult_confirmed_at: state.adultConfirmedAt,
     }),
   );
+  await page.route("**/v1/auth/me", async (r) => {
+    if (r.request().method() !== "PATCH") return r.fallback();
+    let body: Record<string, string | boolean | null> = {};
+    try {
+      body = (r.request().postDataJSON() as Record<string, string | boolean | null>) || {};
+    } catch {
+      /* ignore */
+    }
+    if (body.full_name) state.fullName = String(body.full_name);
+    if (body.phone) state.phone = String(body.phone);
+    if (body.postal_code) state.postalCode = String(body.postal_code);
+    if (body.street) state.street = String(body.street);
+    if (body.number) state.number = String(body.number);
+    if (body.city) state.city = String(body.city);
+    if (body.state) state.stateUf = String(body.state);
+    if (body.country) state.country = String(body.country);
+    if (body.accept_terms) state.termsAcceptedAt = "2026-01-02T00:00:00Z";
+    if (body.confirm_adult) state.adultConfirmedAt = "2026-01-02T00:00:00Z";
+    return json(r, {
+      id: "e2e-user",
+      email: state.email,
+      credits: state.credits,
+      created_at: "now",
+      is_guest: state.isGuest,
+      email_verified: state.emailVerified,
+      full_name: state.fullName,
+      phone: state.phone,
+      postal_code: state.postalCode,
+      street: state.street,
+      number: state.number,
+      complement: state.complement,
+      district: state.district,
+      city: state.city,
+      state: state.stateUf,
+      country: state.country,
+      terms_accepted_at: state.termsAcceptedAt,
+      adult_confirmed_at: state.adultConfirmedAt,
+    });
+  });
   await page.route("**/v1/credits", (r) => json(r, { credits: state.credits }));
   await page.route("**/v1/voices", (r) => json(r, { items: [], custom_voice_available: false }));
 
@@ -255,61 +300,83 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   });
 }
 
-async function fillSignupForm(page: Page, email = "e2e@storyrus.app") {
+async function fillSignupForm(page: Page) {
   await page.getByTestId("auth-full-name").fill("E2E User");
-  await page.getByTestId("auth-email").fill(email);
   await page.getByTestId("auth-phone").fill("11988887777");
-  await page.getByTestId("auth-password").fill("password123");
-  await page.getByTestId("auth-password-confirm").fill("password123");
   await page.getByTestId("auth-postal-code").fill("01310100");
   await expect(page.getByTestId("auth-street")).toHaveValue(/Paulista/i);
   await expect(page.getByTestId("auth-district")).toHaveValue("Bela Vista");
   await expect(page.getByTestId("auth-city")).toHaveValue("São Paulo");
   await expect(page.getByTestId("auth-state")).toHaveValue("SP");
   await page.getByTestId("auth-number").fill("1000");
+  await page.getByTestId("auth-confirm-adult").check();
   await page.getByTestId("auth-accept-terms").check();
 }
 
 async function loginViaEntrar(page: Page) {
-  await page.goto("/entrar", { waitUntil: "domcontentloaded" });
-  await page.getByTestId("auth-email").fill("e2e@storyrus.app");
-  await page.getByTestId("auth-password").fill("password123");
-  await page.getByTestId("auth-submit").click();
-  await expect(page).toHaveURL(/\/$/);
+  await page.addInitScript(() => {
+    localStorage.setItem("storyrus_token", "e2e-token");
+  });
   await page.goto("/app");
 }
 
-test("login aguarda o despertar sem erro nem envio duplicado", async ({ page }, testInfo) => {
-  await mockApi(page, makeState());
+test("perfil aguarda o despertar sem erro nem envio duplicado", async ({ page }, testInfo) => {
+  const state = makeState();
+  state.street = "";
+  state.city = "";
+  state.fullName = "";
+  state.phone = "";
+  state.termsAcceptedAt = null;
+  state.adultConfirmedAt = null;
+  await mockApi(page, state);
+  await page.addInitScript(() => {
+    localStorage.setItem("storyrus_token", "e2e-token");
+  });
   let ready = false;
-  let logins = 0;
+  let saves = 0;
   await page.route("**/health", (route) => route.fulfill({
     status: ready ? 200 : 503,
     contentType: ready ? "application/json" : "text/html",
     body: ready ? JSON.stringify({ status: "ok" }) : "<html>Waking up</html>",
   }));
-  await page.route("**/v1/auth/login", (route) => {
-    logins++;
+  await page.route("**/v1/auth/me", async (route) => {
+    if (route.request().method() !== "PATCH") return route.fallback();
+    saves += 1;
+    state.termsAcceptedAt = "2026-01-02T00:00:00Z";
+    state.adultConfirmedAt = "2026-01-02T00:00:00Z";
     return route.fulfill({
-      status: 200, contentType: "application/json", body: JSON.stringify({ access_token: "e2e-token" }),
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: "e2e-user",
+        email: state.email,
+        is_guest: false,
+        email_verified: true,
+        full_name: "E2E User",
+        phone: "11988887777",
+        street: "Avenida Paulista",
+        city: "São Paulo",
+        country: "BR",
+        terms_accepted_at: state.termsAcceptedAt,
+        adult_confirmed_at: state.adultConfirmedAt,
+      }),
     });
   });
-  await page.goto("/entrar", { waitUntil: "domcontentloaded" });
-  await page.getByTestId("auth-email").fill("e2e@storyrus.app");
-  await page.getByTestId("auth-password").fill("password123");
+  await page.goto("/cadastro", { waitUntil: "domcontentloaded" });
+  await fillSignupForm(page);
   await page.getByTestId("auth-submit").click();
   await expect(page.getByRole("status")).toContainText("preparando sua conexão");
   await expect(page.getByTestId("auth-submit")).toBeDisabled();
   await expect(page.getByTestId("auth-error")).toHaveCount(0);
-  expect(logins).toBe(0);
+  expect(saves).toBe(0);
   await page.screenshot({ path: testInfo.outputPath("cold-start.png") });
   ready = true;
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
   await expect(page.getByRole("status")).toHaveCount(0);
-  expect(logins).toBe(1);
+  expect(saves).toBe(1);
 });
 
-test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
+test("landing leva ao cadastro", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -320,12 +387,7 @@ test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
   await heroCta.click();
   await expect(page).toHaveURL(/\/cadastro/);
   await expect(page.getByTestId("auth-page")).toBeVisible();
-  await fillSignupForm(page);
-  await page.getByTestId("auth-submit").click();
-  await expect(page.getByTestId("auth-check-email")).toBeVisible();
-  await page.goto("/verificar-email?token=e2e-verify-token-ok!!");
-  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
-  await expect(page.getByTestId("landing-hero-cta")).toBeVisible();
+  await expect(page.locator(".cl-rootBox, [data-testid='auth-clerk-missing']").first()).toBeVisible();
 });
 
 test("avisos ficam nos campos e titulo opcional permite criar a previa", async ({ page }) => {
@@ -423,7 +485,7 @@ test("exemplo pronto mostra Prévia pronta", async ({ page }) => {
   await expect(page.getByTestId("studio-preview-building")).toHaveCount(0);
   await expect(page.getByTestId("studio-story-result")).toBeVisible();
   await expect(page.getByTestId("studio-preview-trio")).toBeVisible();
-  await expect(page).toHaveTitle("Prévia pronta — Story R Us");
+  await expect(page).toHaveTitle("Story R Us - Prévia pronta");
 });
 
 test("path inexistente mostra 404", async ({ page }) => {

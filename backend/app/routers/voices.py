@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import storage
 from app.database import get_db
-from app.deps import get_current_user, require_registered_user
+from app.deps import get_current_user, require_adult_user, require_registered_user
 from app.media.tts import (
     TtsError,
     clone_voice,
@@ -153,7 +153,7 @@ async def upload_voice(
     name: str = Form(...),
     file: UploadFile = File(...),
     make_default: str = Form(default="false"),
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> VoiceOut:
     if not elevenlabs_configured():

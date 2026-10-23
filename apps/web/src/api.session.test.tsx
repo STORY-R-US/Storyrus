@@ -66,8 +66,8 @@ describe("Studio account gate", () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
-    expect(getToken()).toBeNull();
+    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+    expect(getToken()).toBe("test-token");
   });
 
   it("shows logout for registered accounts", async () => {

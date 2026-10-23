@@ -99,6 +99,7 @@ export type StudioCopy = {
   artStyleRealistic: string;
   defaultVoiceName: string;
   consent: string;
+  privacyPolicy: string;
   photoSent: string;
   orderSent: string;
   orderFollowup: string;
@@ -447,7 +448,8 @@ const pt: StudioCopy = {
   artStyleRealistic: "Rosto realista",
   defaultVoiceName: "Minha voz",
   consent:
-    "Declaro ser o responsável legal e autorizo o uso da imagem enviada e, quando aplicável, da voz fornecida exclusivamente para a criação deste livro personalizado. Esses materiais não serão utilizados para divulgação ou publicidade.",
+    "Declaro ter 18 anos ou mais e ser o responsável legal. Autorizo a imagem enviada só para criar este livro. Se eu enviar uma voz, ela é minha, de adulto, e não da criança, e serve só para narrar este livro. A foto vai para a OpenAI e, se houver voz, o áudio vai para a ElevenLabs, além do armazenamento do projeto. Esses materiais não entram em divulgação, publicidade nem treino de modelos.",
+  privacyPolicy: "Política de privacidade",
   photoSent: "Foto enviada ✓",
   orderSent: "Projeto criado",
   orderFollowup: "Revise a história e as imagens. Se quiser mudar algo, diga abaixo.",
@@ -707,7 +709,8 @@ const en: StudioCopy = {
   artStyleRealistic: "Realistic face",
   defaultVoiceName: "My voice",
   consent:
-    "I declare that I am the legal guardian and authorize the use of the submitted image and, when applicable, the provided voice exclusively to create this personalized book. These materials will not be used for promotion or advertising.",
+    "I am 18 or older and the legal guardian. I authorize the submitted image only to create this book. If I provide a voice, it is mine, an adult's, not the child's, and it is used only to narrate this book. The photo goes to OpenAI and, if there is a voice, the audio goes to ElevenLabs, plus project storage. These materials are not used for promotion, advertising, or model training.",
+  privacyPolicy: "Privacy policy",
   photoSent: "Photo uploaded ✓",
   orderSent: "Project created",
   orderFollowup: "Review the story and images. If you want changes, tell us below.",
@@ -967,7 +970,8 @@ const es: StudioCopy = {
   artStyleRealistic: "Rostro realista",
   defaultVoiceName: "Mi voz",
   consent:
-    "Declaro ser el responsable legal y autorizo el uso de la imagen enviada y, cuando corresponda, de la voz proporcionada exclusivamente para la creación de este libro personalizado. Estos materiales no se utilizarán para difusión ni publicidad.",
+    "Declaro tener 18 años o más y ser el responsable legal. Autorizo la imagen enviada solo para crear este libro. Si envío una voz, es mía, de adulto, y no del niño, y sirve solo para narrar este libro. La foto va a OpenAI y, si hay voz, el audio va a ElevenLabs, además del almacenamiento del proyecto. Esos materiales no se usan para difusión, publicidad ni entrenamiento de modelos.",
+  privacyPolicy: "Política de privacidad",
   photoSent: "Foto enviada ✓",
   orderSent: "Proyecto creado",
   orderFollowup: "Revisa la historia y las imágenes. Si quieres cambiar algo, escríbelo abajo.",

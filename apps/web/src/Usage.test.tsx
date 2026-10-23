@@ -158,59 +158,29 @@ describe("Pedidos", () => {
     setToken(null);
   });
 
-  it("renova a sessão vencida e abre Pedidos mesmo com a senha da conta salva", async () => {
+  it("não renova JWT antigo: a API recusa e o painel pede a senha", async () => {
     const { http, HttpResponse } = await import("msw");
     const { server, state } = await import("./test/server");
-    const { setToken } = await import("./api");
+    const { getToken, setToken } = await import("./api");
     state.isOwner = true;
     const header = btoa(JSON.stringify({ alg: "none", typ: "JWT" }));
     const payload = btoa(
       JSON.stringify({ sub: "u1", exp: Math.floor(Date.now() / 1000) - 120 }),
     );
-    setToken(`${header}.${payload}.sig`);
-    sessionStorage.setItem("storyrus.usage.password", "senha-da-conta");
+    const expired = `${header}.${payload}.sig`;
+    setToken(expired);
+    const calls: string[] = [];
     server.use(
       http.get("*/v1/usage", ({ request }) => {
-        const auth = request.headers.get("Authorization") || "";
-        if (auth !== "Bearer test-token-resumed") {
-          return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
-        }
-        return HttpResponse.json({
-          timezone: "America/Sao_Paulo",
-          from_at: new Date().toISOString(),
-          to_at: new Date().toISOString(),
-          today_usd: 0,
-          month_usd: 0,
-          range_usd: 0,
-          books_count: 1,
-          avg_book_usd: null,
-          by_type: [],
-          by_provider: [],
-          books: [],
-          recent_jobs: [],
-          events: [],
-          events_count: 0,
-          orders: [
-            {
-              id: "order-1",
-              project_id: "p1",
-              summary: "NOVO LIVRO STORY R US REALISTA\nNome: Matteo",
-              created_at: new Date().toISOString(),
-              child_age: 6,
-              book_size: "M",
-              cover_type: "hard",
-              style: "realistic",
-              photo_urls: [],
-            },
-          ],
-        });
+        calls.push(request.headers.get("Authorization") || "");
+        return HttpResponse.json({ detail: "Sessão inválida" }, { status: 401 });
       }),
+      http.post("*/v1/auth/resume", () => HttpResponse.json({ detail: "aposentado" }, { status: 404 })),
     );
     render(<Pedidos />);
-    expect(
-      await screen.findByRole("heading", { name: /livro de matteo/i }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/senha inválida/i)).not.toBeInTheDocument();
+    expect(await screen.findByTestId("owner-access-gate")).toBeInTheDocument();
+    expect(calls.some((auth) => auth === `Bearer ${expired}`)).toBe(true);
+    expect(getToken()).toBe(expired);
     setToken(null);
   });
 

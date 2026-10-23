@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { accountGateHref } from "./Auth";
+import { accountAccess, accountGateHref } from "./Auth";
 import { api, getToken } from "./api";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { Studio } from "./Studio";
@@ -14,7 +14,8 @@ function demoIdFromSearch(search: string): string | null {
 
 /**
  * Estúdio exige conta registrada (exceto visualização de exemplo ?exemplo=).
- * Sem token, guest ou e-mail não confirmado → cadastro (sessão inválida é limpa).
+ * Sem sessão, convidado, e-mail pendente ou endereço vazio → cadastro.
+ * Só a sessão inválida (401) e o convidado legado são deslogados.
  */
 export function App() {
   usePageMeta(staticPageMeta("/app"));
@@ -40,15 +41,12 @@ export function App() {
       try {
         const me = await api.me();
         if (cancelled) return;
-        if (me.is_guest || !me.email_verified) {
-          api.logout();
-          setGate("need-account");
-          return;
-        }
-        setGate("ok");
+        const access = accountAccess(me);
+        if (access === "guest") api.logout();
+        setGate(access === "ok" ? "ok" : "need-account");
       } catch (error) {
         if (cancelled) return;
-        if (/^(401|403):/.test((error as Error).message)) {
+        if (/^401:/.test((error as Error).message)) {
           api.logout();
           setGate("need-account");
         } else {

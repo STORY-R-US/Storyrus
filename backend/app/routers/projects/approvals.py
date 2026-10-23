@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import require_registered_user
+from app.deps import require_adult_user
 from app.models import Project, User, _now
 from app.schemas import ProjectOut
 from app.services import book_profile
@@ -21,7 +21,7 @@ router = APIRouter()
 @router.post("/{project_id}/avatar/approve", response_model=ProjectOut)
 def approve_avatar(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> Project:
     project = get_owned_project(db, user, project_id)
@@ -39,7 +39,7 @@ def approve_avatar(
 @router.post("/{project_id}/book/approve", response_model=ProjectOut)
 def approve_book(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> Project:
     project = get_owned_project(db, user, project_id)

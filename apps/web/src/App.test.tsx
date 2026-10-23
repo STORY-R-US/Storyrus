@@ -58,7 +58,7 @@ describe("Fluxo E2E (com conta)", () => {
     setToken(null);
     renderApp("/app");
     expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
-    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/criar conta/i);
+    expect(screen.getByTestId("clerk-sign-up")).toBeInTheDocument();
   });
 
   it("criar livro mostra tela Projeto criado com prévia automática", async () => {

@@ -135,6 +135,8 @@ class User(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    # Id do Clerk (`user_…`). Nulo em contas criadas antes da sessão do Clerk.
+    clerk_user_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     credits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
@@ -152,6 +154,8 @@ class User(Base):
     # ISO 3166-1 alpha-2 (BR, US, PT…).
     country: Mapped[str | None] = mapped_column(String(2), nullable=True)
     terms_accepted_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # Conta de pai, mãe ou responsável com 18 anos ou mais. Nulo até a declaração.
+    adult_confirmed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     # Painéis /gastos, /pedidos e /usuarios. Quem está em OWNER_EMAILS também
     # é promovido a admin no primeiro acesso autenticado.

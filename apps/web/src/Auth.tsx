@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { SignIn, SignUp, useAuth } from "@clerk/react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import logo from "./assets/logo.png";
-import { api, getToken, type SignupPayload } from "./api";
+import { api, getToken, type MeUser } from "./api";
 import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
   LANGS,
@@ -15,7 +16,6 @@ import {
   regionProfile,
   submitStreetNumber,
 } from "./signupRegions";
-import { PasswordField } from "./PasswordField";
 import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
@@ -39,6 +39,8 @@ const COPY: Record<
     street: string;
     city: string;
     acceptTerms: string;
+    confirmAdult: string;
+    mustBeAdult: string;
     termsAnd: string;
     terms: string;
     privacy: string;
@@ -101,6 +103,9 @@ const COPY: Record<
     checkHint: "Não recebeu? Confira o spam ou tente criar a conta de novo em alguns minutos.",
     passwordMismatch: "As senhas não coincidem.",
     mustAcceptTerms: "Aceite os termos e a política de privacidade.",
+    confirmAdult:
+      "Declaro ter 18 anos ou mais. Esta conta é minha, como pai, mãe ou responsável. Menores de 13 anos não podem criar conta.",
+    mustBeAdult: "Confirme que você tem 18 anos ou mais.",
     resend: "Reenviar E-mail De Confirmação",
     resendBusy: "Enviando…",
     resendOk: "Se a conta estiver pendente, enviamos um novo link.",
@@ -147,6 +152,9 @@ const COPY: Record<
     checkHint: "Didn't get it? Check spam or try signing up again in a few minutes.",
     passwordMismatch: "Passwords do not match.",
     mustAcceptTerms: "Please accept the terms and privacy policy.",
+    confirmAdult:
+      "I am 18 or older. This account is mine, as a parent or guardian. Children under 13 may not create an account.",
+    mustBeAdult: "Confirm that you are 18 or older.",
     resend: "Resend Confirmation Email",
     resendBusy: "Sending…",
     resendOk: "If the account is still pending, we sent a new link.",
@@ -193,6 +201,9 @@ const COPY: Record<
     checkHint: "¿No llegó? Revisa spam o vuelve a registrarte en unos minutos.",
     passwordMismatch: "Las contraseñas no coinciden.",
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
+    confirmAdult:
+      "Declaro tener 18 años o más. Esta cuenta es mía, como padre, madre o tutor. Los menores de 13 años no pueden crear una cuenta.",
+    mustBeAdult: "Confirma que tienes 18 años o más.",
     resend: "Reenviar Correo De Confirmación",
     resendBusy: "Enviando…",
     resendOk: "Si la cuenta está pendiente, enviamos un enlace nuevo.",
@@ -260,6 +271,41 @@ export function studioEntryHref(nextPath: string): string {
   return accountGateHref(next);
 }
 
+/** Endereço e termos continuam nossos; o Clerk não guarda isso. */
+export function needsShippingProfile(me: {
+  terms_accepted_at?: string | null;
+  adult_confirmed_at?: string | null;
+  full_name?: string | null;
+  street?: string | null;
+  city?: string | null;
+  phone?: string | null;
+}): boolean {
+  return (
+    !me.terms_accepted_at ||
+    !me.adult_confirmed_at ||
+    !me.full_name?.trim() ||
+    !me.street?.trim() ||
+    !me.city?.trim() ||
+    !me.phone?.trim()
+  );
+}
+
+/** Conta pronta para o estúdio, convidado legado, ou perfil ainda incompleto. */
+export function accountAccess(me: {
+  is_guest: boolean;
+  email_verified: boolean;
+  terms_accepted_at?: string | null;
+  adult_confirmed_at?: string | null;
+  full_name?: string | null;
+  street?: string | null;
+  city?: string | null;
+  phone?: string | null;
+}): "ok" | "guest" | "need-account" {
+  if (me.is_guest) return "guest";
+  if (!me.email_verified || needsShippingProfile(me)) return "need-account";
+  return "ok";
+}
+
 function emptySignup(lang: Lang) {
   return {
     full_name: "",
@@ -272,8 +318,8 @@ function emptySignup(lang: Lang) {
     district: "",
     city: "",
     state: "",
-    password_confirm: "",
     accept_terms: false,
+    confirm_adult: false,
   };
 }
 
@@ -305,24 +351,68 @@ function LangSwitch({
 }
 
 export function Auth({ mode }: { mode: AuthMode }) {
+  if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+    return <AuthBody mode={mode} isLoaded isSignedIn={false} />;
+  }
+  return <AuthClerk mode={mode} />;
+}
+
+function AuthClerk({ mode }: { mode: AuthMode }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  return <AuthBody mode={mode} isLoaded={Boolean(isLoaded)} isSignedIn={Boolean(isSignedIn)} />;
+}
+
+function AuthBody({
+  mode,
+  isLoaded,
+  isSignedIn,
+}: {
+  mode: AuthMode;
+  isLoaded: boolean;
+  isSignedIn: boolean;
+}) {
   usePageMeta(staticPageMeta(mode === "login" ? "/entrar" : "/cadastro"));
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
   const [lang, setLangBase] = useResolvedLang();
   const t = COPY[lang];
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [signup, setSignup] = useState(() => emptySignup(lang));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [checkEmail, setCheckEmail] = useState(false);
-  const [resendHint, setResendHint] = useState<string | null>(null);
+  const [me, setMe] = useState<MeUser | null>(null);
+  const [meState, setMeState] = useState<"idle" | "loading" | "ready">("idle");
 
   const region = regionProfile(signup.country);
   const isUsLayout = region.layout === "us";
-  const postalLookupOn =
-    mode === "signup" && supportsPostalLookup(signup.country);
+  const postalLookupOn = supportsPostalLookup(signup.country);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn && !getToken()) {
+      setMe(null);
+      setMeState("ready");
+      return;
+    }
+    let cancelled = false;
+    setMeState("loading");
+    api.me()
+      .then((user) => {
+        if (!cancelled) {
+          setMe(user);
+          setMeState("ready");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMe(null);
+          setMeState("ready");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn]);
   const cepStatus = useCepLookup(
     signup.postal_code,
     postalLookupOn,
@@ -346,10 +436,6 @@ export function Auth({ mode }: { mode: AuthMode }) {
     }));
   }
 
-  const altMode: AuthMode = mode === "login" ? "signup" : "login";
-  const altPath = altMode === "login" ? "/entrar" : "/cadastro";
-  const altHref = `${altPath}?next=${encodeURIComponent(next)}`;
-
   useEffect(() => {
     setSignup((prev) => {
       const stillDefault = !prev.street && !prev.city && !prev.postal_code && !prev.state;
@@ -359,6 +445,27 @@ export function Auth({ mode }: { mode: AuthMode }) {
       return { ...prev, country: nextCountry, state: "" };
     });
   }, [lang]);
+
+  useEffect(() => {
+    if (!me?.full_name && !me?.street) return;
+    setSignup((prev) => {
+      if (prev.full_name || prev.street) return prev;
+      return {
+        ...prev,
+        full_name: me.full_name || "",
+        phone: me.phone || "",
+        country: me.country || prev.country,
+        postal_code: me.postal_code || "",
+        street: me.street || "",
+        number: me.number || "",
+        complement: me.complement || "",
+        district: me.district || "",
+        city: me.city || "",
+        state: me.state || "",
+        accept_terms: Boolean(me.terms_accepted_at),
+      };
+    });
+  }, [me]);
 
   function setLang(nextLang: Lang) {
     setLangBase(nextLang);
@@ -392,59 +499,31 @@ export function Auth({ mode }: { mode: AuthMode }) {
     setBusy(true);
     setError(null);
     try {
-      if (mode === "signup") {
-        if (password !== signup.password_confirm) {
-          setError(t.passwordMismatch);
-          return;
-        }
-        if (!signup.accept_terms) {
-          setError(t.mustAcceptTerms);
-          return;
-        }
-        const payload: SignupPayload = {
-          email: email.trim(),
-          password,
-          password_confirm: signup.password_confirm,
-          full_name: signup.full_name.trim(),
-          phone: signup.phone.trim(),
-          postal_code: signup.postal_code.trim(),
-          street: signup.street.trim(),
-          number: submitStreetNumber(signup.country, signup.number),
-          complement: signup.complement.trim() || null,
-          district: signup.district.trim() || null,
-          city: signup.city.trim(),
-          state: signup.state.trim(),
-          country: signup.country.trim().toUpperCase(),
-          accept_terms: true,
-        };
-        await api.signup(payload);
-        setCheckEmail(true);
+      if (!signup.confirm_adult) {
+        setError(t.mustBeAdult);
         return;
       }
-      await api.login(email.trim(), password);
+      if (!signup.accept_terms) {
+        setError(t.mustAcceptTerms);
+        return;
+      }
+      await api.updateMe({
+        full_name: signup.full_name.trim(),
+        phone: signup.phone.trim(),
+        postal_code: signup.postal_code.trim(),
+        street: signup.street.trim(),
+        number: submitStreetNumber(signup.country, signup.number),
+        complement: signup.complement.trim() || null,
+        district: signup.district.trim() || null,
+        city: signup.city.trim(),
+        state: signup.state.trim(),
+        country: signup.country.trim().toUpperCase(),
+        accept_terms: true,
+        confirm_adult: true,
+      });
       navigate(next, { replace: true });
     } catch (err) {
-      const raw = (err as Error).message || "";
-      if (mode === "login" && (/^403\b/i.test(raw) || /confirme seu e-mail|verify|verif/i.test(raw))) {
-        setCheckEmail(true);
-        return;
-      }
-      setError(friendlyAuthError(raw));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onResend() {
-    const dest = email.trim();
-    if (!dest) return;
-    setBusy(true);
-    setResendHint(null);
-    try {
-      await api.resendVerify(dest);
-      setResendHint(t.resendOk);
-    } catch {
-      setResendHint(t.resendOk);
+      setError(friendlyAuthError((err as Error).message || ""));
     } finally {
       setBusy(false);
     }
@@ -454,14 +533,69 @@ export function Auth({ mode }: { mode: AuthMode }) {
     <LangSwitch lang={lang} onChange={setLang} ariaLabel={t.langAria} />
   );
 
-  if (checkEmail) {
+  if (!isLoaded || meState !== "ready") {
+    return (
+      <div className="kid auth-kid" data-testid="auth-page">
+        <div className="auth-shell">
+          <div className="auth-card">
+            <p className="auth-lead" data-testid="auth-loading">{t.busy}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const signedIn = Boolean(isSignedIn || getToken());
+  if (!signedIn) {
+    const clerkReady = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+    return (
+      <div className={`kid auth-kid${mode === "signup" ? " auth-kid-full" : ""}`} data-testid="auth-page">
+        <div className="auth-shell">
+          <div className="auth-card">
+            <div className="auth-card-head">{langSwitch}</div>
+            <div className="auth-logo">
+              <Link to="/">
+                <img src={logo} alt="Story R Us" />
+              </Link>
+            </div>
+            <SiteBackNav />
+            {clerkReady ? (
+              mode === "login" ? (
+                <SignIn
+                  routing="path"
+                  path="/entrar"
+                  signUpUrl={`/cadastro?next=${encodeURIComponent(next)}`}
+                  fallbackRedirectUrl={next}
+                />
+              ) : (
+                <SignUp
+                  routing="path"
+                  path="/cadastro"
+                  signInUrl={`/entrar?next=${encodeURIComponent(next)}`}
+                  fallbackRedirectUrl={next}
+                />
+              )
+            ) : (
+              <p className="auth-lead" data-testid="auth-clerk-missing">
+                {lang === "en"
+                  ? "Sign-in is unavailable until Clerk is configured."
+                  : lang === "es"
+                    ? "El inicio de sesión no está disponible hasta configurar Clerk."
+                    : "O login fica indisponível até a chave do Clerk estar configurada."}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (me && !me.email_verified) {
     return (
       <div className="kid auth-kid" data-testid="auth-page">
         <div className="auth-shell">
           <div className="auth-card" data-testid="auth-check-email">
-            <div className="auth-card-head">
-              {langSwitch}
-            </div>
+            <div className="auth-card-head">{langSwitch}</div>
             <div className="auth-logo">
               <Link to="/">
                 <img src={logo} alt="Story R Us" />
@@ -471,30 +605,8 @@ export function Auth({ mode }: { mode: AuthMode }) {
             <h1>{t.checkTitle}</h1>
             <p className="auth-lead">{t.checkLead}</p>
             <p className="auth-lead auth-check-hint">{t.checkHint}</p>
-            {resendHint && (
-              <p className="auth-lead auth-check-hint" data-testid="auth-resend-hint">
-                {resendHint}
-              </p>
-            )}
             <p className="auth-foot">
-              <button
-                type="button"
-                disabled={busy || !email.trim()}
-                onClick={() => void onResend()}
-                data-testid="auth-resend-verify"
-              >
-                {busy ? t.resendBusy : t.resend}
-              </button>
-            </p>
-            <p className="auth-foot">
-              <Link to={`/entrar?next=${encodeURIComponent(next)}`} data-testid="auth-switch">
-                {t.switchToLogin}
-              </Link>
-            </p>
-            <p className="auth-foot">
-              <Link to="/" data-testid="auth-back">
-                {t.back}
-              </Link>
+              <Link to="/" data-testid="auth-back">{t.back}</Link>
             </p>
           </div>
         </div>
@@ -502,7 +614,11 @@ export function Auth({ mode }: { mode: AuthMode }) {
     );
   }
 
-  const isSignup = mode === "signup";
+  if (me && !needsShippingProfile(me)) {
+    return <Navigate to={next} replace />;
+  }
+
+  const isSignup = true;
 
   return (
     <div
@@ -554,17 +670,6 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 />
               </label>
             )}
-            <label>
-              {t.email}
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                data-testid="auth-email"
-              />
-            </label>
             {isSignup && (
               <label>
                 {t.phone}
@@ -580,24 +685,8 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 />
               </label>
             )}
-            <PasswordField
-              label={t.password}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              testId="auth-password"
-              lang={lang}
-            />
             {isSignup && (
               <>
-                <PasswordField
-                  label={t.passwordConfirm}
-                  value={signup.password_confirm}
-                  onChange={(e) => setSignup({ ...signup, password_confirm: e.target.value })}
-                  autoComplete="new-password"
-                  testId="auth-password-confirm"
-                  lang={lang}
-                />
                 <p className="auth-section-title auth-span-all">{t.addressSection}</p>
                 <div
                   className={`auth-address auth-span-all${isUsLayout ? " auth-address-us" : ""}`}
@@ -843,17 +932,30 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 <label className="auth-terms auth-span-all">
                   <input
                     type="checkbox"
+                    checked={signup.confirm_adult}
+                    onChange={(e) => setSignup({ ...signup, confirm_adult: e.target.checked })}
+                    data-testid="auth-confirm-adult"
+                  />
+                  <span>{t.confirmAdult}</span>
+                </label>
+                <label className="auth-terms auth-span-all">
+                  <input
+                    type="checkbox"
                     checked={signup.accept_terms}
                     onChange={(e) => setSignup({ ...signup, accept_terms: e.target.checked })}
                     data-testid="auth-accept-terms"
                   />
                   <span>
                     {t.acceptTerms}{" "}
-                    <Link to="/termos" target="_blank" rel="noreferrer">
+                    <Link to={lang === "en" ? "/terms" : "/termos"} target="_blank" rel="noreferrer">
                       {t.terms}
                     </Link>{" "}
                     {t.termsAnd}{" "}
-                    <Link to="/privacidade" target="_blank" rel="noreferrer">
+                    <Link
+                      to={lang === "en" ? "/privacy" : "/privacidade"}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       {t.privacy}
                     </Link>
                     .
@@ -872,40 +974,14 @@ export function Auth({ mode }: { mode: AuthMode }) {
               disabled={busy}
               data-testid="auth-submit"
             >
-              {busy ? t.busy : mode === "login" ? t.loginSubmit : t.signupSubmit}
+              {busy ? t.busy : t.signupSubmit}
             </button>
           </form>
-          {isSignup ? (
-            <div className="auth-foot-row">
-              <Link to={altHref} data-testid="auth-switch">
-                {t.switchToLogin}
-              </Link>
-              <Link to="/" data-testid="auth-back">
-                {t.back}
-              </Link>
-            </div>
-          ) : (
-            <>
-              <p className="auth-foot">
-                <Link
-                  to={`/esqueci-senha?next=${encodeURIComponent(next)}`}
-                  data-testid="auth-forgot"
-                >
-                  {t.forgotPassword}
-                </Link>
-              </p>
-              <p className="auth-foot">
-                <Link to={altHref} data-testid="auth-switch">
-                  {t.switchToSignup}
-                </Link>
-              </p>
-              <p className="auth-foot">
-                <Link to="/" data-testid="auth-back">
-                  {t.back}
-                </Link>
-              </p>
-            </>
-          )}
+          <div className="auth-foot-row">
+            <Link to="/" data-testid="auth-back">
+              {t.back}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

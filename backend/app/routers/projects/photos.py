@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.config import settings
 from app.database import get_db
-from app.deps import require_registered_user
+from app.deps import require_adult_user
 from app.models import Asset, AssetKind, OrderTicket, Project, User
 from app.order_tickets import register_order_ticket, resolve_buyer
 from app.schemas import UploadUrlIn, UploadUrlOut
@@ -119,7 +119,7 @@ def request_photo_upload(
     project_id: uuid.UUID,
     body: UploadUrlIn,
     background: BackgroundTasks,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> UploadUrlOut:
     """Gera URL assinada de upload e registra o asset (foto de origem)."""
@@ -156,7 +156,7 @@ def request_photo_upload(
 async def upload_photo(
     project_id: uuid.UUID,
     background: BackgroundTasks,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
     language: str = Form(""),
@@ -232,7 +232,7 @@ async def upload_photo(
 @router.post("/{project_id}/extra-character", response_model=UploadUrlOut, status_code=201)
 async def upload_extra_character(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
     name: str = "",

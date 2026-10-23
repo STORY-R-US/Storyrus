@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import type {
   Job,
@@ -10,8 +9,6 @@ import type {
   UserVoice,
   VoiceList,
 } from "./types";
-
-const TOKEN_KEY = "storyrus_token";
 
 /**
  * API base: production BFF at https://storyrus.ai (same-origin /v1 proxy).
@@ -34,63 +31,45 @@ export function isSessionRejected(error: unknown): boolean {
   return value.status === 401 || value.status === 403 || /^(401|403):/.test(value.message ?? "");
 }
 
-async function sessionToken(response: Response): Promise<string | null> {
-  if (response.status === 401 || response.status === 403) return null;
-  if (!response.ok) throw httpError(response.status, "Não foi possível renovar a sessão agora");
-  const data = (await response.json()) as { access_token?: string };
-  if (!data.access_token) throw httpError(502, "Resposta de sessão indisponível");
-  return data.access_token;
-}
+type ClerkTokenGetter = (opts?: { skipCache?: boolean }) => Promise<string | null>;
 
 let token: string | null = null;
-let guestPromise: Promise<void> | null = null;
-let hydratePromise: Promise<void> | null = null;
+let manualOverride = false;
+let clerkGetToken: ClerkTokenGetter | null = null;
+let clerkSignOut: (() => Promise<void>) | null = null;
+
+export function setClerkGetToken(fn: ClerkTokenGetter | null) {
+  clerkGetToken = fn;
+}
+
+export function setClerkSignOut(fn: (() => Promise<void>) | null) {
+  clerkSignOut = fn;
+}
 
 export function getToken(): string | null {
   return token;
 }
 
+/** Testes gravam o Bearer aqui. A sessão real vem do Clerk. */
 export function setToken(t: string | null) {
   token = t;
-  void (t
-    ? AsyncStorage.setItem(TOKEN_KEY, t)
-    : AsyncStorage.removeItem(TOKEN_KEY)
-  ).catch(() => {
-    /* ignore persistence failures */
-  });
+  manualOverride = Boolean(t);
 }
 
-/** Load persisted JWT into memory. Call once at app boot before API use. */
-export function hydrateToken(): Promise<void> {
-  if (!hydratePromise) {
-    hydratePromise = (async () => {
-      try {
-        const stored = await AsyncStorage.getItem(TOKEN_KEY);
-        if (stored) token = stored;
-      } catch {
-        /* ignore */
-      }
-    })();
+export async function hydrateToken(): Promise<void> {
+  if (manualOverride) return;
+  if (!clerkGetToken) return;
+  try {
+    token = await clerkGetToken();
+  } catch {
+    /* mantém o último token se o Clerk não responder */
   }
-  return hydratePromise;
 }
 
-/** Garante sessão de conta (sem mintar convidado). */
+/** Garante sessão de conta. O Clerk renova o token. */
 export async function ensureSession(): Promise<void> {
   await hydrateToken();
-  if (!token) {
-    throw httpError(401, "Nao autenticado");
-  }
-  if (tokenExpired(token)) {
-    const old = token;
-    const ok = await resumeSession(old);
-    if (ok) return;
-    setToken(null);
-    throw httpError(401, "Nao autenticado");
-  }
-  if (tokenExpiresSoon(token)) {
-    void refreshSession().catch(() => { /* falha temporária mantém a sessão */ });
-  }
+  if (!token) throw httpError(401, "Nao autenticado");
 }
 
 /** @deprecated Use ensureSession. */
@@ -100,73 +79,7 @@ export async function ensureGuest(): Promise<void> {
 
 export function logout(): void {
   setToken(null);
-  guestPromise = null;
-}
-
-function readJwtPayload(t: string): { exp?: number } | null {
-  try {
-    const parts = t.split(".");
-    if (parts.length < 2) return null;
-    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    // atob is available in RN Hermes / modern JS engines.
-    const json = globalThis.atob(b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "="));
-    return JSON.parse(json) as { exp?: number };
-  } catch {
-    return null;
-  }
-}
-
-function tokenExpired(t: string, nowSec = Date.now() / 1000): boolean {
-  const payload = readJwtPayload(t);
-  if (!payload?.exp) return false;
-  return payload.exp <= nowSec;
-}
-
-function tokenExpiresSoon(t: string, skewSec = 60 * 60 * 2, nowSec = Date.now() / 1000): boolean {
-  const payload = readJwtPayload(t);
-  if (!payload?.exp) return false;
-  return payload.exp <= nowSec + skewSec;
-}
-
-let refreshPromise: Promise<boolean> | null = null;
-let resumePromise: Promise<boolean> | null = null;
-
-async function refreshSession(): Promise<boolean> {
-  if (!token) return false;
-  if (!refreshPromise) {
-    refreshPromise = (async () => {
-      const resp = await fetch(`${BASE}/v1/auth/refresh`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const next = await sessionToken(resp);
-      if (!next) return false;
-      setToken(next);
-      return true;
-    })().finally(() => {
-      refreshPromise = null;
-    });
-  }
-  return refreshPromise;
-}
-
-async function resumeSession(oldToken: string): Promise<boolean> {
-  if (!resumePromise) {
-    resumePromise = (async () => {
-      const resp = await fetch(`${BASE}/v1/auth/resume`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ access_token: oldToken }),
-      });
-      const next = await sessionToken(resp);
-      if (!next) return false;
-      setToken(next);
-      return true;
-    })().finally(() => {
-      resumePromise = null;
-    });
-  }
-  return resumePromise;
+  void clerkSignOut?.();
 }
 
 /** Clear session (studio "Sair"). */
@@ -209,13 +122,7 @@ function isHttpErrorMessage(message: string): boolean {
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const skipSession =
-    path.startsWith("/v1/auth/signup") ||
-    path.startsWith("/v1/auth/login") ||
-    path.startsWith("/v1/auth/guest") ||
-    path.startsWith("/v1/auth/resume") ||
-    path.startsWith("/v1/auth/verify-email");
-  if (!skipSession) await ensureSession();
+  await ensureSession();
 
   const headers: Record<string, string> = {
     ...(init.headers as Record<string, string>),
@@ -224,17 +131,8 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers["Content-Type"] = "application/json";
   }
   if (token) headers.Authorization = `Bearer ${token}`;
-  let resp = await fetch(`${BASE}${path}`, { ...init, headers });
-  if (resp.status === 401 && token && !path.startsWith("/v1/auth/")) {
-    const old = token;
-    const resumed = await resumeSession(old);
-    if (resumed) {
-      headers.Authorization = `Bearer ${token}`;
-      resp = await fetch(`${BASE}${path}`, { ...init, headers });
-    } else {
-      setToken(null);
-    }
-  }
+  const resp = await fetch(`${BASE}${path}`, { ...init, headers });
+  if (resp.status === 401) setToken(null);
   if (!resp.ok) {
     let detail = resp.statusText;
     try {
@@ -247,20 +145,19 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
 
-export type SignupPayload = {
-  email: string;
-  password: string;
-  password_confirm: string;
-  full_name: string;
-  phone: string;
-  postal_code: string;
-  street: string;
-  number: string;
+export type ProfileUpdate = {
+  full_name?: string;
+  phone?: string;
+  postal_code?: string;
+  street?: string;
+  number?: string;
   complement?: string | null;
-  district: string;
-  city: string;
-  state: string;
-  accept_terms: boolean;
+  district?: string | null;
+  city?: string;
+  state?: string;
+  country?: string;
+  accept_terms?: boolean;
+  confirm_adult?: boolean;
 };
 
 export type MeUser = {
@@ -278,39 +175,14 @@ export type MeUser = {
   district: string | null;
   city: string | null;
   state: string | null;
+  country?: string | null;
+  terms_accepted_at?: string | null;
+  adult_confirmed_at?: string | null;
 };
 
 export const api = {
-  guest: () =>
-    req<{ access_token: string }>("/v1/auth/guest", { method: "POST" }),
-  signup: async (payload: SignupPayload) =>
-    req<{ ok: boolean; message: string; verify_token?: string | null }>("/v1/auth/signup", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-  verifyEmail: async (tokenValue: string) => {
-    const out = await req<{ access_token: string }>("/v1/auth/verify-email", {
-      method: "POST",
-      body: JSON.stringify({ token: tokenValue }),
-    });
-    setToken(out.access_token);
-    return out;
-  },
-  upgrade: async (payload: SignupPayload) =>
-    req<{ ok: boolean; message: string; verify_token?: string | null }>("/v1/auth/upgrade", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-  login: async (email: string, password: string) => {
-    const out = await req<{ access_token: string }>("/v1/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    setToken(out.access_token);
-    return out;
-  },
   me: () => req<MeUser>("/v1/auth/me"),
-  updateMe: (payload: Partial<SignupPayload>) =>
+  updateMe: (payload: ProfileUpdate) =>
     req<MeUser>("/v1/auth/me", { method: "PATCH", body: JSON.stringify(payload) }),
   credits: () => req<{ credits: number }>("/v1/credits"),
   createProject: (

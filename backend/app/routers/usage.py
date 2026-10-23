@@ -30,6 +30,7 @@ from app.models import (
     UserVoice,
 )
 from app.order_tickets import backfill_order_tickets
+from app.routers.projects.common import purge_project
 from app.owner_auth import require_owner_password
 from app.printkit.service import attach_service_orders
 from app.schemas import (
@@ -722,16 +723,7 @@ def delete_order(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido nao encontrado")
     project_id = ticket.project_id
     try:
-        # Ordem: filhos antes do projeto. usage_events antes de jobs.
-        for stmt in (
-            delete(UsageEvent).where(UsageEvent.project_id == project_id),
-            delete(Asset).where(Asset.project_id == project_id),
-            delete(OrderTicket).where(OrderTicket.project_id == project_id),
-            delete(PrintOrder).where(PrintOrder.project_id == project_id),
-            delete(Job).where(Job.project_id == project_id),
-            delete(Project).where(Project.id == project_id),
-        ):
-            db.execute(stmt.execution_options(synchronize_session=False))
+        purge_project(db, project_id)
         db.commit()
     except Exception:
         db.rollback()

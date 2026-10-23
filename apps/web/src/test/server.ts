@@ -74,6 +74,8 @@ export const state = {
   city: "Sao Paulo",
   stateUf: "SP",
   country: "BR",
+  termsAcceptedAt: "2026-01-01T00:00:00Z" as string | null,
+  adultConfirmedAt: "2026-01-01T00:00:00Z" as string | null,
   pendingVerifyToken: null as string | null,
   pendingResetToken: null as string | null,
   projects: new Map<string, Project>(),
@@ -95,6 +97,8 @@ export const state = {
     this.city = "Sao Paulo";
     this.stateUf = "SP";
     this.country = "BR";
+    this.termsAcceptedAt = "2026-01-01T00:00:00Z";
+    this.adultConfirmedAt = "2026-01-01T00:00:00Z";
     this.pendingVerifyToken = null;
     this.pendingResetToken = null;
     this.projects.clear();
@@ -336,20 +340,25 @@ export const handlers = [
       city: state.city,
       state: state.stateUf,
       country: state.country,
+      terms_accepted_at: state.termsAcceptedAt,
+      adult_confirmed_at: state.adultConfirmedAt,
     }),
   ),
   http.patch("*/v1/auth/me", async ({ request }) => {
-    const body = (await request.json()) as Record<string, string | null | undefined>;
-    if (body.full_name != null) state.fullName = body.full_name;
-    if (body.phone != null) state.phone = body.phone;
-    if (body.postal_code != null) state.postalCode = body.postal_code;
-    if (body.street != null) state.street = body.street;
-    if (body.number != null) state.number = body.number;
-    if (body.complement !== undefined) state.complement = body.complement || "";
-    if (body.district != null) state.district = body.district;
-    if (body.city != null) state.city = body.city;
-    if (body.state != null) state.stateUf = body.state;
-    if (body.country != null) state.country = body.country;
+    const body = (await request.json()) as Record<string, unknown>;
+    if (body.accept_terms) state.termsAcceptedAt = "2026-01-02T00:00:00Z";
+    if (body.confirm_adult) state.adultConfirmedAt = "2026-01-02T00:00:00Z";
+    if (typeof body.full_name === "string") state.fullName = body.full_name;
+    if (typeof body.phone === "string") state.phone = body.phone;
+    if (typeof body.postal_code === "string") state.postalCode = body.postal_code;
+    if (typeof body.street === "string") state.street = body.street;
+    if (typeof body.number === "string") state.number = body.number;
+    if (body.complement === null) state.complement = "";
+    else if (typeof body.complement === "string") state.complement = body.complement;
+    if (typeof body.district === "string") state.district = body.district;
+    if (typeof body.city === "string") state.city = body.city;
+    if (typeof body.state === "string") state.stateUf = body.state;
+    if (typeof body.country === "string") state.country = body.country;
     return HttpResponse.json({
       id: "user-1",
       email: state.email,
@@ -369,6 +378,8 @@ export const handlers = [
       city: state.city,
       state: state.stateUf,
       country: state.country,
+      terms_accepted_at: state.termsAcceptedAt,
+      adult_confirmed_at: state.adultConfirmedAt,
     });
   }),
   http.post("*/v1/auth/signup", async ({ request }) => {
@@ -660,6 +671,14 @@ export const handlers = [
     });
   }),
 
+  http.get("*/v1/projects", () => HttpResponse.json([...state.projects.values()])),
+  http.delete("*/v1/projects/:pid", ({ params }) => {
+    const id = String(params.pid);
+    if (!state.projects.has(id)) return new HttpResponse(null, { status: 404 });
+    state.projects.delete(id);
+    state.jobs.delete(id);
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.post("*/v1/projects", async ({ request }) => {
     const body = (await request.json()) as { style?: string };
     const p: Project = {

@@ -1,12 +1,12 @@
 """Demo ponta a ponta contra uma API em execução.
 
-Exercita: signup -> créditos -> projeto -> upload de foto -> dispara etapas ->
-acompanha os jobs até concluir/falhar, imprimindo o estado. Tolera ausência de
-chaves de IA (os jobs vão a FAILED e o crédito é estornado — o que valida a
-orquestração mesmo sem provedores reais).
+Exercita: sessão Clerk -> créditos -> projeto -> upload de foto -> dispara
+etapas -> acompanha os jobs até concluir/falhar, imprimindo o estado. Tolera
+ausência de chaves de IA (os jobs vão a FAILED e o crédito é estornado — o que
+valida a orquestração mesmo sem provedores reais).
 
 Uso:
-    API_URL=http://localhost:8000 python scripts/demo_flow.py
+    STORYRUS_TOKEN=<session token do Clerk> API_URL=http://localhost:8000 python scripts/demo_flow.py
 """
 import os
 import sys
@@ -28,8 +28,10 @@ def log(msg: str) -> None:
 
 
 def main() -> int:
-    email = f"demo+{uuid.uuid4().hex[:8]}@storyrus.app"
-    password = "demo12345"
+    token = os.environ.get("STORYRUS_TOKEN", "").strip()
+    if not token:
+        log("Defina STORYRUS_TOKEN com um session token do Clerk")
+        return 1
 
     with httpx.Client(base_url=API_URL, timeout=30) as c:
         # health
@@ -39,11 +41,12 @@ def main() -> int:
             log(f"API indisponível em {API_URL}: {exc}")
             return 1
 
-        token = c.post("/v1/auth/signup", json={"email": email, "password": password}).json()[
-            "access_token"
-        ]
         c.headers["Authorization"] = f"Bearer {token}"
-        log(f"signup ok: {email}")
+        me = c.get("/v1/auth/me")
+        if me.status_code != 200:
+            log(f"sessão recusada: {me.status_code} {me.text}")
+            return 1
+        log(f"sessão ok: {me.json().get('email')}")
         log(f"créditos: {c.get('/v1/credits').json()['credits']}")
 
         project = c.post("/v1/projects", json={"style": "cartoon"}).json()

@@ -96,6 +96,9 @@ def test_configure_logging_json_and_resolved_format():
         jwt_secret="prod-secret-ok",
         webhook_signing_secret="prod-wh-ok",
         openai_api_key="sk-openai-test-key",
+        clerk_secret_key="sk_test_clerk_secret_value",
+        storage_access_key=None,
+        storage_secret_key=None,
     )
     assert s.resolved_log_format() == "json"
     s_dev = Settings(app_env="dev", log_format="auto")

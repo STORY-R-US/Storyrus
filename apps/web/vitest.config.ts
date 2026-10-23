@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    env: {
+      VITE_CLERK_PUBLISHABLE_KEY: "pk_test_vitest",
+    },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     css: false,

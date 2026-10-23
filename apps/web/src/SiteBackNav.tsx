@@ -26,9 +26,9 @@ function goBackOrHome() {
 }
 
 /** Voltar à página anterior (histórico) ou à inicial — em todas as páginas internas. */
-export function SiteBackNav({ className }: { className?: string }) {
-  const [lang] = useResolvedLang();
-  const t = COPY[lang];
+export function SiteBackNav({ className, lang: langOverride }: { className?: string; lang?: Lang }) {
+  const [siteLang] = useResolvedLang();
+  const t = COPY[langOverride ?? siteLang];
   return (
     <nav
       className={["site-back-nav", className].filter(Boolean).join(" ")}

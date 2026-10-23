@@ -109,13 +109,10 @@ describe("Conta — perfil editável", () => {
     expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
   });
 
-  it("oferece link para alterar senha e voltar ao estúdio", async () => {
+  it("volta ao estúdio a partir do perfil", async () => {
     asRegistered();
     renderConta();
-    expect(await screen.findByTestId("conta-change-password")).toHaveAttribute(
-      "href",
-      expect.stringContaining("/esqueci-senha"),
-    );
-    expect(screen.getByTestId("conta-studio")).toHaveAttribute("href", "/app");
+    expect(await screen.findByTestId("conta-studio")).toHaveAttribute("href", "/app");
+    expect(screen.queryByTestId("conta-change-password")).not.toBeInTheDocument();
   });
 });

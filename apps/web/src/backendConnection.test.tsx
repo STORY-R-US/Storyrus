@@ -189,40 +189,29 @@ describe("Render cold start", () => {
 });
 
 describe("sessão durante indisponibilidade", () => {
-  function expiredToken() {
-    return `e30.${btoa(JSON.stringify({ sub: "u1", exp: Date.now() / 1000 - 10 }))}.sig`;
-  }
-
-  it("recupera um JWT que venceu enquanto a API estava acordando", async () => {
-    const expiresAt = Date.now() + 10_000;
-    setToken(`e30.${btoa(JSON.stringify({ sub: "u1", exp: expiresAt / 1000 }))}.sig`);
+  it("chama /me com o token guardado", async () => {
+    setToken("kept-token");
     fetchMock.mockImplementation((path: string, init?: RequestInit) => {
-      if (path === "/health") return Promise.resolve(Date.now() < expiresAt + 2_000
-        ? new Response(null, { status: 503 }) : json({ status: "ok" }));
-      if (path === "/v1/auth/resume") return Promise.resolve(json({ access_token: "fresh-token" }));
-      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer fresh-token");
-      return Promise.resolve(json({ id: "u1" }));
+      if (path === "/health") return Promise.resolve(json({ status: "ok" }));
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer kept-token");
+      return Promise.resolve(json({ id: "u1", email_verified: true, is_guest: false }));
     });
-    const me = api.me();
-    await vi.advanceTimersByTimeAsync(12_000);
-    await expect(me).resolves.toMatchObject({ id: "u1" });
-    expect(getToken()).toBe("fresh-token");
+    await expect(api.me()).resolves.toMatchObject({ id: "u1" });
+    expect(getToken()).toBe("kept-token");
   });
 
-  it.each([429, 502, 503])("não apaga o JWT se o resume responde %s", async (status) => {
-    const token = expiredToken();
-    setToken(token);
-    fetchMock.mockImplementation((path: string) => Promise.resolve(path === "/health"
-      ? json({ status: "ok" }) : json({ detail: "Indisponível" }, status)));
-    await expect(ensureSession()).rejects.toThrow(`${status}:`);
-    expect(getToken()).toBe(token);
+  it("não chama a rede só para confirmar uma sessão existente", async () => {
+    setToken("kept-token");
+    await expect(ensureSession()).resolves.toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(getToken()).toBe("kept-token");
   });
 
   it("limpa o JWT quando o servidor confirma que ele é inválido", async () => {
-    setToken(expiredToken());
+    setToken("kept-token");
     fetchMock.mockImplementation((path: string) => Promise.resolve(path === "/health"
       ? json({ status: "ok" }) : json({ detail: "Token inválido" }, 401)));
-    await expect(ensureSession()).rejects.toThrow("401:");
+    await expect(api.me()).rejects.toThrow("401:");
     expect(getToken()).toBeNull();
   });
 });

@@ -4,6 +4,12 @@
 > **Imagens:** `Storyrus\docs\social-assets\real\` → subpastas `feed\`, `carrossel\`, `stories\`
 > **Gerador:** `Storyrus\scripts\build_instagram_posts.py` (roda com o Python do backend). Edite textos/capas/cores e rode de novo para regerar tudo.
 
+## Identidade visual (igual ao site storyrus.ai)
+- **Fontes:** **Baloo 2** (títulos/botões) + **Quicksand** (textos) — as mesmas do site. Ficam em `Storyrus\scripts\fonts\` (baixadas do Google Fonts). Se apagar essa pasta, o gerador não roda.
+- **Paleta oficial (landing.css):** ink `#1f3568` · amarelo `#f4b740` · creme `#fff7ec` · azul `#7fb2e3` · roxo `#3a5fae` · coral `#ef8f4b` (urgência/promoção) · menta `#3f8f7d`.
+- **Fundos:** gradiente claro (azul suave → creme) e superfície escura em degradê, como as seções do site.
+- **Logo:** `STORY.R.US` oficial aplicado nos fechamentos.
+
 ## Antes de postar (checklist rápido)
 - [x] **Datas já preenchidas nas artes:** Black Friday **29/11** · prazo de Natal **15/12**. Para mudar, edite `DATE_BF` / `DATE_XMAS` no topo de `build_instagram_posts.py` e rode de novo.
 - [ ] Link na bio: `https://storyrus.ai/?utm_source=instagram&utm_medium=bio`

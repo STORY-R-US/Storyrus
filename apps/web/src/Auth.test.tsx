@@ -36,15 +36,22 @@ function renderAuth(mode: "login" | "signup", next?: string) {
   );
 }
 
-async function fillSignup(
-  user: ReturnType<typeof userEvent.setup>,
-  email = "nova@example.com",
-) {
+function asIncompleteProfile() {
+  setToken("test-token");
+  state.isGuest = false;
+  state.emailVerified = true;
+  state.fullName = "";
+  state.phone = "";
+  state.street = "";
+  state.city = "";
+  state.termsAcceptedAt = null;
+  state.adultConfirmedAt = null;
+}
+
+async function fillProfile(user: ReturnType<typeof userEvent.setup>) {
+  expect(await screen.findByTestId("auth-full-name")).toBeInTheDocument();
   await user.type(screen.getByTestId("auth-full-name"), "Ana Souza");
-  await user.type(screen.getByTestId("auth-email"), email);
   await user.type(screen.getByTestId("auth-phone"), "11999999999");
-  await user.type(screen.getByTestId("auth-password"), "password123");
-  await user.type(screen.getByTestId("auth-password-confirm"), "password123");
   await user.selectOptions(screen.getByTestId("auth-country"), "BR");
   await user.type(screen.getByTestId("auth-postal-code"), "01310100");
   await waitFor(() => {
@@ -55,6 +62,7 @@ async function fillSignup(
   });
   await user.type(screen.getByTestId("auth-number"), "1000");
   await user.type(screen.getByTestId("auth-complement"), "Sala 1");
+  await user.click(screen.getByTestId("auth-confirm-adult"));
   await user.click(screen.getByTestId("auth-accept-terms"));
 }
 
@@ -86,29 +94,48 @@ describe("safeNextPath / accountGateHref", () => {
 });
 
 describe("Auth", () => {
-  it("cria conta e mostra tela de verificar e-mail (sem JWT)", async () => {
-    const user = userEvent.setup();
+  it("mostra o cadastro do Clerk sem sessão", async () => {
     renderAuth("signup", "/app?tema=space");
+    expect(await screen.findByTestId("clerk-sign-up")).toBeInTheDocument();
+    expect(screen.queryByTestId("auth-form")).not.toBeInTheDocument();
+  });
 
-    await fillSignup(user);
+  it("mostra o login do Clerk sem sessão", async () => {
+    renderAuth("login", "/app");
+    expect(await screen.findByTestId("clerk-sign-in")).toBeInTheDocument();
+  });
+
+  it("grava o endereço e segue quando o perfil está incompleto", async () => {
+    const user = userEvent.setup();
+    asIncompleteProfile();
+    renderAuth("signup", "/app?tema=space");
+    await fillProfile(user);
     await user.click(screen.getByTestId("auth-submit"));
+    expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
+    expect(state.fullName).toBe("Ana Souza");
+    expect(state.termsAcceptedAt).toBeTruthy();
+    expect(state.adultConfirmedAt).toBeTruthy();
+  });
 
-    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
-    expect(getToken()).toBeNull();
-    expect(state.email).toBe("nova@example.com");
-    expect(state.emailVerified).toBe(false);
+  it("não segue sem a declaração de 18 anos", async () => {
+    const user = userEvent.setup();
+    asIncompleteProfile();
+    renderAuth("signup", "/app");
+    await fillProfile(user);
+    await user.click(screen.getByTestId("auth-confirm-adult"));
+    await user.click(screen.getByTestId("auth-submit"));
+    expect(await screen.findByTestId("auth-error")).toHaveTextContent(/18/);
     expect(screen.queryByTestId("studio-dest")).not.toBeInTheDocument();
   });
 
-  it("aceita cadastro com endereço internacional (US)", async () => {
+  it("aceita endereço internacional (US)", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
 
     await user.type(screen.getByTestId("auth-full-name"), "Jane Doe");
-    await user.type(screen.getByTestId("auth-email"), "jane@example.com");
     await user.type(screen.getByTestId("auth-phone"), "+15551234567");
-    await user.type(screen.getByTestId("auth-password"), "password123");
-    await user.type(screen.getByTestId("auth-password-confirm"), "password123");
     await user.selectOptions(screen.getByTestId("auth-country"), "US");
     expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("minLength", "5");
     expect(screen.queryByTestId("auth-district")).not.toBeInTheDocument();
@@ -118,10 +145,11 @@ describe("Auth", () => {
     await user.type(screen.getByTestId("auth-number"), "100");
     await user.type(screen.getByTestId("auth-city"), "Beverly Hills");
     await user.selectOptions(screen.getByTestId("auth-state"), "CA");
+    await user.click(screen.getByTestId("auth-confirm-adult"));
     await user.click(screen.getByTestId("auth-accept-terms"));
     await user.click(screen.getByTestId("auth-submit"));
 
-    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+    expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
     expect(state.country).toBe("US");
     expect(state.postalCode).toBe("90210");
     expect(state.stateUf).toBe("CA");
@@ -129,7 +157,9 @@ describe("Auth", () => {
 
   it("preenche endereço automaticamente a partir do CEP", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     await user.type(screen.getByTestId("auth-postal-code"), "01310100");
     expect(screen.getByTestId("auth-postal-code")).toHaveValue("01310-100");
     expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/endereço preenchido/i);
@@ -141,7 +171,9 @@ describe("Auth", () => {
 
   it("avisa quando o CEP não existe", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     await user.type(screen.getByTestId("auth-postal-code"), "00000000");
     expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/não encontrado/i);
     expect(screen.getByTestId("auth-street")).toHaveValue("");
@@ -149,7 +181,9 @@ describe("Auth", () => {
 
   it("preenche cidade e estado automaticamente a partir do ZIP americano", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     await user.selectOptions(screen.getByTestId("auth-country"), "US");
     await user.type(screen.getByTestId("auth-postal-code"), "90210");
     expect(screen.getByTestId("auth-postal-code")).toHaveValue("90210");
@@ -160,7 +194,9 @@ describe("Auth", () => {
 
   it("não busca CEP quando o país é México", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     await user.selectOptions(screen.getByTestId("auth-country"), "MX");
     await user.type(screen.getByTestId("auth-postal-code"), "01310100");
     expect(screen.queryByTestId("auth-cep-status")).not.toBeInTheDocument();
@@ -169,7 +205,9 @@ describe("Auth", () => {
 
   it("adapta labels para México (colonia / estado)", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     await user.selectOptions(screen.getByTestId("auth-country"), "MX");
     expect(screen.getByTestId("auth-district")).toBeInTheDocument();
     expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("placeholder", "06600");
@@ -178,7 +216,9 @@ describe("Auth", () => {
 
   it("troca idioma no cadastro e destaca Américas", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     renderAuth("signup", "/app");
+    expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     expect(screen.getByTestId("auth-lang")).toBeInTheDocument();
     await user.click(screen.getByTestId("auth-lang-en"));
     expect(screen.getByTestId("auth-submit")).toHaveTextContent(/create account/i);
@@ -188,12 +228,24 @@ describe("Auth", () => {
     expect(screen.getByTestId("auth-country")).toHaveValue("MX");
   });
 
-  it("confirma e-mail e entra no estúdio", async () => {
+  it("perfil completo segue para o destino", async () => {
+    setToken("test-token");
+    state.isGuest = false;
+    state.emailVerified = true;
+    renderAuth("login", "/app?tema=space");
+    expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
+  });
+
+  it("e-mail ainda não confirmado permanece na sessão", async () => {
+    setToken("test-token");
     state.isGuest = false;
     state.emailVerified = false;
-    state.pendingVerifyToken = "test-verify-token";
-    state.email = "verify@example.com";
+    renderAuth("login", "/app");
+    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+    expect(getToken()).toBe("test-token");
+  });
 
+  it("link antigo de verificação volta ao cadastro", async () => {
     render(
       <MemoryRouter
         initialEntries={[
@@ -202,153 +254,46 @@ describe("Auth", () => {
       >
         <Routes>
           <Route path="/verificar-email" element={<VerifyEmail />} />
-          <Route path="/app" element={<div data-testid="studio-dest">studio</div>} />
+          <Route path="/cadastro" element={<div data-testid="signup-dest">signup</div>} />
         </Routes>
       </MemoryRouter>,
     );
-
-    expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
-    expect(getToken()).toBe("test-token");
-    expect(state.emailVerified).toBe(true);
+    expect(await screen.findByTestId("signup-dest")).toBeInTheDocument();
   });
 
-  it("mostra o e-mail do link e permite reenviar se o token falhar", async () => {
+  it("mostra erro legível quando o perfil responde 502", async () => {
     const user = userEvent.setup();
-    state.isGuest = false;
-    state.emailVerified = false;
-    state.pendingVerifyToken = "test-verify-token";
-    state.email = "verify@example.com";
-
-    render(
-      <MemoryRouter
-        initialEntries={[
-          `/verificar-email?token=wrong-token-value!!&email=${encodeURIComponent("Verify@Example.com")}`,
-        ]}
-      >
-        <Routes>
-          <Route path="/verificar-email" element={<VerifyEmail />} />
-          <Route path="/app" element={<div data-testid="studio-dest">studio</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    expect(await screen.findByTestId("verify-email-error")).toBeInTheDocument();
-    expect(screen.getByTestId("verify-email-address")).toHaveTextContent("Verify@Example.com");
-    await user.click(screen.getByTestId("verify-email-resend"));
-    expect(await screen.findByTestId("verify-email-resend-hint")).toBeInTheDocument();
-  });
-
-  it("faz login e redireciona", async () => {
-    const user = userEvent.setup();
-    state.emailVerified = true;
-    renderAuth("login", "/app");
-
-    await user.type(screen.getByTestId("auth-email"), "ja@example.com");
-    await user.type(screen.getByTestId("auth-password"), "password123");
-    await user.click(screen.getByTestId("auth-submit"));
-
-    expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
-    await waitFor(() => expect(getToken()).toBe("test-token"));
-  });
-
-  it("faz login sem next e volta para a home", async () => {
-    const user = userEvent.setup();
-    state.emailVerified = true;
-    renderAuth("login");
-
-    await user.type(screen.getByTestId("auth-email"), "ja@example.com");
-    await user.type(screen.getByTestId("auth-password"), "password123");
-    await user.click(screen.getByTestId("auth-submit"));
-
-    expect(await screen.findByTestId("home-dest")).toBeInTheDocument();
-    expect(screen.queryByTestId("studio-dest")).not.toBeInTheDocument();
-  });
-
-  it("mostra link Esqueci a senha no login", () => {
-    renderAuth("login", "/app?tema=space");
-    const link = screen.getByTestId("auth-forgot");
-    expect(link).toHaveTextContent(/esqueci a senha/i);
-    expect(link).toHaveAttribute(
-      "href",
-      expect.stringContaining("/esqueci-senha"),
-    );
-    expect(link).toHaveAttribute("href", expect.stringContaining("next="));
-  });
-
-  it("mostra e oculta a senha pelo olho", async () => {
-    const user = userEvent.setup();
-    renderAuth("login");
-    const input = screen.getByTestId("auth-password");
-    expect(input).toHaveAttribute("type", "password");
-    await user.type(input, "segredo12");
-    await user.click(screen.getByTestId("auth-password-toggle"));
-    expect(input).toHaveAttribute("type", "text");
-    expect(input).toHaveValue("segredo12");
-    await user.click(screen.getByTestId("auth-password-toggle"));
-    expect(input).toHaveAttribute("type", "password");
-  });
-
-  it("não mostra Esqueci a senha no cadastro", () => {
-    renderAuth("signup", "/app");
-    expect(screen.queryByTestId("auth-forgot")).not.toBeInTheDocument();
-  });
-
-  it("alterna entre login e cadastro preservando next", async () => {
-    const user = userEvent.setup();
-    renderAuth("login", "/app?tema=pets");
-    await user.click(screen.getByTestId("auth-switch"));
-    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/criar conta/i);
-    expect(screen.getByTestId("auth-switch")).toHaveAttribute(
-      "href",
-      expect.stringContaining("next="),
-    );
-  });
-
-  it("mostra erro legível quando a API responde 502", async () => {
-    const user = userEvent.setup();
+    asIncompleteProfile();
     const { http, HttpResponse } = await import("msw");
     const { server } = await import("./test/server");
     server.use(
-      http.post("*/v1/auth/signup", () => HttpResponse.text("bad gateway", { status: 502 })),
+      http.patch("*/v1/auth/me", () => HttpResponse.text("bad gateway", { status: 502 })),
     );
     renderAuth("signup", "/app");
-    await fillSignup(user, "x@example.com");
+    await fillProfile(user);
     await user.click(screen.getByTestId("auth-submit"));
     expect(await screen.findByTestId("auth-error")).toHaveTextContent(/indisponível/i);
   });
 
-  it("sai de Aguarde… quando o signup estoura o timeout", async () => {
+  it("sai de Aguarde… quando o perfil estoura o timeout", async () => {
     const user = userEvent.setup();
+    asIncompleteProfile();
     setAuthFetchTimeoutMsForTests(80);
     const { http, delay } = await import("msw");
     const { server } = await import("./test/server");
     server.use(
-      http.post("*/v1/auth/signup", async () => {
+      http.patch("*/v1/auth/me", async () => {
         await delay("infinite");
         return new Response();
       }),
     );
     renderAuth("signup", "/app");
-    await fillSignup(user, "x@example.com");
+    await fillProfile(user);
     await user.click(screen.getByTestId("auth-submit"));
     expect(screen.getByTestId("auth-submit")).toHaveTextContent(/aguarde/i);
     expect(await screen.findByTestId("auth-error", {}, { timeout: 3000 })).toHaveTextContent(
       /indisponível/i,
     );
     expect(screen.getByTestId("auth-submit")).not.toBeDisabled();
-  });
-
-  it("login com e-mail pendente mostra reenvio", async () => {
-    const user = userEvent.setup();
-    state.isGuest = false;
-    state.emailVerified = false;
-    state.email = "wait@example.com";
-    renderAuth("login", "/app");
-    await user.type(screen.getByTestId("auth-email"), "wait@example.com");
-    await user.type(screen.getByTestId("auth-password"), "password123");
-    await user.click(screen.getByTestId("auth-submit"));
-    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
-    await user.click(screen.getByTestId("auth-resend-verify"));
-    expect(await screen.findByTestId("auth-resend-hint")).toBeInTheDocument();
   });
 });

@@ -13,8 +13,7 @@ function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 function harness(initialToken = "existing-token") {
-  let stored = initialToken;
-  let fetcher = async () => json({ is_guest: false, email_verified: true });
+  let fetcher = async () => json({ is_guest: false, email_verified: true, terms_accepted_at: "2026-01-01", full_name: "Ana", street: "Rua", city: "SP", phone: "11999999999" });
   const shared = { console, Error, TypeError, FormData, Blob, Headers, Response, AbortController, atob, btoa, setTimeout, clearTimeout };
   function compile(relative, mocks) {
     const filename = path.join(root, relative);
@@ -30,47 +29,35 @@ function harness(initialToken = "existing-token") {
     return exports;
   }
   const api = compile("src/api.ts", {
-    "@react-native-async-storage/async-storage": { default: {
-      getItem: async () => stored, setItem: async (_key, value) => { stored = value; },
-      removeItem: async () => { stored = null; },
-    } },
     "expo-constants": { default: { expoConfig: {} } },
   });
-  return { api, compile, stored: () => stored, fetch: (implementation) => { fetcher = implementation; } };
+  if (initialToken) api.setToken(initialToken);
+  return { api, compile, fetch: (implementation) => { fetcher = implementation; } };
 }
 
-for (const status of [429, 502, 503]) {
-  test(`temporary resume HTTP ${status} keeps the stored account`, async () => {
-    const old = expiredToken();
-    const h = harness(old);
-    h.fetch(async () => json({ detail: "Temporarily unavailable" }, status));
-    await assert.rejects(h.api.ensureSession(), (error) => error.status === status);
-    assert.equal(h.api.getToken(), old);
-    assert.equal(h.stored(), old);
-  });
-}
-test("network failure during resume keeps the stored account", async () => {
-  const old = expiredToken();
-  const h = harness(old);
-  h.fetch(async () => { throw new TypeError("Network request failed"); });
-  await assert.rejects(h.api.ensureSession(), /Network request failed/);
-  assert.equal(h.stored(), old);
+test("a token already in memory does not call the network", async () => {
+  const h = harness("existing-token");
+  let calls = 0;
+  h.fetch(async () => { calls += 1; return json({}); });
+  await h.api.ensureSession();
+  assert.equal(calls, 0);
+  assert.equal(h.api.getToken(), "existing-token");
 });
-for (const status of [401, 403]) {
-  test(`rejected resume HTTP ${status} clears the stored account`, async () => {
-    const h = harness(expiredToken());
-    h.fetch(async () => json({ detail: "Invalid session" }, status));
-    await assert.rejects(h.api.ensureSession(), (error) => error.status === 401);
-    assert.equal(h.api.getToken(), null);
-    assert.equal(h.stored(), null);
-  });
-}
-test("malformed renewal does not replace the saved token", async () => {
-  const old = expiredToken();
-  const h = harness(old);
-  h.fetch(async () => json({}));
-  await assert.rejects(h.api.ensureSession(), (error) => error.status === 502);
-  assert.equal(h.stored(), old);
+test("missing session is a 401", async () => {
+  const h = harness(null);
+  await assert.rejects(h.api.ensureSession(), (error) => error.status === 401);
+});
+test("clerk getToken supplies the bearer", async () => {
+  const h = harness(null);
+  h.api.setClerkGetToken(async () => "clerk-session");
+  await h.api.ensureSession();
+  assert.equal(h.api.getToken(), "clerk-session");
+});
+test("a 401 from the API clears the bearer", async () => {
+  const h = harness(expiredToken());
+  h.fetch(async () => json({ detail: "Invalid session" }, 401));
+  await assert.rejects(h.api.api.me(), (error) => error.status === 401);
+  assert.equal(h.api.getToken(), null);
 });
 test("a rejected photo upload remains an error", async () => {
   const h = harness();
@@ -119,6 +106,11 @@ function appHarness(h) {
     "expo-status-bar": { StatusBar: "StatusBar" },
     "./src/AuthScreen": { AuthScreen: "AuthScreen" },
     "./src/StudioScreen": { StudioScreen: "StudioScreen" },
+    "./src/clerkTokenCache": { tokenCache: { getToken: async () => null, saveToken: async () => {}, clearToken: async () => {} } },
+    "@clerk/expo": {
+      ClerkProvider: (props) => props.children,
+      useAuth: () => ({ isLoaded: true, isSignedIn: false, getToken: async () => null, signOut: async () => {} }),
+    },
   });
   return {
     render: () => { index = 0; return app.default(); },
@@ -141,15 +133,18 @@ test("offline boot preserves the account and retry opens the studio", async () =
   app.render();
   await app.boot();
   const failed = app.render();
-  assert.equal(h.stored(), "existing-token");
+  assert.equal(h.api.getToken(), "existing-token");
   assert.ok(find(failed, (node) => node.props?.accessibilityRole === "alert"));
   assert.equal(find(failed, (node) => node.type === "AuthScreen"), undefined);
-  h.fetch(async () => json({ is_guest: false, email_verified: true }));
+  h.fetch(async () => json({
+    is_guest: false, email_verified: true, terms_accepted_at: "2026-01-01",
+    full_name: "Ana", street: "Rua", city: "SP", phone: "11999999999",
+  }));
   find(failed, (node) => node.type === "Pressable").props.onPress();
   app.render();
   await app.boot();
   assert.ok(find(app.render(), (node) => node.type === "StudioScreen"));
-  assert.equal(h.stored(), "existing-token");
+  assert.equal(h.api.getToken(), "existing-token");
 });
 test("boot with a rejected account returns to login", async () => {
   const h = harness();
@@ -158,5 +153,5 @@ test("boot with a rejected account returns to login", async () => {
   app.render();
   await app.boot();
   assert.ok(find(app.render(), (node) => node.type === "AuthScreen"));
-  assert.equal(h.stored(), null);
+  assert.equal(h.api.getToken(), null);
 });

@@ -21,6 +21,7 @@ describe("Legal", () => {
     expect(screen.getByRole("heading", { name: /conta e sessão/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /seus direitos/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /crianças/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /estados unidos \(coppa\)/i })).toBeInTheDocument();
     expect(document.body.textContent).toContain(CONTACT);
     expect(screen.getByRole("link", { name: /^exemplos$/i })).toHaveAttribute("href", "/exemplos");
     expect(screen.queryByRole("heading", { name: /termos de uso/i })).not.toBeInTheDocument();
@@ -63,9 +64,9 @@ describe("Legal", () => {
 describe("Rotas legais (AppRoutes)", () => {
   it.each([
     ["/privacidade", /política de privacidade|privacidade/i],
-    ["/privacy", /política de privacidade|privacidade/i],
+    ["/privacy", /privacy policy/i],
     ["/termos", /termos de uso/i],
-    ["/terms", /termos de uso/i],
+    ["/terms", /terms of use/i],
   ] as const)("rota %s renderiza o documento correto", async (path, heading) => {
     render(
       <MemoryRouter initialEntries={[path]}>

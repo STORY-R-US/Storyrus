@@ -346,8 +346,10 @@ export function StudioScreen({
           >
             <Text style={s.consentMark}>{mediaConsent ? "✓" : "○"}</Text>
             <Text style={s.muted}>
-              Sou o responsável legal e autorizo o uso desta foto (e voz, se clonada) só para criar
-              este livro.
+              Tenho 18 anos ou mais e sou o responsável legal. Autorizo esta foto só para criar este
+              livro. Se eu enviar uma voz, ela é minha, de adulto, e não da criança. A foto vai para
+              a OpenAI e a voz, se houver, para a ElevenLabs. Não usamos isso em divulgação nem para
+              treinar modelos.
             </Text>
           </Pressable>
 

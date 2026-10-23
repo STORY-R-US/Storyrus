@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { accountAccess, accountGateHref } from "./Auth";
 import { api, getToken } from "./api";
 import type { Project } from "./types";
 import { SiteBackNav } from "./SiteBackNav";
@@ -15,29 +16,40 @@ export function MyOrders() {
   const t = purchaseCopy(lang);
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [login, setLogin] = useState(!getToken());
+  const [gate, setGate] = useState<"loading" | "ok" | "entrar" | "cadastro">(
+    getToken() ? "loading" : "entrar",
+  );
   const [attempt, setAttempt] = useState(0);
+  const [removing, setRemoving] = useState<string | null>(null);
   useEffect(() => {
-    if (login) return;
+    if (gate !== "loading" && gate !== "ok") return;
     let cancelled = false;
     async function load() {
       try {
         const me = await api.me();
         if (cancelled) return;
-        if (me.is_guest || !me.email_verified) {
-          setLogin(true);
+        const access = accountAccess(me);
+        if (access === "guest") api.logout();
+        if (access !== "ok") {
+          setGate("cadastro");
           return;
         }
         const next = await api.myProjects();
         if (!cancelled) {
           setProjects(next);
           setError(null);
+          setGate("ok");
         }
       } catch (err) {
         if (!cancelled) {
           const message = (err as Error).message;
-          if (/^(401|403):/.test(message)) setLogin(true);
-          else setError(message);
+          if (/^401:/.test(message)) {
+            api.logout();
+            setGate("entrar");
+          } else {
+            setError(message);
+            setGate("ok");
+          }
         }
       }
     }
@@ -49,8 +61,23 @@ export function MyOrders() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [login, attempt]);
-  if (login) return <Navigate to="/entrar?next=%2Fmeus-pedidos" replace />;
+  }, [gate, attempt]);
+  if (gate === "entrar") return <Navigate to="/entrar?next=%2Fmeus-pedidos" replace />;
+  if (gate === "cadastro") return <Navigate to={accountGateHref("/meus-pedidos")} replace />;
+  if (gate === "loading") return null;
+  async function removeProject(id: string) {
+    if (!window.confirm(t.deleteConfirm)) return;
+    setRemoving(id);
+    setError(null);
+    try {
+      await api.deleteProject(id);
+      setProjects((prev) => prev?.filter((item) => item.id !== id) ?? null);
+    } catch (err) {
+      setError((err as Error).message || t.deleteFailed);
+    } finally {
+      setRemoving(null);
+    }
+  }
   function status(p: Project) {
     if (p.book_approved_at && p.purchase_flow?.full_book_ready_at)
       return t.approved;
@@ -105,6 +132,15 @@ export function MyOrders() {
               >
                 {lang === "en" ? "View order" : "Ver pedido"} →
               </a>
+              <button
+                type="button"
+                className="kbtn"
+                data-testid="order-delete"
+                disabled={removing === p.id}
+                onClick={() => void removeProject(p.id)}
+              >
+                {removing === p.id ? t.deleteBusy : t.deleteProject}
+              </button>
             </article>
           ))}
         </div>

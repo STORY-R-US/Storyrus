@@ -18,6 +18,7 @@ from app.models import Asset, AssetKind, Job, JobStatus, PrintOrder, Project, Pr
 from app.printkit.gateway import GatewayNotConfigured, GatewayRejected, configured_gateway
 from app.printkit.service import fulfill_payment
 from app.services import webhook_auth
+from app.services.clerk_identity import apply_clerk_event, verify_svix
 
 router = APIRouter(prefix="/v1/webhooks", tags=["webhooks"])
 
@@ -101,3 +102,32 @@ async def print_payment_callback(
         fulfill_payment(db, order)
     db.commit()
     return {"ok": True, "paid": notice.paid}
+
+
+@router.post("/clerk", status_code=status.HTTP_200_OK)
+async def clerk_user_webhook(
+    request: Request,
+    svix_id: str | None = Header(default=None, alias="svix-id"),
+    svix_timestamp: str | None = Header(default=None, alias="svix-timestamp"),
+    svix_signature: str | None = Header(default=None, alias="svix-signature"),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Atualiza o e-mail local ou solta o vínculo. Não apaga livros."""
+    raw = await request.body()
+    err = verify_svix(
+        secret=settings.clerk_webhook_secret,
+        body=raw,
+        svix_id=svix_id,
+        svix_timestamp=svix_timestamp,
+        svix_signature=svix_signature,
+    )
+    if err == "Webhook do Clerk nao configurado":
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, err)
+    if err:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, err)
+    payload = json.loads(raw or b"{}")
+    data = payload.get("data") or {}
+    if not isinstance(data, dict):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Payload invalido")
+    apply_clerk_event(db, str(payload.get("type") or ""), data)
+    return {"ok": True}

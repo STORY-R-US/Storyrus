@@ -8,7 +8,6 @@ promove `is_admin` no primeiro acesso). A senha compartilhada
 from __future__ import annotations
 
 import hmac
-import uuid
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request, status
@@ -19,7 +18,7 @@ from app import rate_limit
 from app.config import settings
 from app.database import get_db
 from app.models import User
-from app.security import decode_access_token, is_guest_user
+from app.security import is_guest_user
 
 HEADER = "X-Usage-Password"
 _bearer = HTTPBearer(auto_error=False)
@@ -114,21 +113,16 @@ def _admin_from_bearer(
     creds: HTTPAuthorizationCredentials | None,
     db: Session,
 ) -> User | None:
-    if creds is None:
+    if creds is None or not creds.credentials:
         return None
-    payload = decode_access_token(creds.credentials)
-    if not payload or "sub" not in payload:
-        return None
+    from app.services.clerk_identity import linked_user, verify_session_token
+
     try:
-        user_id = uuid.UUID(payload["sub"])
-    except ValueError:
+        user = linked_user(db, verify_session_token(creds.credentials))
+    except HTTPException:
         return None
-    user = db.get(User, user_id)
     if user is None or not user_is_admin(user):
         return None
-    if promote_verified_owner(user):
-        db.add(user)
-        db.commit()
     return user
 
 

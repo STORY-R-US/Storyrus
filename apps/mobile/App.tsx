@@ -1,11 +1,39 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { ClerkProvider, useAuth } from "@clerk/expo";
 import { AuthScreen } from "./src/AuthScreen";
 import { StudioScreen } from "./src/StudioScreen";
-import { api, getToken, hydrateToken, logout, ensureSession, isSessionRejected } from "./src/api";
+import { tokenCache } from "./src/clerkTokenCache";
+import { api, getToken, hydrateToken, logout, ensureSession, isSessionRejected, setClerkGetToken, setClerkSignOut } from "./src/api";
 
-/** Conta obrigatória: login/signup antes do estúdio. */
+function needsAccount(me: {
+  is_guest: boolean;
+  email_verified: boolean;
+  terms_accepted_at?: string | null;
+  full_name?: string | null;
+  street?: string | null;
+  city?: string | null;
+  phone?: string | null;
+}): boolean {
+  return me.is_guest || !me.email_verified || !me.terms_accepted_at || !me.full_name?.trim() || !me.street?.trim() || !me.city?.trim() || !me.phone?.trim();
+}
+
+function ClerkSession() {
+  const { getToken, signOut, isLoaded } = useAuth();
+  useEffect(() => {
+    if (!isLoaded) return;
+    setClerkGetToken((opts) => getToken(opts));
+    setClerkSignOut(() => signOut());
+    return () => {
+      setClerkGetToken(null);
+      setClerkSignOut(null);
+    };
+  }, [getToken, signOut, isLoaded]);
+  return null;
+}
+
+/** Conta obrigatória: sessão do Clerk antes do estúdio. */
 export default function App() {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -25,7 +53,13 @@ export default function App() {
         }
         await ensureSession();
         const me = await api.me();
-        if (!cancelled) setAuthed(!me.is_guest && me.email_verified);
+        if (cancelled) return;
+        if (me.is_guest) {
+          logout();
+          setAuthed(false);
+          return;
+        }
+        setAuthed(!needsAccount(me));
       } catch (error) {
         if (cancelled) return;
         if (isSessionRejected(error)) {
@@ -68,6 +102,17 @@ export default function App() {
         />
       )}
     </SafeAreaView>
+  );
+}
+
+export function Root() {
+  const key = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!key) return <App />;
+  return (
+    <ClerkProvider publishableKey={key} tokenCache={tokenCache}>
+      <ClerkSession />
+      <App />
+    </ClerkProvider>
   );
 }
 

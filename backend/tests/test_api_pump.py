@@ -10,6 +10,9 @@ def test_job_pump_ligado_em_prod_e_desligado_em_dev():
         jwt_secret="a-real-prod-secret-value",
         webhook_signing_secret="another-real-prod-secret",
         openai_api_key="sk-test",
+        clerk_secret_key="sk_test_clerk_secret_value",
+        storage_access_key=None,
+        storage_secret_key=None,
     )
     assert dev.job_pump_enabled() is False
     assert prod.job_pump_enabled() is True
@@ -41,6 +44,9 @@ def test_job_pump_respeita_override():
         jwt_secret="a-real-prod-secret-value",
         webhook_signing_secret="another-real-prod-secret",
         openai_api_key="sk-test",
+        clerk_secret_key="sk_test_clerk_secret_value",
+        storage_access_key=None,
+        storage_secret_key=None,
     )
     forced_on = Settings(app_env="dev", api_job_pump=True)
     assert forced_off.job_pump_enabled() is False

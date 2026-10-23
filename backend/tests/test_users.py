@@ -3,7 +3,7 @@
 from app.config import settings
 from app.database import get_db
 from app.models import Project, User
-from tests.conftest import signup_and_verify
+from tests.conftest import mint_guest, signup_and_verify
 
 
 def _session(client):
@@ -34,8 +34,7 @@ def test_users_wrong_password_is_401(client, monkeypatch):
 
 def test_users_lists_registered_only(auth_client, monkeypatch):
     headers = _owner_headers(monkeypatch)
-    g = auth_client.post("/v1/auth/guest")
-    assert g.status_code == 201, g.text
+    mint_guest(auth_client)
 
     r = auth_client.get("/v1/users", headers=headers)
     assert r.status_code == 200, r.text
@@ -152,8 +151,7 @@ def test_users_get_detail(auth_client, monkeypatch):
 
 def test_users_get_guest_is_404(auth_client, monkeypatch):
     headers = _owner_headers(monkeypatch)
-    g = auth_client.post("/v1/auth/guest")
-    assert g.status_code == 201, g.text
+    mint_guest(auth_client)
     db = _session(auth_client)
     try:
         guest = db.query(User).filter(User.password_hash == "!guest").one()
@@ -231,8 +229,7 @@ def test_users_delete_registered(auth_client, monkeypatch):
 
 def test_users_delete_guest_is_404(auth_client, monkeypatch):
     headers = _owner_headers(monkeypatch)
-    g = auth_client.post("/v1/auth/guest")
-    assert g.status_code == 201, g.text
+    mint_guest(auth_client)
     db = _session(auth_client)
     try:
         guest = db.query(User).filter(User.password_hash == "!guest").one()

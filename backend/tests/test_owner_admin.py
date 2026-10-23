@@ -109,16 +109,16 @@ def test_login_promotes_gmail_owner_without_dots(client, monkeypatch):
     monkeypatch.setattr(settings, "owner_emails", "")
     monkeypatch.setattr(settings, "owner_password_fallback", False)
     email = "engandrevitor89@gmail.com"
-    signup_and_verify(client, email)
+    token = signup_and_verify(client, email)
     _set_admin(client, email, admin=False)
     assert _is_admin(client, email) is False
 
-    logged = client.post("/v1/auth/login", json={"email": email, "password": "password123"})
-    assert logged.status_code == 200, logged.text
+    me = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me.status_code == 200, me.text
     assert _is_admin(client, email) is True
     ok = client.get(
         "/v1/usage?scope=orders",
-        headers={"Authorization": f"Bearer {logged.json()['access_token']}"},
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert ok.status_code == 200, ok.text
 

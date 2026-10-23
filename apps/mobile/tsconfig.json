@@ -2,7 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "paths": {
+      "@clerk/expo/legacy": ["./node_modules/@clerk/expo/dist/legacy.d.ts"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import require_registered_user
+from app.deps import require_adult_user
 from app.models import JobType, User
 from app.printkit.service import get_print_order, invalidate_print, open_print_order
 from app.schemas import JobAcceptedOut, PrintOrderOut, ProjectOut
@@ -50,7 +50,7 @@ class SpecificationIn(BaseModel):
 def save_specification(
     project_id: uuid.UUID,
     body: SpecificationIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     from app.config import settings
@@ -77,7 +77,7 @@ def save_specification(
 def save_title(
     project_id: uuid.UUID,
     body: PreviewTitleIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     """Atualiza o título e refaz só a capa, sem apagar a história nem voltar a etapa."""
@@ -105,7 +105,7 @@ def save_title(
 def save_changes(
     project_id: uuid.UUID,
     body: PreviewChangesIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     project = get_owned_project(db, user, project_id)
@@ -202,7 +202,7 @@ def save_changes(
 @router.post("/{project_id}/preview/approve", response_model=ProjectOut)
 def approve_preview(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     project = get_owned_project(db, user, project_id)
@@ -258,7 +258,7 @@ def approve_preview(
 @router.post("/{project_id}/quotation", response_model=ProjectOut)
 def save_quotation(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     project = get_owned_project(db, user, project_id)
@@ -273,7 +273,7 @@ def save_quotation(
 @router.post("/{project_id}/book/generate", response_model=JobAcceptedOut, status_code=202)
 def generate_book(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     project = get_owned_project(db, user, project_id)
@@ -295,7 +295,7 @@ class BookChangesIn(BaseModel):
 def revise_book(
     project_id: uuid.UUID,
     body: BookChangesIn,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     project = get_owned_project(db, user, project_id)

@@ -1,6 +1,6 @@
 """Testes do fluxo: auth, creditos, idempotencia, backpressure, ownership."""
 
-from tests.conftest import signup_and_verify, signup_payload
+from tests.conftest import mint_guest, signup_and_verify
 
 
 def test_health(client, monkeypatch):
@@ -33,12 +33,6 @@ def test_signup_gives_bonus_credits(client):
     assert me.json()["full_name"] == "Ana Souza"
 
 
-def test_duplicate_signup_conflicts(client):
-    assert client.post("/v1/auth/signup", json=signup_payload("d@d.com")).status_code == 201
-    r = client.post("/v1/auth/signup", json=signup_payload("d@d.com"))
-    assert r.status_code == 409
-
-
 def test_unauthenticated_is_401(client):
     me = client.get("/v1/auth/me")
     assert me.status_code == 401
@@ -47,7 +41,7 @@ def test_unauthenticated_is_401(client):
 
 
 def test_guest_cannot_create_project(client):
-    token = client.post("/v1/auth/guest").json()["access_token"]
+    token = mint_guest(client)
     r = client.post("/v1/projects", json={}, headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 403
     assert "Cadastro" in r.json()["detail"]

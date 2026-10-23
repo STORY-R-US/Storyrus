@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
-import { studioEntryHref } from "./Auth";
+import { accountAccess, studioEntryHref } from "./Auth";
 import { api, getToken } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
@@ -2511,7 +2511,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       try {
         const me = await api.me();
         if (cancelled) return;
-        if (me.is_guest || !me.email_verified) {
+        if (accountAccess(me) !== "ok") {
           setSession({ status: "out" });
           return;
         }
@@ -3310,8 +3310,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               <IcInstagram className="ni" />
               <span>@{CONTACT_INSTA}</span>
             </a>
-            <Link to="/privacidade" className="kfoot-contact">{t.privacy_link}</Link>
-            <Link to="/termos" className="kfoot-contact">{t.terms_link}</Link>
+            <Link to={lang === "en" ? "/privacy" : "/privacidade"} className="kfoot-contact">{t.privacy_link}</Link>
+            <Link to={lang === "en" ? "/terms" : "/termos"} className="kfoot-contact">{t.terms_link}</Link>
           </div>
         </div>
         <p className="kfoot-tag"><IcHeart className="ci" /> {t.tagline}</p>

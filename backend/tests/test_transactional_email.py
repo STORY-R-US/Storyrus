@@ -19,14 +19,16 @@ from app.services.transactional_email import (
 
 def test_verify_url_encodes_email_and_keeps_short_token():
     url = build_verify_email_url("abc-def_ghi", email="Ana@X.com")
-    assert url.startswith("https://storyrus.ai/verificar-email?")
+    origin = settings.public_web_origin.rstrip("/")
+    assert url.startswith(f"{origin}/verificar-email?")
     assert "token=abc-def_ghi" in url
     assert "email=Ana%40X.com" in url
 
 
 def test_password_reset_url_encodes_token_and_email():
     url = build_password_reset_url("reset/token+plus", email="a@b.com")
-    assert url.startswith("https://storyrus.ai/redefinir-senha?")
+    origin = settings.public_web_origin.rstrip("/")
+    assert url.startswith(f"{origin}/redefinir-senha?")
     assert "token=" in url
     assert "email=a%40b.com" in url
     assert "reset/token+plus" not in url

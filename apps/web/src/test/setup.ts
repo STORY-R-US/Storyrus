@@ -1,8 +1,29 @@
 import "@testing-library/jest-dom/vitest";
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { resetStepIdempotencyState, setToken } from "../api";
 import { resetBackendConnectionForTests } from "../backendConnection";
+import { resetClerkState } from "./clerkState";
 import { server, state } from "./server";
+
+vi.mock("@clerk/react", async () => {
+  const React = await import("react");
+  const { clerkState } = await import("./clerkState");
+  return {
+    ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
+    useAuth: () => ({
+      isLoaded: clerkState.isLoaded,
+      isSignedIn: clerkState.isSignedIn,
+      getToken: async () => (clerkState.isSignedIn ? "clerk-session" : null),
+      signOut: async () => {
+        clerkState.isSignedIn = false;
+      },
+    }),
+    SignIn: (props: { path?: string }) =>
+      React.createElement("div", { "data-testid": "clerk-sign-in", "data-path": props.path }),
+    SignUp: (props: { path?: string }) =>
+      React.createElement("div", { "data-testid": "clerk-sign-up", "data-path": props.path }),
+  };
+});
 
 // crypto.randomUUID em ambiente de teste (caso o jsdom não exponha).
 if (!globalThis.crypto?.randomUUID) {
@@ -31,6 +52,7 @@ afterEach(() => {
   server.resetHandlers();
   state.reset();
   setToken(null);
+  resetClerkState();
   resetStepIdempotencyState();
   resetBackendConnectionForTests();
   try {

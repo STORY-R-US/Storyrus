@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "./assets/logo.png";
-import { accountGateHref } from "./Auth";
+import { accountAccess, accountGateHref } from "./Auth";
 import { siteTitle } from "./pageMeta";
 import { api, getToken, type MeUser, type ProfileUpdatePayload } from "./api";
 import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
@@ -263,8 +263,9 @@ export function Conta() {
       try {
         const me = await api.me();
         if (cancelled) return;
-        if (me.is_guest || !me.email_verified) {
-          api.logout();
+        const access = accountAccess(me);
+        if (access !== "ok") {
+          if (access === "guest") api.logout();
           setGate("need-account");
           return;
         }
@@ -273,7 +274,7 @@ export function Conta() {
         setGate("ok");
       } catch (error) {
         if (cancelled) return;
-        if (/^(401|403):/.test((error as Error).message)) {
+        if (/^401:/.test((error as Error).message)) {
           api.logout();
           setGate("need-account");
         } else {
@@ -680,14 +681,6 @@ export function Conta() {
           <p className="auth-foot">
             <Link to="/app" data-testid="conta-studio">
               {t.studio}
-            </Link>
-          </p>
-          <p className="auth-foot">
-            <Link
-              to={`/esqueci-senha?next=${encodeURIComponent("/conta")}`}
-              data-testid="conta-change-password"
-            >
-              {t.changePassword}
             </Link>
           </p>
           <p className="auth-foot">

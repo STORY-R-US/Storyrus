@@ -99,18 +99,18 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/privacy",
-    title: siteTitle("Política De Privacidade"),
+    title: siteTitle("Privacy Policy"),
     description:
-      "Quais dados a Story R Us trata, para quê, com quem compartilha e como pedir acesso ou exclusão.",
+      "What Story R Us collects, why, who receives it, and how a parent can review or delete a project. Includes our COPPA notice.",
     canonicalPath: "/privacidade",
     robots: "noindex, nofollow",
     sitemap: false,
   },
   {
     path: "/terms",
-    title: siteTitle("Termos De Uso"),
+    title: siteTitle("Terms Of Use"),
     description:
-      "Regras de uso da Story R Us para criar livros ilustrados personalizados e pedir a impressão.",
+      "Rules for using Story R Us. Accounts are for adults 18 or older. Children under 13 may not create an account.",
     canonicalPath: "/termos",
     robots: "noindex, nofollow",
     sitemap: false,

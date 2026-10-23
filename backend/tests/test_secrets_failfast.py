@@ -14,6 +14,7 @@ def test_production_defaults_to_real_openai_generation(monkeypatch):
         jwt_secret="strong-jwt-secret-value",
         webhook_signing_secret="strong-webhook-secret-value",
         openai_api_key="test-openai-key",
+        clerk_secret_key="sk_test_clerk_secret_value",
     )
     assert settings.offline_fallback is False
     assert settings.image_provider == "openai"
@@ -72,6 +73,7 @@ def test_non_dev_accepts_strong_secrets(env):
         storage_access_key=None,
         storage_secret_key=None,
         openai_api_key="sk-openai-test-key",
+        clerk_secret_key="sk_test_clerk_secret_value",
     )
     assert s.app_env == env
 

@@ -125,6 +125,22 @@ def put_bytes(key: str, data: bytes, content_type: str = "application/octet-stre
     return key
 
 
+def delete_key(key: str | None) -> None:
+    """Remove um arquivo do projeto. Arquivo ausente não interrompe a exclusão."""
+    if not key or not str(key).strip():
+        return
+    client = _internal_client()
+    if client is None:
+        try:
+            path = _local_path(key)
+        except StorageNotConfigured:
+            return
+        if path.is_file():
+            path.unlink()
+        return
+    client.delete_object(Bucket=settings.storage_bucket, Key=key)
+
+
 def get_bytes(key: str) -> bytes:
     """Baixa bytes de um asset (worker)."""
     client = _internal_client()

@@ -103,6 +103,8 @@ class LoginIn(BaseModel):
 
 class ProfileUpdateIn(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=120)
+    accept_terms: bool | None = None
+    confirm_adult: bool | None = None
     phone: str | None = Field(default=None, min_length=8, max_length=32)
     postal_code: str | None = Field(default=None, min_length=2, max_length=16)
     street: str | None = Field(default=None, min_length=1, max_length=160)
@@ -163,6 +165,8 @@ class UserOut(BaseModel):
     city: str | None = None
     state: str | None = None
     country: str | None = None
+    terms_accepted_at: datetime | None = None
+    adult_confirmed_at: datetime | None = None
 
 
 class OwnerUserOut(BaseModel):

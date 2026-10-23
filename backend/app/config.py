@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # App
-    app_env: Literal["dev", "staging", "prod"] = "dev"
+    app_env: Literal["dev", "test", "staging", "prod"] = "dev"
     app_name: str = "storyrus-api"
     log_level: str = "INFO"
     # text = legivel local; json = uma linha JSON (prod / Render). Vazio = auto
@@ -47,8 +47,10 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+pysqlite:///./dev.db"
     redis_url: str = "redis://localhost:6379/0"
 
-    # Auth
+    # Auth. A sessão é do Clerk; JWT_SECRET só assina o Bearer dos testes.
     jwt_secret: str = "change-me-in-prod"
+    clerk_secret_key: str = ""
+    clerk_webhook_secret: str = ""
     jwt_algorithm: str = "HS256"
     access_token_ttl_min: int = 60 * 24
     # Janela extra apos o exp do JWT em que POST /v1/auth/resume ainda reemite
@@ -266,17 +268,19 @@ class Settings(BaseSettings):
     def resolved_log_format(self) -> Literal["text", "json"]:
         """JSON em staging/prod por padrao; texto em dev (sobrescrevivel)."""
         if self.log_format == "auto":
-            return "text" if self.app_env == "dev" else "json"
+            return "text" if self.app_env in {"dev", "test"} else "json"
         return self.log_format
 
     @model_validator(mode="after")
     def _refuse_insecure_defaults_outside_dev(self) -> Self:
         """STO-8: staging/prod nao sobem com secrets `change-me-*`."""
-        if self.app_env == "dev":
+        if self.app_env in {"dev", "test"}:
             return self
         bad: list[str] = []
         if _is_unsafe_secret(self.jwt_secret):
             bad.append("JWT_SECRET")
+        if _is_unsafe_secret(self.clerk_secret_key):
+            bad.append("CLERK_SECRET_KEY")
         if _is_unsafe_secret(self.webhook_signing_secret):
             bad.append("WEBHOOK_SIGNING_SECRET")
         # So recusa se o valor estiver explicitamente setado para default inseguro

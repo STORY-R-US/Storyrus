@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import require_registered_user
+from app.deps import require_adult_user
 from app.models import Job, JobStatus, JobType, User
 from app.printkit.service import invalidate_print
 from app.schemas import JobAcceptedOut, ProjectOut
@@ -36,7 +36,7 @@ def _project(db, user, project_id):
 @router.post("/{project_id}/story/approve", response_model=ProjectOut)
 def approve_story(
     project_id: uuid.UUID,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
     project = _project(db, user, project_id)
@@ -55,7 +55,7 @@ class PageIn(BaseModel):
 def next_page(
     project_id: uuid.UUID,
     body: PageIn | None = None,
-    user: User = Depends(require_registered_user),
+    user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
