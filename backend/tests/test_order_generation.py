@@ -110,7 +110,7 @@ def test_story_failure_keeps_saved_preview(auth_client):
     orders = auth_client.get("/v1/usage/orders/mine").json()
     order = next(item for item in orders if item["id"] == str(ticket_id))
     assert order["generation_status"] == "ready"
-    assert order["generation_error"] is None
+    assert order["generation_error"] == "OpenAI 429: credit_balance_exhausted"
     assert {item["kind"] for item in order["book_files"]} >= {"cover", "page_image", "in_hand"}
 
 
@@ -155,7 +155,29 @@ def test_failed_preview_without_images_stays_failed(auth_client):
     orders = auth_client.get("/v1/usage/orders/mine").json()
     order = next(item for item in orders if item["id"] == str(ticket_id))
     assert order["generation_status"] == "failed"
-    assert order["generation_error"] is None
+    assert order["generation_error"] == "OpenAI 429: insufficient_quota"
+
+
+def test_failed_job_shows_up_on_the_error_report(auth_client):
+    _, project_id = _order(auth_client)
+    db = _session(auth_client)
+    try:
+        db.add(
+            Job(
+                project_id=project_id,
+                type="EBOOK",
+                status="FAILED",
+                error="Foto ilegivel",
+                created_at=datetime.now(UTC),
+            )
+        )
+        db.commit()
+        from app.services.error_report import recent_errors
+
+        rows = recent_errors(db)
+    finally:
+        db.close()
+    assert any(row["message"] == "Foto ilegivel" and row["stage"] == "EBOOK" for row in rows)
 
 
 def test_regeneration_rejects_demo_mode(auth_client, monkeypatch):

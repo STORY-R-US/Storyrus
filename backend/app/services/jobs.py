@@ -263,4 +263,13 @@ def mark_failed_and_refund(db: Session, job: Job, error: str) -> None:
     job.error = error[:2000]
     if job.cost_credits and project is not None:
         credits.refund(db, project.user_id, job.cost_credits)
+    from app.services.error_report import record_error
+
+    record_error(
+        db,
+        message=job.error,
+        project_id=job.project_id,
+        job_id=job.id,
+        stage=job.type,
+    )
     db.commit()

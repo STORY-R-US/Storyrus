@@ -526,6 +526,14 @@ class PrintOrderOut(BaseModel):
     state: str | None = None
 
 
+class ErrorReportOut(BaseModel):
+    created_at: datetime
+    project_id: uuid.UUID | None = None
+    child_name: str | None = None
+    stage: str
+    message: str
+
+
 class UsageOut(BaseModel):
     timezone: str
     from_at: datetime
@@ -552,3 +560,4 @@ class UsageOut(BaseModel):
     users_total: int = 0
     projects_total: int = 0
     projects_awaiting_photo: int = 0
+    error_report: list[ErrorReportOut] = []

@@ -291,6 +291,24 @@ class OpenAITextProvider:
     async def _complete(
         self, *, system: str, user: str | list, max_tokens: int, json_mode: bool = False
     ) -> TextResult:
+        if settings.skip_openai:
+            if json_mode:
+                text = (
+                    '{"visual_identity":"crianca das fotos enviadas",'
+                    '"costume":"roupa de aventura azul","palette":"azul, creme e dourado",'
+                    '"animal":"","trait":"curiosidade","interest":"descobertas"}'
+                )
+            else:
+                text = "Título: Livro de ensaio\n" + "\n\n".join(
+                    f"Página {i}:\nA aventura continua com uma imagem genérica."
+                    for i in range(1, 17)
+                )
+            self.last_cost_usd = 0
+            return TextResult(
+                text=text,
+                cost_usd=0,
+                meta={"provider": "demo", "rehearsal": True},
+            )
         if not self._api_key:
             raise ProviderError("OPENAI_API_KEY ausente", transient=False)
         payload = {

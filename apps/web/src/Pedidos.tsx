@@ -15,7 +15,7 @@ import {
   readOwnerSecret,
 } from "./ownerSession";
 import { useOwnerPageTitle } from "./useOwnerPageTitle";
-import type { OrderTicket } from "./types";
+import type { ErrorReportItem, OrderTicket } from "./types";
 import "./usage.css";
 
 function when(iso: string): string {
@@ -57,10 +57,6 @@ function printRequirements(reason: string): string {
   };
   return reason.replace(/Especificação de produção incompleta:\s*/i, "A gráfica precisa informar: ")
     .replace(/\b(bleed_mm|safety_mm|spine_mm|score_mm|pdf_x|color_profile|filename_pattern)\b/g, (key) => labels[key]);
-}
-
-function isBillingError(error?: string | null): boolean {
-  return /credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota|^OpenAI 429\b/i.test(error ?? "");
 }
 
 function generationFailure(error?: string | null): string {
@@ -106,7 +102,7 @@ function OrderPreview({ order }: { order: OrderTicket }) {
       </div>
       {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
       {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
-      {!isBillingError(order.generation_error) && (order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
+      {(order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
       {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
     </section>
   );
@@ -281,6 +277,7 @@ export function Pedidos() {
     projects: number;
     awaitingPhoto: number;
   } | null>(null);
+  const [errorReport, setErrorReport] = useState<ErrorReportItem[]>([]);
   // Papel da conta: admin vê o painel geral; os demais veem só os próprios pedidos.
   const [role, setRole] = useState<"unknown" | "admin" | "member">("unknown");
   const [personal, setPersonal] = useState<OrderTicket[] | null>(null);
@@ -303,6 +300,7 @@ export function Pedidos() {
         projects: report.projects_total ?? 0,
         awaitingPhoto: report.projects_awaiting_photo ?? 0,
       });
+      setErrorReport(report.error_report ?? []);
       setSelected((cur) => (cur && list.some((order) => order.id === cur) ? cur : list[0]?.id ?? null));
       if (!quiet) setConfirmDelete(false);
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
@@ -539,6 +537,23 @@ export function Pedidos() {
       </header>
 
       {error && <p className="error">{error}</p>}
+
+      {errorReport.length > 0 && (
+        <section data-testid="pedidos-error-report">
+          <h2>Relatório</h2>
+          <ul>
+            {errorReport.map((item) => (
+              <li key={`${item.project_id}-${item.created_at}-${item.stage}`}>
+                <strong>{item.child_name || "Projeto"}</strong>
+                {" · "}
+                {item.stage}
+                {": "}
+                {item.message}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {(orders ?? []).length === 0 ? (
         <div className="muted" data-testid="pedidos-empty">

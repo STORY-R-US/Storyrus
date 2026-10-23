@@ -330,6 +330,15 @@ export interface UsageReport {
   users_total?: number;
   projects_total?: number;
   projects_awaiting_photo?: number;
+  error_report?: ErrorReportItem[];
+}
+
+export interface ErrorReportItem {
+  created_at: string;
+  project_id?: string | null;
+  child_name?: string | null;
+  stage: string;
+  message: string;
 }
 
 export interface UploadUrl {

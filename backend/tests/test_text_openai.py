@@ -115,3 +115,12 @@ async def test_missing_key_and_transient_error(client, monkeypatch):
 def test_factory_text_provider_is_openai():
     assert get_text_provider("openai").name == "openai"
     assert get_text_provider("claude").name == "openai"
+
+
+@pytest.mark.asyncio
+async def test_rehearsal_text_skips_openai(monkeypatch):
+    monkeypatch.setattr(oai.settings, "skip_openai", True)
+    result = await oai.OpenAITextProvider(api_key="").generate_story(brief="x", style="s", pages=2)
+    assert result.meta["provider"] == "demo"
+    assert result.cost_usd == 0
+    assert "Página 1" in result.text

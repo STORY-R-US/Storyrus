@@ -195,3 +195,16 @@ def test_factory_registers_openai():
 
     provider = get_image_provider("openai")
     assert provider.name == "openai"
+
+
+@pytest.mark.asyncio
+async def test_rehearsal_returns_generic_image_without_calling_openai(monkeypatch):
+    monkeypatch.setattr(oai.settings, "skip_openai", True)
+    _FakeAsyncClient.calls.clear()
+    provider = oai.OpenAIImageProvider(api_key="nao-usar")
+    result = await provider.generate_character(prompt="capa", reference_images=[], style="s")
+    assert result.meta["provider"] == "demo"
+    assert result.meta["rehearsal"] is True
+    assert result.cost_usd == 0
+    assert result.image_bytes.startswith(b"\x89PNG")
+    assert _FakeAsyncClient.calls == []

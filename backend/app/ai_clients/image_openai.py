@@ -48,6 +48,22 @@ def _retry_delay(attempt: int) -> float:
     return random.uniform(0, raw) if raw > 0 else 0.0
 
 
+def _rehearsal_image(label: str) -> ImageResult | None:
+    """Período de testes: imagem local, sem nenhuma chamada à OpenAI."""
+    if not settings.skip_openai:
+        return None
+    from app.workers.handlers.common import _offline_png
+
+    return ImageResult(
+        image_bytes=_offline_png(
+            (label or "Imagem genérica")[:80],
+            palette=((235, 243, 250), (255, 250, 242)),
+        ),
+        cost_usd=0,
+        meta={"provider": "demo", "rehearsal": True},
+    )
+
+
 def _retry_after_s(resp: httpx.Response) -> float | None:
     raw = resp.headers.get("Retry-After")
     if raw is None:
@@ -143,6 +159,9 @@ class OpenAIImageProvider:
         return await self._post_multipart("/images/edits", data=data, files=files)
 
     async def _post_json(self, path: str, body: dict) -> ImageResult:
+        rehearsal = _rehearsal_image(str(body.get("prompt") or "Imagem genérica"))
+        if rehearsal is not None:
+            return rehearsal
         url = f"{_OPENAI_BASE}{path}"
         last_error: ProviderError | None = None
         attempts = max(1, int(settings.openai_max_retries))
@@ -202,6 +221,9 @@ class OpenAIImageProvider:
         data: dict,
         files: list[tuple[str, tuple[str, bytes, str]]],
     ) -> ImageResult:
+        rehearsal = _rehearsal_image(str(data.get("prompt") or "Imagem genérica"))
+        if rehearsal is not None:
+            return rehearsal
         url = f"{_OPENAI_BASE}{path}"
         last_error: ProviderError | None = None
         attempts = max(1, int(settings.openai_max_retries))

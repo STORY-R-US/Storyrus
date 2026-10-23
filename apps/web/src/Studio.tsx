@@ -1062,10 +1062,22 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             )}
-            {(error || (previewFailed && previewFailedJob?.error && !/credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota|^OpenAI 429\b/i.test(previewFailedJob.error))) && (
+            {(error || previewFailedJob?.error) && (
               <p className="studio-error" role="alert">
                 {error || previewFailedJob?.error}
               </p>
+            )}
+            {jobs.some((job) => job.error) && (
+              <div data-testid="studio-error-report">
+                <h3>{t.errorReport}</h3>
+                <ul>
+                  {jobs.filter((job) => job.error).map((job) => (
+                    <li key={job.id}>
+                      {job.type}: {job.error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {showPreviewRetry && (
               <button

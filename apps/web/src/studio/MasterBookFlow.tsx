@@ -172,7 +172,7 @@ export function MasterBookFlow({
     <div className="studio-master-flow" data-testid="studio-master-flow">
       {error && <p role="alert">{error}</p>}
       {active && <p role="status">{t.waiting}</p>}
-      {!active && failed && !/credit_balance_exhausted|insufficient_quota|billing_hard_limit|no credits remaining|exceeded your current quota|^OpenAI 429\b/i.test(failed.error ?? "") && <p role="alert">{failed.error}</p>}
+      {!active && failed?.error && <p role="alert">{failed.error}</p>}
       {p.costume && (
         <p>
           {project.child_name} · {project.child_age} · {p.costume} · {p.trait} ·{" "}

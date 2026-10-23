@@ -14,7 +14,6 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
@@ -34,6 +33,7 @@ from app.order_tickets import backfill_order_tickets
 from app.owner_auth import require_owner_password
 from app.printkit.service import attach_service_orders
 from app.schemas import (
+    ErrorReportOut,
     JobAcceptedOut,
     OrderFileOut,
     OrderTicketOut,
@@ -46,6 +46,7 @@ from app.schemas import (
 )
 from app.services import jobs as jobs_svc
 from app.services import preview_chain, spend_guard
+from app.services.error_report import recent_errors
 
 from .projects.common import accept_job
 
@@ -90,8 +91,6 @@ def _generation_view(
     if latest.status == "RUNNING":
         return ("generating", None, provider)
     error = _opt_str(latest.error) if latest.status == "FAILED" else None
-    if error and billing_exhausted(error):
-        error = None
     if latest.status == "FAILED":
         if images and latest.type == "STORY":
             return ("ready", error, provider)
@@ -507,6 +506,7 @@ def get_usage(
             users_total=users_total,
             projects_total=projects_total,
             projects_awaiting_photo=awaiting,
+            error_report=[ErrorReportOut(**item) for item in recent_errors(db)],
         )
 
     rows = db.execute(
@@ -631,6 +631,7 @@ def get_usage(
         users_total=users_total,
         projects_total=projects_total,
         projects_awaiting_photo=projects_awaiting_photo,
+        error_report=[ErrorReportOut(**item) for item in recent_errors(db)],
     )
 
 
@@ -775,7 +776,9 @@ def delete_drafts(
                 .execution_options(synchronize_session=False)
             )
             db.execute(
-                delete(User).where(User.id.in_(drop_ids)).execution_options(synchronize_session=False)
+                delete(User)
+                .where(User.id.in_(drop_ids))
+                .execution_options(synchronize_session=False)
             )
         db.commit()
     except Exception:

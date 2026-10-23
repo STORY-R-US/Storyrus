@@ -19,6 +19,7 @@ cliente mostrar mensagem previsível:
 from __future__ import annotations
 
 import logging
+import uuid
 from typing import Any
 
 from fastapi import FastAPI, Request, status
@@ -119,8 +120,39 @@ def error_response(
     )
 
 
+def _remember(request: Request, status_code: int, message: str) -> None:
+    """Guarda o erro do ensaio no relatório. A resposta ao cliente segue igual."""
+    if status_code not in {400, 409, 422, 500, 503}:
+        return
+    parts = [part for part in request.url.path.split("/") if part]
+    if len(parts) < 3 or parts[0] != "v1" or parts[1] != "projects":
+        return
+    try:
+        project_id = uuid.UUID(parts[2])
+    except ValueError:
+        return
+    try:
+        from app.database import SessionLocal
+        from app.services.error_report import record_error
+
+        db = SessionLocal()
+        try:
+            record_error(
+                db,
+                message=message,
+                project_id=project_id,
+                stage=parts[-1][:32],
+            )
+            db.commit()
+        finally:
+            db.close()
+    except Exception:
+        logger.exception("relatorio de erro")
+
+
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     message = _message_from_detail(exc.detail)
+    _remember(request, exc.status_code, message)
     details = exc.detail if not isinstance(exc.detail, str) else None
     headers = getattr(exc, "headers", None)
     return error_response(
@@ -136,6 +168,7 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     raw = exc.errors()
     message = _message_from_detail(raw)
+    _remember(request, status.HTTP_422_UNPROCESSABLE_ENTITY, message or "Dados invalidos")
     return error_response(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         message=message or "Dados invalidos",
@@ -145,11 +178,16 @@ async def validation_exception_handler(
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    # Em prod não vaza stack; mensagem genérica estável.
     logger.exception("unhandled %s %s", request.method, request.url.path)
+    from app.config import settings
+
+    detail = f"{type(exc).__name__}: {exc}"[:500]
+    _remember(request, status.HTTP_500_INTERNAL_SERVER_ERROR, detail)
+    # No ensaio a tela mostra a falha. Fora dele a resposta continua genérica.
+    message = detail if settings.skip_openai else "Erro interno"
     return error_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        message="Erro interno",
+        message=message,
         code="internal_error",
     )
 

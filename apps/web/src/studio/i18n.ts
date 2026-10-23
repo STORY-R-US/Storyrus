@@ -127,6 +127,7 @@ export type StudioCopy = {
   previewStepDone: string;
   previewElapsed: (totalSeconds: number) => string;
   previewRetry: string;
+  errorReport: string;
   previewTrioTitle: string;
   previewTrioHint: string;
   previewCover: string;
@@ -482,6 +483,7 @@ const pt: StudioCopy = {
     return `Já se passaram ${min}:${sec}.`;
   },
   previewRetry: "Tentar prévia de novo",
+  errorReport: "Relatório",
   previewTrioTitle: "Prévia do livro",
   previewTrioHint: "Capa, página e foto na mão — como na vitrine.",
   previewCover: "Capa",
@@ -741,6 +743,7 @@ const en: StudioCopy = {
     return `${min}:${sec} elapsed.`;
   },
   previewRetry: "Retry preview",
+  errorReport: "Report",
   previewTrioTitle: "Book preview",
   previewTrioHint: "Cover, page, and in-hand shot — like the storefront.",
   previewCover: "Cover",
@@ -1000,6 +1003,7 @@ const es: StudioCopy = {
     return `Ya pasaron ${min}:${sec}.`;
   },
   previewRetry: "Reintentar vista previa",
+  errorReport: "Informe",
   previewTrioTitle: "Vista previa del libro",
   previewTrioHint: "Portada, página y foto en mano — como en la vitrina.",
   previewCover: "Portada",
