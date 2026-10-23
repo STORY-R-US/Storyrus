@@ -458,6 +458,65 @@ def test_delete_order_apaga_tudo_com_fk_enforcada():
         db.close()
 
 
+def test_delete_drafts_removes_projects_and_guest_accounts():
+    """Rascunhos e contas de visita saem. Conta cadastrada permanece."""
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    from app.database import Base
+    from app.models import UserVoice
+    from app.routers.usage import delete_drafts
+
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+
+    @event.listens_for(engine, "connect")
+    def _fk_on(dbapi_conn, _record):  # noqa: ANN001
+        dbapi_conn.execute("PRAGMA foreign_keys=ON")
+
+    Base.metadata.create_all(engine)
+    db = sessionmaker(bind=engine)()
+    try:
+        owner = User(
+            email="owner@storyrus.ai",
+            password_hash="real",
+            credits=1,
+            is_admin=True,
+            email_verified_at=datetime.now(UTC),
+        )
+        guest = User(email="visitante@storyrus.app", password_hash="!guest", credits=0)
+        debug = User(email="storyrus-debug@example.com", password_hash="x", credits=0)
+        db.add_all([owner, guest, debug])
+        db.flush()
+        db.add(UserVoice(user_id=guest.id, name="Voz", elevenlabs_voice_id="v", sample_storage_key="a"))
+        own = Project(user_id=owner.id, status="CREATED", child_name="Lia")
+        theirs = Project(user_id=guest.id, status="CREATED", child_name="Bia")
+        db.add_all([own, theirs])
+        db.flush()
+        db.add(Asset(project_id=own.id, kind="photo", storage_key="photos/lia.jpg"))
+        job = Job(project_id=theirs.id, type="EBOOK", status=JobStatus.FAILED.value)
+        db.add(job)
+        db.flush()
+        db.add(UsageEvent(project_id=theirs.id, job_id=job.id, action="ebook", label="Bia"))
+        db.commit()
+
+        result = delete_drafts(None, db)
+        assert result == {"projects_removed": 2, "accounts_removed": 2}
+        assert db.query(Project).count() == 0
+        assert db.query(Asset).count() == 0
+        assert db.query(Job).count() == 0
+        assert db.query(UsageEvent).count() == 0
+        assert db.query(UserVoice).count() == 0
+        left = {user.email for user in db.query(User).all()}
+        assert left == {"owner@storyrus.ai"}
+    finally:
+        db.close()
+
+
 def test_my_orders_lists_only_the_accounts_tickets(auth_client):
     """A tela "Meus Pedidos" do cliente nunca mostra pedido de outra conta."""
     db = _session(auth_client)

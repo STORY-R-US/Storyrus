@@ -28,6 +28,7 @@ from app.models import (
     Project,
     UsageEvent,
     User,
+    UserVoice,
 )
 from app.order_tickets import backfill_order_tickets
 from app.owner_auth import require_owner_password
@@ -736,3 +737,49 @@ def delete_order(
         logger.exception("pedidos: excluir pedido %s", order_id)
         raise
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/drafts")
+def delete_drafts(
+    _: Annotated[None, Depends(require_owner_password)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, int]:
+    """Apaga os rascunhos de teste: todo projeto e as contas de visita.
+
+    Contas cadastradas de verdade ficam. O painel deixa de contar projeto
+    sem foto porque o projeto deixa de existir.
+    """
+    project_count = int(db.scalar(select(func.count()).select_from(Project)) or 0)
+    drop_ids = list(
+        db.scalars(
+            select(User.id).where(
+                (User.password_hash == "!guest")
+                | (User.email.ilike("%@example.com") & User.is_admin.is_(False))
+            )
+        ).all()
+    )
+    try:
+        for stmt in (
+            delete(UsageEvent),
+            delete(Asset),
+            delete(OrderTicket),
+            delete(PrintOrder),
+            delete(Job),
+            delete(Project),
+        ):
+            db.execute(stmt.execution_options(synchronize_session=False))
+        if drop_ids:
+            db.execute(
+                delete(UserVoice)
+                .where(UserVoice.user_id.in_(drop_ids))
+                .execution_options(synchronize_session=False)
+            )
+            db.execute(
+                delete(User).where(User.id.in_(drop_ids)).execution_options(synchronize_session=False)
+            )
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("pedidos: limpar rascunhos")
+        raise
+    return {"projects_removed": project_count, "accounts_removed": len(drop_ids)}
