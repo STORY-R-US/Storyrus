@@ -61,6 +61,17 @@ def approve_book(
         purchase_flow.update(project, stage="production_approved")
         project.book_approved_at = _now()
         prepare_files(db, project, order)
+        db.commit()
+        db.refresh(project)
+        try:
+            from app.services.transactional_email import notify_print_shop
+
+            notify_print_shop(db, project, order)
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception("print_shop_email_failed code=%s", order.code)
+        return project
     project.book_approved_at = _now()
     db.commit()
     db.refresh(project)

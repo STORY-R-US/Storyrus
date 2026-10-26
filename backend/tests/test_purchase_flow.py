@@ -195,12 +195,21 @@ def test_printer_keeps_the_shipment_after_approval(auth_client):
 
 
 def test_final_approval_requires_paid_complete_book(auth_client, monkeypatch):
+    called = {}
+
+    def fake_notify(_db, project, order):
+        called["code"] = order.code
+        called["ebook"] = project.ebook_url
+        return True
+
+    monkeypatch.setattr("app.services.transactional_email.notify_print_shop", fake_notify)
     pid = approve(auth_client)
     with session(auth_client) as db:
         p = db.get(Project, uuid.UUID(pid))
         purchase_flow.update(p, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready")
         db.commit()
     assert auth_client.post(f"/v1/projects/{pid}/book/approve").status_code == 409
+    assert called == {}
     with session(auth_client) as db:
         get_print_order(db, uuid.UUID(pid)).payment_status = "paid"
         db.commit()
@@ -208,6 +217,8 @@ def test_final_approval_requires_paid_complete_book(auth_client, monkeypatch):
     assert r.status_code == 200, r.text
     assert r.json()["book_approved_at"]
     assert r.json()["purchase_flow"]["stage"] == "production_approved"
+    assert called["ebook"] == "preview.pdf"
+    assert called["code"].startswith("SR-")
 
 
 @pytest.mark.asyncio

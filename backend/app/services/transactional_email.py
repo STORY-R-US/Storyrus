@@ -157,7 +157,14 @@ def _branded_html(
 </html>"""
 
 
-def _post_email(*, to_emails: list[str], subject: str, text: str, html: str) -> bool:
+def _post_email(
+    *,
+    to_emails: list[str],
+    subject: str,
+    text: str,
+    html: str,
+    attachments: list[tuple[str, bytes]] | None = None,
+) -> bool:
     api_key = (settings.resend_api_key or "").strip()
     if not api_key:
         level = logging.WARNING if settings.app_env == "prod" else logging.INFO
@@ -169,6 +176,24 @@ def _post_email(*, to_emails: list[str], subject: str, text: str, html: str) -> 
         )
         return False
     from_email = resolved_from_email()
+    payload: dict = {
+        "from": from_email,
+        "to": to_emails,
+        "subject": subject,
+        "text": text,
+        "html": html,
+    }
+    if attachments:
+        import base64
+
+        payload["attachments"] = [
+            {
+                "filename": name,
+                "content": base64.b64encode(blob).decode("ascii"),
+            }
+            for name, blob in attachments
+            if name and blob
+        ]
     try:
         resp = httpx.post(
             RESEND_API_URL,
@@ -176,14 +201,8 @@ def _post_email(*, to_emails: list[str], subject: str, text: str, html: str) -> 
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
-            json={
-                "from": from_email,
-                "to": to_emails,
-                "subject": subject,
-                "text": text,
-                "html": html,
-            },
-            timeout=15.0,
+            json=payload,
+            timeout=60.0,
         )
         if resp.status_code >= 300:
             logger.warning(
@@ -210,12 +229,25 @@ def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
     return _post_email(to_emails=[to_email], subject=subject, text=text, html=html)
 
 
-def send_email_many(*, to_emails: list[str], subject: str, text: str, html: str) -> bool:
+def send_email_many(
+    *,
+    to_emails: list[str],
+    subject: str,
+    text: str,
+    html: str,
+    attachments: list[tuple[str, bytes]] | None = None,
+) -> bool:
     recipients = [part for part in (to_emails or []) if str(part).strip()]
     if not recipients:
         logger.info("transactional_email_no_recipients subject=%s", subject)
         return False
-    return _post_email(to_emails=recipients, subject=subject, text=text, html=html)
+    return _post_email(
+        to_emails=recipients,
+        subject=subject,
+        text=text,
+        html=html,
+        attachments=attachments,
+    )
 
 
 def send_verify_email(*, to_email: str, token: str) -> bool:
@@ -289,7 +321,14 @@ def new_order_notify_recipients() -> list[str]:
     return [part.strip() for part in raw.split(",") if part.strip()]
 
 
-def _new_order_html(*, rows: list[tuple[str, str]], summary: str, order_url: str) -> str:
+def _new_order_html(
+    *,
+    rows: list[tuple[str, str]],
+    summary: str,
+    order_url: str,
+    heading: str = "Novo pedido aberto",
+    lead: str = "Um pedido novo apareceu no painel Story R Us.",
+) -> str:
     site = "www.storyrus.ai"
     rows_html = "".join(
         f"<tr>"
@@ -322,8 +361,8 @@ def _new_order_html(*, rows: list[tuple[str, str]], summary: str, order_url: str
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;">
           <tr>
             <td style="padding:28px 32px;">
-              <h1 style="margin:0 0 4px 0;font-size:22px;line-height:1.3;color:{_COLOR_INK};">Novo pedido aberto</h1>
-              <p style="margin:0 0 18px 0;font-size:14px;color:{_COLOR_MUTED};">Um pedido novo apareceu no painel Story R Us.</p>
+              <h1 style="margin:0 0 4px 0;font-size:22px;line-height:1.3;color:{_COLOR_INK};">{escape(heading)}</h1>
+              <p style="margin:0 0 18px 0;font-size:14px;color:{_COLOR_MUTED};">{escape(lead)}</p>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">{rows_html}</table>
               <p style="margin:18px 0 0 0;font-size:14px;font-weight:700;color:{_COLOR_INK};">Resumo do pedido</p>
               <p style="margin:6px 0 0 0;font-size:14px;line-height:1.55;color:{_COLOR_INK};">{summary_html}</p>
@@ -456,3 +495,99 @@ def send_preview_ready_email(
     )
     html = _preview_ready_html(child_name=name, preview_url=url)
     return send_email(to_email=email, subject=subject, text=text, html=html)
+
+
+def _book_title(project) -> str:
+    profile = project.book_profile if isinstance(project.book_profile, dict) else {}
+    title = str(profile.get("title") or "").strip()
+    if title:
+        return title
+    text = (project.story_text or "").strip()
+    for line in text.splitlines():
+        cleaned = line.strip()
+        if cleaned.lower().startswith("título:") or cleaned.lower().startswith("titulo:"):
+            return cleaned.split(":", 1)[1].strip() or "Livro Story R Us"
+    return "Livro Story R Us"
+
+
+def _size_label(book_size: str | None) -> str:
+    return {"M": "20 × 20 cm", "P": "15 × 15 cm"}.get(book_size or "", book_size or "—")
+
+
+def _cover_label(cover_type: str | None) -> str:
+    return {"soft": "Capa flexível", "hard": "Capa dura"}.get(cover_type or "", cover_type or "—")
+
+
+def notify_print_shop(_db, project, order) -> bool:
+    """E-mail interno com a ficha da gráfica e o PDF aprovado em anexo."""
+    from app import storage
+
+    pdf: bytes | None = None
+    key = (project.ebook_url or "").strip()
+    if key:
+        try:
+            blob = storage.get_bytes(key)
+        except Exception:
+            logger.warning("print_shop_pdf_missing code=%s", order.code)
+            blob = b""
+        if blob.startswith(b"%PDF"):
+            pdf = blob
+    account = project.user
+    postal = "".join(ch for ch in (order.postal_code or "") if ch.isdigit())
+    if len(postal) == 8:
+        postal = f"{postal[:5]}-{postal[5:]}"
+    address = ", ".join(
+        part
+        for part in (
+            (order.street or "").strip(),
+            (order.number or "").strip(),
+            (order.complement or "").strip(),
+            (order.district or "").strip(),
+            " / ".join(
+                part
+                for part in ((order.city or "").strip(), (order.state or "").strip())
+                if part
+            ),
+            postal,
+        )
+        if part
+    )
+    rows = [
+        ("Pedido", order.code),
+        ("Título", _book_title(project)),
+        ("Protagonista", (project.child_name or "").strip() or "—"),
+        ("Idade", str(project.child_age) if project.child_age else "—"),
+        ("Tamanho", _size_label(order.book_size or project.book_size)),
+        ("Capa", _cover_label(order.cover_type or project.cover_type)),
+        ("Quantidade", str(order.quantity or 1)),
+        ("Idioma", (project.language or "pt-BR").strip()),
+        ("Dedicatória", (project.dedication or "").strip() or "—"),
+        ("Destinatário", (order.recipient_name or "").strip() or "—"),
+        ("Entrega", address or "—"),
+        ("Cliente", (account.full_name or "").strip() or "—"),
+        ("E-mail do cliente", (account.email or "").strip() or "—"),
+        ("Telefone", (account.phone or "").strip() or "—"),
+    ]
+    filename = f"{order.code}.pdf"
+    subject = f"Gráfica — {order.code} — {(project.child_name or 'livro').strip()}"
+    intro = (
+        "Livro aprovado para impressão. Encaminhe este e-mail para a gráfica. "
+        "O anexo é o PDF aprovado pela família, no mesmo formato do livro aberto no estúdio."
+        if pdf
+        else "Livro aprovado para impressão. O PDF aprovado não estava disponível para anexar."
+    )
+    text = "\n".join([intro, "", *[f"{label}: {value}" for label, value in rows], "", "www.storyrus.ai"])
+    html = _new_order_html(
+        rows=rows,
+        summary=intro,
+        order_url=f"{public_web_origin()}/pedidos",
+        heading="Livro aprovado para a gráfica",
+        lead="Encaminhe esta ficha e o PDF em anexo.",
+    )
+    return send_email_many(
+        to_emails=new_order_notify_recipients(),
+        subject=subject,
+        text=text,
+        html=html,
+        attachments=[(filename, pdf)] if pdf else None,
+    )
