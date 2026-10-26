@@ -240,6 +240,12 @@ export function MasterBookFlow({
     (image) => image.language === bookLanguage && image.role === "com_texto" && image.page,
   );
   const reviewing = ["page_ready", "book_ready"].includes(stage) && finishedPages.length > 0;
+  const gallery = previews.flatMap((shot) => {
+    const cleanCover = reviewing && shot.role === "01_CAPA" ? assets?.book_cover_url : null;
+    const url = cleanCover || shot.url;
+    if (reviewing && url.includes("preview-mark")) return [];
+    return [{ ...shot, url }];
+  });
   const storyView = p.stories ? (
     <>
       {p.languages.map((language) => {
@@ -306,9 +312,9 @@ export function MasterBookFlow({
           {t.goToOrder}
         </button>
       )}
-      {previews.length > 0 && <h3 className="master-section">{t.images}</h3>}
+      {gallery.length > 0 && <h3 className="master-section">{t.images}</h3>}
       <div className="master-gallery">
-        {previews.map((shot) => {
+        {gallery.map((shot) => {
           const label =
             shot.role === "01_CAPA" ? t.cover : shot.role === "02_LIVRO_ABERTO" ? t.open : t.reading;
           const shotClass =
