@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { api, ensureSession, getToken, setClerkGetToken, setToken } from "./api";
+import {
+  api,
+  ensureSession,
+  getToken,
+  restoreClerkSessionFromStorage,
+  sessionTokenFromStorage,
+  setClerkGetToken,
+  setToken,
+} from "./api";
 
 describe("sessão do Clerk", () => {
   afterEach(() => {
@@ -27,6 +35,19 @@ describe("sessão do Clerk", () => {
     setClerkGetToken(async () => "clerk-session");
     await expect(ensureSession()).resolves.toBeUndefined();
     expect(getToken()).toBe("clerk-session");
+  });
+
+  it("ignora o token antigo da senha e usa a sessão do Clerk", async () => {
+    const oldPayload = btoa(JSON.stringify({ sub: "8c1c0b2e-1111-2222-3333-444455556666" }))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    localStorage.setItem("storyrus_token", `header.${oldPayload}.sig`);
+    restoreClerkSessionFromStorage();
+    setClerkGetToken(async () => "clerk-session");
+    await expect(ensureSession()).resolves.toBeUndefined();
+    expect(getToken()).toBe("clerk-session");
+    expect(sessionTokenFromStorage(localStorage.getItem("storyrus_token"))).toBeNull();
   });
 
   it("esquece o Bearer quando a API recusa a sessão", async () => {

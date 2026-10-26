@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { accountAccess, accountGateHref } from "./Auth";
-import { api, getToken } from "./api";
+import { api, setToken } from "./api";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { Studio } from "./Studio";
 import { ConnectionRetry } from "./BackendStatus";
@@ -34,23 +34,32 @@ export function App() {
     }
     let cancelled = false;
     (async () => {
-      if (!getToken()) {
-        if (!cancelled) setGate("need-account");
-        return;
-      }
-      try {
-        const me = await api.me();
+      const openAccount = (me: Awaited<ReturnType<typeof api.me>>) => {
         if (cancelled) return;
         const access = accountAccess(me);
         if (access === "guest") api.logout();
         setGate(access === "ok" ? "ok" : "need-account");
+      };
+      try {
+        openAccount(await api.me());
       } catch (error) {
         if (cancelled) return;
-        if (/^401:/.test((error as Error).message)) {
-          api.logout();
-          setGate("need-account");
-        } else {
+        if (!/^401:/.test((error as Error).message)) {
           setGate("error");
+          return;
+        }
+        // Token antigo do login por senha: solta e tenta a sessão do Clerk.
+        setToken(null);
+        try {
+          openAccount(await api.me());
+        } catch (retryError) {
+          if (cancelled) return;
+          if (/^401:/.test((retryError as Error).message)) {
+            api.logout();
+            setGate("need-account");
+          } else {
+            setGate("error");
+          }
         }
       }
     })();

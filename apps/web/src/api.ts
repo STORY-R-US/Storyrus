@@ -29,11 +29,25 @@ function readStoredToken(): string | null {
   }
 }
 
-let token: string | null = readStoredToken();
 /** Testes e o e2e gravam o Bearer aqui. A sessão real vem do Clerk. */
-let manualOverride = Boolean(token);
+let token: string | null = null;
+let manualOverride = false;
 let clerkGetToken: ClerkTokenGetter | null = null;
 let clerkSignOut: (() => Promise<void>) | null = null;
+
+/** JWT antigo do login por senha não pode impedir o Clerk de abrir a conta. */
+export function sessionTokenFromStorage(raw: string | null): string | null {
+  if (!raw) return null;
+  const subject = readJwtPayload(raw)?.sub;
+  return subject?.startsWith("user_") ? raw : null;
+}
+
+export function restoreClerkSessionFromStorage(): void {
+  if (manualOverride) return;
+  token = sessionTokenFromStorage(readStoredToken());
+}
+
+restoreClerkSessionFromStorage();
 
 export function setClerkGetToken(fn: ClerkTokenGetter | null) {
   clerkGetToken = fn;
@@ -61,7 +75,8 @@ async function resolveToken(): Promise<string | null> {
   if (manualOverride) return token;
   if (!clerkGetToken) return token;
   try {
-    token = await clerkGetToken();
+    const fresh = await clerkGetToken();
+    if (fresh) token = fresh;
   } catch {
     /* mantém o último token se o Clerk não responder */
   }
