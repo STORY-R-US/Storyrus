@@ -115,4 +115,38 @@ describe("Studio approval stages", () => {
     await waitFor(() => expect(page).toHaveBeenCalledWith("master"));
     expect(approve.mock.invocationCallOrder[0]).toBeLessThan(page.mock.invocationCallOrder[0]);
   });
+
+  it("pede o que melhorar em cada página e o consentimento fica na aprovação", async () => {
+    const ready = {
+      ...project,
+      book_profile: { ...project.book_profile!, stage: "book_ready", current_page: 1 },
+      purchase_flow: { stage: "book_ready", preview_approved_at: "2026-10-15", full_book_ready_at: "2026-10-15" },
+    };
+    const redo = vi.spyOn(api, "nextBookPage").mockResolvedValue(accepted);
+    vi.spyOn(api, "getProject").mockResolvedValue(ready);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    vi.spyOn(api, "getAssets").mockResolvedValue(assets);
+    render(
+      <MasterBookFlow
+        project={ready}
+        assets={{
+          ...assets,
+          page_versions: [{ role: "com_texto", language: "pt-BR", page: 1, url: "/p1.png", filename: "p1.png" }],
+        }}
+        jobs={[]}
+        setProject={vi.fn()}
+        setJobs={vi.fn()}
+        setAssets={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Páginas do livro" })).toBeInTheDocument();
+    expect(screen.getByText(/não dá para voltar atrás/i)).toBeInTheDocument();
+    const note = screen.getByLabelText("O que melhorar nesta página");
+    await userEvent.type(note, "Mais luz na janela");
+    await userEvent.click(screen.getByRole("button", { name: "Melhorar esta página" }));
+    await waitFor(() => expect(redo).toHaveBeenCalledWith("master", {
+      page: 1,
+      adjustment: "Mais luz na janela",
+    }));
+  });
 });

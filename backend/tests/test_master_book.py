@@ -485,3 +485,13 @@ async def test_title_change_repaints_the_cover_and_keeps_the_story(studio):
     assert (23, 42, 58) in list(original.getdata())
     assert list(served.getdata()) != list(original.getdata())
     assert "watermark_key" not in cover
+    project.purchase_flow = {**(project.purchase_flow or {}), "stage": "book_ready"}
+    db.commit()
+    db.expire_all()
+    paid = next(
+        item
+        for item in client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+        if item["role"] == "01_CAPA"
+    )
+    served_paid = Image.open(io.BytesIO(store[paid["url"].removeprefix("https://test/")]))
+    assert list(served_paid.getdata()) == list(original.getdata())

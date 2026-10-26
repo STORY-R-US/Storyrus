@@ -228,7 +228,7 @@ def project_assets(
         "previews": [
             {
                 **{key: value for key, value in (a.meta or {}).items() if key != "watermark_key"},
-                "url": shown(a),
+                "url": url_for(a.storage_key) if paid_book else shown(a),
             }
             for a in preview_assets
         ],

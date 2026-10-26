@@ -989,7 +989,45 @@
 .purchase-pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1rem 0; }
 .purchase-pages a { display: grid; gap: 0.4rem; text-align: center; }
 .purchase-pages img { width: 100%; border-radius: 12px; }
-.purchase-confirm { display: block; margin: 1.5rem 0; }
+.purchase-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(245, 162, 74, 0.55);
+  background: rgba(245, 162, 74, 0.14);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.purchase-confirm input { margin: 0.2rem 0 0; }
+.studio-app .master-page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.4rem;
+}
+.studio-app .master-page-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.8rem;
+  border-radius: 18px;
+  border: 1px solid var(--studio-surface-border);
+  background: var(--studio-input-bg);
+}
+.studio-app .master-page-card h4 { margin: 0; }
+.studio-app .master-page-card img {
+  width: 100%;
+  border-radius: 12px;
+}
+.studio-app .master-page-card textarea { min-height: 4.6rem; }
+.studio-app .master-page-card .kbtn { align-self: flex-start; }
+.studio-master-flow details > summary.master-section {
+  cursor: pointer;
+}
 .purchase-adjustments { margin: 1.5rem 0; }
 .purchase-adjustments summary, .purchase-flow summary { cursor: pointer; padding: 0.75rem 0; font-weight: 700; }
 .purchase-orders { max-width: 960px; margin: 2rem auto; }

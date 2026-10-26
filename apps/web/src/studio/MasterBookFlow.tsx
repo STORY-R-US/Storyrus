@@ -38,6 +38,9 @@ const COPY = {
     titleSave: "Atualizar título",
     titleHint: "A capa é refeita com este título. O restante da história fica.",
     goToOrder: "Ir para o pedido",
+    pagesHeading: "Páginas do livro",
+    improve: "O que melhorar nesta página",
+    improveSend: "Melhorar esta página",
   },
   en: {
     preview: "Approve the preview?",
@@ -71,6 +74,9 @@ const COPY = {
     titleSave: "Update title",
     titleHint: "The cover is remade with this title. The rest of the story stays.",
     goToOrder: "Go to the order",
+    pagesHeading: "Book pages",
+    improve: "What to improve on this page",
+    improveSend: "Improve this page",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -104,6 +110,9 @@ const COPY = {
     titleSave: "Actualizar título",
     titleHint: "La portada se rehace con este título. El resto de la historia queda.",
     goToOrder: "Ir al pedido",
+    pagesHeading: "Páginas del libro",
+    improve: "Qué mejorar en esta página",
+    improveSend: "Mejorar esta página",
   },
 };
 
@@ -169,6 +178,7 @@ export function MasterBookFlow({
     project.purchase_flow?.theme_description || project.theme || "",
   );
   const [pageToAdjust, setPageToAdjust] = useState<number | null>(null);
+  const [pageNotes, setPageNotes] = useState<Record<number, string>>({});
   const p = project.book_profile!;
   const active =
     sending ||
@@ -225,6 +235,42 @@ export function MasterBookFlow({
     ["preview_ready", "story_ready", "story_approved", "preview_approved"].includes(stage);
   const chips = [p.costume, p.trait, p.interest].filter((item): item is string => Boolean(item));
   const severalLanguages = new Set(previews.map((shot) => shot.language)).size > 1;
+  const bookLanguage = project.language || "pt-BR";
+  const finishedPages = versions.filter(
+    (image) => image.language === bookLanguage && image.role === "com_texto" && image.page,
+  );
+  const reviewing = ["page_ready", "book_ready"].includes(stage) && finishedPages.length > 0;
+  const storyView = p.stories ? (
+    <>
+      {p.languages.map((language) => {
+        const blocks = storyBlocks(p.stories?.[language] || "");
+        return (
+          <div key={language}>
+            {p.languages.length > 1 && <h4 className="master-lang">{language.toUpperCase()}</h4>}
+            <div className="master-story-book">
+              {blocks.map((block, index) => (
+                <article
+                  key={`${language}-${index}`}
+                  className={block.kind === "title" ? "studio-story-page is-title" : "studio-story-page"}
+                >
+                  {block.label ? (
+                    <header className="studio-story-page-head">
+                      <span className="studio-story-page-num">{block.label}</span>
+                    </header>
+                  ) : null}
+                  <div className="studio-story-verse">
+                    {block.lines.map((line, lineIndex) => (
+                      <p key={`${language}-${index}-${lineIndex}`}>{line}</p>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </>
+  ) : null;
   async function applyTitle(event: FormEvent) {
     event.preventDefault();
     const title = editTitle.trim();
@@ -340,6 +386,52 @@ export function MasterBookFlow({
           </button>
         </div>
       )}
+      {reviewing && (
+        <section className="master-pages" aria-labelledby="master-pages-heading">
+          <h3 id="master-pages-heading" className="master-section">{t.pagesHeading}</h3>
+          <div className="master-page-grid">
+            {finishedPages.map((image) => {
+              const page = image.page ?? 1;
+              const note = pageNotes[page] || "";
+              return (
+                <article key={`${image.language}-${page}`} className="master-page-card">
+                  <h4>{t.page} {page}</h4>
+                  <img src={image.url} alt={`${t.page} ${page}`} />
+                  <a href={image.url} download={image.filename} target="_blank" rel="noreferrer">
+                    {t.save}
+                  </a>
+                  {!project.book_approved_at && (
+                    <>
+                      <label className="studio-field">
+                        {t.improve}
+                        <textarea
+                          value={note}
+                          maxLength={500}
+                          onChange={(event) =>
+                            setPageNotes((current) => ({ ...current, [page]: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="kbtn kbtn-soft"
+                        disabled={active || !note.trim()}
+                        onClick={() =>
+                          void run(() =>
+                            api.nextBookPage(project.id, { page, adjustment: note.trim() }),
+                          )
+                        }
+                      >
+                        {t.improveSend}
+                      </button>
+                    </>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
         <PostPreviewFlow
           project={project}
@@ -398,34 +490,17 @@ export function MasterBookFlow({
       )}
       {p.stories && (
         <div data-testid="studio-master-story">
-          <h3 className="master-section">{t.storyHeading}</h3>
-          {p.languages.map((language) => {
-            const blocks = storyBlocks(p.stories?.[language] || "");
-            return (
-              <div key={language}>
-                {p.languages.length > 1 && <h4 className="master-lang">{language.toUpperCase()}</h4>}
-                <div className="master-story-book">
-                  {blocks.map((block, index) => (
-                    <article
-                      key={`${language}-${index}`}
-                      className={block.kind === "title" ? "studio-story-page is-title" : "studio-story-page"}
-                    >
-                      {block.label ? (
-                        <header className="studio-story-page-head">
-                          <span className="studio-story-page-num">{block.label}</span>
-                        </header>
-                      ) : null}
-                      <div className="studio-story-verse">
-                        {block.lines.map((line, lineIndex) => (
-                          <p key={`${language}-${index}-${lineIndex}`}>{line}</p>
-                        ))}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {reviewing ? (
+            <details>
+              <summary className="master-section">{t.storyHeading}</summary>
+              {storyView}
+            </details>
+          ) : (
+            <>
+              <h3 className="master-section">{t.storyHeading}</h3>
+              {storyView}
+            </>
+          )}
         </div>
       )}
       {stage === "story_ready" && (
@@ -464,7 +539,7 @@ export function MasterBookFlow({
           {t.continue}
         </button>
       )}
-      {assets?.character_url && (
+      {assets?.character_url && !reviewing && (
         <img
           src={assets.character_url}
           alt={t.face}
@@ -485,7 +560,7 @@ export function MasterBookFlow({
           </button>
         </div>
       )}
-      {versions.map((image) => (
+      {!reviewing && versions.map((image) => (
         <figure key={`${image.language}-${image.page}-${image.role}`}>
           <figcaption>
             {t.page} {image.page} · {image.language.toUpperCase()} ·{" "}
@@ -514,7 +589,7 @@ export function MasterBookFlow({
           )}
         </figure>
       ))}
-      {p.current_page > 0 && p.stories && (
+      {!reviewing && p.current_page > 0 && p.stories && (
         <p style={{ whiteSpace: "pre-wrap" }}>
           {
             p.stories[project.language ?? "pt-BR"]?.split(
@@ -531,7 +606,7 @@ export function MasterBookFlow({
           {t.next}
         </button>
       )}
-      {["page_ready", "book_ready"].includes(stage) && (
+      {!reviewing && ["page_ready", "book_ready"].includes(stage) && (
         <div>
           <label>
             {t.adjust}
@@ -556,7 +631,7 @@ export function MasterBookFlow({
           </button>
         </div>
       )}
-      {stage === "book_ready" && (
+      {stage === "book_ready" && !reviewing && (
         <div>
           <p>
             {t.finish} {t.summary}

@@ -68,7 +68,8 @@ const pt = {
   full: "Seu livro completo está pronto para revisão",
   fullHint: "Confira todas as páginas e o PDF antes de autorizar a impressão.",
   pdf: "Abrir livro completo em PDF",
-  confirm: "Revisei todas as páginas e autorizo a impressão deste livro.",
+  confirm:
+    "Revisei todas as páginas e entendo que, depois de aprovado, não dá para voltar atrás.",
   final: "Aprovar livro para impressão",
   approved: "Livro aprovado para impressão",
   approvedHint: "Acompanhe a preparação e o envio em Meus pedidos.",
@@ -157,7 +158,8 @@ const en: Copy = {
   full: "Your complete book is ready to review",
   fullHint: "Check every page and the PDF before authorizing printing.",
   pdf: "Open complete book PDF",
-  confirm: "I reviewed every page and authorize printing this book.",
+  confirm:
+    "I reviewed every page and understand that, once approved, this cannot be undone.",
   final: "Approve book for printing",
   approved: "Book approved for printing",
   approvedHint: "Track preparation and shipping in My orders.",
@@ -245,7 +247,8 @@ const es: Copy = {
   fullHint:
     "Revisa todas las páginas y el PDF antes de autorizar la impresión.",
   pdf: "Abrir libro completo en PDF",
-  confirm: "Revisé todas las páginas y autorizo la impresión de este libro.",
+  confirm:
+    "Revisé todas las páginas y entiendo que, después de aprobar, no se puede volver atrás.",
   final: "Aprobar libro para impresión",
   approved: "Libro aprobado para impresión",
   approvedHint: "Sigue la preparación y el envío en Mis pedidos.",
