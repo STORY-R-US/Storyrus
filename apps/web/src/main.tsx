@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { ClerkProvider, useAuth } from "@clerk/react";
 import { enUS, esES, ptBR } from "@clerk/localizations";
 import { Root } from "./Root";
-import { setClerkGetToken, setClerkSignOut } from "./api";
+import { markClerkPresent, setClerkGetToken, setClerkSignOut } from "./api";
 import { warmBackend } from "./backendConnection";
 import "./styles.css";
 import "./studio.css";
@@ -21,6 +21,7 @@ function clerkLocalization() {
 }
 
 function ClerkBridge() {
+  markClerkPresent();
   const { getToken, signOut, isLoaded } = useAuth();
   useEffect(() => {
     if (!isLoaded) return;

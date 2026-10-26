@@ -34,6 +34,38 @@ let token: string | null = null;
 let manualOverride = false;
 let clerkGetToken: ClerkTokenGetter | null = null;
 let clerkSignOut: (() => Promise<void>) | null = null;
+let clerkPresent = false;
+const clerkReadyWaiters: Array<() => void> = [];
+
+/** O app está dentro do Clerk. Os painéis esperam a sessão antes de pedir senha. */
+export function markClerkPresent() {
+  clerkPresent = true;
+}
+
+export function clerkWillProvideSession(): boolean {
+  return clerkPresent;
+}
+
+export function notifyClerkReady() {
+  const waiting = clerkReadyWaiters.splice(0);
+  waiting.forEach((resume) => resume());
+}
+
+export function whenClerkReady(timeoutMs: number): Promise<void> {
+  if (!clerkPresent || clerkGetToken || getToken()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      window.clearTimeout(timer);
+      resolve();
+    };
+    const timer = window.setTimeout(() => {
+      const index = clerkReadyWaiters.indexOf(done);
+      if (index >= 0) clerkReadyWaiters.splice(index, 1);
+      resolve();
+    }, timeoutMs);
+    clerkReadyWaiters.push(done);
+  });
+}
 
 /** JWT antigo do login por senha não pode impedir o Clerk de abrir a conta. */
 export function sessionTokenFromStorage(raw: string | null): string | null {
@@ -51,6 +83,7 @@ restoreClerkSessionFromStorage();
 
 export function setClerkGetToken(fn: ClerkTokenGetter | null) {
   clerkGetToken = fn;
+  if (fn) notifyClerkReady();
 }
 
 export function setClerkSignOut(fn: (() => Promise<void>) | null) {
@@ -69,6 +102,10 @@ export function setToken(t: string | null) {
 }
 export function getToken() {
   return token;
+}
+
+export async function refreshSessionToken(): Promise<string | null> {
+  return resolveToken();
 }
 
 async function resolveToken(): Promise<string | null> {

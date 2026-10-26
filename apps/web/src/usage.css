@@ -258,6 +258,16 @@
   color: #fff;
   border-color: var(--navy);
 }
+.order-panel-secret {
+  margin-top: 1.25rem;
+}
+.order-panel-secret summary {
+  cursor: pointer;
+  color: #8aa0b8;
+}
+.order-panel-secret form {
+  margin-top: 0.85rem;
+}
 .order-open {
   display: inline-flex;
   margin: 0 0 1rem;

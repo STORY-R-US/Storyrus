@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import logo from "./assets/logo.png";
-import { api, getToken } from "./api";
+import { api, clerkWillProvideSession, getToken, refreshSessionToken, whenClerkReady } from "./api";
 import { OwnerAccessGate } from "./OwnerAccessGate";
 import { OwnerNav } from "./OwnerNav";
 import {
@@ -327,22 +327,26 @@ export function Pedidos() {
     }
   }, []);
 
-  // Descobre o papel da conta: admin mantém o painel geral; os demais veem só os
-  // próprios pedidos. Sem sessão, cai no portão com a senha do painel (dono).
+  // Espera o Clerk hidratar. Sem isso, /pedidos abre o portão de senha
+  // antes da conta da Story R Us existir na página.
   useEffect(() => {
-    if (!getToken()) {
-      setRole("admin");
-      return;
-    }
     let alive = true;
-    api
-      .me()
-      .then((me) => {
+    void (async () => {
+      await whenClerkReady(2500);
+      if (!alive) return;
+      await refreshSessionToken();
+      if (!alive) return;
+      if (!getToken()) {
+        setRole("admin");
+        return;
+      }
+      try {
+        const me = await api.me();
         if (alive) setRole(me.is_admin || me.is_owner ? "admin" : "member");
-      })
-      .catch(() => {
+      } catch {
         if (alive) setRole("member");
-      });
+      }
+    })();
     return () => {
       alive = false;
     };
@@ -473,6 +477,18 @@ export function Pedidos() {
       Boolean(password) ||
       (!sessionTried && canTryOwnerSession()) ||
       (transient && canTryOwnerSession()));
+
+  if (role === "unknown" && clerkWillProvideSession() && !getToken()) {
+    return (
+      <div className="usage">
+        <div className="usage-gate card auth" data-testid="owner-access-opening">
+          <img className="auth-logo" src={logo} alt="Story R Us" />
+          <h1>Pedidos</h1>
+          <p className="muted">Abrindo os pedidos da conta da Story R Us…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (role === "unknown") {
     return (

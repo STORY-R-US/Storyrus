@@ -19,8 +19,8 @@ type Props = {
 };
 
 /**
- * Portão dos painéis admin. Com sessão do estúdio, prioriza abrir sozinho e
- * retry no cold start do Render — a senha do painel fica como alternativa.
+ * Portão dos painéis. Com a sessão da conta, abre sozinho.
+ * A senha do painel fica escondida, como alternativa.
  */
 export function OwnerAccessGate({
   title,
@@ -46,8 +46,8 @@ export function OwnerAccessGate({
           <h1>{title}</h1>
           <p className="muted">
             {loading
-              ? "Abrindo com a sua sessão… Se a API estiver acordando (Render free), pode levar cerca de um minuto."
-              : "Não deu para abrir agora. O servidor pode estar acordando — tente de novo."}
+              ? "Abrindo os pedidos da conta da Story R Us…"
+              : "Não deu para abrir agora. Tente de novo."}
           </p>
           {error && <p className="error">{error}</p>}
           <button
@@ -81,46 +81,45 @@ export function OwnerAccessGate({
         <img className="auth-logo" src={logo} alt="Story R Us" />
         <h1>{title}</h1>
         <p className="muted">
-          Painel admin. O caminho mais simples:{" "}
-          <a href={`/entrar?next=${encodeURIComponent(loginNext)}`}>entrar com a conta admin</a> — o
-          painel abre sozinho.
-          {hasSession ? (
-            <>
-              {" "}
-              Você já está logado:{" "}
-              <button
-                type="button"
-                className="link"
-                data-testid="owner-access-use-session"
-                disabled={loading}
-                onClick={onRetrySession}
-              >
-                abrir com esta sessão
-              </button>
-              .
-            </>
-          ) : null}{" "}
-          Alternativa: senha do painel no Render (<code>USAGE_DASHBOARD_PASSWORD</code>), não a senha
-          da conta.
+          Entre com a conta da Story R Us. O painel abre com essa sessão.
         </p>
-        {getToken() && loading && <p className="muted">Abrindo com a sessão do estúdio…</p>}
-        <form onSubmit={onSubmitPassword}>
-          <label>
-            Senha do painel
-            <input
-              type="password"
-              name="panel-secret"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              value={draft}
-              onChange={(e) => onDraftChange(e.target.value)}
-            />
-          </label>
-          <button type="submit" disabled={!draft.trim() || loading}>
-            {loading ? "Entrando…" : "Entrar"}
-          </button>
-        </form>
+        <a className="order-open" href={`/entrar?next=${encodeURIComponent(loginNext)}`}>
+          Entrar
+        </a>
+        {hasSession ? (
+          <p className="muted">
+            <button
+              type="button"
+              className="link"
+              data-testid="owner-access-use-session"
+              disabled={loading}
+              onClick={onRetrySession}
+            >
+              Abrir com a sessão atual
+            </button>
+          </p>
+        ) : null}
+        {getToken() && loading && <p className="muted">Abrindo os pedidos…</p>}
+        <details className="order-panel-secret">
+          <summary>Usar a senha do painel</summary>
+          <form onSubmit={onSubmitPassword}>
+            <label>
+              Senha do painel
+              <input
+                type="password"
+                name="panel-secret"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                value={draft}
+                onChange={(e) => onDraftChange(e.target.value)}
+              />
+            </label>
+            <button type="submit" disabled={!draft.trim() || loading}>
+              {loading ? "Abrindo…" : "Entrar"}
+            </button>
+          </form>
+        </details>
         {error && <p className="error">{error}</p>}
       </div>
     </div>

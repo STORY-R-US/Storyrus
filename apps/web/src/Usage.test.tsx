@@ -342,7 +342,7 @@ describe("Painel /usuarios", () => {
 
     await user.type(screen.getByLabelText(/senha/i), "errada");
     await user.click(screen.getByRole("button", { name: /entrar/i }));
-    expect(await screen.findByText(/senha inválida/i)).toBeInTheDocument();
+    expect(await screen.findByText(/senha do painel incorreta/i)).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText(/senha/i));
     await user.type(screen.getByLabelText(/senha/i), "segredo");
@@ -462,7 +462,7 @@ describe("Painel /gastos", () => {
 
     await user.type(screen.getByLabelText(/senha/i), "errada");
     await user.click(screen.getByRole("button", { name: /entrar/i }));
-    expect(await screen.findByText(/senha inválida/i)).toBeInTheDocument();
+    expect(await screen.findByText(/senha do painel incorreta/i)).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText(/senha/i));
     await user.type(screen.getByLabelText(/senha/i), "segredo");

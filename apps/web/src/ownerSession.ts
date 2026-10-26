@@ -65,7 +65,7 @@ export function isOwnerTransientFailure(
 ): boolean {
   if (status === 502 || status === 504 || status === 500) return true;
   if (status != null) return false;
-  return /failed to fetch|networkerror|load failed|demorou demais|abort|indispon/i.test(
+  return /failed to fetch|networkerror|load failed|demorou demais|demorou para abrir|abort|indispon/i.test(
     message || "",
   );
 }
@@ -77,15 +77,15 @@ export function ownerGateError(
 ): string {
   const detail = (fallback || "").replace(/^\d{3}:\s*/i, "").trim();
   if (isOwnerTransientFailure(status, fallback)) {
-    return "Servidor indisponível ou acordando (Render). Toque em Tentar de novo — pode levar cerca de um minuto.";
+    return "O painel demorou para abrir. Tente de novo em instantes.";
   }
   if (status === 401 && /administrador/i.test(detail)) {
-    return "Acesso restrito a administradores. Entre com a conta admin ou use a senha do painel (Render).";
+    return "Essa conta não abre o painel. Entre com a conta da Story R Us.";
   }
   if (status === 401 && opts?.usedSession) {
-    return "Esta sessão não é admin. Entre com a conta admin ou use a senha do painel (Render) — não a senha da conta.";
+    return "Essa sessão não abre o painel. Entre com a conta da Story R Us.";
   }
-  if (status === 401) return "Senha inválida. Use a senha do painel (Render), não a da conta.";
+  if (status === 401) return "Senha do painel incorreta.";
   if (status === 429) return "Muitas tentativas. Aguarde alguns minutos ou entre com a conta do dono.";
   if (status === 503) return "Painel ainda não configurado no servidor.";
   return detail || fallback;
