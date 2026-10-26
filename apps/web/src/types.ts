@@ -208,6 +208,8 @@ export interface OrderTicket {
   tracking_code?: string | null;
   payment_status?: string | null;
   amount_cents?: number | null;
+  account_email?: string | null;
+  mine?: boolean;
 }
 
 export interface FreightOption {

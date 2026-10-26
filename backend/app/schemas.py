@@ -463,6 +463,8 @@ class OrderTicketOut(BaseModel):
     tracking_code: str | None = None
     payment_status: str | None = None
     amount_cents: int | None = None
+    account_email: str | None = None
+    mine: bool = False
 
 
 class FreightOptionOut(BaseModel):

@@ -41,7 +41,74 @@ describe("Pedidos", () => {
     expect(detail).toHaveTextContent("SR-TESTE001");
     expect(detail).toHaveTextContent("AA123BR");
     expect(detail.querySelector("img")).toHaveAttribute("src", "https://fotos.test/crianca.jpg");
-    expect(detail.querySelector("a")).toHaveAttribute("href", "https://fotos.test/crianca.jpg");
+    expect(screen.getByRole("link", { name: /abrir imagem/i })).toHaveAttribute(
+      "href",
+      "https://fotos.test/crianca.jpg",
+    );
+    expect(screen.getByRole("link", { name: "Ir para o pedido" })).toHaveAttribute(
+      "href",
+      "/app?projeto=p1",
+    );
+  });
+
+  it("separa livros da conta Story R Us dos livros de outros usuários", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server } = await import("./test/server");
+    const created = new Date().toISOString();
+    server.use(
+      http.get("*/v1/usage", () =>
+        HttpResponse.json({
+          timezone: "America/Sao_Paulo",
+          from_at: created,
+          to_at: created,
+          today_usd: 0,
+          month_usd: 0,
+          range_usd: 0,
+          books_count: 0,
+          avg_book_usd: null,
+          by_type: [],
+          by_provider: [],
+          books: [],
+          recent_jobs: [],
+          events: [],
+          events_count: 0,
+          orders: [
+            {
+              id: "mine",
+              project_id: "04bceafd-47c5-41db-a1a6-7d80192a110f",
+              summary: "NOVO LIVRO\nNome: Lia",
+              created_at: created,
+              mine: true,
+              account_email: "eng.andrevitor89@gmail.com",
+            },
+            {
+              id: "theirs",
+              project_id: "p-cliente",
+              summary: "NOVO LIVRO\nNome: Ana",
+              created_at: created,
+              mine: false,
+              account_email: "ana@forteshub.com",
+            },
+          ],
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<Pedidos />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByRole("button", { name: /livro de lia/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /livro de ana/i })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Criados por mim" }));
+    expect(screen.getByRole("button", { name: /livro de lia/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /livro de ana/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ir para o pedido" })).toHaveAttribute(
+      "href",
+      "/app?projeto=04bceafd-47c5-41db-a1a6-7d80192a110f",
+    );
+    await user.click(screen.getByRole("button", { name: "Criados por outros" }));
+    expect(screen.getByRole("button", { name: /livro de ana/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /livro de lia/i })).not.toBeInTheDocument();
   });
 
   it("pede só a lista de pedidos, sem o relatório de gastos", async () => {

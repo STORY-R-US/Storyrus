@@ -541,6 +541,8 @@ def test_my_orders_lists_only_the_accounts_tickets(auth_client):
     body = r.json()
     assert len(body) == 1
     assert "Lia" in body[0]["summary"]
+    assert body[0]["mine"] is False
+    assert body[0]["account_email"] == "auth@example.com"
 
 
 def test_my_orders_requires_a_session(client):

@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import delete, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app import storage
 from app.config import settings
@@ -31,7 +31,7 @@ from app.models import (
 )
 from app.order_tickets import backfill_order_tickets
 from app.routers.projects.common import purge_project
-from app.owner_auth import require_owner_password
+from app.owner_auth import is_owner_email, require_owner_password
 from app.printkit.service import attach_service_orders
 from app.schemas import (
     ErrorReportOut,
@@ -239,7 +239,12 @@ def _give_up(db: Session, action: str) -> None:
 
 
 def _load_orders(db: Session, user_id: uuid.UUID | None = None) -> list[OrderTicket]:
-    stmt = select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
+    stmt = (
+        select(OrderTicket)
+        .options(selectinload(OrderTicket.project).selectinload(Project.user))
+        .order_by(OrderTicket.created_at.desc())
+        .limit(200)
+    )
     if user_id is not None:
         stmt = stmt.join(Project, Project.id == OrderTicket.project_id).where(
             Project.user_id == user_id
@@ -406,6 +411,8 @@ def _collect_orders(
                 ebook_url = _signed(ebook_key)
                 if ebook_url and not any(item.label == "PDF do livro" for item in files):
                     files.append(OrderFileOut(label="PDF do livro", url=ebook_url, kind="ebook"))
+            account = project.user if project is not None else None
+            account_email = _opt_str(account.email) if account is not None else None
             latest = latest_jobs.get(ticket.project_id)
             result = _meta_dict(latest.result) if latest else {}
             provider = _opt_str(result.get("image_provider"))
@@ -445,6 +452,8 @@ def _collect_orders(
                     tracking_code=_opt_str(printed.tracking_code) if printed else None,
                     payment_status=_opt_str(printed.payment_status) if printed else None,
                     amount_cents=_opt_int(printed.amount_cents) if printed else None,
+                    account_email=account_email,
+                    mine=is_owner_email(account_email),
                 )
             )
         except Exception:

@@ -284,6 +284,7 @@ export function Pedidos() {
   const [personalError, setPersonalError] = useState<string | null>(null);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [origin, setOrigin] = useState<"all" | "mine" | "others">("all");
   const hasOrders = orders !== null;
   const hasActiveGeneration = (orders ?? []).some((order) => order.generation_status === "generating" || (order.generation_status === "queued" && Boolean(order.generation_stage)));
 
@@ -425,7 +426,12 @@ export function Pedidos() {
     if (next) void load(next);
   }
 
-  const current = orders?.find((order) => order.id === selected) ?? null;
+  const visibleOrders = (orders ?? []).filter((order) => {
+    if (origin === "mine") return order.mine === true;
+    if (origin === "others") return order.mine === false;
+    return true;
+  });
+  const current = visibleOrders.find((order) => order.id === selected) ?? visibleOrders[0] ?? null;
   const ownerSecret = apiOwnerPassword(password);
 
   async function generateImages() {
@@ -555,6 +561,25 @@ export function Pedidos() {
         </section>
       )}
 
+      <div className="order-origin" role="group" aria-label="Quem criou o livro">
+        {(
+          [
+            ["all", "Todos"],
+            ["mine", "Criados por mim"],
+            ["others", "Criados por outros"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={origin === value}
+            onClick={() => setOrigin(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {(orders ?? []).length === 0 ? (
         <div className="muted" data-testid="pedidos-empty">
           <p>
@@ -572,13 +597,20 @@ export function Pedidos() {
         </div>
       ) : (
         <div className="usage-orders">
+          {visibleOrders.length === 0 ? (
+            <p className="muted" data-testid="pedidos-origin-empty">
+              {origin === "mine"
+                ? "Nenhum livro criado na conta da Story R Us."
+                : "Nenhum livro criado por outros usuários."}
+            </p>
+          ) : null}
           <ul className="usage-order-list" aria-label="Lista de pedidos">
-            {(orders ?? []).map((order) => (
+            {visibleOrders.map((order) => (
               <li key={order.id}>
                 <button
                   type="button"
-                  className={order.id === selected ? "is-on" : ""}
-                  aria-pressed={order.id === selected}
+                  className={order.id === current?.id ? "is-on" : ""}
+                  aria-pressed={order.id === current?.id}
                   onClick={() => {
                     setSelected(order.id);
                     setConfirmDelete(false);
@@ -586,6 +618,7 @@ export function Pedidos() {
                 >
                   <strong>{nameOf(order)}</strong>
                   <span>{generationLabel(order)}</span>
+                  {order.account_email ? <span>{order.account_email}</span> : null}
                   <span>{when(order.created_at)}</span>
                 </button>
               </li>
@@ -594,6 +627,12 @@ export function Pedidos() {
           {current && (
             <article className="usage-order-detail" data-testid="order-detail">
               <h2>{nameOf(current)}</h2>
+              <a
+                className="order-open"
+                href={`/app?projeto=${encodeURIComponent(current.project_id)}`}
+              >
+                Ir para o pedido
+              </a>
               <OrderPreview order={current} />
               {current.payment_status !== "paid" && (
                 <button
