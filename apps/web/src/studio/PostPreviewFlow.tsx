@@ -40,6 +40,20 @@ export function PostPreviewFlow({
   const fullJob = [...jobs]
     .reverse()
     .find((j) => j.result?.payload?.purchase_full_book);
+  const language = project.language || "pt-BR";
+  const coverUrl =
+    assets?.book_cover_url ||
+    assets?.previews?.find((shot) => shot.role === "01_CAPA" && shot.language === language)?.url ||
+    assets?.previews?.find((shot) => shot.role === "01_CAPA")?.url ||
+    assets?.cover_url ||
+    null;
+  const dedication =
+    project.dedication?.trim() ||
+    (project.child_name ? t.dedicationFor.replace("{name}", project.child_name) : "");
+  const readyPages = (assets?.page_versions || [])
+    .filter((item) => item.role === "com_texto" && item.language === language && item.page)
+    .sort((a, b) => (a.page || 0) - (b.page || 0))
+    .slice(0, 6);
   const active = jobs.some(
     (j) => j.status === "PENDING" || j.status === "RUNNING",
   );
@@ -132,6 +146,30 @@ export function PostPreviewFlow({
                   ? ` (${fullJob.result.progress.done || 0}/${fullJob.result.progress.total})`
                   : ""}
               </p>
+              {(coverUrl || dedication || readyPages.length > 0) && (
+                <div className="purchase-sample" data-testid="purchase-sample">
+                  {coverUrl && (
+                    <figure className="is-cover">
+                      <img src={coverUrl} alt={t.readyCover} />
+                      <figcaption>{t.readyCover}</figcaption>
+                    </figure>
+                  )}
+                  {dedication && (
+                    <article className="purchase-dedication">
+                      <h4>{t.readyDedication}</h4>
+                      <p>{dedication}</p>
+                    </article>
+                  )}
+                  {readyPages.map((page) => (
+                    <figure key={`${page.language}-${page.page}`}>
+                      <img src={page.url} alt={`${t.readyPage} ${page.page}`} />
+                      <figcaption>
+                        {t.readyPage} {page.page}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
               {fullJob?.status === "FAILED" && (
                 <>
                   <p role="alert">{t.failed}</p>

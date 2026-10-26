@@ -202,4 +202,50 @@ describe("continuação da prévia", () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it("mostra a capa, a dedicatória e seis páginas enquanto o livro é produzido", () => {
+    const generating = {
+      ...project,
+      child_name: "Lia",
+      dedication: "Para a Lia, com amor.",
+      language: "pt-BR",
+      purchase_flow: {
+        ...project.purchase_flow,
+        preview_approved_at: "2026-10-15",
+        stage: "generating_book",
+      },
+    };
+    const sample: StudioAssets = {
+      ...assets,
+      book_cover_url: "/capa-limpa.png",
+      previews: [
+        { url: "/capa-marca.png", language: "pt-BR", role: "01_CAPA", filename: "capa.png" },
+      ],
+      page_versions: Array.from({ length: 8 }, (_, index) => ({
+        url: `/pagina-${index + 1}.png`,
+        language: "pt-BR",
+        role: index === 7 ? "sem_texto" : "com_texto",
+        filename: `pagina-${index + 1}.png`,
+        page: index + 1,
+      })),
+    };
+    vi.spyOn(api, "printOrder").mockResolvedValue({ ...order, payment_status: "paid" });
+    render(
+      <PostPreviewFlow
+        project={generating}
+        assets={sample}
+        jobs={[]}
+        isDemo={false}
+        dirty={false}
+        onProject={vi.fn()}
+        onJobs={vi.fn()}
+        onAdjust={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("img", { name: "Capa" })).toHaveAttribute("src", "/capa-limpa.png");
+    expect(screen.getByRole("heading", { name: "Dedicatória" })).toBeInTheDocument();
+    expect(screen.getByText("Para a Lia, com amor.")).toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: /^Página / })).toHaveLength(6);
+    expect(screen.queryByRole("img", { name: "Página 7" })).not.toBeInTheDocument();
+  });
 });

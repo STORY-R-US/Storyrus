@@ -201,19 +201,36 @@ def project_assets(
                 }
             )
 
+    preview_assets = [
+        a
+        for a in db.scalars(
+            select(Asset)
+            .where(Asset.project_id == project.id)
+            .order_by(Asset.created_at, Asset.id)
+        ).all()
+        if (a.meta or {}).get("workflow") == 1
+        and (a.meta or {}).get("role") in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+    ]
+    language = project.language or "pt-BR"
+    clean_cover = next(
+        (
+            a
+            for a in preview_assets
+            if (a.meta or {}).get("role") == "01_CAPA"
+            and (a.meta or {}).get("language") == language
+        ),
+        None,
+    ) or next((a for a in preview_assets if (a.meta or {}).get("role") == "01_CAPA"), None)
+    paid_book = (project.purchase_flow or {}).get("stage") in {"generating_book", "book_ready"}
+    book_cover_url = url_for(clean_cover.storage_key) if clean_cover and paid_book else None
+
     return {
         "previews": [
             {
                 **{key: value for key, value in (a.meta or {}).items() if key != "watermark_key"},
                 "url": shown(a),
             }
-            for a in db.scalars(
-                select(Asset)
-                .where(Asset.project_id == project.id)
-                .order_by(Asset.created_at, Asset.id)
-            ).all()
-            if (a.meta or {}).get("workflow") == 1
-            and (a.meta or {}).get("role") in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+            for a in preview_assets
         ],
         "page_versions": [
             {**(a.meta or {}), "url": url_for(a.storage_key)}
@@ -226,6 +243,7 @@ def project_assets(
         "extra_characters": extra_characters_out,
         "page_images": page_images,
         "cover_url": cover_url,
+        "book_cover_url": book_cover_url,
         "in_hand_url": in_hand_url,
         "ebook_url": ebook_url,
         "storyboard_url": storyboard_url,

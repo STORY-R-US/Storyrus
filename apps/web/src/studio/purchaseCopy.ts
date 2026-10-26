@@ -60,7 +60,11 @@ const pt = {
   create: "Criar meu livro",
   generating: "Estamos preparando seu livro completo",
   generatingHint:
-    "As ilustrações e o arquivo digital estão em produção. A impressão aguarda sua revisão.",
+    "A capa, a dedicatória e as primeiras páginas aparecem aqui. O restante segue em produção e a impressão aguarda sua revisão.",
+  readyCover: "Capa",
+  readyDedication: "Dedicatória",
+  readyPage: "Página",
+  dedicationFor: "Para {name}.",
   full: "Seu livro completo está pronto para revisão",
   fullHint: "Confira todas as páginas e o PDF antes de autorizar a impressão.",
   pdf: "Abrir livro completo em PDF",
@@ -145,7 +149,11 @@ const en: Copy = {
   create: "Create my book",
   generating: "We're preparing your complete book",
   generatingHint:
-    "Illustrations and the digital file are in production. Printing awaits your review.",
+    "The cover, the dedication, and the first pages appear here. The rest stays in production, and printing awaits your review.",
+  readyCover: "Cover",
+  readyDedication: "Dedication",
+  readyPage: "Page",
+  dedicationFor: "For {name}.",
   full: "Your complete book is ready to review",
   fullHint: "Check every page and the PDF before authorizing printing.",
   pdf: "Open complete book PDF",
@@ -228,7 +236,11 @@ const es: Copy = {
   create: "Crear mi libro",
   generating: "Estamos preparando tu libro completo",
   generatingHint:
-    "Las ilustraciones y el archivo digital están en producción. La impresión espera tu revisión.",
+    "La portada, la dedicatoria y las primeras páginas aparecen aquí. El resto sigue en producción y la impresión espera tu revisión.",
+  readyCover: "Portada",
+  readyDedication: "Dedicatoria",
+  readyPage: "Página",
+  dedicationFor: "Para {name}.",
   full: "Tu libro completo está listo para revisar",
   fullHint:
     "Revisa todas las páginas y el PDF antes de autorizar la impresión.",

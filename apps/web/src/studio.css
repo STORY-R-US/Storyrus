@@ -952,6 +952,40 @@
 .purchase-totals dd { margin: 0; font-weight: 700; }
 .purchase-totals div:last-child { font-size: 1.2rem; }
 .purchase-orders-link { display: inline-block; margin-top: 1.5rem; }
+.purchase-sample {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 0.9rem;
+  margin: 1.1rem 0 0.4rem;
+}
+.purchase-sample figure { margin: 0; }
+.purchase-sample img { width: 100%; border-radius: 14px; display: block; background: #fff; }
+.purchase-sample figcaption,
+.purchase-dedication h4 {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink, #172a3a);
+}
+.purchase-dedication {
+  margin: 0;
+  min-height: 100%;
+  padding: 1.15rem 1rem;
+  border-radius: 14px;
+  background: #fff8ee;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 0.7rem;
+}
+.purchase-dedication p {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
 .purchase-pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1rem 0; }
 .purchase-pages a { display: grid; gap: 0.4rem; text-align: center; }
 .purchase-pages img { width: 100%; border-radius: 12px; }

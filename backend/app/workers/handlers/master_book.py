@@ -582,6 +582,19 @@ async def avatar(db, job, project):
             {"master_page": True, "page": 1},
             f"free-page-{project.id}-1",
         )
+    elif _payload(job).get("purchase_full_book"):
+        from app.models import JobType, _now
+
+        project.character_approved_at = _now()
+        contract.update(project, stage="avatar_approved")
+        _enqueue_free(
+            db,
+            job,
+            project,
+            JobType.EBOOK,
+            {"master_page": True, "page": 1, "purchase_full_book": True},
+            f"paid-page-{project.id}-1",
+        )
     _account(db, job, result, "Avatar — foto original")
     _set_status(db, project, ProjectStatus.AVATAR_READY)
 
@@ -679,6 +692,17 @@ async def page(db, job, project):
             JobType.EBOOK,
             {"master_page": True, "page": current + 1},
             f"free-page-{project.id}-{current + 1}",
+        )
+    elif _payload(job).get("purchase_full_book") and finished_frontier and current < 16:
+        from app.models import JobType
+
+        _enqueue_free(
+            db,
+            job,
+            project,
+            JobType.EBOOK,
+            {"master_page": True, "page": current + 1, "purchase_full_book": True},
+            f"paid-page-{project.id}-{current + 1}",
         )
     if current == 16:
         size_cm = 15 if project.book_size == "P" else 20

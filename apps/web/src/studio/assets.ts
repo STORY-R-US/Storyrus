@@ -6,6 +6,7 @@ export type StudioAssets = {
   extra_characters: { name: string; url: string }[];
   page_images: string[];
   cover_url?: string | null;
+  book_cover_url?: string | null;
   in_hand_url?: string | null;
   ebook_url: string | null;
   video_url: string | null;
@@ -29,6 +30,7 @@ export function mergeStudioAssets(prev: StudioAssets | null, next: StudioAssets)
     ...next,
     page_images: nextPages.length === prevPages.length && nextPages.every((url, i) => url === prevPages[i]) ? prevPages : nextPages,
     cover_url: next.cover_url ?? prev.cover_url ?? null,
+    book_cover_url: next.book_cover_url ?? prev.book_cover_url ?? null,
     in_hand_url: next.in_hand_url ?? prev.in_hand_url ?? null,
   };
 }
