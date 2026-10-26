@@ -249,6 +249,17 @@ export function MasterBookFlow({
           ))}
         </ul>
       )}
+      {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
+        <button
+          type="button"
+          className="kbtn kbtn-primary master-order-jump"
+          onClick={() =>
+            document.getElementById("pedido")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        >
+          {t.goToOrder}
+        </button>
+      )}
       {previews.length > 0 && <h3 className="master-section">{t.images}</h3>}
       <div className="master-gallery">
         {previews.map((shot) => {
@@ -280,17 +291,6 @@ export function MasterBookFlow({
           );
         })}
       </div>
-      {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
-        <button
-          type="button"
-          className="kbtn kbtn-primary master-order-jump"
-          onClick={() =>
-            document.getElementById("pedido")?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
-        >
-          {t.goToOrder}
-        </button>
-      )}
       {canEditTitle && (
         <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
           <div className="master-title-row">
