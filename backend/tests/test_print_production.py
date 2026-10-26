@@ -25,6 +25,7 @@ from app.printkit.gateway import (
     register_gateway,
     unregister_gateway,
 )
+from app.printkit.service import get_print_order
 from app.printkit.spec import PrintSpec, PrintSpecIncomplete
 
 
@@ -167,6 +168,26 @@ def _pages(count: int = 16) -> list[Image.Image]:
 def _span_mm(box) -> tuple[float, float]:
     left, bottom, right, top = (float(v) for v in box)
     return (right - left) * 25.4 / 72, (top - bottom) * 25.4 / 72
+
+
+def test_paid_order_can_update_the_delivery_address(auth_client, monkeypatch):
+    _blank_spec(monkeypatch)
+    pid = _ready(auth_client)
+    opened = auth_client.post(f"/v1/projects/{pid}/print-request")
+    assert opened.status_code == 200, opened.text
+    db = _session(auth_client)
+    try:
+        order = get_print_order(db, uuid.UUID(pid))
+        order.payment_status = "paid"
+        db.commit()
+    finally:
+        db.close()
+    saved = _address(auth_client, pid)
+    assert saved.status_code == 200, saved.text
+    body = saved.json()
+    assert body["payment_status"] == "paid"
+    assert body["recipient_name"] == "Ana"
+    assert body["city"] == "São Paulo"
 
 
 def test_blank_spec_refuses_production_pdf():

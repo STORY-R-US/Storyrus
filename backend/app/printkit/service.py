@@ -344,9 +344,10 @@ def _clear_freight(order: PrintOrder) -> None:
 
 
 def apply_address(order: PrintOrder, data: dict) -> None:
-    if order.payment_status in {"paid", "pending"}:
-        raise ValueError("O endereço não pode mudar depois de iniciar o pagamento.")
-    _clear_freight(order)
+    if order.status in {"sent_for_validation", "approved"} or order.tracking_code:
+        raise ValueError("A entrega não pode mudar depois que o livro foi para a gráfica.")
+    if order.payment_status not in {"paid", "pending"}:
+        _clear_freight(order)
     order.recipient_name = data["recipient_name"].strip()
     order.postal_code = "".join(ch for ch in data["postal_code"] if ch.isdigit())
     order.street = data["street"].strip()

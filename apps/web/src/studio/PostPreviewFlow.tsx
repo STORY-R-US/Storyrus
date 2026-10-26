@@ -34,6 +34,7 @@ export function PostPreviewFlow({
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [notes, setNotes] = useState("");
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
   const flow = project.purchase_flow;
   const approved = !!flow?.preview_approved_at && !dirty;
   const fullReady = !!flow?.full_book_ready_at;
@@ -278,7 +279,27 @@ export function PostPreviewFlow({
               )}
             </>
           )}
-          <details open={flow?.stage !== "generating_book" && !fullReady}>
+          <button
+            type="button"
+            className="kbtn"
+            onClick={() => {
+              setDeliveryOpen(true);
+              window.setTimeout(
+                () =>
+                  document.getElementById("entrega")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  }),
+                0,
+              );
+            }}
+          >
+            {t.editDelivery}
+          </button>
+          <details
+            open={(flow?.stage !== "generating_book" && !fullReady) || deliveryOpen}
+            onToggle={(event) => setDeliveryOpen(event.currentTarget.open)}
+          >
             <summary>{t.summary}</summary>
             <PrintCheckout
               projectId={project.id}

@@ -37,11 +37,12 @@ export function PrintCheckout({
   const [attempt, setAttempt] = useState(0);
   const [installments, setInstallments] = useState(1);
   const [quantity, setQuantity] = useState("1");
+  const deliverySent =
+    ["sent_for_validation", "approved"].includes(order?.status || "") ||
+    Boolean(order?.tracking_code);
   useCepLookup(
     address.postal_code,
-    address.postal_code !== savedAddress.postal_code &&
-      order?.payment_status !== "paid" &&
-      order?.payment_status !== "pending",
+    address.postal_code !== savedAddress.postal_code && !busy && !deliverySent,
     (a) =>
       setAddress((prev) => ({
         ...prev,
@@ -121,7 +122,8 @@ export function PrintCheckout({
         )}
       </div>
     );
-  const locked = busy || ["pending", "paid"].includes(order.payment_status);
+  const specLocked = busy || ["pending", "paid"].includes(order.payment_status);
+  const addressLocked = busy || deliverySent;
   const addressDirty = JSON.stringify(address) !== JSON.stringify(savedAddress);
   const total =
     order.book_price_cents == null
@@ -142,7 +144,7 @@ export function PrintCheckout({
         <strong>{order.code}</strong>
       </p>
       <p className="muted">{t.includes}</p>
-      <fieldset disabled={locked} className="purchase-fields">
+      <fieldset disabled={specLocked} className="purchase-fields">
         <label>
           {t.size}
           <select
@@ -204,9 +206,12 @@ export function PrintCheckout({
           />
         </label>
       </fieldset>
-      <form onSubmit={saveAddress}>
+      <form id="entrega" onSubmit={saveAddress}>
         <h4>{t.delivery}</h4>
-        <fieldset disabled={locked} className="purchase-fields">
+        {order.payment_status === "paid" && !addressLocked && (
+          <p className="muted">{t.editDeliveryHint}</p>
+        )}
+        <fieldset disabled={addressLocked} className="purchase-fields">
           {(Object.keys(empty) as (keyof PrintAddress)[]).map((key) => (
             <label key={key}>
               {
@@ -251,7 +256,7 @@ export function PrintCheckout({
         </fieldset>
         <button
           className="kbtn"
-          disabled={locked || !addressDirty}
+          disabled={addressLocked || !addressDirty}
           type="submit"
         >
           {t.saveAddress}
@@ -305,7 +310,7 @@ export function PrintCheckout({
               <button
                 className="kbtn kbtn-primary"
                 type="button"
-                disabled={locked || !ready || quantityDirty}
+                disabled={specLocked || !ready || quantityDirty}
                 onClick={() =>
                   void run(async () => {
                     const next = await api.checkoutPrint(
@@ -328,7 +333,7 @@ export function PrintCheckout({
               <button
                 className="kbtn kbtn-primary"
                 type="button"
-                disabled={locked || !ready || quantityDirty}
+                disabled={specLocked || !ready || quantityDirty}
                 onClick={() =>
                   void run(async () => {
                     const next = await api.confirmManualPayment(projectId);
@@ -348,7 +353,7 @@ export function PrintCheckout({
           )}
           <button
             className="kbtn"
-            disabled={locked || addressDirty || quantityDirty}
+            disabled={specLocked || addressDirty || quantityDirty}
             type="button"
             onClick={() =>
               void run(async () => {
