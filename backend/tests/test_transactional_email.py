@@ -215,6 +215,73 @@ def test_print_shop_email_attaches_the_approved_pdf(monkeypatch):
     assert base64.b64decode(body["attachments"][0]["content"]) == pdf
 
 
+def test_print_shop_email_attaches_cover_and_interior(monkeypatch):
+    import base64
+
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+    monkeypatch.setattr(settings, "new_order_notify_emails", "sales@storyrus.ai")
+    calls: list[dict] = []
+
+    class _Resp:
+        status_code = 200
+        text = "ok"
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(json)
+        return _Resp()
+
+    monkeypatch.setattr("app.services.transactional_email.httpx.post", fake_post)
+    monkeypatch.setattr(
+        "app.services.transactional_email._shop_pdfs",
+        lambda db, project, order: [
+            (f"{order.code}_01_Capa_e_Contracapa_Separadas_Sangria_5mm.pdf", b"%PDF-capa"),
+            (f"{order.code}_02_Miolo_Impares_Espelhadas_Dedicatoria_Sangria_5mm.pdf", b"%PDF-miolo"),
+        ],
+    )
+
+    class Bag:
+        pass
+
+    account = Bag()
+    account.full_name = "Ana"
+    account.email = "ana@example.com"
+    account.phone = ""
+    project = Bag()
+    project.child_name = "Lia"
+    project.child_age = 4
+    project.language = "pt-BR"
+    project.dedication = "Para Lia."
+    project.book_size = "M"
+    project.cover_type = "hard"
+    project.book_profile = {"title": "Lia e o mar"}
+    project.story_text = ""
+    project.user = account
+    order = Bag()
+    order.code = "SR-TESTE01"
+    order.book_size = "M"
+    order.cover_type = "hard"
+    order.quantity = 1
+    order.postal_code = "01310100"
+    order.street = "Av. Paulista"
+    order.number = "1000"
+    order.complement = ""
+    order.district = "Bela Vista"
+    order.city = "São Paulo"
+    order.state = "SP"
+    order.recipient_name = "Ana"
+
+    from app.services.transactional_email import notify_print_shop
+
+    assert notify_print_shop(None, project, order) is True
+    names = [item["filename"] for item in calls[0]["attachments"]]
+    assert names == [
+        "SR-TESTE01_01_Capa_e_Contracapa_Separadas_Sangria_5mm.pdf",
+        "SR-TESTE01_02_Miolo_Impares_Espelhadas_Dedicatoria_Sangria_5mm.pdf",
+    ]
+    assert base64.b64decode(calls[0]["attachments"][1]["content"]) == b"%PDF-miolo"
+    assert "páginas ímpares espelhadas" in calls[0]["text"]
+
+
 def test_send_email_many_without_recipients_is_noop(monkeypatch):
     calls: list[dict] = []
     _capture_resend(monkeypatch, calls)

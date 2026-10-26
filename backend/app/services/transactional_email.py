@@ -518,20 +518,84 @@ def _cover_label(cover_type: str | None) -> str:
     return {"soft": "Capa flexível", "hard": "Capa dura"}.get(cover_type or "", cover_type or "—")
 
 
-def notify_print_shop(_db, project, order) -> bool:
-    """E-mail interno com a ficha da gráfica e o PDF aprovado em anexo."""
+def _shop_attachments(db, project, order) -> list[tuple[str, bytes]]:
+    """Capa/contracapa separadas e miolo espelhado. Sem as páginas, usa o PDF do livro."""
+    built = _shop_pdfs(db, project, order)
+    if built:
+        return built
     from app import storage
 
-    pdf: bytes | None = None
-    key = (project.ebook_url or "").strip()
-    if key:
-        try:
-            blob = storage.get_bytes(key)
-        except Exception:
-            logger.warning("print_shop_pdf_missing code=%s", order.code)
-            blob = b""
-        if blob.startswith(b"%PDF"):
-            pdf = blob
+    key = (getattr(project, "ebook_url", None) or "").strip()
+    if not key:
+        return []
+    try:
+        blob = storage.get_bytes(key)
+    except Exception:
+        logger.warning("print_shop_pdf_missing code=%s", order.code)
+        return []
+    if not blob.startswith(b"%PDF"):
+        return []
+    return [(f"{order.code}.pdf", blob)]
+
+
+def _shop_pdfs(db, project, order) -> list[tuple[str, bytes]] | None:
+    if db is None or getattr(project, "id", None) is None:
+        return None
+    from sqlalchemy import select
+
+    from app import storage
+    from app.models import Asset
+    from app.workers import book_render
+
+    language = (project.language or "pt-BR").strip()
+    rows = db.scalars(select(Asset).where(Asset.project_id == project.id)).all()
+
+    def latest(role: str, page: int | None = None):
+        found = []
+        for asset in rows:
+            meta = asset.meta or {}
+            if meta.get("workflow") != 1 or meta.get("language") != language or meta.get("role") != role:
+                continue
+            if page is not None and meta.get("page") != page:
+                continue
+            found.append(asset)
+        return found[-1] if found else None
+
+    cover = latest("01_CAPA")
+    back = latest("04_CONTRACAPA")
+    if cover is None:
+        return None
+    pages: list[bytes] = []
+    for number in range(1, 17):
+        asset = latest("com_texto", number)
+        if asset is None:
+            return None
+        pages.append(storage.get_bytes(asset.storage_key))
+    front_bytes = storage.get_bytes(cover.storage_key)
+    back_bytes = (
+        storage.get_bytes(back.storage_key)
+        if back is not None
+        else book_render.back_cover(front_bytes)
+    )
+    size_cm = 15 if (order.book_size or project.book_size) == "P" else 20
+    covers, interior = book_render.shop_pdfs(
+        front_bytes,
+        back_bytes,
+        pages,
+        dedication=project.dedication,
+        size_cm=size_cm,
+        title=_book_title(project),
+    )
+    code = order.code
+    return [
+        (f"{code}_01_Capa_e_Contracapa_Separadas_Sangria_5mm.pdf", covers),
+        (f"{code}_02_Miolo_Impares_Espelhadas_Dedicatoria_Sangria_5mm.pdf", interior),
+    ]
+
+
+def notify_print_shop(_db, project, order) -> bool:
+    """E-mail interno com a ficha da gráfica e os dois PDFs de impressão em anexo."""
+    attachments = _shop_attachments(_db, project, order)
     account = project.user
     postal = "".join(ch for ch in (order.postal_code or "") if ch.isdigit())
     if len(postal) == 8:
@@ -568,13 +632,19 @@ def notify_print_shop(_db, project, order) -> bool:
         ("E-mail do cliente", (account.email or "").strip() or "—"),
         ("Telefone", (account.phone or "").strip() or "—"),
     ]
-    filename = f"{order.code}.pdf"
     subject = f"Gráfica — {order.code} — {(project.child_name or 'livro').strip()}"
+    paired = len(attachments) == 2
     intro = (
         "Livro aprovado para impressão. Encaminhe este e-mail para a gráfica. "
-        "O anexo é o PDF aprovado pela família, no mesmo formato do livro aberto no estúdio."
-        if pdf
-        else "Livro aprovado para impressão. O PDF aprovado não estava disponível para anexar."
+        "O primeiro anexo traz a contracapa e a capa em páginas separadas, com sangria de 5 mm. "
+        "O segundo é o miolo: páginas ímpares espelhadas, dedicatória e a mesma sangria."
+        if paired
+        else (
+            "Livro aprovado para impressão. Encaminhe este e-mail para a gráfica. "
+            "O anexo é o PDF aprovado pela família."
+            if attachments
+            else "Livro aprovado para impressão. Os PDFs não estavam disponíveis para anexar."
+        )
     )
     text = "\n".join([intro, "", *[f"{label}: {value}" for label, value in rows], "", "www.storyrus.ai"])
     html = _new_order_html(
@@ -582,12 +652,12 @@ def notify_print_shop(_db, project, order) -> bool:
         summary=intro,
         order_url=f"{public_web_origin()}/pedidos",
         heading="Livro aprovado para a gráfica",
-        lead="Encaminhe esta ficha e o PDF em anexo.",
+        lead="Encaminhe esta ficha e os PDFs em anexo.",
     )
     return send_email_many(
         to_emails=new_order_notify_recipients(),
         subject=subject,
         text=text,
         html=html,
-        attachments=[(filename, pdf)] if pdf else None,
+        attachments=attachments or None,
     )

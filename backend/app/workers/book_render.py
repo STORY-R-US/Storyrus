@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 _ASSETS = Path(__file__).resolve().parents[1] / "assets"
 FONT = _ASSETS / "fonts/Nunito-SemiBold.ttf"
 COVER_FONT = _ASSETS / "fonts/Fredoka-Bold.ttf"
+DEDICATION_FONT = _ASSETS / "fonts/PlayfairDisplay-Regular.ttf"
 LOGO = _ASSETS / "brand/logo.png"
 QR = _ASSETS / "brand/qr-storyrus.png"
 INK = "#172A3A"
@@ -167,12 +168,131 @@ def pdf(cover: bytes, pages: list[bytes], back: bytes, *, size_cm: int) -> bytes
     return _pages_pdf([cover, *pages, back], size_cm=size_cm)
 
 
-def covers_pdf(back: bytes, front: bytes, *, size_cm: int) -> bytes:
+def covers_pdf(back: bytes, front: bytes, *, size_cm: int, title: str = "") -> bytes:
     """Contracapa e capa em páginas separadas, na ordem do PDF de referência."""
-    return _pages_pdf([back, front], size_cm=size_cm)
+    return _pages_pdf([back, front], size_cm=size_cm, title=title)
 
 
-def _pages_pdf(frames: list[bytes], *, size_cm: int) -> bytes:
+def shop_pdfs(
+    front: bytes,
+    back: bytes,
+    pages: list[bytes],
+    *,
+    dedication: str | None,
+    size_cm: int,
+    title: str = "",
+) -> tuple[bytes, bytes]:
+    """Capa/contracapa separadas e miolo com ímpares espelhadas, dedicatória e sangria."""
+    covers = covers_pdf(back, front, size_cm=size_cm, title=title)
+    interior = interior_pdf(pages, dedication=dedication, size_cm=size_cm, title=title)
+    return covers, interior
+
+
+def interior_pdf(
+    pages: list[bytes], *, dedication: str | None, size_cm: int, title: str = ""
+) -> bytes:
+    """Miolo em 210 mm. Página ímpar é espelhada. A dedicatória fecha o arquivo."""
+    frames = [
+        _print_page(raw, number, mirror=number % 2 == 1) for number, raw in enumerate(pages, start=1)
+    ]
+    frames.append(dedication_page(dedication or ""))
+    return _pages_pdf(frames, size_cm=size_cm, title=title)
+
+
+def _print_page(raw: bytes, number: int, *, mirror: bool) -> bytes:
+    image = Image.open(io.BytesIO(raw)).convert("RGB")
+    image = image.resize((TARGET_PX, TARGET_PX), Image.Resampling.LANCZOS)
+    _page_badge(image, number)
+    if mirror:
+        image = ImageOps.mirror(image)
+    out = io.BytesIO()
+    image.save(out, "PNG")
+    return out.getvalue()
+
+
+def _page_badge(image: Image.Image, number: int) -> None:
+    """Número no canto inferior esquerdo. O espelho da página ímpar leva o número à direita."""
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(str(FONT), max(22, TARGET_PX // 46))
+    label = str(number)
+    text_w = draw.textlength(label, font=font)
+    pad_x = int(font.size * 0.72)
+    pad_y = int(font.size * 0.38)
+    width = int(text_w + pad_x * 2)
+    height = font.size + pad_y * 2
+    margin = int(TARGET_PX * (14 / 210))
+    x0 = margin
+    y0 = image.height - margin - height
+    draw.rounded_rectangle((x0, y0, x0 + width, y0 + height), radius=height / 2, fill=(255, 255, 255))
+    draw.text((x0 + pad_x, y0 + pad_y * 0.45), label, font=font, fill=NAVY)
+
+
+def dedication_page(text: str) -> bytes:
+    """Página branca de dedicatória, no fechamento do miolo."""
+    image = Image.new("RGB", (TARGET_PX, TARGET_PX), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    _dedication_corners(draw, TARGET_PX)
+    title_font = ImageFont.truetype(str(DEDICATION_FONT), int(TARGET_PX * 0.055))
+    title = "Dedicatória"
+    title_w = draw.textlength(title, font=title_font)
+    title_y = int(TARGET_PX * 0.16)
+    draw.text(((TARGET_PX - title_w) / 2, title_y), title, font=title_font, fill=NAVY)
+    heart_y = title_y + title_font.size + int(TARGET_PX * 0.02)
+    _star(draw, TARGET_PX // 2, heart_y, max(8, TARGET_PX // 90))
+    body = (text or "").strip()
+    if body:
+        column = int(TARGET_PX * 0.62)
+        font = ImageFont.truetype(str(FONT), int(TARGET_PX * 0.028))
+        lines = _wrap(draw, body, font, column)
+        step = int(font.size * 1.45)
+        y = int(TARGET_PX * 0.42)
+        for line in lines:
+            drawn = draw.textlength(line, font=font)
+            draw.text(((TARGET_PX - drawn) / 2, y), line, font=font, fill=NAVY)
+            y += step
+    if LOGO.exists():
+        logo = _logo()
+        logo_h = int(TARGET_PX * 0.07)
+        logo_w = max(1, int(logo.width * logo_h / logo.height))
+        logo = logo.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
+        faded = Image.new("RGBA", logo.size, (255, 255, 255, 0))
+        faded.paste(logo, (0, 0))
+        pixels = [(r, g, b, min(a, 48)) for r, g, b, a in faded.getdata()]
+        faded.putdata(pixels)
+        image.paste(faded, ((TARGET_PX - logo_w) // 2, int(TARGET_PX * 0.72)), faded)
+    else:
+        mark = ImageFont.truetype(str(FONT), int(TARGET_PX * 0.035))
+        label = "STORY R US"
+        drawn = draw.textlength(label, font=mark)
+        draw.text(((TARGET_PX - drawn) / 2, int(TARGET_PX * 0.74)), label, font=mark, fill=(210, 214, 220))
+    out = io.BytesIO()
+    image.save(out, "PNG")
+    return out.getvalue()
+
+
+def _dedication_corners(draw: ImageDraw.ImageDraw, side: int) -> None:
+    blue = (126, 176, 214)
+    clusters = (
+        (int(side * 0.08), int(side * 0.08), 1, 1),
+        (int(side * 0.92), int(side * 0.08), -1, 1),
+        (int(side * 0.08), int(side * 0.92), 1, -1),
+        (int(side * 0.92), int(side * 0.92), -1, -1),
+    )
+    for cx, cy, flip_x, flip_y in clusters:
+        _star(draw, cx, cy, side // 48)
+        _star(draw, cx + flip_x * side // 28, cy + flip_y * side // 40, side // 70)
+        draw.ellipse(
+            (
+                cx + flip_x * side // 18 - side // 90,
+                cy + flip_y * side // 22 - side // 90,
+                cx + flip_x * side // 18 + side // 90,
+                cy + flip_y * side // 22 + side // 90,
+            ),
+            fill=blue,
+        )
+
+
+def _pages_pdf(frames: list[bytes], *, size_cm: int, title: str = "") -> bytes:
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen.canvas import Canvas
 
@@ -180,6 +300,9 @@ def _pages_pdf(frames: list[bytes], *, size_cm: int) -> bytes:
     side = (size_cm * 10 + BLEED_MM * 2) * 72 / 25.4
     output = io.BytesIO()
     canvas = Canvas(output, pagesize=(side, side))
+    if title:
+        canvas.setTitle(f"STORY R US - {title}")
+    canvas.setAuthor("STORY R US")
     for data in frames:
         frame = Image.open(io.BytesIO(data)).convert("RGB")
         if frame.size != (TARGET_PX, TARGET_PX):

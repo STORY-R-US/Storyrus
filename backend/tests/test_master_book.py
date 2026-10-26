@@ -172,6 +172,34 @@ def test_cover_title_and_back_brand_sit_in_the_sky():
     assert len(covers.pages[0].images) == 1
 
 
+def test_print_interior_mirrors_odd_pages_and_closes_with_dedication():
+    art = Image.new("RGB", (80, 80), (20, 40, 80))
+    for x in range(60, 80):
+        for y in range(0, 20):
+            art.putpixel((x, y), (255, 0, 0))
+    raw = io.BytesIO()
+    art.save(raw, "PNG")
+    blob = book_render.interior_pdf(
+        [raw.getvalue(), raw.getvalue()], dedication="Para Lia.", size_cm=20, title="Lia"
+    )
+    pdf = PdfReader(io.BytesIO(blob))
+    assert len(pdf.pages) == 3
+    assert round(float(pdf.pages[0].mediabox.width) * 25.4 / 72, 1) == 210.0
+    import fitz
+
+    doc = fitz.open(stream=blob, filetype="pdf")
+
+    def red_on_left(page) -> int:
+        pix = page.get_pixmap(matrix=fitz.Matrix(0.25, 0.25), alpha=False)
+        image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+        box = image.crop((0, 0, image.width // 4, image.height // 4))
+        return sum(pixel[0] for pixel in box.getdata())
+
+    assert red_on_left(doc[0]) > red_on_left(doc[1])
+    assert doc[2].get_images()
+    doc.close()
+
+
 def test_text_overlay_sits_in_the_sky_and_keeps_the_photo():
     art = _png()
     version = book_render.with_text(art, "Lia encontrou uma estrela.\nEra hora de brincar.", page=1)
