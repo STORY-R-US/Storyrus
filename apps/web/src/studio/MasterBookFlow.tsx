@@ -37,6 +37,7 @@ const COPY = {
     titleLabel: "Título do livro",
     titleSave: "Atualizar título",
     titleHint: "A capa é refeita com este título. O restante da história fica.",
+    goToOrder: "Ir para o pedido",
   },
   en: {
     preview: "Approve the preview?",
@@ -69,6 +70,7 @@ const COPY = {
     titleLabel: "Book title",
     titleSave: "Update title",
     titleHint: "The cover is remade with this title. The rest of the story stays.",
+    goToOrder: "Go to the order",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -101,6 +103,7 @@ const COPY = {
     titleLabel: "Título del libro",
     titleSave: "Actualizar título",
     titleHint: "La portada se rehace con este título. El resto de la historia queda.",
+    goToOrder: "Ir al pedido",
   },
 };
 
@@ -277,6 +280,17 @@ export function MasterBookFlow({
           );
         })}
       </div>
+      {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
+        <button
+          type="button"
+          className="kbtn kbtn-primary master-order-jump"
+          onClick={() =>
+            document.getElementById("pedido")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        >
+          {t.goToOrder}
+        </button>
+      )}
       {canEditTitle && (
         <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
           <div className="master-title-row">

@@ -74,6 +74,7 @@ export function PostPreviewFlow({
   return (
     <section
       className="purchase-flow"
+      id="pedido"
       aria-labelledby="purchase-heading"
       data-testid="purchase-flow"
     >

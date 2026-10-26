@@ -1078,6 +1078,14 @@
   cursor: pointer;
 }
 
+.studio-app .master-order-jump {
+  margin-top: 1.15rem;
+}
+
+.studio-app #pedido {
+  scroll-margin-top: 5.5rem;
+}
+
 .studio-app .master-title-card,
 .studio-app .master-decision {
   margin-top: 1.25rem;

@@ -52,6 +52,11 @@ describe("Studio approval stages", () => {
     render(<MasterBookFlow project={approved} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     expect(story).not.toHaveBeenCalled();
     const labels = screen.getAllByRole("figure").map((el) => el.textContent);
+    const jump = screen.getByRole("button", { name: "Ir para o pedido" });
+    const scroll = vi.fn();
+    document.getElementById("pedido")!.scrollIntoView = scroll;
+    await userEvent.click(jump);
+    expect(scroll).toHaveBeenCalled();
     expect(labels[0]).toContain("Capa");
     expect(labels[1]).toContain("Livro aberto");
     expect(labels[2]).toContain("Leitura");
