@@ -21,6 +21,14 @@ import "./landing.css";
 
 export type AuthMode = "login" | "signup";
 
+/** Botões com nome da plataforma. O CSS global de `button` não pode achatar o Clerk. */
+const clerkAppearance = {
+  layout: {
+    socialButtonsVariant: "blockButton" as const,
+    socialButtonsPlacement: "top" as const,
+  },
+};
+
 const COPY: Record<
   Lang,
   {
@@ -573,6 +581,7 @@ function AuthBody({
                   path="/entrar"
                   signUpUrl={`/cadastro?next=${encodeURIComponent(next)}`}
                   fallbackRedirectUrl={next}
+                  appearance={clerkAppearance}
                 />
               ) : (
                 <SignUp
@@ -580,6 +589,7 @@ function AuthBody({
                   path="/cadastro"
                   signInUrl={`/entrar?next=${encodeURIComponent(next)}`}
                   fallbackRedirectUrl={next}
+                  appearance={clerkAppearance}
                 />
               )
             ) : (
