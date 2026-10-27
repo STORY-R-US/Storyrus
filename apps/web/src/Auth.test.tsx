@@ -98,7 +98,7 @@ describe("Auth", () => {
   it("mostra o cadastro do Clerk sem sessão", async () => {
     renderAuth("signup", "/app?tema=space");
     expect(await screen.findByTestId("clerk-sign-up")).toBeInTheDocument();
-    expect(screen.getByTestId("auth-clerk-hint")).toHaveTextContent(/google ou o código/i);
+    expect(screen.getByTestId("auth-clerk-hint")).toHaveTextContent(/google, apple, facebook, microsoft/i);
     expect(screen.queryByTestId("auth-form")).not.toBeInTheDocument();
   });
 
