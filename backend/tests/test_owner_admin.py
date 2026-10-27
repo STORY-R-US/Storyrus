@@ -136,6 +136,33 @@ def test_non_gmail_local_part_is_not_folded(client, monkeypatch):
     assert denied.status_code == 401
 
 
+def test_admin_opens_another_users_project(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "owner_emails", "")
+    created = auth_client.post("/v1/projects", json={"style": "cartoon", "child_name": "Lia"})
+    assert created.status_code == 201, created.text
+    project_id = created.json()["id"]
+
+    other = signup_and_verify(auth_client, "cliente@example.com")
+    denied = auth_client.get(
+        f"/v1/projects/{project_id}",
+        headers={"Authorization": f"Bearer {other}"},
+    )
+    assert denied.status_code == 404
+
+    _set_admin(auth_client, "cliente@example.com", admin=True)
+    opened = auth_client.get(
+        f"/v1/projects/{project_id}",
+        headers={"Authorization": f"Bearer {other}"},
+    )
+    assert opened.status_code == 200, opened.text
+    assert opened.json()["child_name"] == "Lia"
+    assets = auth_client.get(
+        f"/v1/projects/{project_id}/assets",
+        headers={"Authorization": f"Bearer {other}"},
+    )
+    assert assets.status_code == 200, assets.text
+
+
 def test_password_still_works_when_fallback_on(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)

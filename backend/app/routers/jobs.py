@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import Job, Project, User
+from app.owner_auth import user_is_admin
 from app.schemas import JobOut
 
 router = APIRouter(prefix="/v1/jobs", tags=["jobs"])
@@ -23,6 +24,6 @@ def get_job(
     if job is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Job nao encontrado")
     project = db.get(Project, job.project_id)
-    if project is None or project.user_id != user.id:
+    if project is None or (project.user_id != user.id and not user_is_admin(user)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Job nao encontrado")
     return job

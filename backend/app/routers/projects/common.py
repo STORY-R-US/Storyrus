@@ -11,14 +11,16 @@ from sqlalchemy.orm import Session
 
 from app import storage
 from app.models import Asset, Job, JobType, OrderTicket, PrintOrder, Project, UsageEvent, User
+from app.owner_auth import user_is_admin
 from app.schemas import JobAcceptedOut
 
 logger = logging.getLogger(__name__)
 
 
 def get_owned_project(db: Session, user: User, project_id: uuid.UUID) -> Project:
+    """O dono do livro abre o próprio projeto. O admin abre o de qualquer conta."""
     project = db.get(Project, project_id)
-    if project is None or project.user_id != user.id:
+    if project is None or (project.user_id != user.id and not user_is_admin(user)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Projeto nao encontrado")
     return project
 
