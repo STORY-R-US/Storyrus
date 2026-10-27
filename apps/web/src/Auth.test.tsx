@@ -234,10 +234,10 @@ describe("Auth", () => {
     expect(await screen.findByTestId("auth-form")).toBeInTheDocument();
     expect(screen.getByTestId("auth-lang")).toBeInTheDocument();
     await user.click(screen.getByTestId("auth-lang-en"));
-    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/create account/i);
+    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/save and continue/i);
     expect(screen.getByTestId("auth-country")).toHaveValue("US");
     await user.click(screen.getByTestId("auth-lang-es"));
-    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/crear cuenta/i);
+    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/guardar y continuar/i);
     expect(screen.getByTestId("auth-country")).toHaveValue("MX");
   });
 
