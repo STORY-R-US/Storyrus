@@ -458,7 +458,9 @@ button.usage-user-card.is-on {
   text-transform: uppercase;
   color: #ef8f4b;
 }
-.usage-user-form input {
+.order-edit { margin: 1rem 0 1.25rem; }
+.usage-user-form input,
+.usage-user-form select {
   width: 100%;
   border-radius: 10px;
   border: 1px solid var(--line);
@@ -467,7 +469,8 @@ button.usage-user-card.is-on {
   padding: 0.65rem 0.75rem;
   font: inherit;
 }
-.usage-user-form input:focus {
+.usage-user-form input:focus,
+.usage-user-form select:focus {
   outline: none;
   border-color: #ef8f4b;
   box-shadow: 0 0 0 3px rgba(239, 143, 75, 0.22);
@@ -565,6 +568,7 @@ html[data-theme="light"] .usage-owner-nav a.is-on {
 }
 html[data-theme="light"] .usage-user-search input,
 html[data-theme="light"] .usage-user-form input,
+html[data-theme="light"] .usage-user-form select,
 html[data-theme="light"] .usage-user-card {
   background: #fff;
   color: #21305f;

@@ -762,6 +762,12 @@ export const api = {
   async deleteOrder(password: string | null | undefined, id: string) {
     await ownerJson<void>(`/v1/usage/orders/${id}`, password, { method: "DELETE" });
   },
+  async updateOrder(password: string | null | undefined, id: string, body: Record<string, unknown>) {
+    return ownerJson<OrderTicket>(`/v1/usage/orders/${id}`, password, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
   async generateOrderImages(password: string | null | undefined, id: string) {
     return ownerJson<JobAccepted>(`/v1/usage/orders/${id}/generate`, password, { method: "POST" });
   },

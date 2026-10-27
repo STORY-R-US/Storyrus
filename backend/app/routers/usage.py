@@ -36,6 +36,7 @@ from app.printkit.service import attach_service_orders
 from app.schemas import (
     ErrorReportOut,
     JobAcceptedOut,
+    OrderEditIn,
     OrderFileOut,
     OrderTicketOut,
     UsageAnomalyOut,
@@ -454,6 +455,17 @@ def _collect_orders(
                     amount_cents=_opt_int(printed.amount_cents) if printed else None,
                     account_email=account_email,
                     mine=is_owner_email(account_email),
+                    child_name=_opt_str(project.child_name) if project else None,
+                    dedication=_opt_str(project.dedication) if project else None,
+                    quantity=_opt_int(printed.quantity) if printed else None,
+                    recipient_name=_opt_str(printed.recipient_name) if printed else None,
+                    postal_code=_opt_str(printed.postal_code) if printed else None,
+                    street=_opt_str(printed.street) if printed else None,
+                    number=_opt_str(printed.number) if printed else None,
+                    complement=_opt_str(printed.complement) if printed else None,
+                    district=_opt_str(printed.district) if printed else None,
+                    city=_opt_str(printed.city) if printed else None,
+                    state=_opt_str(printed.state) if printed else None,
                 )
             )
         except Exception:
@@ -712,6 +724,108 @@ def regenerate_order_images(
         payload={preview_chain.PREVIEW_FLAG: True, "reuse_story": bool(project.story_text)},
     )
     return accept_job(job)
+
+
+def _summary_line(summary: str, label: str, value: str | None) -> str:
+    prefix = f"{label}:"
+    lines = summary.splitlines() or [summary]
+    kept: list[str] = []
+    found = False
+    for line in lines:
+        if line.startswith(prefix):
+            found = True
+            if value:
+                kept.append(f"{prefix} {value}")
+            continue
+        kept.append(line)
+    if not found and value:
+        kept.append(f"{prefix} {value}")
+    return "\n".join(kept)
+
+
+_PRINT_FIELDS = (
+    "quantity",
+    "payment_status",
+    "tracking_code",
+    "recipient_name",
+    "postal_code",
+    "street",
+    "number",
+    "complement",
+    "district",
+    "city",
+    "state",
+)
+
+
+@router.patch("/orders/{order_id}", response_model=OrderTicketOut)
+def update_order(
+    order_id: uuid.UUID,
+    body: OrderEditIn,
+    _: Annotated[None, Depends(require_owner_password)],
+    db: Annotated[Session, Depends(get_db)],
+) -> OrderTicketOut:
+    """O admin corrige nome, dedicatória, formato, pagamento e entrega."""
+    ticket = db.get(OrderTicket, order_id)
+    if ticket is None or ticket.project is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido não encontrado")
+    project = ticket.project
+    data = body.model_dump(exclude_unset=True)
+    printed = db.scalar(select(PrintOrder).where(PrintOrder.project_id == project.id))
+    needs_print = any(key in data for key in _PRINT_FIELDS)
+    if needs_print and printed is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Este pedido ainda não tem ordem de impressão.")
+
+    if "child_name" in data:
+        name = (data["child_name"] or "").strip()
+        if not name:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "O nome da criança não pode ficar vazio.")
+        project.child_name = name
+        ticket.summary = _summary_line(ticket.summary, "Nome", name)
+    if "child_age" in data:
+        project.child_age = data["child_age"]
+    if "dedication" in data:
+        text = (data["dedication"] or "").strip() or None
+        project.dedication = text
+        ticket.summary = _summary_line(ticket.summary, "Dedicatória", text)
+    if "book_size" in data:
+        project.book_size = data["book_size"]
+        if printed is not None:
+            printed.book_size = data["book_size"]
+    if "cover_type" in data:
+        project.cover_type = data["cover_type"]
+        if printed is not None:
+            printed.cover_type = data["cover_type"]
+    if printed is not None:
+        for key in (
+            "quantity",
+            "payment_status",
+            "recipient_name",
+            "postal_code",
+            "street",
+            "number",
+            "complement",
+            "district",
+            "city",
+        ):
+            if key in data and data[key] is not None:
+                setattr(printed, key, data[key])
+        if "tracking_code" in data:
+            printed.tracking_code = (data["tracking_code"] or "").strip() or None
+        if "state" in data and data["state"] is not None:
+            printed.state = str(data["state"]).strip().upper()
+        if "quantity" in data and data["quantity"] is not None:
+            ticket.summary = _summary_line(ticket.summary, "Quantidade", str(data["quantity"]))
+    db.add(project)
+    db.add(ticket)
+    if printed is not None:
+        db.add(printed)
+    db.commit()
+    orders, _, _, _ = _collect_orders(db, backfill=False)
+    found = next((item for item in orders if item.id == ticket.id), None)
+    if found is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido não encontrado")
+    return found
 
 
 @router.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)

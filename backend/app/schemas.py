@@ -189,6 +189,8 @@ class OwnerUserOut(BaseModel):
     state: str | None = None
     country: str | None = None
     terms_accepted_at: datetime | None = None
+    is_admin: bool = False
+    adult_confirmed: bool = False
 
 
 class OwnerUserUpdateIn(ProfileUpdateIn):
@@ -197,6 +199,9 @@ class OwnerUserUpdateIn(ProfileUpdateIn):
     email: EmailStr | None = None
     credits: int | None = Field(default=None, ge=0, le=100_000)
     email_verified: bool | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+    is_admin: bool | None = None
+    adult_confirmed: bool | None = None
 
     @model_validator(mode="after")
     def _has_patch(self) -> "OwnerUserUpdateIn":
@@ -465,6 +470,44 @@ class OrderTicketOut(BaseModel):
     amount_cents: int | None = None
     account_email: str | None = None
     mine: bool = False
+    child_name: str | None = None
+    dedication: str | None = None
+    quantity: int | None = None
+    recipient_name: str | None = None
+    postal_code: str | None = None
+    street: str | None = None
+    number: str | None = None
+    complement: str | None = None
+    district: str | None = None
+    city: str | None = None
+    state: str | None = None
+
+
+class OrderEditIn(BaseModel):
+    """O admin corrige o pedido sem passar pelo estúdio da família."""
+
+    child_name: str | None = Field(default=None, max_length=80)
+    child_age: int | None = Field(default=None, ge=0, le=120)
+    dedication: str | None = Field(default=None, max_length=500)
+    book_size: Literal["M", "P"] | None = None
+    cover_type: Literal["soft", "hard"] | None = None
+    quantity: int | None = Field(default=None, ge=1, le=20)
+    payment_status: Literal["unpaid", "pending", "paid"] | None = None
+    tracking_code: str | None = Field(default=None, max_length=40)
+    recipient_name: str | None = Field(default=None, max_length=120)
+    postal_code: str | None = Field(default=None, max_length=16)
+    street: str | None = Field(default=None, max_length=160)
+    number: str | None = Field(default=None, max_length=20)
+    complement: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, max_length=80)
+    city: str | None = Field(default=None, max_length=80)
+    state: str | None = Field(default=None, max_length=2)
+
+    @model_validator(mode="after")
+    def _has_patch(self) -> "OrderEditIn":
+        if not self.model_dump(exclude_unset=True):
+            raise PydanticCustomError("empty_patch", "Nada para atualizar")
+        return self
 
 
 class FreightOptionOut(BaseModel):

@@ -93,6 +93,61 @@ def fetch_jwks() -> list[dict]:
     return keys
 
 
+def _clerk_error(response: httpx.Response) -> str:
+    try:
+        errors = response.json().get("errors") or []
+    except Exception:
+        errors = []
+    if errors:
+        message = str(errors[0].get("long_message") or errors[0].get("message") or "").strip()
+        if message:
+            return message
+    return "O Clerk recusou a alteração."
+
+
+def _clerk_json(method: str, path: str, payload: dict) -> dict:
+    if not (settings.clerk_secret_key or "").strip():
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "O Clerk não está configurado.")
+    response = httpx.request(
+        method,
+        f"{_CLERK_API}{path}",
+        headers={"Authorization": f"Bearer {settings.clerk_secret_key}"},
+        json=payload,
+        timeout=15.0,
+    )
+    if response.status_code >= 400:
+        code = status.HTTP_400_BAD_REQUEST if response.status_code < 500 else status.HTTP_502_BAD_GATEWAY
+        raise HTTPException(code, _clerk_error(response))
+    return response.json() if response.content else {}
+
+
+def set_clerk_password(clerk_user_id: str, password: str) -> None:
+    """Troca a senha de login e encerra as outras sessões dessa conta."""
+    _clerk_json(
+        "PATCH",
+        f"/users/{clerk_user_id}",
+        {
+            "password": password,
+            "skip_password_checks": False,
+            "sign_out_of_other_sessions": True,
+        },
+    )
+
+
+def set_clerk_email(clerk_user_id: str, email: str) -> None:
+    """Inclui o e-mail como verificado e principal no Clerk."""
+    _clerk_json(
+        "POST",
+        "/email_addresses",
+        {
+            "user_id": clerk_user_id,
+            "email_address": email,
+            "verified": True,
+            "primary": True,
+        },
+    )
+
+
 def fetch_clerk_user(user_id: str) -> dict:
     response = httpx.get(
         f"{_CLERK_API}/users/{user_id}",

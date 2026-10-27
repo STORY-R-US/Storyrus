@@ -43,6 +43,8 @@ def _to_out(db: Session, user: User, project_count: int | None = None) -> OwnerU
         state=user.state,
         country=user.country,
         terms_accepted_at=user.terms_accepted_at,
+        is_admin=bool(user.is_admin),
+        adult_confirmed=user.adult_confirmed_at is not None,
     )
 
 
@@ -100,7 +102,33 @@ def update_user(
         clash = db.scalar(select(User).where(func.lower(User.email) == email, User.id != user.id))
         if clash is not None:
             raise HTTPException(status.HTTP_409_CONFLICT, "E-mail ja cadastrado")
+        if user.clerk_user_id and email != user.email:
+            from app.services.clerk_identity import set_clerk_email
+
+            set_clerk_email(user.clerk_user_id, email)
         user.email = email
+
+    if data.get("password"):
+        password = str(data["password"])
+        if user.clerk_user_id:
+            from app.services.clerk_identity import set_clerk_password
+
+            set_clerk_password(user.clerk_user_id, password)
+        else:
+            from app.security import hash_password
+
+            user.password_hash = hash_password(password)
+            user.password_reset_token_hash = None
+
+    if "is_admin" in data and data["is_admin"] is not None:
+        user.is_admin = bool(data["is_admin"])
+
+    if "adult_confirmed" in data and data["adult_confirmed"] is not None:
+        if data["adult_confirmed"]:
+            if user.adult_confirmed_at is None:
+                user.adult_confirmed_at = datetime.now(UTC)
+        else:
+            user.adult_confirmed_at = None
 
     if "credits" in data and data["credits"] is not None:
         user.credits = int(data["credits"])

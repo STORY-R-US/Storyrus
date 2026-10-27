@@ -169,6 +169,166 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
   return rows;
 }
 
+function orderDraft(order: OrderTicket) {
+  return {
+    child_name: order.child_name || nameOf(order),
+    child_age: order.child_age == null ? "" : String(order.child_age),
+    dedication: order.dedication ?? "",
+    book_size: order.book_size === "P" ? "P" : "M",
+    cover_type: order.cover_type === "hard" ? "hard" : "soft",
+    quantity: String(order.quantity ?? 1),
+    payment_status: order.payment_status || "unpaid",
+    tracking_code: order.tracking_code ?? "",
+    recipient_name: order.recipient_name ?? "",
+    postal_code: order.postal_code ?? "",
+    street: order.street ?? "",
+    number: order.number ?? "",
+    complement: order.complement ?? "",
+    district: order.district ?? "",
+    city: order.city ?? "",
+    state: order.state ?? "",
+  };
+}
+
+function OrderEditor({
+  order,
+  busy,
+  onSave,
+}: {
+  order: OrderTicket;
+  busy: boolean;
+  onSave: (body: Record<string, unknown>) => Promise<void>;
+}) {
+  const [form, setForm] = useState(() => orderDraft(order));
+  useEffect(() => {
+    setForm(orderDraft(order));
+    // Só reinicia ao trocar de pedido. A lista recarrega sozinha e não pode apagar o que está sendo digitado.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order.id]);
+
+  function set<K extends keyof ReturnType<typeof orderDraft>>(key: K, value: string) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function submit(ev: FormEvent) {
+    ev.preventDefault();
+    const body: Record<string, unknown> = {
+      child_name: form.child_name.trim(),
+      child_age: form.child_age === "" ? null : Number(form.child_age),
+      dedication: form.dedication.trim(),
+      book_size: form.book_size,
+      cover_type: form.cover_type,
+    };
+    if (order.print_order_id) {
+      Object.assign(body, {
+        quantity: Number(form.quantity) || 1,
+        payment_status: form.payment_status,
+        tracking_code: form.tracking_code.trim(),
+        recipient_name: form.recipient_name.trim(),
+        postal_code: form.postal_code.trim(),
+        street: form.street.trim(),
+        number: form.number.trim(),
+        complement: form.complement.trim(),
+        district: form.district.trim(),
+        city: form.city.trim(),
+        state: form.state.trim(),
+      });
+    }
+    void onSave(body);
+  }
+
+  return (
+    <form className="usage-user-form order-edit" onSubmit={submit} data-testid="order-edit">
+      <p className="usage-user-section usage-span-2">Editar pedido</p>
+      <label>
+        Nome da criança
+        <input value={form.child_name} onChange={(e) => set("child_name", e.target.value)} data-testid="order-edit-name" />
+      </label>
+      <label>
+        Idade
+        <input type="number" min={0} max={120} value={form.child_age} onChange={(e) => set("child_age", e.target.value)} />
+      </label>
+      <label className="usage-span-2">
+        Dedicatória
+        <input value={form.dedication} onChange={(e) => set("dedication", e.target.value)} />
+      </label>
+      <label>
+        Tamanho
+        <select value={form.book_size} onChange={(e) => set("book_size", e.target.value)}>
+          <option value="M">20 × 20 cm</option>
+          <option value="P">15 × 15 cm</option>
+        </select>
+      </label>
+      <label>
+        Capa
+        <select value={form.cover_type} onChange={(e) => set("cover_type", e.target.value)}>
+          <option value="soft">Capa flexível</option>
+          <option value="hard">Capa dura</option>
+        </select>
+      </label>
+      {order.print_order_id ? (
+        <>
+          <label>
+            Quantidade
+            <input type="number" min={1} max={20} value={form.quantity} onChange={(e) => set("quantity", e.target.value)} />
+          </label>
+          <label>
+            Faturamento
+            <select value={form.payment_status} onChange={(e) => set("payment_status", e.target.value)}>
+              <option value="unpaid">A faturar</option>
+              <option value="pending">Fatura em aberto</option>
+              <option value="paid">Faturado</option>
+            </select>
+          </label>
+          <label>
+            Rastreio
+            <input value={form.tracking_code} onChange={(e) => set("tracking_code", e.target.value)} />
+          </label>
+          <label>
+            Destinatário
+            <input value={form.recipient_name} onChange={(e) => set("recipient_name", e.target.value)} />
+          </label>
+          <label>
+            CEP
+            <input value={form.postal_code} onChange={(e) => set("postal_code", e.target.value)} />
+          </label>
+          <label className="usage-span-2">
+            Rua
+            <input value={form.street} onChange={(e) => set("street", e.target.value)} />
+          </label>
+          <label>
+            Número
+            <input value={form.number} onChange={(e) => set("number", e.target.value)} />
+          </label>
+          <label>
+            Complemento
+            <input value={form.complement} onChange={(e) => set("complement", e.target.value)} />
+          </label>
+          <label>
+            Bairro
+            <input value={form.district} onChange={(e) => set("district", e.target.value)} />
+          </label>
+          <label>
+            Cidade
+            <input value={form.city} onChange={(e) => set("city", e.target.value)} />
+          </label>
+          <label>
+            UF
+            <input maxLength={2} value={form.state} onChange={(e) => set("state", e.target.value.toUpperCase())} />
+          </label>
+        </>
+      ) : (
+        <p className="muted usage-span-2">A entrega e o faturamento aparecem quando a ordem de impressão existe.</p>
+      )}
+      <div className="usage-user-actions usage-span-2">
+        <button type="submit" disabled={busy} data-testid="order-edit-save">
+          {busy ? "Salvando…" : "Salvar pedido"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 /** Visão de leitura do cliente: só os pedidos da própria conta, com status e arquivos. */
 function PersonalOrders({
   orders,
@@ -284,6 +444,7 @@ export function Pedidos() {
   const [personalError, setPersonalError] = useState<string | null>(null);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [origin, setOrigin] = useState<"all" | "mine" | "others">("all");
   const hasOrders = orders !== null;
   const hasActiveGeneration = (orders ?? []).some((order) => order.generation_status === "generating" || (order.generation_status === "queued" && Boolean(order.generation_stage)));
@@ -449,6 +610,20 @@ export function Pedidos() {
       setError(err instanceof Error ? err.message : "Não foi possível iniciar a geração.");
     } finally {
       setGenerating(false);
+    }
+  }
+
+  async function saveOrder(body: Record<string, unknown>) {
+    if (!current || savingOrder) return;
+    setSavingOrder(true);
+    setError(null);
+    try {
+      const next = await api.updateOrder(ownerSecret, current.id, body);
+      setOrders((list) => list?.map((item) => (item.id === next.id ? next : item)) ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao salvar o pedido.");
+    } finally {
+      setSavingOrder(false);
     }
   }
 
@@ -660,6 +835,7 @@ export function Pedidos() {
                     ? "Geração em andamento" : current.image_provider === "openai" ? "Gerar novamente com OpenAI" : "Gerar imagens com OpenAI"}
                 </button>
               )}
+              <OrderEditor order={current} busy={savingOrder} onSave={saveOrder} />
               <dl>
                 {fieldsOf(current).map((row) => (
                   <div key={row.label}>

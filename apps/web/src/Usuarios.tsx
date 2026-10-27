@@ -66,6 +66,8 @@ export function Usuarios() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [nextPassword, setNextPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [sessionTried, setSessionTried] = useState(false);
   const [lastStatus, setLastStatus] = useState<number | undefined>();
   const autoRetryUsed = useRef(false);
@@ -143,6 +145,8 @@ export function Usuarios() {
     setSelectedId(id);
     setSaved(false);
     setConfirmDelete(false);
+    setNextPassword("");
+    setConfirmPassword("");
     setError(null);
     if (fromList) setDetail(fromList);
     try {
@@ -165,10 +169,27 @@ export function Usuarios() {
     setSaving(true);
     setError(null);
     setSaved(false);
+    const passwordChange = nextPassword.trim();
+    if (passwordChange || confirmPassword.trim()) {
+      if (passwordChange.length < 8) {
+        setError("A nova senha precisa ter pelo menos 8 caracteres.");
+        setSaving(false);
+        return;
+      }
+      if (passwordChange !== confirmPassword) {
+        setError("A confirmação da senha não confere.");
+        setSaving(false);
+        return;
+      }
+    }
     try {
       const next = await api.updateUser(ownerSecret, detail.id, {
         email: detail.email.trim(),
         email_verified: Boolean(detail.email_verified),
+        credits: Number(detail.credits) || 0,
+        is_admin: Boolean(detail.is_admin),
+        adult_confirmed: Boolean(detail.adult_confirmed),
+        ...(passwordChange ? { password: passwordChange } : {}),
         full_name: (detail.full_name ?? "").trim() || null,
         phone: (detail.phone ?? "").trim() || null,
         postal_code: (detail.postal_code ?? "").trim() || null,
@@ -182,6 +203,8 @@ export function Usuarios() {
       });
       setDetail(next);
       setUsers((list) => list?.map((item) => (item.id === next.id ? { ...item, ...next } : item)) ?? null);
+      setNextPassword("");
+      setConfirmPassword("");
       setSaved(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao salvar o usuário.");
@@ -366,6 +389,56 @@ export function Usuarios() {
                       data-testid="owner-user-verified"
                     />
                     E-mail verificado
+                  </label>
+                  <p className="usage-user-section usage-span-2">Acesso</p>
+                  <label>
+                    Nova senha
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={nextPassword}
+                      onChange={(e) => setNextPassword(e.target.value)}
+                      placeholder="Deixe em branco para manter"
+                      data-testid="owner-user-password"
+                    />
+                  </label>
+                  <label>
+                    Confirmar nova senha
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      data-testid="owner-user-password-confirm"
+                    />
+                  </label>
+                  <label>
+                    Saldo
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.credits}
+                      onChange={(e) => setField("credits", Number(e.target.value))}
+                      data-testid="owner-user-balance"
+                    />
+                  </label>
+                  <label className="usage-check">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(form.is_admin)}
+                      onChange={(e) => setField("is_admin", e.target.checked)}
+                      data-testid="owner-user-admin"
+                    />
+                    Administrador
+                  </label>
+                  <label className="usage-check usage-span-2">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(form.adult_confirmed)}
+                      onChange={(e) => setField("adult_confirmed", e.target.checked)}
+                      data-testid="owner-user-adult"
+                    />
+                    Confirmou que tem 18 anos ou mais
                   </label>
                   <p className="usage-user-section usage-span-2">Endereço</p>
                   <label>

@@ -185,6 +185,67 @@ def test_users_patch_profile_and_credits(auth_client, monkeypatch):
     assert body["street"] == "Av Paulista"
 
 
+def test_owner_sets_password_admin_and_adult_flag(auth_client, monkeypatch):
+    from app.security import verify_password
+
+    headers = _owner_headers(monkeypatch)
+    listed = auth_client.get("/v1/users", headers=headers).json()
+    me = next(u for u in listed["users"] if u["email"] == "auth@example.com")
+    db = _session(auth_client)
+    try:
+        user = db.get(User, me["id"])
+        user.clerk_user_id = None
+        db.commit()
+    finally:
+        db.close()
+    r = auth_client.patch(
+        f"/v1/users/{me['id']}",
+        headers=headers,
+        json={"password": "senha-nova-123", "is_admin": True, "adult_confirmed": True},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert "password" not in body
+    assert body["is_admin"] is True
+    assert body["adult_confirmed"] is True
+    db = _session(auth_client)
+    try:
+        user = db.get(User, me["id"])
+        assert verify_password("senha-nova-123", user.password_hash)
+        assert user.adult_confirmed_at is not None
+    finally:
+        db.close()
+
+
+def test_owner_sets_the_clerk_password(auth_client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    calls: dict[str, str] = {}
+
+    def fake_set(clerk_user_id: str, password: str) -> None:
+        calls["id"] = clerk_user_id
+        calls["password"] = password
+
+    monkeypatch.setattr("app.services.clerk_identity.set_clerk_password", fake_set)
+    listed = auth_client.get("/v1/users", headers=headers).json()
+    me = next(u for u in listed["users"] if u["email"] == "auth@example.com")
+    db = _session(auth_client)
+    try:
+        user = db.get(User, me["id"])
+        user.clerk_user_id = "user_clerk_1"
+        user.password_hash = "!clerk"
+        db.commit()
+    finally:
+        db.close()
+    r = auth_client.patch(
+        f"/v1/users/{me['id']}",
+        headers=headers,
+        json={"password": "outra-senha-123"},
+    )
+    assert r.status_code == 200, r.text
+    assert calls == {"id": "user_clerk_1", "password": "outra-senha-123"}
+    assert "password" not in r.json()
+
+
 def test_users_patch_email_conflict(client, monkeypatch):
     headers = _owner_headers(monkeypatch)
     signup_and_verify(client, "one@example.com")

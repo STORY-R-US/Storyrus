@@ -329,6 +329,75 @@ def test_orders_scope_survives_bad_page_meta_and_service_order(auth_client, monk
     assert body["orders"][0]["summary"].startswith("Lia")
 
 
+def test_owner_edits_the_order(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    db = _session(auth_client)
+    try:
+        user = db.query(User).filter(User.email == "auth@example.com").one()
+        project = Project(
+            user_id=user.id,
+            status="EBOOK_READY",
+            child_name="Lia",
+            child_age=4,
+            book_size="M",
+            cover_type="soft",
+        )
+        db.add(project)
+        db.flush()
+        ticket = OrderTicket(project_id=project.id, summary="NOVO LIVRO\nNome: Lia")
+        db.add(ticket)
+        db.add(
+            PrintOrder(
+                project_id=project.id,
+                code="SR-EDIT01",
+                status="awaiting_spec",
+                payment_status="unpaid",
+                quantity=1,
+                recipient_name="Ana",
+                street="Rua Velha",
+                number="1",
+                district="Centro",
+                city="São Paulo",
+                state="SP",
+                postal_code="01310100",
+            )
+        )
+        db.commit()
+        ticket_id = str(ticket.id)
+    finally:
+        db.close()
+
+    edited = auth_client.patch(
+        f"/v1/usage/orders/{ticket_id}",
+        headers={"X-Usage-Password": "segredo"},
+        json={
+            "child_name": "Lorena",
+            "child_age": 8,
+            "dedication": "Com carinho",
+            "book_size": "P",
+            "cover_type": "hard",
+            "quantity": 2,
+            "payment_status": "paid",
+            "street": "Rua Nova",
+            "tracking_code": "BR123",
+        },
+    )
+    assert edited.status_code == 200, edited.text
+    body = edited.json()
+    assert body["child_name"] == "Lorena"
+    assert body["child_age"] == 8
+    assert body["dedication"] == "Com carinho"
+    assert body["book_size"] == "P"
+    assert body["cover_type"] == "hard"
+    assert body["quantity"] == 2
+    assert body["payment_status"] == "paid"
+    assert body["street"] == "Rua Nova"
+    assert body["tracking_code"] == "BR123"
+    assert "Nome: Lorena" in body["summary"]
+    assert "Dedicatória: Com carinho" in body["summary"]
+
+
 def test_delete_order_apaga_o_pedido_e_o_projeto(auth_client, monkeypatch):
     """Excluir o pedido remove o projeto (fotos, arquivos, OS) e não recria."""
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")

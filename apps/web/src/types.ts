@@ -210,6 +210,17 @@ export interface OrderTicket {
   amount_cents?: number | null;
   account_email?: string | null;
   mine?: boolean;
+  child_name?: string | null;
+  dedication?: string | null;
+  quantity?: number | null;
+  recipient_name?: string | null;
+  postal_code?: string | null;
+  street?: string | null;
+  number?: string | null;
+  complement?: string | null;
+  district?: string | null;
+  city?: string | null;
+  state?: string | null;
 }
 
 export interface FreightOption {
@@ -285,6 +296,8 @@ export interface OwnerUser {
   state?: string | null;
   country?: string | null;
   terms_accepted_at?: string | null;
+  is_admin?: boolean;
+  adult_confirmed?: boolean;
 }
 
 export interface OwnerUserUpdate {
@@ -301,6 +314,9 @@ export interface OwnerUserUpdate {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  password?: string;
+  is_admin?: boolean;
+  adult_confirmed?: boolean;
 }
 
 export interface OwnerUsersReport {
