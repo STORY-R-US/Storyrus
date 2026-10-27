@@ -98,12 +98,14 @@ describe("Auth", () => {
   it("mostra o cadastro do Clerk sem sessão", async () => {
     renderAuth("signup", "/app?tema=space");
     expect(await screen.findByTestId("clerk-sign-up")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-clerk-hint")).toHaveTextContent(/google ou o código/i);
     expect(screen.queryByTestId("auth-form")).not.toBeInTheDocument();
   });
 
   it("mostra o login do Clerk sem sessão", async () => {
     renderAuth("login", "/app");
     expect(await screen.findByTestId("clerk-sign-in")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-clerk-hint")).toHaveTextContent(/sessão fica salva/i);
   });
 
   it("mantém o login do Clerk no retorno do Google", async () => {

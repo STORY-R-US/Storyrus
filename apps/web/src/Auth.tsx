@@ -28,6 +28,7 @@ const COPY: Record<
     signupTitle: string;
     loginLead: string;
     signupLead: string;
+    profileLead: string;
     accountSection: string;
     addressSection: string;
     email: string;
@@ -74,10 +75,11 @@ const COPY: Record<
 > = {
   pt: {
     loginTitle: "Entrar",
-    signupTitle: "Criar Conta",
-    loginLead: "Acesse sua conta para criar livros personalizados.",
-    signupLead: "Cadastro pensado para Brasil, América Latina e EUA — usamos estes dados no envio.",
-    accountSection: "Sua Conta",
+    signupTitle: "Endereço de entrega",
+    loginLead: "A sessão fica salva neste navegador. Na próxima visita você continua dentro, sem pedir o código de novo.",
+    signupLead: "Primeira vez: Google ou o código do e-mail. Quem já tem conta usa Entrar.",
+    profileLead: "A conta já está criada. Estes dados ficam salvos para o envio do livro.",
+    accountSection: "Quem recebe",
     addressSection: "Endereço De Entrega",
     email: "E-mail",
     password: "Senha (Mín. 8)",
@@ -92,15 +94,15 @@ const COPY: Record<
     terms: "Termos De Uso",
     privacy: "Política De Privacidade",
     loginSubmit: "Entrar",
-    signupSubmit: "Criar Conta",
+    signupSubmit: "Salvar e continuar",
     busy: "Aguarde…",
     switchToSignup: "Criar Uma Conta",
     switchToLogin: "Já Tenho Conta",
     forgotPassword: "Esqueci A Senha",
     back: "Voltar Ao Início",
-    checkTitle: "Verifique Seu E-mail",
-    checkLead: "Enviamos um link de confirmação. Ative a conta antes de entrar no estúdio.",
-    checkHint: "Não recebeu? Confira o spam ou tente criar a conta de novo em alguns minutos.",
+    checkTitle: "Confirme o e-mail",
+    checkLead: "O código chegou no e-mail. Digite esse código na tela de entrar para abrir a conta.",
+    checkHint: "Não achou? Olhe o spam. O assunto começa com o código da Story R Us.",
     passwordMismatch: "As senhas não coincidem.",
     mustAcceptTerms: "Aceite os termos e a política de privacidade.",
     confirmAdult:
@@ -123,10 +125,11 @@ const COPY: Record<
   },
   en: {
     loginTitle: "Log In",
-    signupTitle: "Create Account",
-    loginLead: "Sign in to create personalized books.",
-    signupLead: "Built for the US and Latin America — we reuse this for orders and shipping.",
-    accountSection: "Your Account",
+    signupTitle: "Shipping address",
+    loginLead: "This browser keeps you signed in. Next time you come back, the code is not asked again.",
+    signupLead: "First time: Google or the email code. If you already have an account, use Log In.",
+    profileLead: "The account is already created. These details stay saved for shipping.",
+    accountSection: "Who receives it",
     addressSection: "Shipping Address",
     email: "Email",
     password: "Password (Min. 8)",
@@ -141,15 +144,15 @@ const COPY: Record<
     terms: "Terms Of Use",
     privacy: "Privacy Policy",
     loginSubmit: "Log In",
-    signupSubmit: "Create Account",
+    signupSubmit: "Save and continue",
     busy: "Please wait…",
     switchToSignup: "Create An Account",
     switchToLogin: "I Already Have An Account",
     forgotPassword: "Forgot Password",
     back: "Back To Home",
-    checkTitle: "Check Your Email",
-    checkLead: "We sent a confirmation link. Activate your account before opening the studio.",
-    checkHint: "Didn't get it? Check spam or try signing up again in a few minutes.",
+    checkTitle: "Confirm your email",
+    checkLead: "The code is in your email. Enter it on the sign-in screen to open the account.",
+    checkHint: "Can't find it? Check spam. The subject starts with your Story R Us code.",
     passwordMismatch: "Passwords do not match.",
     mustAcceptTerms: "Please accept the terms and privacy policy.",
     confirmAdult:
@@ -172,10 +175,11 @@ const COPY: Record<
   },
   es: {
     loginTitle: "Entrar",
-    signupTitle: "Crear Cuenta",
-    loginLead: "Accede a tu cuenta para crear libros personalizados.",
-    signupLead: "Pensado para Latinoamérica, Brasil y EE. UU. — usamos estos datos en el envío.",
-    accountSection: "Tu Cuenta",
+    signupTitle: "Dirección de envío",
+    loginLead: "La sesión queda en este navegador. La próxima visita no vuelve a pedir el código.",
+    signupLead: "Primera vez: Google o el código del correo. Quien ya tiene cuenta usa Entrar.",
+    profileLead: "La cuenta ya está creada. Estos datos quedan guardados para el envío.",
+    accountSection: "Quién recibe",
     addressSection: "Dirección De Envío",
     email: "Correo",
     password: "Contraseña (Mín. 8)",
@@ -190,15 +194,15 @@ const COPY: Record<
     terms: "Términos De Uso",
     privacy: "Política De Privacidad",
     loginSubmit: "Entrar",
-    signupSubmit: "Crear Cuenta",
+    signupSubmit: "Guardar y continuar",
     busy: "Espera…",
     switchToSignup: "Crear Una Cuenta",
     switchToLogin: "Ya Tengo Cuenta",
     forgotPassword: "Olvidé La Contraseña",
     back: "Volver Al Inicio",
-    checkTitle: "Revisa Tu Correo",
-    checkLead: "Enviamos un enlace de confirmación. Activa la cuenta antes de entrar al estudio.",
-    checkHint: "¿No llegó? Revisa spam o vuelve a registrarte en unos minutos.",
+    checkTitle: "Confirma tu correo",
+    checkLead: "El código llegó al correo. Escríbelo en la pantalla de entrar para abrir la cuenta.",
+    checkHint: "¿No lo ves? Revisa spam. El asunto empieza con el código de Story R Us.",
     passwordMismatch: "Las contraseñas no coinciden.",
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
     confirmAdult:
@@ -559,6 +563,9 @@ function AuthBody({
               </Link>
             </div>
             <SiteBackNav className="site-back-nav-center" />
+            <p className="auth-lead" data-testid="auth-clerk-hint">
+              {mode === "login" ? t.loginLead : t.signupLead}
+            </p>
             {clerkReady ? (
               mode === "login" ? (
                 <SignIn
@@ -647,7 +654,7 @@ function AuthBody({
           <SiteBackNav className="site-back-nav-center" />
           <header className={isSignup ? "auth-hero" : undefined}>
             <h1>{isSignup ? t.signupTitle : t.loginTitle}</h1>
-            <p className="auth-lead">{isSignup ? t.signupLead : t.loginLead}</p>
+            <p className="auth-lead">{t.profileLead}</p>
           </header>
           <form
             className={`auth-form${isSignup ? " auth-form-full" : ""}`}
