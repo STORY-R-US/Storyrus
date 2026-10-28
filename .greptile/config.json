@@ -1,0 +1,41 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax"],
+  "autoReview": ["open", "push"],
+  "statusCheck": true,
+  "ignorePatterns": "node_modules/**\ndist/**\ncoverage/**\nhtmlcov/**\nplaywright-report/**\ntest-results/**\npipeline_out/**\nbackend/scripts/out/**\n**/*.generated.*",
+  "summarySection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": false
+  },
+  "issuesTableSection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": false
+  },
+  "rules": [
+    {
+      "id": "secrets-in-env",
+      "rule": "Guarde chaves e senhas somente em variáveis de ambiente. Não versione arquivos .env reais, tokens, chaves de API nem dados de produção.",
+      "severity": "high"
+    },
+    {
+      "id": "keep-app-layout",
+      "rule": "Mantenha a estrutura backend/, apps/web/ e apps/mobile/. Não crie uma segunda cópia de uma aplicação nem mova a base de desenvolvimento para fora desses diretórios.",
+      "severity": "medium"
+    },
+    {
+      "id": "preview-not-print",
+      "rule": "Aprovar a prévia da história não autoriza a impressão e não pula o pagamento. Só a confirmação do pagamento enfileira a geração do livro completo.",
+      "scope": ["backend/**", "apps/web/**", "apps/mobile/**"],
+      "severity": "high"
+    },
+    {
+      "id": "schema-via-alembic",
+      "rule": "Mudanças de schema do banco passam por uma migração Alembic. Não altere colunas persistidas só no código da aplicação.",
+      "scope": ["backend/**"],
+      "severity": "high"
+    }
+  ]
+}
