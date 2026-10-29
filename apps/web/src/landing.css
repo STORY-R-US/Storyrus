@@ -1909,11 +1909,13 @@ img.ex-tab-cover {
 }
 .site-back-nav a:hover,
 .site-back-nav .site-back-prev:hover { text-decoration: underline; }
-.auth-card .site-back-nav a,
-.auth-card .site-back-nav .site-back-prev { color: #3a5fae; }
 .site-back-sep { color: #8a96b8; font-weight: 600; }
 [data-theme="light"] .kid .site-back-nav a,
 [data-theme="light"] .kid .site-back-nav .site-back-prev { color: #1f3568; }
+.auth-kid .site-back-nav a,
+.auth-kid .site-back-nav .site-back-prev,
+[data-theme="light"] .auth-kid .site-back-nav a,
+[data-theme="light"] .auth-kid .site-back-nav .site-back-prev { color: #3a5fae; }
 [data-theme="light"] .kid .site-back-sep { color: #8a90a8; }
 [data-theme="light"] .kid .catalog-section-title .catalog-section-pill {
   background: #fff;
@@ -2758,18 +2760,23 @@ img.ex-tab-cover {
   background: #fff;
 }
 .auth-topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   margin: 0 0 1.1rem;
   padding-bottom: 0.85rem;
   border-bottom: 1px solid var(--auth-line);
 }
 .auth-logo-inline {
+  grid-column: 2;
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   margin: 0;
+}
+.auth-topbar .auth-lang {
+  grid-column: 3;
+  justify-self: end;
 }
 .auth-logo-inline img {
   height: 58px;
