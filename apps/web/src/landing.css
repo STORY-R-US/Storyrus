@@ -1909,6 +1909,8 @@ img.ex-tab-cover {
 }
 .site-back-nav a:hover,
 .site-back-nav .site-back-prev:hover { text-decoration: underline; }
+.auth-card .site-back-nav a,
+.auth-card .site-back-nav .site-back-prev { color: #3a5fae; }
 .site-back-sep { color: #8a96b8; font-weight: 600; }
 [data-theme="light"] .kid .site-back-nav a,
 [data-theme="light"] .kid .site-back-nav .site-back-prev { color: #1f3568; }
