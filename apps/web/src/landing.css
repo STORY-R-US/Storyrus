@@ -2917,7 +2917,7 @@ img.ex-tab-cover {
 .auth-card-clerk .cl-socialButtonsIconButton {
   display: flex !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   gap: 0.7rem !important;
   width: 100% !important;
   height: auto !important;
