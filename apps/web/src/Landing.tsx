@@ -277,6 +277,8 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-nonna-90-anos.png", en: "capa-nonna-90-anos-en.png", es: "capa-nonna-90-anos-es.png" },
   { pt: "capa-amor-vovo-motor.png" },
   { pt: "capa-brilho-bailarina.png", en: "capa-brilho-bailarina-en.png", es: "capa-brilho-bailarina-es.png" },
+  { pt: "capa-amor-que-cresce.jpg", en: "capa-amor-que-cresce-en.jpg", es: "capa-amor-que-cresce-es.jpg" },
+  { pt: "capa-matteo-nas-nuvens.png", en: "capa-matteo-nas-nuvens-en.png", es: "capa-matteo-nas-nuvens-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -425,6 +427,16 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-brilho-bailarina.jpg", en: "pagina-brilho-bailarina-en.jpg", es: "pagina-brilho-bailarina-es.jpg" },
     photo: { pt: "foto-brilho-bailarina.jpg", en: "foto-brilho-bailarina-en.jpg", es: "foto-brilho-bailarina-es.jpg" },
   },
+  54: {
+    cover: { pt: "capa-amor-que-cresce.jpg", en: "capa-amor-que-cresce-en.jpg", es: "capa-amor-que-cresce-es.jpg" },
+    page: { pt: "pagina-amor-que-cresce.jpg", en: "pagina-amor-que-cresce-en.jpg", es: "pagina-amor-que-cresce-es.jpg" },
+    photo: { pt: "foto-amor-que-cresce.jpg", en: "foto-amor-que-cresce-en.jpg", es: "foto-amor-que-cresce-es.jpg" },
+  },
+  55: {
+    cover: { pt: "capa-matteo-nas-nuvens.png", en: "capa-matteo-nas-nuvens-en.png", es: "capa-matteo-nas-nuvens-es.png" },
+    page: { pt: "pagina-matteo-nas-nuvens.jpg", es: "pagina-matteo-nas-nuvens-es.jpg" },
+    photo: { pt: "foto-matteo-nas-nuvens.jpg", en: "foto-matteo-nas-nuvens-en.jpg", es: "foto-matteo-nas-nuvens-es.jpg" },
+  },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -502,6 +514,8 @@ const CATALOG_THEMES = [
   "birthday",
   "grandfather_love",
   "princess",
+  "mothers_day",
+  "birthday",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -510,9 +524,9 @@ const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -743,6 +757,7 @@ const HERO_BY_CATALOG: Record<number, string> = {
   49: "Ana",
   50: "Matteo",
   51: "Nonna",
+  55: "Matteo",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -1248,6 +1263,8 @@ const I18N = {
       { t: "Feliz 90 Anos, Nonna", p: "Balões, orquídeas e os genros ao lado: os 90 anos da Nonna viram uma história para guardar.", cover: "Hard", size: "M", tag: "90 anos", quote: "Feliz 90 anos, Nonna!" },
       { t: "Amor De Vovô É Igual A Motor Bem Cuidado", p: "Na oficina, o vovô cuida do motor e do neto: um amor que, como motor bem cuidado, dura para sempre.", cover: "Hard", size: "M", tag: "Amor de vovô", quote: "Dura para sempre." },
       { t: "Brilho Que Fascina, Alma De Bailarina", p: "Rosas, sapatilhas e um brilho no palco: a dança vira uma história para guardar.", cover: "Hard", size: "M", tag: "Ballet", quote: "Brilho que fascina, alma de bailarina." },
+      { t: "Amor Que Cresce E Me Enobrece", p: "Antes viajavam juntas. Hoje ela parte e leva o amor, os lugares e os sonhos que ainda vão sonhar.", cover: "Hard", size: "M", tag: "Mãe e filha", quote: "Amor que cresce e me enobrece." },
+      { t: "Feliz Aniversário, Matteo!", p: "Hoje o aniversário chegou: o Matteo voa alto, entre bolo, balões e o ursinho aviador.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Feliz aniversário, Matteo!" },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1493,6 +1510,8 @@ const I18N = {
       { t: "Happy 90th Birthday, Nonna", p: "Balloons, orchids and her sons-in-law beside her: Nonna's 90th birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "90th birthday", quote: "Happy 90th birthday, Nonna!" },
       { t: "A Grandpa's Love Is Like A Well-Kept Engine", p: "In the garage, grandpa tends the engine and his grandson: a love that, like a well-kept engine, lasts forever.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "It lasts forever." },
       { t: "A Glow That Captivates, A Dancer At Heart", p: "Roses, ballet shoes and a glow on the stage: the dance becomes a story to keep.", cover: "Hard", size: "M", tag: "Ballet", quote: "A glow that captivates, a dancer at heart." },
+      { t: "A Love That Grows And Makes Me Stronger", p: "They used to travel together. Now she sets off and carries the love, the places and the dreams still ahead.", cover: "Hard", size: "M", tag: "Mother and daughter", quote: "A love that grows and makes me stronger." },
+      { t: "Happy Birthday, Matteo!", p: "Today his birthday is here: Matteo flies high, with cake, balloons and his teddy pilot.", cover: "Hard", size: "M", tag: "Birthday", quote: "Happy birthday, Matteo!" },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1738,6 +1757,8 @@ const I18N = {
       { t: "Felices 90 Años, Nonna", p: "Globos, orquídeas y los yernos al lado: los 90 años de Nonna se vuelven una historia para guardar.", cover: "Hard", size: "M", tag: "90 años", quote: "¡Felices 90 años, Nonna!" },
       { t: "El Amor Del Abuelo Es Como Un Motor Bien Cuidado", p: "En el taller, el abuelo cuida el motor y a su nieto: un amor que, como un motor bien cuidado, dura para siempre.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "Dura para siempre." },
       { t: "Un Brillo Que Fascina, Alma De Bailarina", p: "Rosas, zapatillas y un brillo en el escenario: la danza se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Ballet", quote: "Un brillo que fascina, alma de bailarina." },
+      { t: "Un Amor Que Crece Y Me Enobrece", p: "Antes viajaban juntas. Hoy ella parte y se lleva el amor, los lugares y los sueños que aún viven en ella.", cover: "Hard", size: "M", tag: "Madre e hija", quote: "Un amor que crece y me enoblece." },
+      { t: "¡Feliz Cumpleaños, Matteo!", p: "Hoy llegó su cumpleaños: Matteo vuela alto, entre la torta, los globos y su osito aviador.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Feliz cumpleaños, Matteo!" },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
