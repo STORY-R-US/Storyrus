@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import app.printkit.stripe_gateway  # noqa: F401
 from app import queue
 from app.config import settings
 from app.errors import register_exception_handlers

@@ -80,6 +80,7 @@ async def video_callback(
 async def print_payment_callback(
     request: Request,
     x_print_signature: str | None = Header(default=None, alias="X-Print-Signature"),
+    stripe_signature: str | None = Header(default=None, alias="Stripe-Signature"),
     db: Session = Depends(get_db),
 ) -> dict:
     """Confirma o pagamento e só então compra a etiqueta."""
@@ -92,13 +93,24 @@ async def print_payment_callback(
             "Gateway de pagamento ainda não escolhido.",
         ) from exc
     try:
-        notice = gateway.parse_webhook(raw, x_print_signature)
+        notice = gateway.parse_webhook(raw, stripe_signature or x_print_signature)
     except GatewayRejected as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, str(exc)) from exc
+    if not notice.reference:
+        return {"ok": True, "paid": False}
     order = db.scalar(select(PrintOrder).where(PrintOrder.payment_reference == notice.reference))
     if order is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido de impressão não encontrado")
-    if notice.paid:
+    if notice.expired and order.payment_status == "pending":
+        order.payment_status = "unpaid"
+        order.payment_provider = None
+        order.payment_reference = None
+        flow = order.project.purchase_flow or {}
+        if flow.get("stage") == "awaiting_payment_confirmation":
+            from app.services import purchase_flow
+
+            purchase_flow.update(order.project, stage="awaiting_payment")
+    elif notice.paid:
         fulfill_payment(db, order)
     db.commit()
     return {"ok": True, "paid": notice.paid}

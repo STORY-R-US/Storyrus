@@ -28,6 +28,7 @@ dependencies = [
     "insightface>=0.7",
     "onnxruntime>=1.18",
     "opencv-python-headless>=4.8",
+    "stripe>=11.0",
 ]
 
 [project.optional-dependencies]

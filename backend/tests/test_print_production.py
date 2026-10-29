@@ -142,12 +142,14 @@ def _address(auth_client, pid: str):
 
 class _FakeGateway:
     name = "fake"
+    last_amount = 0
 
     def create_charge(
         self, *, order_code: str, amount_cents: int, installments: int
     ) -> ChargeResult:
         assert amount_cents > 0
         assert installments == 3
+        _FakeGateway.last_amount = amount_cents
         return ChargeResult(
             provider="fake",
             reference=f"pay-{order_code}",
@@ -409,6 +411,7 @@ def test_quantity_is_chosen_at_checkout_and_multiplies_the_book(auth_client, mon
         )
         assert paid.status_code == 200, paid.text
         assert paid.json()["amount_cents"] == 17700 * 12
+        assert _FakeGateway.last_amount == 17700 * 12 + 1000
         locked = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 2})
         assert locked.status_code == 409
     finally:
@@ -446,6 +449,7 @@ def test_paid_webhook_leaves_shipping_with_the_printer(auth_client, monkeypatch)
         body = paid.json()
         assert body["amount_cents"] == 17700
         assert body["checkout_url"] == "https://pay.test/livro"
+        assert _FakeGateway.last_amount == 17700 + 1000
         missing = auth_client.post(
             "/v1/webhooks/print-payment",
             json={"reference": "pay-ausente", "paid": True},

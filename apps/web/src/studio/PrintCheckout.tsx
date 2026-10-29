@@ -288,7 +288,25 @@ export function PrintCheckout({
       {order.payment_status === "paid" ? (
         <p role="status">{t.paid}</p>
       ) : order.payment_status === "pending" ? (
-        <p role="status">{t.paymentPending}</p>
+        <>
+          <p role="status">{t.paymentPending}</p>
+          {order.checkout_available ? (
+            <button
+              className="kbtn kbtn-primary"
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  const next = await api.checkoutPrint(projectId, installments);
+                  setOrder(next);
+                  if (next.checkout_url) window.location.assign(next.checkout_url);
+                })
+              }
+            >
+              {t.pay}
+            </button>
+          ) : null}
+        </>
       ) : (
         <>
           {order.checkout_available ? (

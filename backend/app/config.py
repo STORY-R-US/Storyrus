@@ -160,6 +160,8 @@ class Settings(BaseSettings):
     print_price_m_cents: int = 17700
     print_allow_p_hardcover: bool = False
     print_gateway: str = ""
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
     melhor_envio_token: str = ""
     melhor_envio_sandbox: bool = True
     melhor_envio_from_postal_code: str = ""

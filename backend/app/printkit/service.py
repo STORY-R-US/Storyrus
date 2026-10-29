@@ -392,23 +392,35 @@ def start_checkout(order: PrintOrder, installments: int):
     if order.status == "held":
         raise ValueError(order.block_reason or "Formato ainda não liberado.")
     purchase = bool((order.project.purchase_flow or {}).get("preview_approved_at"))
+    stage = (order.project.purchase_flow or {}).get("stage")
     if purchase and (
-        (order.project.purchase_flow or {}).get("stage") != "awaiting_payment"
+        stage not in {"awaiting_payment", "awaiting_payment_confirmation"}
         or any(job.status in {"PENDING", "RUNNING"} for job in order.project.jobs)
     ):
         raise ValueError("Revise a prévia atualizada antes de iniciar o pagamento.")
-    if order.payment_status in {"paid", "pending"}:
-        raise ValueError("Este pedido já está pago ou tem um pagamento em andamento.")
     if order.status not in _FILE_STATUSES and not (purchase and order.status == "awaiting_payment"):
         raise ValueError("Os arquivos de produção ainda não estão prontos.")
     if not address_complete(order):
         raise ValueError("Endereço de entrega incompleto.")
     gateway = configured_gateway()
+    if order.payment_status == "paid":
+        raise ValueError("Este pedido já está pago.")
+    if order.payment_status == "pending":
+        resume = getattr(gateway, "resume_charge", None)
+        if not callable(resume):
+            raise ValueError("Este pedido já está pago ou tem um pagamento em andamento.")
+        existing = resume(order.payment_reference or "")
+        if existing is not None:
+            return existing
+        order.payment_status = "unpaid"
+        order.payment_provider = None
+        order.payment_reference = None
     copies = max(1, int(order.quantity or 1))
-    amount = book_price_cents(order.book_size) * copies
+    books = book_price_cents(order.book_size) * copies
+    freight = int(order.freight_price_cents or 0)
     charge = gateway.create_charge(
         order_code=order.code,
-        amount_cents=amount,
+        amount_cents=books + freight,
         installments=installments,
     )
     order.payment_status = "pending"
@@ -418,7 +430,7 @@ def start_checkout(order: PrintOrder, installments: int):
         purchase_flow.update(order.project, stage="awaiting_payment_confirmation")
     order.payment_provider = charge.provider
     order.payment_reference = charge.reference
-    order.amount_cents = amount
+    order.amount_cents = books
     return charge
 
 

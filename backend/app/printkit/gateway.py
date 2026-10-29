@@ -1,4 +1,4 @@
-"""Encaixe do gateway. Nenhum provedor entra até a Ana escolher."""
+"""Encaixe do gateway. O provedor ativo vem de PRINT_GATEWAY."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ class ChargeResult:
 class PaymentNotice:
     reference: str
     paid: bool
+    expired: bool = False
 
 
 class PrintGateway(Protocol):
@@ -56,7 +57,13 @@ def unregister_gateway(name: str) -> None:
 
 def checkout_available() -> bool:
     name = (settings.print_gateway or "").strip()
-    return bool(name) and name in _REGISTRY
+    gateway = _REGISTRY.get(name)
+    if gateway is None:
+        return False
+    ready = getattr(gateway, "ready", None)
+    if callable(ready):
+        return bool(ready())
+    return True
 
 
 def configured_gateway() -> PrintGateway:
