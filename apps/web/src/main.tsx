@@ -22,16 +22,12 @@ function clerkLocalization() {
 
 function ClerkBridge() {
   markClerkPresent();
-  const { getToken, signOut, isLoaded } = useAuth();
+  const { getToken, signOut, isLoaded, isSignedIn } = useAuth();
   useEffect(() => {
     if (!isLoaded) return;
     setClerkGetToken((opts) => getToken(opts));
     setClerkSignOut(() => signOut());
-    return () => {
-      setClerkGetToken(null);
-      setClerkSignOut(null);
-    };
-  }, [getToken, signOut, isLoaded]);
+  }, [getToken, signOut, isLoaded, isSignedIn]);
   return null;
 }
 

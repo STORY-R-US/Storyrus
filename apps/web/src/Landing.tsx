@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties, type Keyboar
 import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { accountAccess, studioEntryHref } from "./Auth";
-import { api, getToken } from "./api";
+import { api, getToken, refreshSessionToken, subscribeClerkToken, whenClerkReady } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
 import logo from "./assets/logo.png";
@@ -2501,17 +2501,23 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   }, [theme]);
 
   useEffect(() => {
+    let generation = 0;
     let cancelled = false;
-    if (!getToken()) {
-      setSession({ status: "out" });
-      return;
-    }
-    setSession((cur) => (cur.status === "in" ? cur : { status: "loading" }));
-    (async () => {
+    async function loadSession() {
+      const current = ++generation;
+      await whenClerkReady(4000);
+      if (cancelled || current !== generation) return;
+      await refreshSessionToken();
+      if (cancelled || current !== generation) return;
+      if (!getToken()) {
+        setSession({ status: "out" });
+        return;
+      }
+      setSession((cur) => (cur.status === "in" ? cur : { status: "loading" }));
       try {
         const me = await api.me();
-        if (cancelled) return;
-        if (accountAccess(me) !== "ok") {
+        if (cancelled || current !== generation) return;
+        if (accountAccess(me) === "guest") {
           setSession({ status: "out" });
           return;
         }
@@ -2522,11 +2528,16 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           isOwner: Boolean(me.is_admin || me.is_owner),
         });
       } catch {
-        if (!cancelled) setSession({ status: "out" });
+        if (!cancelled && current === generation) setSession({ status: "out" });
       }
-    })();
+    }
+    const unsubscribe = subscribeClerkToken(() => {
+      void loadSession();
+    });
+    void loadSession();
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 

@@ -572,14 +572,16 @@ function AuthBody({
                   routing="path"
                   path="/entrar"
                   signUpUrl={`/cadastro?next=${encodeURIComponent(next)}`}
-                  fallbackRedirectUrl={next}
+                  fallbackRedirectUrl={`/entrar?next=${encodeURIComponent(next)}`}
+                  forceRedirectUrl={`/entrar?next=${encodeURIComponent(next)}`}
                 />
               ) : (
                 <SignUp
                   routing="path"
                   path="/cadastro"
                   signInUrl={`/entrar?next=${encodeURIComponent(next)}`}
-                  fallbackRedirectUrl={next}
+                  fallbackRedirectUrl={`/cadastro?next=${encodeURIComponent(next)}`}
+                  forceRedirectUrl={`/cadastro?next=${encodeURIComponent(next)}`}
                 />
               )
             ) : (

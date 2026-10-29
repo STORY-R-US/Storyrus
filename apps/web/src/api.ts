@@ -36,6 +36,15 @@ let clerkGetToken: ClerkTokenGetter | null = null;
 let clerkSignOut: (() => Promise<void>) | null = null;
 let clerkPresent = false;
 const clerkReadyWaiters: Array<() => void> = [];
+const clerkTokenListeners = new Set<() => void>();
+
+/** A home espera o handshake do OAuth. O Clerk avisa quando a sessão aparece. */
+export function subscribeClerkToken(listener: () => void): () => void {
+  clerkTokenListeners.add(listener);
+  return () => {
+    clerkTokenListeners.delete(listener);
+  };
+}
 
 /** O app está dentro do Clerk. Os painéis esperam a sessão antes de pedir senha. */
 export function markClerkPresent() {
@@ -83,7 +92,9 @@ restoreClerkSessionFromStorage();
 
 export function setClerkGetToken(fn: ClerkTokenGetter | null) {
   clerkGetToken = fn;
-  if (fn) notifyClerkReady();
+  if (!fn) return;
+  notifyClerkReady();
+  clerkTokenListeners.forEach((listener) => listener());
 }
 
 export function setClerkSignOut(fn: (() => Promise<void>) | null) {
