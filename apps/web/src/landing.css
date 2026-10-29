@@ -722,6 +722,38 @@ a.kcat-group-name.is-chip:focus-visible {
   object-position: center;
   border-radius: 8px;
 }
+
+/* A foto muda de tamanho; o título e os botões ficam no mesmo lugar. */
+#catalogo .cat-card:not(.book-sheet) .cat-display {
+  aspect-ratio: 5 / 4;
+  height: auto;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+#catalogo .cat-card:not(.book-sheet) .cat-book,
+#catalogo .cat-card:not(.book-sheet) .cat-book[data-size="P"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  display: grid;
+  place-items: center;
+}
+#catalogo .cat-card:not(.book-sheet) .cat-book img,
+#catalogo .cat-card:not(.book-sheet) .cat-book[data-size="P"] img {
+  width: auto;
+  height: auto;
+  max-width: 82%;
+  max-height: 82%;
+  object-fit: contain;
+  object-position: center;
+}
+#catalogo .cat-card:not(.book-sheet) .cat-book[data-size="P"] img {
+  max-width: 64%;
+  max-height: 64%;
+}
+
 .cat-book-link {
   position: absolute;
   inset: 0;

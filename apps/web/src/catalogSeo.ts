@@ -2,10 +2,10 @@ import type { CatalogBookSeo } from "./pageMeta";
 
 /**
  * Índice fora da página de livro: `toCatalogCard` devolve null para o 10
- * (Nano), o 13 (aniversário da Ester), o 16 (Abigail), o 17 (Miriam)
- * e o 32 (Nossa Família).
+ * (Nano), o 13 (aniversário da Ester), o 16 (Abigail), o 17 (Miriam),
+ * o 32 (Nossa Família) e o 48 (Mãos Que Consertam Motores).
  */
-export const SKIP_BOOK_INDEXES = new Set([10, 13, 16, 17, 32]);
+export const SKIP_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48]);
 
 /** Lê o catálogo em português de Landing.tsx (primeiro array `catalog:`). */
 export function parsePtCatalog(source: string): CatalogBookSeo[] {

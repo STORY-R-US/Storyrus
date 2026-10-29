@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties, type Keyboar
 import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { accountAccess, studioEntryHref } from "./Auth";
-import { api, getToken, refreshSessionToken, subscribeClerkToken, whenClerkReady } from "./api";
+import { api, clerkWillProvideSession, getToken, refreshSessionToken, subscribeClerkToken, whenClerkReady } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
 import logo from "./assets/logo.png";
@@ -59,7 +59,15 @@ const CONTACT_INSTA = "storyr.us";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 type CoverFont = "fredoka" | "baloo" | "lilita";
 type HeroAsset = Record<Lang, string>;
-const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
+const heroAsset = (pt: string, en = "", es = ""): HeroAsset => ({ pt, en, es });
+/** Arquivo daquele idioma. Vazio, ou cópia do português, não entra em inglês nem espanhol. */
+function assetForLang(asset: HeroAsset, lang: Lang): string {
+  const file = asset[lang];
+  if (!file) return "";
+  if (lang !== "pt" && file === asset.pt) return "";
+  if (lang === "es" && asset.en && file === asset.en) return "";
+  return file;
+}
 /** Hero strip: capa, página aberta, criança lendo. */
 const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
   {
@@ -76,9 +84,9 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   },
   {
     name: "Amor de Mãe",
-    cover: heroAsset("capa-amordemae.jpg"),
-    page: heroAsset("pagina-amordemae.jpg"),
-    photo: heroAsset("foto-amordemae.jpg"),
+    cover: heroAsset("capa-amordemae.jpg", "capa-amordemae-en.jpg", "capa-amordemae-es.jpg"),
+    page: heroAsset("pagina-amordemae.jpg", "pagina-amordemae-en.jpg", "pagina-amordemae-es.jpg"),
+    photo: heroAsset("foto-amordemae.jpg", "foto-amordemae-en.jpg", "foto-amordemae-es.jpg"),
   },
   {
     name: "Mako",
@@ -169,35 +177,43 @@ const CARTOON_REVIEW_PHOTOS = [
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-const PASSO_IMGS = ["dica-boa.png", "dica-multi.png", "pagina-mamaepapaimatteo.jpg"];
-const PASSO_CARTOON_IMGS = ["dica-boa.png", "dica-multi.png", "cartoon-pagina-matteo.jpg"];
-/** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
-const REVIEW_PHOTOS = [
-  { tab: "foto-martin-goleiro.jpg", name: "Martin" },
-  { tab: "foto-nicolas-maefilho.jpg", name: "Nicolas" },
-  { tab: "foto-emilia-bailarina.jpg", name: "Emilia" },
-  { tab: "foto-amordemae.jpg", name: "Amor de Mãe" },
-  { tab: "foto-antonio-bicicleta.jpg", name: "Antonio" },
-  { tab: "foto-mamaepapaimatteo-en.jpg", name: "Matteo" },
-  { tab: "foto-mariajesus-hockey.jpg", name: "Maria Jesus" },
-  { tab: "foto-amordebisavo.jpg", name: "Amor de Bisavó" },
-  { tab: "foto-facundo-motocross.jpg", name: "Facundo" },
-  { tab: "foto-natalmemetata.jpg", name: "Meme e Tata" },
-  { tab: "foto-ester.png", name: "Ester" },
-  { tab: "foto-raquel-papai.png", name: "Raquel" },
-  { tab: "foto-rebeca.png", name: "Rebeca" },
-  { tab: "foto-maya-cachorra-pt.jpg", name: "Maya" },
-  { tab: "foto-mako-amigofiel.jpg", name: "Mako" },
-  { tab: "foto-noe.png", name: "Noé" },
-] as const;
-type CatalogImg = string | Record<Lang, string>;
+/** Reviews strip: foto do idioma. Sem versão própria, a foto não entra. */
+const REVIEW_PHOTOS: { tab: HeroAsset; name: string }[] = [
+  { tab: heroAsset("foto-martin-goleiro.jpg"), name: "Martin" },
+  { tab: heroAsset("foto-nicolas-maefilho.jpg"), name: "Nicolas" },
+  { tab: heroAsset("foto-emilia-bailarina.jpg"), name: "Emilia" },
+  { tab: heroAsset("foto-amordemae.jpg", "foto-amordemae-en.jpg", "foto-amordemae-es.jpg"), name: "Amor de Mãe" },
+  { tab: heroAsset("foto-antonio-bicicleta.jpg"), name: "Antonio" },
+  { tab: heroAsset("", "foto-mamaepapaimatteo-en.jpg", "foto-mamaepapaimatteo-es.jpg"), name: "Matteo" },
+  { tab: heroAsset("foto-mariajesus-hockey.jpg"), name: "Maria Jesus" },
+  { tab: heroAsset("foto-amordebisavo.jpg", "foto-amordebisavo-en.jpg", "foto-amordebisavo-es.jpg"), name: "Amor de Bisavó" },
+  { tab: heroAsset("foto-facundo-motocross.jpg"), name: "Facundo" },
+  { tab: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"), name: "Meme e Tata" },
+  { tab: heroAsset("foto-ester.png", "foto-ester-en.png", "foto-ester-es.png"), name: "Ester" },
+  { tab: heroAsset("foto-raquel-papai.png", "foto-raquel-papai-en.png", "foto-raquel-papai-es.png"), name: "Raquel" },
+  { tab: heroAsset("foto-rebeca.png", "foto-rebeca-en.png", "foto-rebeca-es.png"), name: "Rebeca" },
+  { tab: heroAsset("foto-maya-cachorra-pt.jpg", "foto-maya-cachorra-en.jpg", "foto-maya-cachorra-es.jpg"), name: "Maya" },
+  { tab: heroAsset("foto-mako-amigofiel.jpg", "foto-mako-amigofiel-en.jpg", "foto-mako-amigofiel-es.jpg"), name: "Mako" },
+  { tab: heroAsset("foto-noe.png", "foto-noe-en.png", "foto-noe-es.png"), name: "Noé" },
+];
+type CatalogImg = string | Partial<Record<Lang, string>>;
 function catalogImgSrc(img: CatalogImg, lang: Lang): string {
-  return typeof img === "string" ? img : img[lang];
+  if (typeof img === "string") return lang === "pt" ? img : "";
+  const file = img[lang];
+  if (!file) return "";
+  if (lang !== "pt" && file === img.pt) return "";
+  if (lang === "es" && img.en && file === img.en) return "";
+  return file;
+}
+/** Capa daquele idioma. Arquivo único, ou o mesmo arquivo repetido, conta só em português. */
+function coverForLang(i: number, lang: Lang): string {
+  const img = CATALOG_IMGS[i];
+  return img ? catalogImgSrc(img, lang) : "";
 }
 function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): string {
   const cartoon = CARTOON_COVER[i];
   if (variant === "cartoon" && cartoon) return catalogImgSrc(cartoon, lang);
-  return catalogImgSrc(CATALOG_IMGS[i], lang);
+  return coverForLang(i, lang);
 }
 /** Capa que só existe em desenho: fica na /cartoon, fora das listas realistas. */
 function isCartoonOnlyCover(i: number): boolean {
@@ -237,7 +253,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-heroi-policia.png", en: "capa-heroi-policia-en.png", es: "capa-heroi-policia-es.png" },
   { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
   { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
-  { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" },
+  { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png" },
   { pt: "capa-pascoa.png", en: "capa-pascoa-en.png", es: "capa-pascoa-es.png" },
   "capa-nossa-familia.png",
   { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
@@ -257,6 +273,10 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-tome-jesus.png", en: "capa-tome-jesus-en.png", es: "capa-tome-jesus-es.png" },
   { pt: "capa-maos-motores.png", en: "capa-maos-motores-en.png", es: "capa-maos-motores-es.png" },
   { pt: "capa-ana-espaco.png", en: "capa-ana-espaco-en.png", es: "capa-ana-espaco-es.png" },
+  { pt: "capa-matteo-aniversario.png", en: "capa-matteo-aniversario-en.png", es: "capa-matteo-aniversario-es.png" },
+  { pt: "capa-nonna-90-anos.png", en: "capa-nonna-90-anos-en.png", es: "capa-nonna-90-anos-es.png" },
+  { pt: "capa-amor-vovo-motor.png" },
+  { pt: "capa-brilho-bailarina.png", en: "capa-brilho-bailarina-en.png", es: "capa-brilho-bailarina-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -314,7 +334,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
   23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
   24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
-  30: { cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" } },
+  30: { cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png" } },
   34: {
     cover: { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
     page: "pagina-bruno-animais.jpg",
@@ -385,6 +405,26 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-ana-espaco.jpg", en: "pagina-ana-espaco-en.jpg", es: "pagina-ana-espaco-es.jpg" },
     photo: { pt: "foto-ana-espaco.jpg", en: "foto-ana-espaco-en.jpg", es: "foto-ana-espaco-es.jpg" },
   },
+  50: {
+    cover: { pt: "capa-matteo-aniversario.png", en: "capa-matteo-aniversario-en.png", es: "capa-matteo-aniversario-es.png" },
+    page: { pt: "pagina-matteo-aniversario.jpg", en: "pagina-matteo-aniversario-en.jpg", es: "pagina-matteo-aniversario-es.jpg" },
+    photo: { pt: "foto-matteo-aniversario.jpg", en: "foto-matteo-aniversario-en.jpg", es: "foto-matteo-aniversario-es.jpg" },
+  },
+  51: {
+    cover: { pt: "capa-nonna-90-anos.png", en: "capa-nonna-90-anos-en.png", es: "capa-nonna-90-anos-es.png" },
+    page: { pt: "pagina-nonna-90-anos.jpg", en: "pagina-nonna-90-anos-en.jpg", es: "pagina-nonna-90-anos-es.jpg" },
+    photo: { pt: "foto-nonna-90-anos.jpg", en: "foto-nonna-90-anos-en.jpg", es: "foto-nonna-90-anos-es.jpg" },
+  },
+  52: {
+    cover: { pt: "capa-amor-vovo-motor.png" },
+    page: { pt: "pagina-amor-vovo-motor.jpg", en: "pagina-amor-vovo-motor-en.jpg", es: "pagina-amor-vovo-motor-es.jpg" },
+    photo: { pt: "foto-amor-vovo-motor.jpg", en: "foto-amor-vovo-motor-en.jpg", es: "foto-amor-vovo-motor-es.jpg" },
+  },
+  53: {
+    cover: { pt: "capa-brilho-bailarina.png", en: "capa-brilho-bailarina-en.png", es: "capa-brilho-bailarina-es.png" },
+    page: { pt: "pagina-brilho-bailarina.jpg", en: "pagina-brilho-bailarina-en.jpg", es: "pagina-brilho-bailarina-es.jpg" },
+    photo: { pt: "foto-brilho-bailarina.jpg", en: "foto-brilho-bailarina-en.jpg", es: "foto-brilho-bailarina-es.jpg" },
+  },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -393,11 +433,18 @@ function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; sr
     const cover = catalogCoverFile(i, lang, "photo");
     return cover ? [{ key: "cover", src: cover }] : [];
   }
-  const shots: { key: CatalogSeriesKind; src: string }[] = [
-    { key: "cover", src: catalogImgSrc(series.cover, lang) },
-  ];
-  if (series.page) shots.push({ key: "page", src: catalogImgSrc(series.page, lang) });
-  if (series.photo) shots.push({ key: "photo", src: catalogImgSrc(series.photo, lang) });
+  const shots: { key: CatalogSeriesKind; src: string }[] = [];
+  const cover = catalogImgSrc(series.cover, lang);
+  if (!cover) return [];
+  shots.push({ key: "cover", src: cover });
+  if (series.page) {
+    const src = catalogImgSrc(series.page, lang);
+    if (src) shots.push({ key: "page", src });
+  }
+  if (series.photo) {
+    const src = catalogImgSrc(series.photo, lang);
+    if (src) shots.push({ key: "photo", src });
+  }
   return shots;
 }
 const CATALOG_THEMES = [
@@ -429,7 +476,7 @@ const CATALOG_THEMES = [
   "adventure",
   "superhero",
   "superhero",
-  "pets",
+  "superhero",
   "family_love",
   "grandfather_love",
   "easter",
@@ -451,17 +498,21 @@ const CATALOG_THEMES = [
   "biblico",
   "fathers_day",
   "space",
+  "birthday",
+  "birthday",
+  "grandfather_love",
+  "princess",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32]);
+const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -580,22 +631,22 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dinosaurs: [18],
   underwater: [43],
   space: [49],
-  princess: [1],
-  superhero: [15, 26, 27],
+  princess: [53, 1],
+  superhero: [15, 26, 27, 28],
   sport: [0, 4, 36],
   mothers_day: [5, 6, 44],
-  fathers_day: [21, 14, 48],
-  grandparents_love: [8, 37],
-  grandfather_love: [30, 46],
-  dia_do_idoso: [8, 30, 37, 46],
+  fathers_day: [21, 14],
+  grandparents_love: [8, 37, 51],
+  grandfather_love: [30, 46, 52],
+  dia_do_idoso: [8, 30, 37, 46, 51, 52],
   family_love: [7, 29, 39, 40, 42],
   recem_nascidos: [42],
-  pets: [11, 12, 23, 28],
+  pets: [11, 12, 23],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29, 39, 40],
   christmas: [9, 45],
-  birthday: [41],
+  birthday: [41, 50, 51],
   easter: [31],
   animais_sons: [34],
   economia: [35],
@@ -690,6 +741,8 @@ const HERO_BY_CATALOG: Record<number, string> = {
   43: "Maria",
   47: "Tomé",
   49: "Ana",
+  50: "Matteo",
+  51: "Nonna",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -1169,7 +1222,7 @@ const I18N = {
       { t: "Pequeno Construtor, Grande Empreendedor", p: "Capacete, blocos e um plano no papel: construir, tentar de novo e ver a ideia ficar de pé.", cover: "Hard", size: "M", tag: "Construir e criar", quote: "Pequenas mãos, grandes ideias." },
       { t: "Meu Herói Favorito, O Bombeiro", p: "Sirene, coragem e um herói de verdade: o bombeiro que cuida da cidade e da família.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói protege todo mundo." },
       { t: "Meu Herói Favorito, O Policial", p: "Farda, cuidado e um herói da cidade: o policial que protege quem a gente ama.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói cuida da gente todos os dias." },
-      { t: "Meu Herói Favorito, A Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Natureza e amizade", quote: "Até o menor amigo pode ser um herói." },
+      { t: "Meu Herói Favorito, A Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Até o menor amigo pode ser um herói." },
       { t: "Tia Especial, Não Existe Igual", p: "Passeio, colo e risada: a tia que transforma qualquer dia numa memória para guardar.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Com a tia, todo dia vira passeio." },
       { t: "Amor De Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
       { t: "Feliz Páscoa", p: "Ovos, flores e um coelhinho no jardim: a Páscoa da criança vira uma história para guardar.", cover: "Hard", size: "M", tag: "Páscoa", quote: "Páscoa é alegria para compartilhar." },
@@ -1191,6 +1244,10 @@ const I18N = {
       { t: "Tomé Duvidou, Mas Jesus O Abraçou E Guardou O Seu Coração", p: "A dúvida de Tomé encontra o abraço de Jesus: fé e cuidado numa história para guardar no coração.", cover: "Hard", size: "M", tag: "Fé e cuidado", quote: "Jesus o abraçou e guardou o seu coração." },
       { t: "Mãos Que Consertam Motores, Abraços Que Confortam A Alma", p: "Na oficina, o papai conserta o motor e abraça o filho: cuidado que conforta a alma.", cover: "Hard", size: "M", tag: "Papai na oficina", quote: "Abraços que confortam a alma." },
       { t: "Ana Em Uma Aventura Pelo Espaço", p: "Com coragem no coração, a Ana explora cada constelação: foguete, planetas e uma viagem só dela.", cover: "Hard", size: "M", tag: "Espaço", quote: "Com coragem no coração, Ana explora cada constelação." },
+      { t: "Feliz Aniversário, Matteo", p: "Bolo, balões e um ursinho aviador: o aniversário do Matteo vira uma história para guardar.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Feliz aniversário, Matteo!" },
+      { t: "Feliz 90 Anos, Nonna", p: "Balões, orquídeas e os genros ao lado: os 90 anos da Nonna viram uma história para guardar.", cover: "Hard", size: "M", tag: "90 anos", quote: "Feliz 90 anos, Nonna!" },
+      { t: "Amor De Vovô É Igual A Motor Bem Cuidado", p: "Na oficina, o vovô cuida do motor e do neto: um amor que, como motor bem cuidado, dura para sempre.", cover: "Hard", size: "M", tag: "Amor de vovô", quote: "Dura para sempre." },
+      { t: "Brilho Que Fascina, Alma De Bailarina", p: "Rosas, sapatilhas e um brilho no palco: a dança vira uma história para guardar.", cover: "Hard", size: "M", tag: "Ballet", quote: "Brilho que fascina, alma de bailarina." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1410,7 +1467,7 @@ const I18N = {
       { t: "Little Builder, Big Entrepreneur", p: "A hard hat, blocks and a plan on paper: build, try again and watch the idea stand up.", cover: "Hard", size: "M", tag: "Build and create", quote: "Small hands, big ideas." },
       { t: "My Favorite Hero, The Firefighter", p: "A siren, courage and a real hero: the firefighter who looks after the city and the family.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero protects everyone." },
       { t: "My Favorite Hero, The Police Officer", p: "A uniform, care and a hero of the city: the officer who protects the people we love.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero looks after us every day." },
-      { t: "My Favorite Hero, The Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Nature and friendship", quote: "Even the smallest friend can be a hero." },
+      { t: "My Favorite Hero, The Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Real heroes", quote: "Even the smallest friend can be a hero." },
       { t: "A Special Aunt, One Of A Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
       { t: "Grandpa's Love, My Safe Harbor", p: "Grandpa's arms, the lake and a hug that never ends: a safe harbor just for the family.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "In grandpa's arms, I find my safe harbor." },
       { t: "Happy Easter", p: "Eggs, flowers and a little bunny in the garden: Easter becomes a story to keep.", cover: "Hard", size: "M", tag: "Easter", quote: "Easter is joy to share." },
@@ -1432,6 +1489,10 @@ const I18N = {
       { t: "Thomas Doubted, But Jesus Embraced Him And Guarded His Heart", p: "Thomas's doubt meets Jesus's embrace: faith and care in a story to keep in the heart.", cover: "Hard", size: "M", tag: "Faith and care", quote: "Jesus embraced him and guarded his heart." },
       { t: "Hands That Repair Engines, Hugs That Comfort The Soul", p: "In the garage, Dad fixes the engine and hugs his boy: care that comforts the soul.", cover: "Hard", size: "M", tag: "Dad in the garage", quote: "Hugs that comfort the soul." },
       { t: "Ana On An Adventure Through Space", p: "With courage in her heart, Ana explores every constellation: a rocket, planets and a journey all her own.", cover: "Hard", size: "M", tag: "Space", quote: "With courage in her heart, Ana explores every constellation." },
+      { t: "Happy Birthday, Matteo", p: "A cake, balloons and a teddy pilot: Matteo's birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "Birthday", quote: "Happy birthday, Matteo!" },
+      { t: "Happy 90th Birthday, Nonna", p: "Balloons, orchids and her sons-in-law beside her: Nonna's 90th birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "90th birthday", quote: "Happy 90th birthday, Nonna!" },
+      { t: "A Grandpa's Love Is Like A Well-Kept Engine", p: "In the garage, grandpa tends the engine and his grandson: a love that, like a well-kept engine, lasts forever.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "It lasts forever." },
+      { t: "A Glow That Captivates, A Dancer At Heart", p: "Roses, ballet shoes and a glow on the stage: the dance becomes a story to keep.", cover: "Hard", size: "M", tag: "Ballet", quote: "A glow that captivates, a dancer at heart." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1651,7 +1712,7 @@ const I18N = {
       { t: "Pequeño Constructor, Gran Emprendedor", p: "Casco, bloques y un plano en el papel: construir, intentar de nuevo y ver la idea de pie.", cover: "Hard", size: "M", tag: "Construir y crear", quote: "Manos pequeñas, grandes ideas." },
       { t: "Mi Héroe Favorito, El Bombero", p: "Sirena, coraje y un héroe de verdad: el bombero que cuida la ciudad y la familia.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe protege a todo el mundo." },
       { t: "Mi Héroe Favorito, El Policía", p: "Uniforme, cuidado y un héroe de la ciudad: el policía que protege a quienes amamos.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe cuida de nosotros todos los días." },
-      { t: "Mi Héroe Favorito, La Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Naturaleza y amistad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
+      { t: "Mi Héroe Favorito, La Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
       { t: "Una Tía Especial, No Hay Otra Igual", p: "Paseo, abrazo y risa: la tía que convierte cualquier día en un recuerdo para guardar.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "Con la tía, todo día se vuelve paseo." },
       { t: "El Amor Del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
       { t: "Feliz Pascua", p: "Huevos, flores y un conejito en el jardín: la Pascua del niño se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Pascua", quote: "Pascua es alegría para compartir." },
@@ -1673,6 +1734,10 @@ const I18N = {
       { t: "Tomás Dudó, Pero Jesús Lo Abrazó Y Guardó Su Corazón", p: "La duda de Tomás encuentra el abrazo de Jesús: fe y cuidado en una historia para guardar en el corazón.", cover: "Hard", size: "M", tag: "Fe y cuidado", quote: "Jesús lo abrazó y guardó su corazón." },
       { t: "Manos Que Reparan Motores, Abrazos Que Reconfortan El Alma", p: "En el taller, papá repara el motor y abraza a su hijo: un cuidado que reconforta el alma.", cover: "Hard", size: "M", tag: "Papá en el taller", quote: "Abrazos que reconfortan el alma." },
       { t: "Ana En Una Aventura Por El Espacio", p: "Con coraje en el corazón, Ana explora cada constelación: un cohete, planetas y un viaje solo de ella.", cover: "Hard", size: "M", tag: "Espacio", quote: "Con coraje en el corazón, Ana explora cada constelación." },
+      { t: "Feliz Cumpleaños, Matteo", p: "Torta, globos y un osito aviador: el cumpleaños de Matteo se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Feliz cumpleaños, Matteo!" },
+      { t: "Felices 90 Años, Nonna", p: "Globos, orquídeas y los yernos al lado: los 90 años de Nonna se vuelven una historia para guardar.", cover: "Hard", size: "M", tag: "90 años", quote: "¡Felices 90 años, Nonna!" },
+      { t: "El Amor Del Abuelo Es Como Un Motor Bien Cuidado", p: "En el taller, el abuelo cuida el motor y a su nieto: un amor que, como un motor bien cuidado, dura para siempre.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "Dura para siempre." },
+      { t: "Un Brillo Que Fascina, Alma De Bailarina", p: "Rosas, zapatillas y un brillo en el escenario: la danza se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Ballet", quote: "Un brillo que fascina, alma de bailarina." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -2233,12 +2298,13 @@ function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
   if (HIDDEN_BOOK_INDEXES.has(index)) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
-  if (!book || !theme || !CATALOG_IMGS[index]) return null;
+  const img = catalogCoverFile(index, lang, "photo");
+  if (!book || !theme || !img) return null;
   return {
     t: book.t,
     story: book.p,
     quote: book.quote,
-    img: catalogCoverFile(index, lang, "photo"),
+    img,
     theme,
     cover: book.cover,
     size: book.size,
@@ -2377,6 +2443,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "dark";
   });
   const [heroPick, setHeroPick] = useState(0);
+  useEffect(() => { setHeroPick(0); }, [lang]);
   const heroH1Ref = useRef<HTMLHeadingElement>(null);
   const heroCarouselRef = useRef<HTMLDivElement>(null);
   const [coverFont] = useState<CoverFont>(() => {
@@ -2388,7 +2455,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   });
   const t = I18N[lang];
   const [session, setSession] = useState<LandingSession>(() =>
-    getToken() ? { status: "loading" } : { status: "out" },
+    getToken() || clerkWillProvideSession() ? { status: "loading" } : { status: "out" },
   );
   const signedIn = session.status === "in";
   const isOwner = session.status === "in" && session.isOwner;
@@ -2396,26 +2463,34 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const headerCtaLabel = signedIn ? t.hero_cta : t.cta_play;
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
-  const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
-  const passoImgs = variant === "cartoon" ? PASSO_CARTOON_IMGS : PASSO_IMGS;
+  const howImgs = variant === "cartoon" ? (lang === "pt" ? HOW_IMGS : []) : HOW_SCENE_IMGS;
+  const passoBook = variant === "cartoon"
+    ? (lang === "pt" ? "cartoon-pagina-matteo.jpg" : "")
+    : assetForLang(heroAsset("pagina-mamaepapaimatteo.jpg", "pagina-mamaepapaimatteo-en.jpg", "pagina-mamaepapaimatteo-es.jpg"), lang);
+  const passoImgs = ["dica-boa.png", "dica-multi.png", ...(passoBook ? [passoBook] : [])];
   const framing = import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
-    if (variant !== "cartoon") return [book];
-    const shot = CARTOON_HERO[book.name];
-    if (!shot) return [];
-    return [{
-      ...book,
-      cover: shot.cover ? heroAsset(shot.cover) : book.cover,
-      page: shot.page ? heroAsset(shot.page) : book.page,
-      photo: shot.photo ? heroAsset(shot.photo) : book.photo,
-    }];
+    let entry = book;
+    if (variant === "cartoon") {
+      const shot = CARTOON_HERO[book.name];
+      if (!shot) return [];
+      entry = {
+        ...book,
+        cover: shot.cover ? heroAsset(shot.cover) : book.cover,
+        page: shot.page ? heroAsset(shot.page) : book.page,
+        photo: shot.photo ? heroAsset(shot.photo) : book.photo,
+      };
+    }
+    const shots = [assetForLang(entry.cover, lang), assetForLang(entry.page, lang), assetForLang(entry.photo, lang)];
+    if (shots.some((src) => !src)) return [];
+    return [{ name: entry.name, shots }];
   });
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
-          ? Boolean(CARTOON_COVER[i])
-          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i)))
+          ? Boolean(CARTOON_COVER[i]) && Boolean(catalogCoverFile(i, lang, "cartoon"))
+          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, lang))))
         .sort((a, b) => {
           const rank = (i: number) => {
             const lead = CATALOG_LEAD.indexOf(i);
@@ -2433,8 +2508,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           heroi: HERO_BY_CATALOG[i],
           catalogI: i,
         }));
-  const reviewPhotos = variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS;
-  const heroPages = heroStrip.flatMap((book) => [book.cover[lang], book.page[lang], book.photo[lang]]);
+  const reviewPhotos = (variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS).flatMap((b) => {
+    const tab = typeof b.tab === "string" ? assetForLang(heroAsset(b.tab), lang) : assetForLang(b.tab, lang);
+    return tab ? [{ name: b.name, tab }] : [];
+  });
+  const heroPages = heroStrip.flatMap((book) => book.shots);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
@@ -2467,10 +2545,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const meta = NAV_CAT_META[i].feats[j];
       if (HIDDEN_BOOK_INDEXES.has(meta.catalogI)) return [];
       if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
+      const img = catalogCoverFile(meta.catalogI, lang, variant);
+      if (!img) return [];
       return [{
         label,
         href: `/catalogo#${NAV_CAT_META[i].id}`,
-        img: catalogCoverFile(meta.catalogI, lang, variant),
+        img,
       }];
     }).slice(0, 4),
   }));
@@ -2488,9 +2568,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     if (variant !== "cartoon" && isCartoonOnlyCover(i)) return [];
     const book = t.catalog[i];
-    const img = CATALOG_IMGS[i];
+    const img = catalogCoverFile(i, lang, variant);
     if (!book || !img) return [];
-    return [{ label: book.t, href: `/catalogo#${catalogSectionId(theme)}`, img: catalogCoverFile(i, lang, variant) }];
+    return [{ label: book.t, href: `/catalogo#${catalogSectionId(theme)}`, img }];
   }).slice(0, 4);
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
@@ -2517,7 +2597,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       try {
         const me = await api.me();
         if (cancelled || current !== generation) return;
-        if (accountAccess(me) === "guest") {
+        const access = accountAccess(me);
+        if (access === "guest") {
           setSession({ status: "out" });
           return;
         }
@@ -3060,7 +3141,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <div className="hero-carousel" ref={heroCarouselRef} aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
-              const shots = [book.cover[lang], book.page[lang], book.photo[lang]];
+              const shots = book.shots;
               const activeSeries = Math.floor(heroPick / 3) % Math.max(heroStrip.length, 1);
               const isActiveSeries = copy === 0 && activeSeries === seriesIndex;
               return (
@@ -3098,15 +3179,17 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             }))}
           </div>
         </div>
-        <div className="khero-flipbook">
-          <FlipBook
-            key={lang}
-            pages={heroPages}
-            index={Math.min(heroPick, Math.max(heroPages.length - 1, 0))}
-            onIndex={setHeroPick}
-            labels={flipLabels}
-          />
-        </div>
+        {heroPages.length > 0 ? (
+          <div className="khero-flipbook">
+            <FlipBook
+              key={lang}
+              pages={heroPages}
+              index={Math.min(heroPick, Math.max(heroPages.length - 1, 0))}
+              onIndex={setHeroPick}
+              labels={flipLabels}
+            />
+          </div>
+        ) : null}
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
           <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
@@ -3126,7 +3209,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <h3>{h.t}</h3>
                   </div>
                   <div className="howex-media">
-                    <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
+                    {howImgs[i] ? <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" /> : null}
                     <span className="howex-num">{i + 1}</span>
                   </div>
                   <figcaption>
@@ -3158,7 +3241,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <PassoFrame file={passoImgs[i]} alt={h.t} n={i + 1} />
                   ) : (
                     <div className="howex-media">
-                      <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" />
+                      {passoImgs[i] ? <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" /> : null}
                       <span className="howex-num">{i + 1}</span>
                     </div>
                   )}
@@ -3220,13 +3303,15 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.vid_sub}</p>
         <div className="vid-grid">
           {t.videos.map((v, i) => {
+            const poster = VIDEO_IMGS[i];
+            if (i === 0 && lang !== "pt") return null;
             const src = VIDEO_SRCS[i];
             const canPlay = Boolean(src);
             return (
               <figure className="vid-card reveal" key={v.t}>
                 <div className="vid-thumb">
                   {canPlay && src ? (
-                    <AutoMutedVideo key={src} src={exUrl(src)} poster={exUrl(VIDEO_IMGS[i])} />
+                    <AutoMutedVideo key={src} src={exUrl(src)} poster={exUrl(poster)} />
                   ) : (
                     <button
                       type="button"
@@ -3234,7 +3319,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                       aria-label={`${v.t} — ${t.vid_soon}`}
                       disabled
                     >
-                      <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
+                      <img src={exUrl(poster)} alt={v.t} loading="lazy" />
                       <span className="vid-dur">{t.vid_soon}</span>
                     </button>
                   )}
