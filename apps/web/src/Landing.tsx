@@ -259,7 +259,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
   { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
   "capa-gael-economia.jpg",
-  { pt: "capa-mariajesus-hockey.jpg", en: "capa-mariajesus-hockey-en.jpg", es: "capa-mariajesus-hockey-es.jpg" },
+  { pt: "capa-mariajesus-hockey.png", en: "capa-mariajesus-hockey-en.png", es: "capa-mariajesus-hockey-es.png" },
   { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
   { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
   { pt: "capa-meus-sobrinhos.png", en: "capa-meus-sobrinhos-en.png", es: "capa-meus-sobrinhos-es.png" },
@@ -345,8 +345,8 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: "pagina-bruno-animais.jpg",
   },
   36: {
-    cover: { pt: "capa-mariajesus-hockey.jpg", en: "capa-mariajesus-hockey-en.jpg", es: "capa-mariajesus-hockey-es.jpg" },
-    page: { pt: "pagina-mariajesus-hockey.jpg", en: "pagina-mariajesus-hockey-en.jpg", es: "pagina-mariajesus-hockey-es.jpg" },
+    cover: { pt: "capa-mariajesus-hockey.png", en: "capa-mariajesus-hockey-en.png", es: "capa-mariajesus-hockey-es.png" },
+    page: { pt: "pagina-mariajesus-hockey.png", en: "pagina-mariajesus-hockey-en.png", es: "pagina-mariajesus-hockey-es.png" },
     photo: { pt: "foto-mariajesus-hockey.jpg", en: "foto-mariajesus-hockey-en.jpg", es: "foto-mariajesus-hockey-es.jpg" },
   },
   37: {
