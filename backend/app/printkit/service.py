@@ -416,7 +416,7 @@ def start_checkout(order: PrintOrder, installments: int):
         order.payment_provider = None
         order.payment_reference = None
     copies = max(1, int(order.quantity or 1))
-    books = book_price_cents(order.book_size) * copies
+    books = book_price_cents(order.book_size, order.project.theme) * copies
     freight = int(order.freight_price_cents or 0)
     charge = gateway.create_charge(
         order_code=order.code,
@@ -450,7 +450,7 @@ def confirm_manual_payment(db: Session, order: PrintOrder) -> None:
     if active_job(db, order.project):
         raise ValueError("Aguarde a prévia atual terminar antes de confirmar o pagamento.")
     copies = max(1, int(order.quantity or 1))
-    order.amount_cents = book_price_cents(order.book_size) * copies
+    order.amount_cents = book_price_cents(order.book_size, order.project.theme) * copies
     order.payment_provider = "manual"
     order.payment_reference = f"manual-{order.code}"
     fulfill_payment(db, order)
@@ -474,6 +474,6 @@ def prepare_shipping_label(db: Session, order: PrintOrder) -> None:
 
 def price_for(order: PrintOrder) -> int | None:
     try:
-        return book_price_cents(order.book_size)
+        return book_price_cents(order.book_size, order.project.theme)
     except ValueError:
         return None

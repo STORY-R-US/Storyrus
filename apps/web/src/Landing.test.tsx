@@ -221,7 +221,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-lucas-max.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-esther-higiene.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(43);
+    expect(imgs).toHaveLength(44);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(false);
   });
@@ -246,8 +246,13 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(43);
-    expect(cards).toHaveLength(43);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(44);
+    expect(cards).toHaveLength(44);
+    const testBook = cards.find((card) => card.textContent?.includes("Livro Teste"));
+    expect(testBook).toBeTruthy();
+    expect(testBook?.textContent).toContain("R$ 0,01");
+    expect(testBook?.textContent).not.toContain("R$ 157,00");
+    expect(testBook?.textContent).not.toContain("R$ 177,00");
     expect(within(catalog).queryByText(/nano e suas aventuras/i)).not.toBeInTheDocument();
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
@@ -342,7 +347,7 @@ describe("Landing — catálogo", () => {
     expect(enCatalog.textContent).toContain("Grandpa's Love, My Safe Harbor");
     expect(enCatalog.textContent).toContain("$33.91");
     expect(enCatalog.textContent).toContain("$30.08");
-    expect(enCatalog.textContent).not.toContain("R$");
+    expect(enCatalog.textContent?.replaceAll("R$ 0,01", "")).not.toContain("R$");
 
     await user.click(screen.getByTestId("landing-lang-es"));
     const esCatalog = (await screen.findByRole("heading", { name: /nuestros libros/i })).closest("section") as HTMLElement;
@@ -358,7 +363,7 @@ describe("Landing — catálogo", () => {
     expect(esCatalog.textContent).toContain("20 × 20 cm");
     expect(esCatalog.textContent).toContain("30,10 €");
     expect(esCatalog.textContent).toContain("26,70 €");
-    expect(esCatalog.textContent).not.toContain("R$");
+    expect(esCatalog.textContent?.replaceAll("R$ 0,01", "")).not.toContain("R$");
   });
 
   it("mostra somente a capa sem navegação no card do catálogo", async () => {
@@ -384,7 +389,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(43);
+    expect(personalize).toHaveLength(44);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
