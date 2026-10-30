@@ -29,6 +29,8 @@ de ambiente; não versione arquivos `.env` reais nem dados de produção.
 - Mantenha os proxies de `vercel.json` e `apps/web/vercel.json` iguais.
 - A produção usa IA real: preserve `SKIP_OPENAI=false` e `OFFLINE_FALLBACK=false`.
   Não substitua falhas de provedor ou falta de saldo por textos ou imagens de ensaio.
+- Erros da IA devem falhar a geração, sem aprovar etapas nem enfileirar conteúdo simulado.
+  Pedido, pagamento e livro completo exigem a aprovação explícita da prévia no servidor.
 - O `render.yaml` é um modelo de provisionamento anterior à migração, não o
   estado atual a sincronizar. Não o aplique sobre os recursos existentes nem
   substitua DATABASE_URL por uma referência à base lógica antiga da instância.

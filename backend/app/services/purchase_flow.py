@@ -40,7 +40,11 @@ def require_unpaid(db: Session, project: Project) -> None:
 
 def require_paid(db: Session, project: Project) -> None:
     from app.config import settings
+    from app.services import book_profile
 
+    book_profile.require_real_preview(project)
+    if book_profile.enabled(project) and not (project.purchase_flow or {}).get("preview_approved_at"):
+        raise HTTPException(409, "Aprove a prévia antes de continuar o livro.")
     if settings.skip_openai:
         return
     if not (project.purchase_flow or {}).get("preview_ready_at"):
@@ -69,8 +73,11 @@ def reset_preview(project: Project, *, force: bool = False) -> None:
 
 def enqueue_paid_book(db: Session, order, *, retry: bool = False) -> Job:
     from app.services import jobs
+    from app.services.book_profile import require_real_preview
 
     project = order.project
+
+    require_real_preview(project)
     flow = project.purchase_flow or {}
     if order.payment_status != "paid" or not flow.get("preview_approved_at"):
         raise ValueError("Confirme o pagamento e aprove a prévia antes de gerar o livro completo.")

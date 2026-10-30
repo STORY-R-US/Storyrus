@@ -31,6 +31,11 @@ def enabled(project) -> bool:
     return bool((project.book_profile or {}).get("version") == VERSION)
 
 
+def require_real_preview(project) -> None:
+    if (project.book_profile or {}).get("credits_fallback"):
+        raise HTTPException(409, "Refaça a prévia com IA antes de aprovar ou continuar o livro.")
+
+
 def update(project, **values) -> dict:
     profile = {**(project.book_profile or {}), **values}
     project.book_profile = profile

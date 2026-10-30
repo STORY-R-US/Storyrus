@@ -253,127 +253,84 @@ def test_partial_visual_ficha_is_completed_instead_of_failing():
 
 
 @pytest.mark.asyncio
-async def test_missing_credits_uses_a_free_preview_and_moves_on(studio, monkeypatch):
+@pytest.mark.parametrize("message", ["OpenAI 429: credit_balance_exhausted", "OpenAI 500: unavailable"])
+@pytest.mark.parametrize("failure_stage", ["profile", "image"])
+async def test_ai_errors_fail_preview_without_substitutes_or_automatic_approvals(studio, monkeypatch, message, failure_stage):
     client, db, pid, _ = studio
 
     class Text:
-        async def prepare_book_profile(self, *, ficha, photos):
-            raise ProviderError("OpenAI 429: credit_balance_exhausted", transient=False)
+        async def prepare_book_profile(self, **kwargs):
+            if failure_stage == "profile":
+                raise ProviderError(message, transient=False)
+            return TextResult(text=json.dumps({"locales": {"pt-BR": {"title": "Lia", "left": "Um", "right": "Dois"}}}))
 
     class Images:
         async def generate_scene(self, **kwargs):
-            raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
-
-    monkeypatch.setattr(settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Text())
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Images())
-    job = await _run(studio, "preview")
-    project = db.get(Project, uuid.UUID(pid))
-    assert project.book_profile["stage"] == "preview_ready"
-    assert project.book_profile["credits_fallback"] is True
-    assert job.result["credits_fallback"] is True
-    previews = client.get(f"/v1/projects/{pid}/assets").json()["previews"]
-    assert {item["role"] for item in previews} == {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
-
-
-@pytest.mark.asyncio
-async def test_any_openai_error_still_finishes_the_preview(studio, monkeypatch):
-    client, db, pid, _ = studio
-
-    class Text:
-        async def prepare_book_profile(self, *, ficha, photos):
-            raise ProviderError("OpenAI 429: slow down", transient=True)
-
-    class Images:
-        async def generate_scene(self, **kwargs):
-            raise ProviderError("OpenAI 500: unavailable", transient=True)
+            raise ProviderError(message, transient=False)
 
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(settings, "skip_openai", False)
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Text())
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Images())
-    job = await _run(studio, "preview")
+    response = client.post(f"/v1/projects/{pid}/preview", json={})
+    assert response.status_code == 202
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    db.expire_all()
     project = db.get(Project, uuid.UUID(pid))
-    assert job.status == "DONE"
-    assert project.book_profile["stage"] == "preview_ready"
-    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+    assert job.status == "FAILED"
+    assert not project.book_profile.get("credits_fallback")
+    assert project.book_profile["stage"] == "ficha"
+    assert project.character_approved_at is None and project.book_approved_at is None
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
+    assert len(db.scalars(select(Job).where(Job.project_id == project.id)).all()) == 1
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
 
 
 @pytest.mark.asyncio
-async def test_rehearsal_skips_openai_and_keeps_each_approval(studio, monkeypatch):
+async def test_explicit_rehearsal_still_requires_each_approval(studio, monkeypatch):
+    from fastapi import HTTPException
+
     from app.services import purchase_flow
 
     client, db, pid, _ = studio
-
-    class Boom:
-        async def prepare_book_profile(self, **kwargs):
-            raise AssertionError("openai")
-
-        async def generate_story(self, **kwargs):
-            raise AssertionError("openai")
-
-        async def generate_scene(self, **kwargs):
-            raise AssertionError("openai")
-
-        async def generate_character(self, **kwargs):
-            raise AssertionError("openai")
-
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(settings, "skip_openai", True)
-    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Boom())
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Boom())
     await _run(studio, "preview")
     project = db.get(Project, uuid.UUID(pid))
     assert project.book_profile["stage"] == "preview_ready"
-    purchase_flow.require_paid(db, project)
+    with pytest.raises(HTTPException):
+        purchase_flow.require_paid(db, project)
     story = db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
-    assert story is not None
     await runner.process_job(db, story)
     db.expire_all()
-    project = db.get(Project, uuid.UUID(pid))
     assert project.book_profile["stage"] == "story_ready"
-    assert project.story_text
-    assert client.get(f"/v1/projects/{pid}").status_code == 200
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "AVATAR"))
 
 
 @pytest.mark.asyncio
-async def test_missing_credits_approves_each_stage_and_continues(studio, monkeypatch):
+async def test_story_provider_error_never_approves_or_enqueues_avatar(studio, monkeypatch):
     client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="preview_ready", costume="azul", locales={"pt-BR": {"title": "Lia"}})
+    db.commit()
 
     class Text:
-        async def prepare_book_profile(self, *, ficha, photos):
-            raise ProviderError("OpenAI 429: credit_balance_exhausted", transient=False)
-
         async def generate_story(self, **kwargs):
-            raise ProviderError("OpenAI 429: credit_balance_exhausted", transient=False)
-
-    class Images:
-        async def generate_scene(self, **kwargs):
-            raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
-
-        async def generate_character(self, **kwargs):
             raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
 
     monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a: Text())
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: Images())
-    await _run(studio, "preview")
-    story = db.scalar(select(Job).where(Job.project_id == uuid.UUID(pid), Job.type == "STORY"))
-    assert story is not None
-    await runner.process_job(db, story)
+    response = client.post(f"/v1/projects/{pid}/story", json={})
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
     db.expire_all()
-    project = db.get(Project, uuid.UUID(pid))
-    assert project.book_profile["stage"] == "story_approved"
-    avatar = db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "AVATAR"))
-    assert avatar is not None and avatar.status == "PENDING"
-    await runner.process_job(db, avatar)
-    db.expire_all()
-    project = db.get(Project, uuid.UUID(pid))
-    assert project.book_profile["stage"] == "avatar_approved"
-    assert project.character_approved_at is not None
-    page = db.scalar(select(Job).where(Job.idempotency_key == f"free-page-{pid}-1"))
-    assert page is not None and page.status == "PENDING"
-    assert client.get(f"/v1/projects/{pid}").status_code == 200
+    assert job.status == "FAILED"
+    assert project.book_profile["stage"] == "preview_ready"
+    assert project.story_text is None
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "AVATAR"))
 
 
 def test_filename_style_and_size_contract():
@@ -664,3 +621,34 @@ def test_preview_adjustments_keep_pending_payment_locked(studio):
     assert response.status_code == 409
     db.refresh(project)
     assert project.book_profile["stage"] == "story_approved"
+
+
+def test_fallback_book_requires_regeneration_and_preserves_archived_material(studio):
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, credits_fallback=True, stage="book_ready", current_page=16)
+    project.story_text = "História anterior de contingência"
+    project.ebook_url = "old-book.pdf"
+    project.purchase_flow = {"full_book_ready_at": "2026-10-30", "stage": "book_ready"}
+    asset = Asset(project_id=project.id, kind="page_image", storage_key="old-page.png",
+                  meta={"workflow": 1, "role": "com_texto", "page": 1})
+    db.add(asset)
+    store["old-page.png"] = _png()
+    db.commit()
+    for path in ("preview/approve", "story/approve", "avatar/approve", "book/approve", "pages/next"):
+        assert client.post(f"/v1/projects/{pid}/{path}", json={}).status_code == 409
+    response = client.post(f"/v1/projects/{pid}/preview/retry-ai")
+    assert response.status_code == 202, response.text
+    db.refresh(project)
+    db.refresh(asset)
+    assert project.book_profile["stage"] == "ficha"
+    assert project.book_profile["current_page"] == 0
+    assert project.book_profile["credits_fallback"] is False
+    assert project.book_profile["fallback_archive"]["ebook_url"] == "old-book.pdf"
+    assert project.book_profile["fallback_archive"]["story_text"] == "História anterior de contingência"
+    assert asset.meta["archived_fallback"] is True and asset.meta["workflow"] == 0
+    assert store["old-page.png"]
+    assert not project.purchase_flow["preview_approved_at"]
+    assert not project.purchase_flow["full_book_ready_at"]
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    assert job.result["payload"]["master_preview"] is True

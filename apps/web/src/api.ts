@@ -435,6 +435,9 @@ export const api = {
   async suggestPreviewTitles(id: string, guidance: string) {
     return req<{ titles: string[] }>(`/v1/projects/${id}/preview/title-suggestions`, { method: "POST", body: JSON.stringify({ guidance }) });
   },
+  async retryRealPreview(id: string) {
+    return req<JobAccepted>(`/v1/projects/${id}/preview/retry-ai`, { method: "POST" });
+  },
   async saveQuotation(id: string) {
     return req<Project>(`/v1/projects/${id}/quotation`, { method: "POST" });
   },

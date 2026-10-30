@@ -40,6 +40,7 @@ def approve_story(
     db: Session = Depends(get_db),
 ):
     project = _project(db, user, project_id)
+    book_profile.require_real_preview(project)
     book_profile.require_stage(project, "story_ready", "story_approved")
     book_profile.update(project, stage="story_approved")
     db.commit()

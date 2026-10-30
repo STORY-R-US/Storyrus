@@ -31,6 +31,45 @@ class PreviewTitleIn(BaseModel):
     title: str = Field(min_length=1, max_length=120)
 
 
+@router.post("/{project_id}/preview/retry-ai", response_model=JobAcceptedOut, status_code=202)
+def retry_real_preview(
+    project_id: uuid.UUID,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+):
+    from sqlalchemy import select
+
+    from app.models import Asset
+    from app.services import book_profile
+    from app.services.privacy import require_photo_authorization
+
+    project = get_owned_project(db, user, project_id)
+    editable(db, project)
+    require_photo_authorization(db, project.id)
+    profile = dict(project.book_profile or {})
+    if not profile.get("credits_fallback"):
+        raise HTTPException(409, "Esta prévia não precisa desta recuperação.")
+    archive = {
+        "profile": profile, "story_text": project.story_text, "ebook_url": project.ebook_url,
+        "character_ref": project.character_ref, "purchase_flow": project.purchase_flow,
+        "recovered_at": purchase_flow.timestamp(),
+    }
+    for asset in db.scalars(select(Asset).where(Asset.project_id == project.id)):
+        if (asset.meta or {}).get("workflow") == 1:
+            asset.meta = {**asset.meta, "workflow": 0, "archived_fallback": True}
+    book_profile.update(project, stage="ficha", current_page=0, locales=None, stories=None,
+                        credits_fallback=False, fallback_archive=archive)
+    project.story_text = project.ebook_url = project.character_ref = None
+    project.character_approved_at = project.book_approved_at = None
+    purchase_flow.update(project, preview_ready_at=None, preview_approved_at=None,
+                         full_book_ready_at=None, quoted_at=None, stage="preview_generating")
+    return accept_job(jobs.enqueue_job(
+        db, user=user, project=project, job_type=JobType.EBOOK,
+        payload={PREVIEW_FLAG: True, "master_preview": True},
+        idempotency_key=f"real-preview-{project.id}-{uuid.uuid4()}",
+    ))
+
+
 class TitleSuggestionsIn(BaseModel):
     guidance: str = Field(default="", max_length=500)
 
@@ -266,6 +305,7 @@ def approve_preview(
     from app.services import book_profile
 
     master = book_profile.enabled(project)
+    book_profile.require_real_preview(project)
     if master:
         book_profile.require_stage(project, "story_approved", "preview_approved")
     if not master and (not project.story_text or not project.ebook_url):

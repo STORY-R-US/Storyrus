@@ -387,6 +387,12 @@ def select_freight(order: PrintOrder, service_id: int) -> None:
 
 
 def start_checkout(order: PrintOrder, installments: int):
+    profile = order.project.book_profile or {}
+    if profile.get("version") == 1 and (
+        profile.get("credits_fallback")
+        or not (order.project.purchase_flow or {}).get("preview_approved_at")
+    ):
+        raise ValueError("Revise e aprove a prévia gerada com IA antes do pagamento.")
     if order.book_size not in {"P", "M"}:
         raise ValueError("Tamanho do livro ausente.")
     if order.status == "held":
@@ -435,6 +441,8 @@ def start_checkout(order: PrintOrder, installments: int):
 
 
 def confirm_manual_payment(db: Session, order: PrintOrder) -> None:
+    if (order.project.book_profile or {}).get("credits_fallback"):
+        raise ValueError("Refaça a prévia com IA antes de continuar o pedido.")
     """Confirma o pagamento sem cobrança enquanto não há meio de pagamento."""
     from app.printkit.gateway import checkout_available
     from app.services.purchase_flow import active_job

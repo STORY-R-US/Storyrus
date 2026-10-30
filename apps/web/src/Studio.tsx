@@ -720,7 +720,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           ? { done: imageProgress.done, total: imageProgress.total }
           : null,
       );
-  const previewHeadline = previewReady && !showPreviewLoading && !showPreviewRetry
+  const previewHeadline = project?.book_profile?.credits_fallback ? t.previewRetry : previewReady && !showPreviewLoading && !showPreviewRetry
     ? project?.purchase_flow?.full_book_ready_at
       ? (project.book_approved_at ? purchaseCopy(lang).approved : purchaseCopy(lang).full)
       : project?.purchase_flow?.stage === "generating_book" ? purchaseCopy(lang).generating : t.previewReadyTitle

@@ -91,34 +91,8 @@ def _text(value) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def _vendor_down(exc: BaseException) -> bool:
-    """Saldo, cota ou queda da OpenAI não podem deixar o livro como falha."""
-    from app.ai_clients.resilience import billing_exhausted
-
-    if not isinstance(exc, ProviderError):
-        return False
-    if billing_exhausted(str(exc)) or exc.status_code in {401, 402, 403, 429, 500, 502, 503, 504}:
-        return True
-    low = str(exc).lower()
-    return "openai" in low or "falha de rede" in low or "quota" in low or "credit" in low
-
-
-def _mark_free(job, project) -> None:
-    """Saldo esgotado não trava o livro: a etapa segue com material gratuito."""
-    contract.update(project, credits_fallback=True)
-    job.result = {**(job.result or {}), "image_provider": "demo", "credits_fallback": True}
-    logger.warning("OpenAI sem creditos; etapa gratuita project=%s", project.id)
-
-
-def _free_path(job, project) -> bool:
-    return bool(
-        (job.result or {}).get("credits_fallback")
-        or (project.book_profile or {}).get("credits_fallback")
-    )
-
-
-def _enqueue_free(db, job, project, job_type, payload, key) -> None:
-    """Aprova a etapa gratuita e coloca a seguinte na fila, sem novo clique."""
+def _enqueue_next_page(db, job, project, job_type, payload, key) -> None:
+    """Enqueues the next page of an explicitly approved, paid book."""
     from app.models import User
     from app.services import jobs as jobs_svc
 
@@ -136,35 +110,7 @@ def _enqueue_free(db, job, project, job_type, payload, key) -> None:
             completing_job=job,
         )
     except Exception:
-        logger.exception("etapa gratuita nao entrou na fila project=%s key=%s", project.id, key)
-
-
-def _free_image(label: str) -> ImageResult:
-    return ImageResult(
-        _offline_png(label, palette=((235, 243, 250), (255, 250, 242))),
-        cost_usd=0,
-        meta={"provider": "demo", "credits_fallback": True},
-    )
-
-
-def _free_ficha(project, title: str) -> dict:
-    child = project.child_name or "a criança"
-    return {
-        "visual_identity": f"{child}, com o rosto das fotos enviadas.",
-        "costume": "roupa de aventura azul",
-        "palette": "azul, creme e dourado",
-        "animal": "",
-        "trait": "curiosidade",
-        "interest": "descobertas",
-        "locales": {
-            lang: {
-                "title": title,
-                "left": f"{child} explora.\nUma surpresa chegou!",
-                "right": "Vamos descobrir juntos.\nA aventura comecou!",
-            }
-            for lang in project.book_profile["languages"]
-        },
-    }
+        logger.exception("pagina paga nao entrou na fila project=%s key=%s", project.id, key)
 
 
 def _free_story(project, title: str) -> str:
@@ -248,43 +194,35 @@ async def _prepare(db, job, project, photos):
             },
         }
     else:
-        try:
-            result = (
-                await _pkg()
-                .get_text_provider()
-                .prepare_book_profile(
-                    ficha={
-                        "name": project.child_name,
-                        "age": project.child_age,
-                        "gender": profile["gender"],
-                        "title": profile.get("title"),
-                        "theme": profile.get("theme_description") or project.theme,
-                        "style": project.style,
-                        "languages": profile["languages"],
-                        "characters": {
-                            "names": profile.get("characters", ""),
-                            "photos": [ec.get("name") for ec in project.extra_characters or []],
-                        },
+        result = (
+            await _pkg()
+            .get_text_provider()
+            .prepare_book_profile(
+                ficha={
+                    "name": project.child_name,
+                    "age": project.child_age,
+                    "gender": profile["gender"],
+                    "title": profile.get("title"),
+                    "theme": profile.get("theme_description") or project.theme,
+                    "style": project.style,
+                    "languages": profile["languages"],
+                    "characters": {
+                        "names": profile.get("characters", ""),
+                        "photos": [ec.get("name") for ec in project.extra_characters or []],
                     },
-                    photos=photos,
-                )
+                },
+                photos=photos,
             )
-        except ProviderError as exc:
-            logger.warning("provedor indisponivel; ficha gratuita: %s", exc)
-            if not _vendor_down(exc):
-                raise
-            prepared = _free_ficha(project, title)
-            _mark_free(job, project)
-        else:
-            job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
-            try:
-                prepared = json.loads(
-                    result.text.strip().removeprefix("```json").removesuffix("```").strip()
-                )
-            except (ValueError, TypeError) as exc:
-                raise ProviderError(
-                    "Ficha visual invalida; tente novamente", transient=True
-                ) from exc
+        )
+        job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
+        try:
+            prepared = json.loads(
+                result.text.strip().removeprefix("```json").removesuffix("```").strip()
+            )
+        except (ValueError, TypeError) as exc:
+            raise ProviderError(
+                "Ficha visual invalida; tente novamente", transient=True
+            ) from exc
     if not isinstance(prepared, dict):
         raise ProviderError("Ficha visual invalida", transient=True)
     prepared = _fill_visual_ficha(
@@ -377,24 +315,17 @@ async def preview(db, job, project):
                     _offline_png(role, palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
                 )
             else:
-                try:
-                    result = await provider.generate_scene(
-                        prompt=prompt,
-                        character_ref=reference,
-                        photo=photos[0],
-                        extra_refs=extra_refs,
-                        style=contract.art_direction(project.style),
-                        reference_role="cover"
-                        if role != "01_CAPA" or reference != photos[0]
-                        else "character",
-                        landscape=role == "02_LIVRO_ABERTO",
-                    )
-                except ProviderError as exc:
-                    logger.warning("provedor indisponivel; previa gratuita: %s", exc)
-                    if not _vendor_down(exc):
-                        raise
-                    result = _free_image(role)
-                    _mark_free(job, project)
+                result = await provider.generate_scene(
+                    prompt=prompt,
+                    character_ref=reference,
+                    photo=photos[0],
+                    extra_refs=extra_refs,
+                    style=contract.art_direction(project.style),
+                    reference_role="cover"
+                    if role != "01_CAPA" or reference != photos[0]
+                    else "character",
+                    landscape=role == "02_LIVRO_ABERTO",
+                )
             data = book_render.png(result.image_bytes, spread=role == "02_LIVRO_ABERTO")
             title = profile["locales"][language]["title"]
             if role == "01_CAPA":
@@ -491,27 +422,19 @@ async def story(db, job, project):
         if settings.offline_fallback or settings.skip_openai:
             text = _free_story(project, title)
         else:
-            try:
-                result = (
-                    await _pkg()
-                    .get_text_provider()
-                    .generate_story(
-                        brief=brief,
-                        style=contract.art_direction(project.style),
-                        pages=16,
-                        language=language,
-                        age=project.child_age,
-                    )
+            result = (
+                await _pkg()
+                .get_text_provider()
+                .generate_story(
+                    brief=brief,
+                    style=contract.art_direction(project.style),
+                    pages=16,
+                    language=language,
+                    age=project.child_age,
                 )
-            except ProviderError as exc:
-                logger.warning("provedor indisponivel; historia gratuita: %s", exc)
-                if not _vendor_down(exc):
-                    raise
-                text = _free_story(project, title)
-                _mark_free(job, project)
-            else:
-                job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
-                text = result.text
+            )
+            job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
+            text = result.text
         pages = _parse_pages(text)
         if len(pages) != 16:
             raise ProviderError(
@@ -524,15 +447,11 @@ async def story(db, job, project):
         )
     project.story_text = stories[project.language]
     contract.update(project, stage="story_ready", stories=stories)
-    if _free_path(job, project):
-        from app.models import JobType
-
-        contract.update(project, stage="story_approved")
-        _enqueue_free(db, job, project, JobType.AVATAR, None, f"free-avatar-{project.id}")
     _set_status(db, project, ProjectStatus.STORY_READY)
 
 
 async def avatar(db, job, project):
+    purchase_flow.require_paid(db, project)
     contract.require_stage(project, "story_approved", "preview_approved", "avatar_ready")
     photos = _photos(db, project)
     _set_status(db, project, ProjectStatus.AVATAR_RUNNING)
@@ -541,22 +460,15 @@ async def avatar(db, job, project):
             _offline_png("Avatar DEMO", palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
         )
     else:
-        try:
-            result = (
-                await _pkg()
-                .get_image_provider()
-                .generate_character(
-                    prompt=contract.avatar_prompt(project),
-                    reference_images=[photos[0]],
-                    style=contract.art_direction(project.style),
-                )
+        result = (
+            await _pkg()
+            .get_image_provider()
+            .generate_character(
+                prompt=contract.avatar_prompt(project),
+                reference_images=[photos[0]],
+                style=contract.art_direction(project.style),
             )
-        except ProviderError as exc:
-            logger.warning("provedor indisponivel; avatar gratuito: %s", exc)
-            if not _vendor_down(exc):
-                raise
-            result = _free_image("Avatar gratuito")
-            _mark_free(job, project)
+        )
     data = book_render.png(result.image_bytes)
     key = _store(
         db, project, "character", data, language=project.language, role="avatar", name="AVATAR.png"
@@ -572,25 +484,12 @@ async def avatar(db, job, project):
     }
     project.character_approved_at = None
     contract.update(project, stage="avatar_ready")
-    if _free_path(job, project):
+    if _payload(job).get("purchase_full_book"):
         from app.models import JobType, _now
 
         project.character_approved_at = _now()
         contract.update(project, stage="avatar_approved")
-        _enqueue_free(
-            db,
-            job,
-            project,
-            JobType.EBOOK,
-            {"master_page": True, "page": 1},
-            f"free-page-{project.id}-1",
-        )
-    elif _payload(job).get("purchase_full_book"):
-        from app.models import JobType, _now
-
-        project.character_approved_at = _now()
-        contract.update(project, stage="avatar_approved")
-        _enqueue_free(
+        _enqueue_next_page(
             db,
             job,
             project,
@@ -603,6 +502,7 @@ async def avatar(db, job, project):
 
 
 async def page(db, job, project):
+    purchase_flow.require_paid(db, project)
     contract.require_stage(project, "avatar_approved", "page_ready", "book_ready")
     photos = _photos(db, project)
     profile = project.book_profile
@@ -644,20 +544,13 @@ async def page(db, job, project):
                     cost_usd=0,
                 )
             else:
-                try:
-                    result = await provider.generate_scene(
-                        prompt=prompt,
-                        character_ref=avatar_bytes,
-                        photo=photos[0],
-                        extra_refs=photos[1:] + [cover_bytes],
-                        style=contract.art_direction(project.style),
-                    )
-                except ProviderError as exc:
-                    logger.warning("provedor indisponivel; pagina gratuita: %s", exc)
-                    if not _vendor_down(exc):
-                        raise
-                    result = _free_image(f"Pagina {number} gratuita")
-                    _mark_free(job, project)
+                result = await provider.generate_scene(
+                    prompt=prompt,
+                    character_ref=avatar_bytes,
+                    photo=photos[0],
+                    extra_refs=photos[1:] + [cover_bytes],
+                    style=contract.art_direction(project.style),
+                )
             shared_art = book_render.png(result.image_bytes)
             _account(db, job, result, f"Pagina {number} — arte compartilhada entre idiomas")
         art = shared_art
@@ -685,21 +578,10 @@ async def page(db, job, project):
     contract.update(
         project, current_page=current, stage="book_ready" if current == 16 else "page_ready"
     )
-    if _free_path(job, project) and finished_frontier and current < 16:
+    if _payload(job).get("purchase_full_book") and finished_frontier and current < 16:
         from app.models import JobType
 
-        _enqueue_free(
-            db,
-            job,
-            project,
-            JobType.EBOOK,
-            {"master_page": True, "page": current + 1},
-            f"free-page-{project.id}-{current + 1}",
-        )
-    elif _payload(job).get("purchase_full_book") and finished_frontier and current < 16:
-        from app.models import JobType
-
-        _enqueue_free(
+        _enqueue_next_page(
             db,
             job,
             project,
@@ -726,20 +608,13 @@ async def page(db, job, project):
                         cost_usd=0,
                     )
                 else:
-                    try:
-                        result = await provider.generate_scene(
-                            prompt=contract.back_cover_prompt(project, language),
-                            character_ref=cover_bytes,
-                            photo=photos[0],
-                            extra_refs=photos[1:],
-                            style=contract.art_direction(project.style),
-                        )
-                    except ProviderError as exc:
-                        logger.warning("provedor indisponivel; contracapa gratuita: %s", exc)
-                        if not _vendor_down(exc):
-                            raise
-                        result = _free_image("Contracapa gratuita")
-                        _mark_free(job, project)
+                    result = await provider.generate_scene(
+                        prompt=contract.back_cover_prompt(project, language),
+                        character_ref=cover_bytes,
+                        photo=photos[0],
+                        extra_refs=photos[1:],
+                        style=contract.art_direction(project.style),
+                    )
                 back_bytes = book_render.back_cover(book_render.png(result.image_bytes))
                 title = profile["locales"][language]["title"]
                 _store(

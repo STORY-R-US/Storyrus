@@ -18,6 +18,21 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("interrompe o livro antigo de contingência antes de qualquer aprovação", async () => {
+    const invalid = { ...project, book_profile: { ...project.book_profile!, stage: "book_ready", current_page: 16, credits_fallback: true },
+      purchase_flow: { stage: "book_ready", full_book_ready_at: "2026-10-30" } };
+    const retry = vi.spyOn(api, "retryRealPreview").mockResolvedValue(accepted);
+    vi.spyOn(api, "getProject").mockResolvedValue(invalid);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    const approve = vi.spyOn(api, "approveBook");
+    render(<MasterBookFlow project={invalid} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    expect(screen.getByTestId("studio-preview-recovery")).toBeInTheDocument();
+    expect(screen.queryByTestId("purchase-flow")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Aprovar livro" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Refazer prévia com IA" }));
+    await waitFor(() => expect(retry).toHaveBeenCalledWith("master"));
+    expect(approve).not.toHaveBeenCalled();
+  });
   it("abre os ajustes depois da aprovação da história e envia o pedido de melhoria", async () => {
     const ready = { ...project, theme: "space", book_profile: { ...project.book_profile!, stage: "story_approved" } };
     const save = vi.spyOn(api, "savePreviewChanges").mockResolvedValue(accepted);

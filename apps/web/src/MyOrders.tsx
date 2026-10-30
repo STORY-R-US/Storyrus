@@ -82,6 +82,7 @@ export function MyOrders() {
     }
   }
   function status(p: Project) {
+    if (p.book_profile?.credits_fallback) return t.steps[0];
     if (p.book_approved_at && p.purchase_flow?.full_book_ready_at)
       return t.approved;
     if (p.purchase_flow?.full_book_ready_at) return t.full;

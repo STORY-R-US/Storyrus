@@ -25,6 +25,11 @@ def approve_avatar(
     db: Session = Depends(get_db),
 ) -> Project:
     project = get_owned_project(db, user, project_id)
+    book_profile.require_real_preview(project)
+    if book_profile.enabled(project):
+        from app.services.purchase_flow import require_paid
+
+        require_paid(db, project)
     book_profile.require_stage(project, "avatar_ready", "avatar_approved")
     if not project.character_ref:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gere o personagem antes de aprovar")
@@ -43,12 +48,15 @@ def approve_book(
     db: Session = Depends(get_db),
 ) -> Project:
     project = get_owned_project(db, user, project_id)
+    book_profile.require_real_preview(project)
     book_profile.require_stage(project, "book_ready")
     if not project.character_approved_at:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Aprove o personagem antes do livro")
     if not project.ebook_url:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Monte o e-book antes de aprovar o livro")
     flow = project.purchase_flow or {}
+    if book_profile.enabled(project) and not flow.get("preview_approved_at"):
+        raise HTTPException(409, "Aprove a prévia antes de aprovar o livro completo.")
     if flow.get("preview_ready_at"):
         from app.printkit.service import get_print_order, prepare_files
         from app.services import purchase_flow

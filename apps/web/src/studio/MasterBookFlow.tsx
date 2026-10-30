@@ -48,6 +48,9 @@ const COPY = {
     themeLabel: "Tema da história",
     previewNotes: "O que você quer melhorar?",
     cancelAdjust: "Cancelar ajustes",
+    retryPreviewTitle: "Sua prévia precisa de uma nova geração",
+    retryPreviewHint: "Precisamos refazer esta prévia com IA antes da sua revisão. O livro só continuará depois da sua aprovação.",
+    retryRealPreview: "Refazer prévia com IA",
   },
   en: {
     preview: "Approve the preview?",
@@ -89,6 +92,9 @@ const COPY = {
     themeLabel: "Story theme",
     previewNotes: "What would you like to improve?",
     cancelAdjust: "Cancel adjustments",
+    retryPreviewTitle: "Your preview needs to be generated again",
+    retryPreviewHint: "We need to recreate this preview with AI before your review. The book will only continue after your approval.",
+    retryRealPreview: "Recreate preview with AI",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -130,6 +136,9 @@ const COPY = {
     themeLabel: "Tema de la historia",
     previewNotes: "¿Qué quieres mejorar?",
     cancelAdjust: "Cancelar ajustes",
+    retryPreviewTitle: "Tu vista previa necesita una nueva generación",
+    retryPreviewHint: "Necesitamos volver a crear esta vista previa con IA antes de tu revisión. El libro solo continuará después de tu aprobación.",
+    retryRealPreview: "Volver a crear la vista previa con IA",
   },
 };
 
@@ -306,6 +315,18 @@ export function MasterBookFlow({
     const title = editTitle.trim();
     if (!title || title === savedTitle) return;
     await run(() => api.updatePreviewTitle(project.id, title));
+  }
+  if (p.credits_fallback) {
+    return <section className="master-adjustment-panel" data-testid="studio-preview-recovery">
+      <StudioStageHeading title={t.retryPreviewTitle} illustration={0}>
+        <p>{t.retryPreviewHint}</p>
+      </StudioStageHeading>
+      {error && <p className="studio-error" role="alert">{error}</p>}
+      <button type="button" className="kbtn kbtn-primary" disabled={active}
+        onClick={() => void run(() => api.retryRealPreview(project.id))}>
+        {active ? t.waiting : t.retryRealPreview}
+      </button>
+    </section>;
   }
   return (
     <div className="studio-master-flow" data-testid="studio-master-flow">
