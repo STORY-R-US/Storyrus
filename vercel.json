@@ -59,8 +59,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/v1/:path*", "destination": "https://storyrus-api.onrender.com/v1/:path*" },
-    { "source": "/health", "destination": "https://storyrus-api.onrender.com/health" },
+    { "source": "/v1/:path*", "destination": "https://storyrus-producao-api.onrender.com/v1/:path*" },
+    { "source": "/health", "destination": "https://storyrus-producao-api.onrender.com/health" },
     { "source": "/catalogo", "destination": "/catalogo.html" },
     { "source": "/exemplos", "destination": "/exemplos.html" },
     { "source": "/gastos", "destination": "/gastos.html" },

@@ -1,0 +1,69 @@
+PRODUÇÃO NO WORKSPACE STORYRUS — 30/10/2026
+
+DESTINO OFICIAL
+
+Workspace: STORYRUS — tea-db7pf867bikc73bmv7eg
+API: storyrus-producao-api — srv-dbi8ip0ae00c73bh8fq0
+URL: https://storyrus-producao-api.onrender.com
+Postgres: storyrus-db — dpg-db7qm2ij9qps73ddfptg-a
+Base lógica de produção: storyrus_producao_20261030
+Região: Oregon. API 0.5c-512mb; Postgres 0.1c-256mb, disco de 1 GB.
+Os planos pagos foram autorizados pelo responsável nesta conversa.
+
+PRESERVAÇÃO DOS DADOS
+
+A produção foi copiada da instância dpg-dac849navr4c73alo120-a.
+Antes da cópia, ambos os bancos receberam exportações PostgreSQL criptografadas
+com Windows DPAPI, vinculadas ao usuário desta máquina. Os arquivos ficam fora
+do versionamento, em .git/deploy-tools/backups/. Para recuperação em outra
+máquina, descriptografar com a conta original e usar um canal seguro.
+
+A restauração criou uma base lógica separada no Postgres do STORYRUS.
+A base anterior desse workspace permaneceu intacta. Não foram misturados
+projetos antigos com os registros atuais nem recuperadas exclusões anteriores.
+Contagens e hashes de cada registro coincidiram nas nove tabelas copiadas.
+Os 93 objetos vinculados aos assets e às marcas d'água estavam acessíveis.
+
+CONFIGURAÇÃO
+
+As variáveis da API atual foram copiadas diretamente entre os serviços,
+incluindo Clerk, Stripe, armazenamento, assinatura e e-mail. Valores secretos
+não foram impressos, incluídos no Git ou escritos em arquivos de texto.
+O armazenamento de imagens continua no mesmo bucket externo; referências e
+conteúdo não foram alterados pela migração do Postgres.
+API_JOB_PUMP=true mantém o processamento dos livros na própria API.
+Não foi criado um worker pago separado.
+PRIVACY_RETENTION_ENABLED=false mantém a limpeza de 90 dias aguardando
+a conferência dos candidatos reais; tracing externo continua desativado.
+
+PUBLICAÇÃO
+
+O site público permanece em https://storyrus.ai na Vercel.
+Os dois vercel.json apontam /v1 e /health para a API de produção do STORYRUS.
+O endpoint já existente do Stripe foi redirecionado para a nova API, sem
+alterar eventos, credenciais de assinatura ou o modo de teste preexistente.
+Publicar somente pelo GitHub oficial STORY-R-US/Storyrus.
+A API do Render usa esse repositório, com atualização manual para evitar
+publicações acidentais. Conferir o commit e o workspace antes de cada deploy.
+
+O render.yaml existente é um modelo anterior à migração: não representa
+os recursos de produção atuais. Não aplicar seu fromDatabase à API atual,
+pois a base lógica padrão da instância contém o acervo antigo, preservado.
+Não sincronizar esse modelo sobre os serviços existentes sem revisão.
+
+RECURSOS ANTERIORES
+
+My Workspace: API srv-d98gm9taeets73fuarug e banco
+dpg-dac849navr4c73alo120-a deixam de atender a produção.
+STORYRUS: API gratuita srv-db7qmv49v7es73d0jvm0 também não é a API oficial.
+Manter esses serviços suspensos após a validação do novo destino.
+Não apagar recursos ou backups como parte de uma publicação de código.
+
+VALIDAÇÕES
+
+Comparação integral das nove tabelas e dos arquivos de armazenamento.
+Nova API respondeu /health e expôs as rotas de autorização e revogação.
+A leitura autenticada do painel de usuários coincidiu com o banco restaurado,
+incluindo a conta administrativa verificada. Webhooks recusaram requisições
+sem assinatura. A migração não criou compra, cobrança, impressão ou geração
+de conteúdo para testar o sistema.

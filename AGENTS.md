@@ -16,3 +16,18 @@ O ponto de restauração é a tag `producao-aprovada-2026-10-29`, commit
 Mantenha `backend/`, `apps/web/` e `apps/mobile/`. Leia `README.md` e
 `docs/BASE_INICIAL.md`. Use a CI existente. Segredos permanecem nas variáveis
 de ambiente; não versione arquivos `.env` reais nem dados de produção.
+
+## Hospedagem de produção desde 30/10/2026
+
+- O workspace Render autorizado é **STORYRUS** (`tea-db7pf867bikc73bmv7eg`).
+- API: `storyrus-producao-api`, serviço `srv-dbi8ip0ae00c73bh8fq0`, em
+  `https://storyrus-producao-api.onrender.com`.
+- Postgres: instância `dpg-db7qm2ij9qps73ddfptg-a`, base lógica de produção
+  `storyrus_producao_20261030`. Preserve o DATABASE_URL privado configurado.
+- Não use os serviços de My Workspace nem a API gratuita antiga do STORYRUS
+  para publicar versões. Eles são anteriores à migração.
+- Mantenha os proxies de `vercel.json` e `apps/web/vercel.json` iguais.
+- O `render.yaml` é um modelo de provisionamento anterior à migração, não o
+  estado atual a sincronizar. Não o aplique sobre os recursos existentes nem
+  substitua DATABASE_URL por uma referência à base lógica antiga da instância.
+- Detalhes operacionais: `docs/MIGRACAO_STORYRUS_2026-10-30.txt`.

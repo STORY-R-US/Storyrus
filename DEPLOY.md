@@ -1,5 +1,12 @@
 # Deploy — Story R Us
 
+Produção atual (30/10/2026): workspace **STORYRUS**, API
+`storyrus-producao-api` e Postgres da mesma conta. Consulte
+`docs/MIGRACAO_STORYRUS_2026-10-30.txt` antes de publicar ou alterar o banco.
+O `render.yaml` abaixo é um modelo de instalação inicial anterior à migração;
+não o sincronize sobre a produção existente. A base lógica atual é configurada
+por DATABASE_URL no serviço, sem valores secretos no repositório.
+
 Guia para colocar o projeto no ar: **frontend na Vercel** e **backend no Render**.
 
 ## Arquitetura
@@ -57,7 +64,7 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` — token S3 do R2
    - (`JWT_SECRET` e `WEBHOOK_SIGNING_SECRET` o Render gera sozinho.)
    - `DATABASE_URL` é injetada automaticamente pelo banco do Blueprint.
-4. Aguarde o build. Quando a **storyrus-api** ficar *Live*, copie a URL (ex.: `https://storyrus-api.onrender.com`).
+4. Aguarde o build. Quando a **storyrus-api** ficar *Live*, copie a URL (ex.: `https://storyrus-producao-api.onrender.com`).
 
 ### Painéis admin (passo manual)
 
@@ -112,7 +119,7 @@ O front na Vercel **não** envia e-mail — só o Render precisa de `RESEND_API_
    - `TRANSACTIONAL_FROM_EMAIL` = `Story R Us <noreply@storyrus.ai>` (ou o domínio verificado)
    - `PUBLIC_WEB_ORIGIN` = `https://storyrus.ai` (já no Blueprint)
 6. Salve e aguarde o redeploy (ou Manual Deploy). Nos logs do boot deve aparecer `transactional_email_ready` (não o warning `RESEND_API_KEY ausente`).
-7. Confira: `GET https://storyrus-api.onrender.com/health` → `"email_configured": true`.
+7. Confira: `GET https://storyrus-producao-api.onrender.com/health` → `"email_configured": true`.
 8. Teste **esqueci a senha**: https://storyrus.ai/esqueci-senha com um e-mail cadastrado. Cheque spam.
 
 **Cold start (free):** o primeiro request após hibernação pode demorar. Mitigação: plano Starter ou ping periódico em `/health` (§ Beyond free).
@@ -128,7 +135,7 @@ O front na Vercel **não** envia e-mail — só o Render precisa de `RESEND_API_
    - Há **dois** `vercel.json`: na **raiz** (usado quando o Root Directory da Vercel
      é a raiz do repo — o fluxo oficial) e em `apps/web/` (espelho se o root
      directory for `apps/web`). As `destination` de `/v1` e `/health` devem
-     permanecer **iguais** nos dois arquivos (hoje: `https://storyrus-api.onrender.com`).
+     permanecer **iguais** nos dois arquivos (hoje: `https://storyrus-producao-api.onrender.com`).
      Se a URL do Render mudar, atualize **ambos** e dê `git push`.
 
 ### Como ver o site
