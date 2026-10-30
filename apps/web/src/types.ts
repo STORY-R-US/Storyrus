@@ -72,6 +72,7 @@ export interface Project {
     locales?: Record<string, { title: string; left: string; right: string }>;
     stories?: Record<string, string>;
     credits_fallback?: boolean;
+    test_mode?: boolean;
   } | null;
   id: string;
   status: string;

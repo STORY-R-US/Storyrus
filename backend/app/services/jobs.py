@@ -151,6 +151,8 @@ def _enqueue_job_once(
             return existing
 
     cost = COST_BY_TYPE.get(job_type, 0) if settings.credits_enabled else 0
+    if (project.book_profile or {}).get("test_mode"):
+        cost = 0
 
     # 2) Backpressure por usuario.
     # The next preview step replaces the step that just finished its work.

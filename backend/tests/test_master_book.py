@@ -652,3 +652,65 @@ def test_fallback_book_requires_regeneration_and_preserves_archived_material(stu
     assert not project.purchase_flow["full_book_ready_at"]
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     assert job.result["payload"]["master_preview"] is True
+
+
+@pytest.mark.asyncio
+async def test_project_test_mode_costs_zero_and_waits_at_every_review(studio, monkeypatch):
+    from app.models import JobType
+    from app.printkit.service import get_print_order
+    from app.services import jobs as jobs_service
+    from app.services import purchase_flow
+
+    client, db, pid, store = studio
+
+    class NoAI:
+        def __getattr__(self, name):
+            raise AssertionError(f"Test mode called AI: {name}")
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(settings, "credits_enabled", True)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: NoAI())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: NoAI())
+    response = client.post(f"/v1/projects/{pid}/preview/test")
+    assert response.status_code == 202, response.text
+    preview = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, preview)
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    assert preview.status == "DONE", preview.error
+    assert preview.cost_credits == 0 and not preview.cost_usd
+    assert project.book_profile["test_mode"] is True
+    assert project.book_profile["stage"] == "preview_ready"
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
+    await _run(studio, "story")
+    assert project.book_profile["test_preview_approved_at"]
+    assert project.book_profile["stage"] == "story_ready"
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "AVATAR"))
+    assert client.post(f"/v1/projects/{pid}/story/approve").status_code == 200
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    order = get_print_order(db, project.id)
+    order.payment_status = "paid"
+    db.commit()
+    avatar = purchase_flow.enqueue_paid_book(db, order)
+    await runner.process_job(db, avatar)
+    db.expire_all()
+    assert avatar.status == "DONE", avatar.error
+    assert project.book_profile["stage"] == "avatar_ready"
+    assert project.character_approved_at is None
+    assert client.post(f"/v1/projects/{pid}/pages/next", json={}).status_code == 409
+    assert client.post(f"/v1/projects/{pid}/avatar/approve").status_code == 200
+    page = jobs_service.enqueue_job(db, user=project.user, project=project,
+        job_type=JobType.EBOOK,
+        payload={"master_page": True, "page": 1, "purchase_full_book": True})
+    await runner.process_job(db, page)
+    db.expire_all()
+    assert page.status == "DONE", page.error
+    assert project.book_profile["stage"] == "page_ready"
+    assert project.book_profile["current_page"] == 1
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.status == "PENDING"))
+    assert all(job.cost_credits == 0 and not job.cost_usd
+               for job in db.scalars(select(Job).where(Job.project_id == project.id)))
+    assert store

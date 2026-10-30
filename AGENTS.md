@@ -31,6 +31,8 @@ de ambiente; não versione arquivos `.env` reais nem dados de produção.
   Não substitua falhas de provedor ou falta de saldo por textos ou imagens de ensaio.
 - Erros da IA devem falhar a geração, sem aprovar etapas nem enfileirar conteúdo simulado.
   Pedido, pagamento e livro completo exigem a aprovação explícita da prévia no servidor.
+- Testes sem créditos usam apenas `book_profile.test_mode=true` no projeto autorizado,
+  com aviso visível e aprovações manuais. Não ative ensaio global na produção.
 - O `render.yaml` é um modelo de provisionamento anterior à migração, não o
   estado atual a sincronizar. Não o aplique sobre os recursos existentes nem
   substitua DATABASE_URL por uma referência à base lógica antiga da instância.

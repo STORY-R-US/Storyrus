@@ -18,6 +18,18 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("identifica a prévia genérica e aguarda a aprovação manual no teste sem IA", async () => {
+    const testProject = { ...project, book_profile: { ...project.book_profile!, test_mode: true } };
+    const story = vi.spyOn(api, "startStep").mockResolvedValue(accepted);
+    vi.spyOn(api, "getProject").mockResolvedValue(testProject);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    render(<MasterBookFlow project={testProject} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    expect(screen.getByTestId("studio-test-mode")).toHaveTextContent("sem chamadas à IA");
+    expect(screen.queryByRole("button", { name: "Sugerir 5 títulos com IA" })).not.toBeInTheDocument();
+    expect(story).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Aprovar prévia e continuar o teste" }));
+    await waitFor(() => expect(story).toHaveBeenCalledWith("master", "story"));
+  });
   it("interrompe o livro antigo de contingência antes de qualquer aprovação", async () => {
     const invalid = { ...project, book_profile: { ...project.book_profile!, stage: "book_ready", current_page: 16, credits_fallback: true },
       purchase_flow: { stage: "book_ready", full_book_ready_at: "2026-10-30" } };

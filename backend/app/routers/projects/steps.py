@@ -121,6 +121,8 @@ def start_story(
         purchase_flow.require_unpaid(db, project)
         purchase_flow.reset_preview(project)
     book_profile.require_stage(project, "preview_ready", "preview_approved", "story_ready")
+    if book_profile.test_mode(project) and (project.book_profile or {}).get("stage") == "preview_ready":
+        book_profile.update(project, test_preview_approved_at=purchase_flow.timestamp())
     payload: dict | None = None
     brief = (body.brief if body else None) or None
     if brief and brief.strip():

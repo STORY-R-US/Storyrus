@@ -51,6 +51,10 @@ const COPY = {
     retryPreviewTitle: "Sua prévia precisa de uma nova geração",
     retryPreviewHint: "Precisamos refazer esta prévia com IA antes da sua revisão. O livro só continuará depois da sua aprovação.",
     retryRealPreview: "Refazer prévia com IA",
+    testTitle: "Modo de teste · sem créditos",
+    testHint: "As imagens e os textos são genéricos, gerados localmente, sem chamadas à IA. Cada etapa aguarda sua confirmação.",
+    testContinue: "Aprovar prévia e continuar o teste",
+    exitTest: "Gerar versão real com IA",
   },
   en: {
     preview: "Approve the preview?",
@@ -95,6 +99,10 @@ const COPY = {
     retryPreviewTitle: "Your preview needs to be generated again",
     retryPreviewHint: "We need to recreate this preview with AI before your review. The book will only continue after your approval.",
     retryRealPreview: "Recreate preview with AI",
+    testTitle: "Test mode · no credits",
+    testHint: "Images and text are generic, generated locally without AI calls. Each step waits for your confirmation.",
+    testContinue: "Approve preview and continue the test",
+    exitTest: "Create the real version with AI",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -139,6 +147,10 @@ const COPY = {
     retryPreviewTitle: "Tu vista previa necesita una nueva generación",
     retryPreviewHint: "Necesitamos volver a crear esta vista previa con IA antes de tu revisión. El libro solo continuará después de tu aprobación.",
     retryRealPreview: "Volver a crear la vista previa con IA",
+    testTitle: "Modo de prueba · sin créditos",
+    testHint: "Las imágenes y los textos son genéricos, generados localmente sin llamadas a IA. Cada paso espera tu confirmación.",
+    testContinue: "Aprobar vista previa y continuar la prueba",
+    exitTest: "Crear la versión real con IA",
   },
 };
 
@@ -330,6 +342,11 @@ export function MasterBookFlow({
   }
   return (
     <div className="studio-master-flow" data-testid="studio-master-flow">
+      {p.test_mode && <section className="master-adjustment-panel" data-testid="studio-test-mode">
+        <h3>{t.testTitle}</h3><p className="master-title-hint">{t.testHint}</p>
+        <button type="button" className="kbtn kbtn-soft" disabled={active}
+          onClick={() => void run(() => api.retryRealPreview(project.id))}>{t.exitTest}</button>
+      </section>}
       {error && <p className="studio-error" role="alert">{error}</p>}
       {active && <p className="master-status" role="status">{t.waiting}</p>}
       {!active && failed?.error && <p className="studio-error" role="alert">{failed.error}</p>}
@@ -409,8 +426,8 @@ export function MasterBookFlow({
             </button>
           </div>
           <p className="master-title-hint">{t.titleHint}</p>
-          <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
-            selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />
+          {!p.test_mode && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
+            selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
       )}
       {selected && (
@@ -554,7 +571,7 @@ export function MasterBookFlow({
           disabled={active}
           onClick={() => void run(() => api.startStep(project.id, "story"))}
         >
-          {t.writeStory}
+          {p.test_mode ? t.testContinue : t.writeStory}
         </button>
       )}
       {p.stories && (

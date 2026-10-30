@@ -37,17 +37,31 @@ def retry_real_preview(
     user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
+    project = get_owned_project(db, user, project_id)
+    return _restart_preview(db, user, project, test_mode=False)
+
+
+@router.post("/{project_id}/preview/test", response_model=JobAcceptedOut, status_code=202)
+def start_test_preview(
+    project_id: uuid.UUID,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+):
+    project = get_owned_project(db, user, project_id)
+    return _restart_preview(db, user, project, test_mode=True)
+
+
+def _restart_preview(db, user, project, *, test_mode):
     from sqlalchemy import select
 
     from app.models import Asset
     from app.services import book_profile
     from app.services.privacy import require_photo_authorization
 
-    project = get_owned_project(db, user, project_id)
     editable(db, project)
     require_photo_authorization(db, project.id)
     profile = dict(project.book_profile or {})
-    if not profile.get("credits_fallback"):
+    if not (profile.get("credits_fallback") or profile.get("test_mode") or test_mode):
         raise HTTPException(409, "Esta prévia não precisa desta recuperação.")
     archive = {
         "profile": profile, "story_text": project.story_text, "ebook_url": project.ebook_url,
@@ -58,7 +72,8 @@ def retry_real_preview(
         if (asset.meta or {}).get("workflow") == 1:
             asset.meta = {**asset.meta, "workflow": 0, "archived_fallback": True}
     book_profile.update(project, stage="ficha", current_page=0, locales=None, stories=None,
-                        credits_fallback=False, fallback_archive=archive)
+                        credits_fallback=False, fallback_archive=archive, test_mode=test_mode,
+                        test_preview_approved_at=None)
     project.story_text = project.ebook_url = project.character_ref = None
     project.character_approved_at = project.book_approved_at = None
     purchase_flow.update(project, preview_ready_at=None, preview_approved_at=None,
@@ -92,6 +107,8 @@ async def suggest_titles(
 
     project = get_owned_project(db, user, project_id)
     editable_title(db, project)
+    if (project.book_profile or {}).get("test_mode"):
+        raise HTTPException(409, "Sugestões de IA estão desativadas no modo de teste sem créditos.")
     require_photo_authorization(db, project.id)
     if not allow(f"title-suggestions:{user.id}", 5, 3600):
         raise HTTPException(429, "Limite de sugestões atingido. Tente novamente mais tarde.")

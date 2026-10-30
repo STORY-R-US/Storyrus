@@ -176,7 +176,7 @@ async def _prepare(db, job, project, photos):
     if profile.get("locales"):
         return
     title = profile.get("title") or f"A Grande Aventura de {project.child_name}"
-    if settings.offline_fallback or settings.skip_openai:
+    if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
         prepared = {
             "visual_identity": "DEMO: identidade nao verificada",
             "costume": "roupa de aventura azul",
@@ -310,7 +310,7 @@ async def preview(db, job, project):
                         "Preserve exatamente rosto, pose, cenario, enquadramento e composicao; "
                         "SO os textos mudam. Use a capa localizada adicional no livro fisico."
                     )
-            if settings.offline_fallback or settings.skip_openai:
+            if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
                 result = ImageResult(
                     _offline_png(role, palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
                 )
@@ -372,7 +372,7 @@ async def preview(db, job, project):
 
 def _queue_story_after_preview(db, job, project) -> None:
     """A prévia pronta pede a história antes do pagamento."""
-    if _payload(job).get("image") or (project.book_profile or {}).get("stories"):
+    if contract.test_mode(project) or _payload(job).get("image") or (project.book_profile or {}).get("stories"):
         return
     from app.models import JobType, User
     from app.services import jobs as jobs_svc
@@ -419,7 +419,7 @@ async def story(db, job, project):
         adjustment = _payload(job).get("brief")
         if adjustment:
             brief += f"Ajuste de conteudo (preserve titulo/estrutura): {adjustment}"
-        if settings.offline_fallback or settings.skip_openai:
+        if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
             text = _free_story(project, title)
         else:
             result = (
@@ -455,7 +455,7 @@ async def avatar(db, job, project):
     contract.require_stage(project, "story_approved", "preview_approved", "avatar_ready")
     photos = _photos(db, project)
     _set_status(db, project, ProjectStatus.AVATAR_RUNNING)
-    if settings.offline_fallback or settings.skip_openai:
+    if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
         result = ImageResult(
             _offline_png("Avatar DEMO", palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
         )
@@ -477,14 +477,15 @@ async def avatar(db, job, project):
         "storage_key": key,
         "mime": "image/png",
         "provider": "demo"
-        if settings.offline_fallback
+        if contract.test_mode(project)
+        or settings.offline_fallback
         or settings.skip_openai
         or (result.meta or {}).get("credits_fallback")
         else "openai",
     }
     project.character_approved_at = None
     contract.update(project, stage="avatar_ready")
-    if _payload(job).get("purchase_full_book"):
+    if _payload(job).get("purchase_full_book") and not contract.test_mode(project):
         from app.models import JobType, _now
 
         project.character_approved_at = _now()
@@ -536,7 +537,7 @@ async def page(db, job, project):
                 f" Ajuste da cena, mantendo identidade e figurino: {_payload(job)['adjustment']}"
             )
         if shared_art is None:
-            if settings.offline_fallback or settings.skip_openai:
+            if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
                 result = ImageResult(
                     _offline_png(
                         f"Pagina {number} DEMO", palette=((235, 243, 250), (255, 250, 242))
@@ -578,7 +579,7 @@ async def page(db, job, project):
     contract.update(
         project, current_page=current, stage="book_ready" if current == 16 else "page_ready"
     )
-    if _payload(job).get("purchase_full_book") and finished_frontier and current < 16:
+    if _payload(job).get("purchase_full_book") and not contract.test_mode(project) and finished_frontier and current < 16:
         from app.models import JobType
 
         _enqueue_next_page(
@@ -602,7 +603,7 @@ async def page(db, job, project):
             if backs:
                 back_bytes = storage.get_bytes(backs[-1].storage_key)
             else:
-                if settings.offline_fallback or settings.skip_openai:
+                if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
                     result = ImageResult(
                         _offline_png("Contracapa DEMO", palette=((235, 243, 250), (255, 250, 242))),
                         cost_usd=0,
