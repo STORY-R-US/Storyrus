@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { PostPreviewFlow } from "./PostPreviewFlow";
+import { TitleSuggestions } from "./TitleSuggestions";
 import { api } from "../api";
 import type { Job, Project } from "../types";
 import type { StudioAssets } from "./assets";
@@ -364,6 +365,8 @@ export function MasterBookFlow({
             </button>
           </div>
           <p className="master-title-hint">{t.titleHint}</p>
+          <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
+            selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />
         </form>
       )}
       {selected && (

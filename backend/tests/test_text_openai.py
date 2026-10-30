@@ -18,6 +18,34 @@ def _ok(text: str = "Título: Luna\nPágina 1: Era uma vez.") -> dict:
     }
 
 
+@pytest.mark.asyncio
+async def test_title_suggestions_use_story_language_and_guidance(client):
+    titles = ["Lia e o céu", "Lia na Lua", "As descobertas de Lia", "Lia e o cometa", "Lia astronauta"]
+    client.script = [(200, _ok(json.dumps({"titles": titles}))) ]
+    result = await oai.OpenAITextProvider().suggest_titles(
+        context={"title": "Lia", "story": "Lia voou até a Lua", "language": "pt-BR"},
+        guidance="Mais aventura",
+    )
+    assert result == titles
+    payload = client.calls[0]["json"]
+    assert payload["response_format"] == {"type": "json_object"}
+    supplied = json.loads(payload["messages"][1]["content"])
+    assert supplied["context"]["story"] == "Lia voou até a Lua"
+    assert supplied["context"]["language"] == "pt-BR"
+    assert supplied["editorial_guidance"] == "Mais aventura"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("titles", [
+    ["Um", "Dois"], ["Igual"] * 5, ["Lia", "A", "B", "C", "D"],
+    ["A", "B", "C", "D", "x" * 121], ["A", "B", "C", "D", None],
+])
+async def test_title_suggestions_reject_bad_ai_output_without_inventing_replacements(client, titles):
+    client.script = [(200, _ok(json.dumps({"titles": titles})))]
+    with pytest.raises(ProviderError):
+        await oai.OpenAITextProvider().suggest_titles(context={"title": "Lia"})
+
+
 class _FakeResponse:
     def __init__(self, status_code: int, json_data: dict | None = None, text: str = ""):
         self.status_code = status_code

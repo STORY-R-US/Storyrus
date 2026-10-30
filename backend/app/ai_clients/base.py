@@ -104,6 +104,9 @@ class ImageProvider(Protocol):
 class TextProvider(Protocol):
     name: str
 
+    async def suggest_titles(self, *, context: dict, guidance: str = "") -> list[str]:
+        """Suggest five alternative titles using the book's existing context."""
+
     async def generate_story(
         self,
         *,

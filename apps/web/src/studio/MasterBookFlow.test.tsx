@@ -18,6 +18,35 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("gera cinco títulos por IA e só altera a capa após confirmar a escolha", async () => {
+    const titles = ["Lia na Lua", "Lia e o cometa", "Lia astronauta", "As estrelas de Lia", "Lia e o universo"];
+    const suggest = vi.spyOn(api, "suggestPreviewTitles").mockResolvedValue({ titles });
+    const save = vi.spyOn(api, "updatePreviewTitle").mockResolvedValue(accepted);
+    vi.spyOn(api, "getProject").mockResolvedValue(project);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText("Como você gostaria de melhorar o título? (opcional)"), "Mais aventura");
+    await userEvent.click(screen.getByRole("button", { name: "Sugerir 5 títulos com IA" }));
+    await screen.findByRole("list", { name: "Sugestões geradas pela IA" });
+    expect(suggest).toHaveBeenCalledWith("master", "Mais aventura");
+    expect(save).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Lia na Lua Escolher" }));
+    expect(screen.getByTestId("studio-preview-title")).toHaveValue("Lia na Lua");
+    expect(save).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Atualizar título" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith("master", "Lia na Lua"));
+  });
+
+  it("exibe falha da IA e permite tentar novamente sem trocar o título", async () => {
+    vi.spyOn(api, "suggestPreviewTitles").mockRejectedValue(new Error("IA indisponível"));
+    const save = vi.spyOn(api, "updatePreviewTitle");
+    render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Sugerir 5 títulos com IA" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("IA indisponível");
+    expect(screen.getByRole("button", { name: "Sugerir 5 títulos com IA" })).toBeEnabled();
+    expect(screen.getByTestId("studio-preview-title")).toHaveValue("Lia e as estrelas");
+    expect(save).not.toHaveBeenCalled();
+  });
   it("pede a aprovação da história antes da cotação", async () => {
     const ready = {
       ...project,

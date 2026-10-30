@@ -432,6 +432,9 @@ export const api = {
   async updatePreviewTitle(id: string, title: string) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/title`, { method: "PUT", body: JSON.stringify({ title }) });
   },
+  async suggestPreviewTitles(id: string, guidance: string) {
+    return req<{ titles: string[] }>(`/v1/projects/${id}/preview/title-suggestions`, { method: "POST", body: JSON.stringify({ guidance }) });
+  },
   async saveQuotation(id: string) {
     return req<Project>(`/v1/projects/${id}/quotation`, { method: "POST" });
   },

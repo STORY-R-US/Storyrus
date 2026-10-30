@@ -545,3 +545,85 @@ async def test_title_change_repaints_the_cover_and_keeps_the_story(studio):
     )
     served_paid = Image.open(io.BytesIO(store[paid["url"].removeprefix("https://test/")]))
     assert list(served_paid.getdata()) == list(original.getdata())
+
+
+def test_title_suggestions_are_read_only_authorized_and_rate_limited(studio, monkeypatch):
+    from app.ai_clients.text_openai import OpenAITextProvider
+
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="story_ready", stories={"pt-BR": "Lia visita a Lua."})
+    db.commit()
+    original = dict(project.book_profile)
+    calls = []
+
+    async def suggest(self, **kwargs):
+        calls.append(kwargs)
+        return [f"Lia e a aventura {i}" for i in range(5)]
+
+    monkeypatch.setattr(OpenAITextProvider, "suggest_titles", suggest)
+    endpoint = f"/v1/projects/{pid}/preview/title-suggestions"
+    response = client.post(endpoint, json={"guidance": "Mais divertido"})
+    assert response.status_code == 200, response.text
+    assert len(response.json()["titles"]) == 5
+    assert calls[0]["context"]["story"] == "Lia visita a Lua."
+    assert calls[0]["guidance"] == "Mais divertido"
+    db.refresh(project)
+    assert project.book_profile == original
+    assert not db.scalars(select(Job).where(Job.project_id == project.id)).all()
+    assert client.post(endpoint.replace(pid, str(uuid.uuid4())), json={}).status_code == 404
+    for _ in range(4):
+        assert client.post(endpoint, json={}).status_code == 200
+    assert client.post(endpoint, json={}).status_code == 429
+    assert len(calls) == 5
+
+
+def test_title_suggestions_respect_processing_revocation_and_provider_failure(studio, monkeypatch):
+    from datetime import UTC, datetime
+
+    from app.ai_clients.text_openai import OpenAITextProvider
+
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="story_ready")
+    db.commit()
+
+    async def unavailable(self, **kwargs):
+        raise ProviderError("secret upstream error")
+
+    monkeypatch.setattr(OpenAITextProvider, "suggest_titles", unavailable)
+    endpoint = f"/v1/projects/{pid}/preview/title-suggestions"
+    response = client.post(endpoint, json={})
+    assert response.status_code == 502
+    assert "secret" not in response.text
+    project.processing_revoked_at = datetime.now(UTC)
+    db.commit()
+    assert client.post(endpoint, json={}).status_code == 403
+
+
+def test_pending_checkout_can_refine_title_without_changing_payment_or_delivery(studio, monkeypatch):
+    from app.ai_clients.text_openai import OpenAITextProvider
+    from app.printkit.service import open_print_order
+
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="preview_approved")
+    order = open_print_order(db, project, prepare=False)
+    order.payment_status = "pending"
+    db.commit()
+    before = {column.name: getattr(order, column.name) for column in order.__table__.columns}
+
+    async def suggest(self, **kwargs):
+        return [f"Lia e a aventura {i}" for i in range(5)]
+
+    monkeypatch.setattr(OpenAITextProvider, "suggest_titles", suggest)
+    assert client.post(f"/v1/projects/{pid}/preview/title-suggestions", json={}).status_code == 200
+    response = client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Lia na Lua"})
+    assert response.status_code == 202, response.text
+    db.refresh(order)
+    assert {column.name: getattr(order, column.name) for column in order.__table__.columns} == before
+    assert project.book_profile["title"] == "Lia na Lua"
+    assert project.book_profile["stage"] == "preview_approved"
+    order.payment_status = "paid"
+    db.commit()
+    assert client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Outro"}).status_code == 409

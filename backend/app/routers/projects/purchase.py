@@ -31,6 +31,49 @@ class PreviewTitleIn(BaseModel):
     title: str = Field(min_length=1, max_length=120)
 
 
+class TitleSuggestionsIn(BaseModel):
+    guidance: str = Field(default="", max_length=500)
+
+
+class TitleSuggestionsOut(BaseModel):
+    titles: list[str]
+
+
+@router.post("/{project_id}/preview/title-suggestions", response_model=TitleSuggestionsOut)
+async def suggest_titles(
+    project_id: uuid.UUID,
+    body: TitleSuggestionsIn,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+):
+    from app.ai_clients import get_text_provider
+    from app.ai_clients.base import ProviderError
+    from app.rate_limit import allow
+    from app.services.privacy import require_photo_authorization
+
+    project = get_owned_project(db, user, project_id)
+    editable_title(db, project)
+    require_photo_authorization(db, project.id)
+    if not allow(f"title-suggestions:{user.id}", 5, 3600):
+        raise HTTPException(429, "Limite de sugestões atingido. Tente novamente mais tarde.")
+    profile = project.book_profile or {}
+    language = project.language or "pt-BR"
+    story = (profile.get("stories") or {}).get(language) or project.story_text or ""
+    context = {
+        "title": profile.get("title", ""),
+        "theme": profile.get("theme_description") or project.theme,
+        "protagonist": project.child_name,
+        "age": project.child_age,
+        "language": language,
+        "story": story[:12000],
+    }
+    try:
+        titles = await get_text_provider().suggest_titles(context=context, guidance=body.guidance.strip())
+    except ProviderError as exc:
+        raise HTTPException(502, "Não foi possível gerar os títulos com IA. Tente novamente.") from exc
+    return TitleSuggestionsOut(titles=titles)
+
+
 def editable(db, project):
     order = get_print_order(db, project.id)
     if order and order.payment_status in {"paid", "pending"}:
@@ -39,6 +82,22 @@ def editable(db, project):
         )
     if purchase_flow.active_job(db, project):
         raise HTTPException(409, "Aguarde a geração terminar antes de continuar.")
+
+
+def editable_title(db, project):
+    """A pending checkout locks prices and delivery, but may still refine its title."""
+    from app.services import book_profile
+
+    order = get_print_order(db, project.id)
+    if order and order.payment_status == "paid":
+        raise HTTPException(409, "O livro já está em produção. Solicite ajustes na revisão final.")
+    if purchase_flow.active_job(db, project):
+        raise HTTPException(409, "Aguarde a geração terminar antes de continuar.")
+    book_profile.require_stage(
+        project, "preview_ready", "story_ready", "story_approved", "preview_approved"
+    )
+    if (project.book_profile or {}).get("current_page", 0) or project.book_approved_at:
+        raise HTTPException(409, "Solicite ajustes na revisão final do livro.")
 
 
 class SpecificationIn(BaseModel):
@@ -82,12 +141,9 @@ def save_title(
 ):
     """Atualiza o título e refaz só a capa, sem apagar a história nem voltar a etapa."""
     project = get_owned_project(db, user, project_id)
-    editable(db, project)
+    editable_title(db, project)
     from app.services import book_profile
 
-    book_profile.require_stage(
-        project, "preview_ready", "story_ready", "story_approved", "preview_approved"
-    )
     book_profile.apply_title(project, body.title)
     return accept_job(
         jobs.enqueue_job(

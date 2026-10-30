@@ -1435,6 +1435,23 @@
 }
 
 /* The same illustrated studio continues through preview, checkout and final review. */
+.studio-app .master-title-suggestions { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--studio-surface-border); }
+.studio-app .master-title-suggestions h4 { margin: 0; font-family: 'Baloo 2',sans-serif; font-size: 1.25rem; }
+.studio-app .master-title-suggestions > .studio-field { margin-bottom: 16px; }
+.studio-app .master-title-options { display: grid; gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; counter-reset: titles; }
+.studio-app .master-title-options li { counter-increment: titles; min-width: 0; }
+.studio-app .master-title-options button { display: flex; gap: 12px; align-items: center; width: 100%; padding: 16px; border-radius: 13px; border: 1px solid var(--studio-input-border); background: var(--studio-input-bg); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.studio-app .master-title-options button::before { content: counter(titles,decimal-leading-zero); color: var(--studio-accent); font-size: .75rem; font-weight: 800; }
+.studio-app .master-title-options button > span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: .9rem; }
+.studio-app .master-title-options button.is-selected { border-color: #bc9457; box-shadow: 0 0 0 1px #bc9457; }
+.studio-app .master-title-options button:hover:not(:disabled) { border-color: #bc9457; }
+.studio-app .master-title-options button:focus-visible { outline: 3px solid #efb65c; outline-offset: 3px; }
+.studio-app .master-title-choice { font-size: .7rem; color: var(--studio-accent); font-weight: 700; }
+.studio-app .master-title-options button:disabled { opacity: .65; cursor: wait; }
+@media (max-width: 540px) {
+  .studio-app .master-title-options button { flex-wrap: wrap; gap: 9px; padding: 14px; }
+  .studio-app .master-title-choice { width: 100%; padding-left: 26px; }
+}
 .studio-app .studio-review .kbtn:not(.kbtn-primary) { color: var(--ink); background: var(--studio-soft); border: 1px solid var(--studio-input-border); box-shadow: none; }
 .studio-app.is-reviewing-project .studio-intro { display: block; padding: 8px 4px 22px; }
 .studio-app.is-reviewing-project .studio-intro h1 { font-size: clamp(1.9rem,3vw,2.55rem); max-width: none; }
