@@ -273,7 +273,7 @@ describe("Landing — catálogo", () => {
     expect(within(catalog).getByRole("img", { name: /amor de avô, meu porto seguro/i })).toHaveAttribute("src", expect.stringContaining("capa-amor-de-avo.png"));
     expect(within(catalog).getByText("Bruno Em Uma Aventura Animal")).toBeInTheDocument();
     expect(within(catalog).getByText("Aprendendo Economia Com O Gael")).toBeInTheDocument();
-    expect(within(catalog).getByText("Maria Jesus E A Disciplina No Hockey")).toBeInTheDocument();
+    expect(within(catalog).getByText("Maria Jesus E A Disciplina No Hockey Na Grama")).toBeInTheDocument();
     expect(within(catalog).getByText("Feliz Páscoa")).toBeInTheDocument();
     expect(within(catalog).queryByText("Nossa Família")).not.toBeInTheDocument();
     expect(within(catalog).queryByText("Minha Grande Aventura")).not.toBeInTheDocument();
