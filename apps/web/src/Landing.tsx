@@ -2846,22 +2846,15 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   onMouseEnter={() => setOpenCat(0)}
                   onMouseLeave={() => { setOpenCat(null); setSubHover(null); setFeatCat(null); }}
                 >
-                  <button
-                    type="button"
+                  <Link
+                    to="/catalogo"
                     className="kcat-btn"
                     style={{ "--cat": "#9b8cff" } as CSSProperties}
-                    aria-expanded={openCat === 0}
-                    aria-haspopup="true"
-                    aria-controls="cat-panel"
-                    onClick={() => {
-                      const next = openCat === 0 ? null : 0;
-                      setOpenCat(next);
-                      if (next !== null) setFeatCat((cur) => cur ?? 0);
-                    }}
+                    onClick={closeNav}
                   >
                     <span className="kcat-dot" style={{ background: "#9b8cff", boxShadow: "0 0 10px #9b8cff" }} />
                     {t.cats_label}
-                  </button>
+                  </Link>
                   <div className="kcat-panel kcat-panel-all" id="cat-panel">
                     <div className="kcat-groups">
                       {shownCats.map((cat, i) => (

@@ -782,7 +782,7 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     const panel = document.querySelector("#cat-panel") as HTMLElement;
     const nav = document.querySelector(".kcats") as HTMLElement;
-    expect(within(nav).getByRole("button", { name: /^livros$/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
     expect(within(nav).queryByRole("button", { name: /^aventuras$/i })).not.toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: /^como funciona$/i })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: /^vídeos$/i })).toBeInTheDocument();
