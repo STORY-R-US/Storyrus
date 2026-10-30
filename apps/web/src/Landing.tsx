@@ -2440,7 +2440,7 @@ export function catalogEntry(lang: Lang, index: number) {
 }
 export function catalogSections(lang: Lang): CatalogSection[] {
   const names = I18N[lang].cats;
-  const sections = NAV_CAT_META.map((meta, i) => {
+  const sections: CatalogSection[] = NAV_CAT_META.map((meta, i) => {
     const catCopy = names[i];
     const sectionThemes = CATALOG_SECTION_THEMES[meta.id] ?? [];
     const placed = new Set<number>();
