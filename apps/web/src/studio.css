@@ -1407,6 +1407,26 @@
 .studio-app.kid .khead-main { min-height: 0; min-width: 0; flex: 1; align-self: center; }
 .studio-app .khead-top-inner { min-height: 0; }
 .studio-app .khead-utils { flex: 1 1 auto; min-width: 0; max-width: 100%; }
+.studio-app .how ol li { padding: 18px 20px 22px; }
+.studio-app .how ol li::before { position: absolute; top: 14px; left: 14px; display: grid; place-items: center; width: 29px; height: 29px; margin: 0; border: 1px solid var(--studio-surface-border); border-radius: 10px; background: var(--studio-surface); font-size: .68rem; }
+.studio-app .studio-step-art { display: block; width: 100%; height: auto; max-height: 166px; margin: 3px auto 16px; filter: drop-shadow(0 5px 4px #0000000a); }
+.studio-app .studio-how-copy { min-width: 0; }
+.studio-app .how .studio-how-copy strong { font-size: .94rem; line-height: 1.45; }
+.studio-app .how .studio-how-copy p { margin-top: 9px; font-size: .79rem; }
+@media (max-width: 760px) {
+  .studio-app .how ol li { display: grid; grid-template-columns: 112px minmax(0,1fr); align-items: center; gap: 16px; padding: 20px 18px; }
+  .studio-app .studio-step-art { margin: 12px 0 0; }
+  .studio-app .how .studio-how-copy strong { font-size: .9rem; }
+}
+@media (max-width: 400px) {
+  .studio-app .how ol li { grid-template-columns: 76px minmax(0,1fr); gap: 12px; padding: 20px 14px; }
+  .studio-app .how .studio-how-copy p { font-size: .75rem; }
+}
+@media (max-width: 360px) {
+  .studio-app .how ol li { display: block; padding: 18px; }
+  .studio-app .studio-step-art { max-width: 170px; margin: 0 auto 12px; }
+  .studio-app .how .studio-how-copy p { font-size: .79rem; }
+}
 @media (max-width: 540px) {
   .studio-app .khead-inner { flex-direction: column; align-items: center; gap: 8px; }
   .studio-app .khead .kbrand { align-self: center; }

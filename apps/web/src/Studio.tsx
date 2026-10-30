@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { api } from "./api";
 import { PRIVACY_NOTICE } from "./privacyNotice";
 import { StudioIntro, studioDesignCopy } from "./studio/StudioIntro";
+import { StudioStepIllustration } from "./studio/StudioStepIllustration";
 import { MediaReauthorization } from "./studio/MediaReauthorization";
 import { siteTitle } from "./pageMeta";
 import type { Job, Project } from "./types";
@@ -1418,9 +1419,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {t.howTitle}
             </h3>
             <ol>
-              {t.how.map((step) => (
+              {t.how.map((step, index) => (
                 <li key={step.t}>
-                  <div>
+                  <StudioStepIllustration step={index} />
+                  <div className="studio-how-copy">
                     <strong>{step.t}</strong>
                     <p>{step.p}</p>
                   </div>
