@@ -33,8 +33,11 @@ O armazenamento de imagens continua no mesmo bucket externo; referências e
 conteúdo não foram alterados pela migração do Postgres.
 API_JOB_PUMP=true mantém o processamento dos livros na própria API.
 Não foi criado um worker pago separado.
-PRIVACY_RETENTION_ENABLED=false mantém a limpeza de 90 dias aguardando
-a conferência dos candidatos reais; tracing externo continua desativado.
+Foi feita a simulação de 90 dias no banco real restaurado: zero candidatos.
+PRIVACY_RETENTION_ENABLED=true ativa a revisão diária no novo ambiente com
+o prazo aprovado, excluindo pedidos pagos, pagamentos pendentes e tarefas
+ativas. Não houve exclusão de projetos durante a migração. Tracing externo
+continua desativado.
 
 PUBLICAÇÃO
 
@@ -42,6 +45,8 @@ O site público permanece em https://storyrus.ai na Vercel.
 Os dois vercel.json apontam /v1 e /health para a API de produção do STORYRUS.
 O endpoint já existente do Stripe foi redirecionado para a nova API, sem
 alterar eventos, credenciais de assinatura ou o modo de teste preexistente.
+O webhook do Clerk já usava https://storyrus.ai/v1/webhooks/clerk e acompanhou
+a troca de proxy. Aplicação, contas e ambiente do Clerk foram preservados.
 Publicar somente pelo GitHub oficial STORY-R-US/Storyrus.
 A API do Render usa esse repositório, com atualização manual para evitar
 publicações acidentais. Conferir o commit e o workspace antes de cada deploy.
@@ -56,7 +61,7 @@ RECURSOS ANTERIORES
 My Workspace: API srv-d98gm9taeets73fuarug e banco
 dpg-dac849navr4c73alo120-a deixam de atender a produção.
 STORYRUS: API gratuita srv-db7qmv49v7es73d0jvm0 também não é a API oficial.
-Manter esses serviços suspensos após a validação do novo destino.
+Esses serviços foram suspensos após a validação do novo destino.
 Não apagar recursos ou backups como parte de uma publicação de código.
 
 VALIDAÇÕES
@@ -67,3 +72,6 @@ A leitura autenticada do painel de usuários coincidiu com o banco restaurado,
 incluindo a conta administrativa verificada. Webhooks recusaram requisições
 sem assinatura. A migração não criou compra, cobrança, impressão ou geração
 de conteúdo para testar o sistema.
+Após suspender o banco da origem, /health e o painel autenticado de usuários
+continuaram respondendo 200 em storyrus.ai. Início, catálogo, entrada e
+privacidade também responderam 200. A produção não depende do banco antigo.

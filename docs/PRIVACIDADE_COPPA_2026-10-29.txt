@@ -1,6 +1,14 @@
 STORY R US — PROTEÇÃO DE DADOS E MODELO EXCLUSIVO PARA ADULTOS
 29 de outubro de 2026
 
+ATUALIZAÇÃO OPERACIONAL — 30/10/2026
+
+Os controles foram publicados no site e na API de produção do workspace
+STORYRUS. A simulação de retenção no banco restaurado encontrou zero projetos
+elegíveis. A rotina de 90 dias foi habilitada nesse ambiente após a conferência.
+O relatório abaixo registra a revisão inicial; o estado da hospedagem e os
+procedimentos de publicação atuais estão em MIGRACAO_STORYRUS_2026-10-30.txt.
+
 DECISÕES CONFIRMADAS PELO RESPONSÁVEL
 
 - O site é exclusivo para adultos responsáveis com 18 anos ou mais.
@@ -69,8 +77,8 @@ CONTROLES IMPLEMENTADOS
    Projetos pagos, em pagamento ou com tarefas ativas são preservados.
    Erros de exclusão ficam registrados para nova tentativa e acompanhamento.
    Controle: PRIVACY_RETENTION_ENABLED=true, somente em APP_ENV=prod.
-   Publicação de 30/10/2026: desativada por padrão até conferir a simulação
-   com os dados reais. O prazo de 90 dias permanece aprovado e implementado.
+   O código mantém o padrão desligado para novas instalações. Na produção
+   do STORYRUS, foi habilitada após a simulação real de 30/10/2026: zero candidatos.
 
 VERIFICAÇÕES PARA PUBLICAR
 
@@ -145,5 +153,7 @@ São controles técnicos e documentação para o modelo confirmado de adultos.
 Não constituem certificação jurídica de conformidade integral com a COPPA,
 LGPD ou outras leis. Contratos, configuração efetiva de produção e os
 procedimentos operacionais precisam ser confirmados pela Story R Us.
-Não houve envio de mensagens, cobrança, geração paga, migração ou eliminação
-de dados em produção. As alterações estão em uma branch local para revisão.
+Na revisão inicial não houve envio de mensagens, cobrança, geração paga,
+migração ou eliminação de dados em produção. Em 30/10/2026, a migração de
+hospedagem preservou os dados, com backups e comparação integral, conforme
+o relatório de migração. Nenhum projeto foi excluído para validar os controles.
