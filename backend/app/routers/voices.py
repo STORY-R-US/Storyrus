@@ -20,6 +20,7 @@ from app.media.tts import (
     elevenlabs_configured,
 )
 from app.models import User, UserVoice
+from app.services.privacy import media_authorization
 
 router = APIRouter(prefix="/v1/voices", tags=["voices"])
 
@@ -153,9 +154,14 @@ async def upload_voice(
     name: str = Form(...),
     file: UploadFile = File(...),
     make_default: str = Form(default="false"),
+    adult_voice_consent: bool = Form(False),
+    consent_version: str = Form(""),
     user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ) -> VoiceOut:
+    authorization = media_authorization(
+        user, confirmed=adult_voice_consent, version=consent_version, scope="own_adult_voice"
+    )
     if not elevenlabs_configured():
         raise HTTPException(
             status_code=400,
@@ -199,6 +205,7 @@ async def upload_voice(
         user_id=user.id,
         name=display_name,
         elevenlabs_voice_id=el_voice_id,
+        adult_authorization=authorization,
         sample_storage_key=key,
         mime_type=mime,
         is_default=is_default,
@@ -240,6 +247,12 @@ async def remove_voice(
     voice = db.get(UserVoice, voice_id)
     if voice is None or voice.user_id != user.id:
         raise HTTPException(status_code=404, detail="Voz nao encontrada")
+    try:
+        storage.delete_key(voice.sample_storage_key)
+    except Exception as exc:
+        raise HTTPException(
+            503, "Não foi possível apagar a amostra de voz. Tente novamente."
+        ) from exc
     await delete_cloned_voice(voice.elevenlabs_voice_id)
     db.delete(voice)
     db.commit()

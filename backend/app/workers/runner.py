@@ -199,6 +199,13 @@ async def process_job(db: Session, job: Job) -> None:
 
 async def _process_job_inner(db: Session, job: Job, handler) -> None:
     from app.services import spend_guard
+    from app.services.privacy import photos_authorized
+
+    if not photos_authorized(db, job.project_id):
+        jobs_svc.mark_failed_and_refund(
+            db, job, "Confirme a autorização atual do responsável para usar as fotos deste projeto."
+        )
+        return
 
     # STO-18: se o teto diario ja foi medido, falha sem chamar vendor.
     try:

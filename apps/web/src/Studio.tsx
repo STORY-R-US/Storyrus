@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
+import { PRIVACY_NOTICE } from "./privacyNotice";
+import { StudioIntro, studioDesignCopy } from "./studio/StudioIntro";
+import { MediaReauthorization } from "./studio/MediaReauthorization";
 import { siteTitle } from "./pageMeta";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
@@ -628,6 +631,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       }
       setMediaConsent(true);
       const uploadMeta = {
+        guardianConsent: agreed,
         language,
         themeLabel,
         extraNames: extraNames.trim(),
@@ -643,6 +647,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         clientNotes: buyerNotes || undefined,
       };
       const skipUpload = serverHasPhoto && photos.length === 0;
+      if (skipUpload) await api.authorizeBookMedia(p.id, agreed);
       const uploaded = draftRef.current?.project.id === p.id ? draftRef.current.uploaded : 0;
       if (!skipUpload) {
         for (let i = uploaded; i < photos.length; i += 1) {
@@ -1048,6 +1053,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       </div>
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
+        <StudioIntro lang={lang} />
+        {project && assets?.photos_authorized === false && (
+          <MediaReauthorization projectId={project.id} lang={lang}
+            onAuthorized={() => void api.getAssets(project.id).then(setAssets).catch(() => {})} />
+        )}
         {orderSent ? (
           <section
             className="studio-card studio-order studio-review"
@@ -1419,6 +1429,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </ol>
           </div>
 
+          <h3 className="studio-section-title"><span>01</span>{studioDesignCopy(lang).characters}</h3>
           <div className="studio-grid two">
             <label className="studio-field">
               {primary.name}
@@ -1583,6 +1594,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
 
+          <h3 className="studio-section-title"><span>02</span>{studioDesignCopy(lang).details}</h3>
           <div className="studio-choices">
             <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
               <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>
@@ -1666,6 +1678,18 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
+              <h3 className="studio-section-title"><span>03</span>{studioDesignCopy(lang).photos}</h3>
+              <aside className="studio-privacy-notice" aria-labelledby="studio-privacy-heading">
+                <span className="studio-privacy-symbol" aria-hidden="true">✓</span>
+                <div>
+                  <h4 id="studio-privacy-heading">{PRIVACY_NOTICE[lang].title}</h4>
+                  <p>{PRIVACY_NOTICE[lang].text}</p>
+                  <details><summary>{PRIVACY_NOTICE[lang].link}</summary>
+                    <p>{PRIVACY_NOTICE[lang].rights}</p>
+                    <a href={lang === "en" ? "/privacy" : "/privacidade"} target="_blank" rel="noreferrer">{t.privacyPolicy}</a>
+                  </details>
+                </div>
+              </aside>
               <p className="studio-field">{t.photoCharacters}</p>
               <div
                 id="studio-field-photo"

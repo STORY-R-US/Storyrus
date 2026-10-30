@@ -190,6 +190,8 @@ def _jpeg() -> bytes:
 
 def _photo(auth_client, pid, **fields):
     data = {
+        "guardian_consent": "true",
+        "consent_version": "2026-10-29",
         "language": "pt-BR",
         "theme_label": "Papai herói",
         "extra_names": "Vovó, Totó",
@@ -300,7 +302,12 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
     up = client.post(
         f"/v1/projects/{pid}/photo",
         files={"file": ("foto.jpg", _jpeg(), "image/jpeg")},
-        data={"language": "pt-BR", "theme_label": "Papai herói"},
+        data={
+            "language": "pt-BR",
+            "theme_label": "Papai herói",
+            "guardian_consent": "true",
+            "consent_version": "2026-10-29",
+        },
     )
     assert up.status_code == 201, up.text
     owner = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
@@ -335,6 +342,8 @@ def test_several_photos_count_together_on_one_order(auth_client, monkeypatch):
         f"/v1/projects/{pid}/photo",
         files={"file": ("lado.jpg", _jpeg(), "image/jpeg")},
         data={
+            "guardian_consent": "true",
+            "consent_version": "2026-10-29",
             "language": "pt-BR",
             "theme_label": "Papai herói",
             "client_name": "Ana Souza",
@@ -363,6 +372,8 @@ def test_unreadable_photo_is_rejected(auth_client, monkeypatch):
         f"/v1/projects/{pid}/photo",
         files={"file": ("foto.heic", b"not-a-photo", "image/heic")},
         data={
+            "guardian_consent": "true",
+            "consent_version": "2026-10-29",
             "client_name": "Ana Souza",
             "client_email": "ana@email.com",
             "client_phone": "11999999999",
@@ -382,6 +393,7 @@ def test_empty_photo_does_not_open_an_order(auth_client, monkeypatch):
     up = auth_client.post(
         f"/v1/projects/{pid}/photo",
         files={"file": ("foto.jpg", b"", "image/jpeg")},
+        data={"guardian_consent": "true", "consent_version": "2026-10-29"},
     )
     assert up.status_code == 400
     owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
@@ -461,7 +473,12 @@ def test_presign_sobrevive_a_falha_de_pedido(auth_client, monkeypatch):
 
     r = auth_client.post(
         f"/v1/projects/{pid}/photos",
-        json={"ext": "jpg", "content_type": "image/jpeg"},
+        json={
+            "ext": "jpg",
+            "content_type": "image/jpeg",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
     )
     assert r.status_code == 201, r.text
     assert r.json()["asset_id"]

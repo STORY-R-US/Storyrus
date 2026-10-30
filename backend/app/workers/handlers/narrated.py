@@ -6,6 +6,7 @@ import logging
 import uuid
 from pathlib import Path
 
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -33,11 +34,23 @@ def _resolve_elevenlabs_voice_id(db: Session, user_id: uuid.UUID, payload: dict)
     if voice_uuid is not None:
         voice = db.get(UserVoice, voice_uuid)
         if voice and voice.user_id == user_id:
+            from app.services.privacy import NOTICE_VERSION
+
+            if (voice.adult_authorization or {}).get("notice_version") != NOTICE_VERSION:
+                raise HTTPException(
+                    403, "Envie novamente sua própria voz de adulto e confirme a autorização atual."
+                )
             return voice.elevenlabs_voice_id
     default = db.scalar(
         select(UserVoice).where(UserVoice.user_id == user_id, UserVoice.is_default.is_(True))
     )
     if default:
+        from app.services.privacy import NOTICE_VERSION
+
+        if (default.adult_authorization or {}).get("notice_version") != NOTICE_VERSION:
+            raise HTTPException(
+                403, "Envie novamente sua própria voz de adulto e confirme a autorização atual."
+            )
         return default.elevenlabs_voice_id
     return None
 

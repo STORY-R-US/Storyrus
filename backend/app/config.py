@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     # App
     app_env: Literal["dev", "test", "staging", "prod"] = "dev"
     app_name: str = "storyrus-api"
+    privacy_retention_enabled: bool = True
     log_level: str = "INFO"
     # text = legivel local; json = uma linha JSON (prod / Render). Vazio = auto
     # (json fora de dev).
@@ -256,6 +257,7 @@ class Settings(BaseSettings):
     # Comet Opik (tracing + avaliacao). Ligado se houver API key (Cloud) ou
     # URL override (self-host). Sem os dois, o wrapper e no-op.
     opik_api_key: str | None = None
+    privacy_allow_external_tracing: bool = False
     opik_workspace: str | None = None
     opik_project_name: str = "storyrus"
     opik_url_override: str | None = None

@@ -182,6 +182,7 @@ class UserVoice(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     elevenlabs_voice_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    adult_authorization: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     sample_storage_key: Mapped[str] = mapped_column(Text, nullable=False)
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False, default="audio/mpeg")
     is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -232,6 +233,8 @@ class Project(Base):
     character_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
     book_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
     # Customer decisions and the revision used to generate the purchased book.
+    processing_revoked_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    last_accessed_at: Mapped[datetime | None] = mapped_column(nullable=True, onupdate=_now)
     purchase_flow: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     # Quando o cliente foi avisado por e-mail que a prévia (história + imagens) ficou pronta.
     preview_notified_at: Mapped[datetime | None] = mapped_column(nullable=True)

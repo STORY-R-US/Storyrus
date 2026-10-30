@@ -1,4 +1,5 @@
 import { BackendUnavailableError, backendFetch } from "./backendConnection";
+import { PRIVACY_NOTICE_VERSION } from "./privacyNotice";
 import type {
   Job,
   JobAccepted,
@@ -412,6 +413,13 @@ export const api = {
   async getProject(id: string) {
     return req<Project>(`/v1/projects/${id}`);
   },
+  async authorizeBookMedia(id: string, confirmed: boolean) {
+    return req<void>(`/v1/projects/${id}/privacy/authorize`, { method: "POST",
+      body: JSON.stringify({ guardian_consent: confirmed, consent_version: PRIVACY_NOTICE_VERSION }) });
+  },
+  async revokeBookMedia(id: string) {
+    return req<Project>(`/v1/projects/${id}/privacy/revoke`, { method: "POST" });
+  },
   async myProjects() {
     return req<Project[]>("/v1/projects");
   },
@@ -440,6 +448,8 @@ export const api = {
   async getAssets(id: string) {
     return req<{
       previews?: import("./studio/assets").BookImage[];
+      photos_authorized?: boolean;
+      photo_count?: number;
       page_versions?: import("./studio/assets").BookImage[];
       character_url: string | null;
       realistic_url: string | null;
@@ -472,6 +482,7 @@ export const api = {
       clientAddress?: string;
       clientNotes?: string;
       finalize?: boolean;
+      guardianConsent?: boolean;
     },
   ) {
     await ensureGuest();
@@ -492,6 +503,8 @@ export const api = {
     if (meta?.clientNotes) fd.append("client_notes", meta.clientNotes);
     if (meta?.quantity) fd.append("quantity", meta.quantity);
     if (meta?.finalize === false) fd.append("finalize", "0");
+    fd.append("guardian_consent", meta?.guardianConsent ? "true" : "false");
+    fd.append("consent_version", PRIVACY_NOTICE_VERSION);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await backendFetch(`${BASE}/v1/projects/${id}/photo`, {
@@ -665,12 +678,14 @@ export const api = {
   async listVoices() {
     return req<VoiceList>("/v1/voices");
   },
-  async uploadVoice(file: File, name: string, makeDefault = false) {
+  async uploadVoice(file: File, name: string, makeDefault = false, adultConsent = false) {
     await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
     fd.append("name", name);
     fd.append("make_default", makeDefault ? "true" : "false");
+    fd.append("adult_voice_consent", adultConsent ? "true" : "false");
+    fd.append("consent_version", PRIVACY_NOTICE_VERSION);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await backendFetch(`${BASE}/v1/voices`, { method: "POST", body: fd, headers });
@@ -739,11 +754,13 @@ export const api = {
     });
   },
   // Upload de foto de personagem extra
-  async uploadExtraCharacter(id: string, file: File, name: string) {
+  async uploadExtraCharacter(id: string, file: File, name: string, guardianConsent = false) {
     await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
     fd.append("name", name);
+    fd.append("guardian_consent", guardianConsent ? "true" : "false");
+    fd.append("consent_version", PRIVACY_NOTICE_VERSION);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await backendFetch(`${BASE}/v1/projects/${id}/extra-character`, {

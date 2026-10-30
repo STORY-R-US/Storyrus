@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import logo from "./assets/logo.png";
 import { api, getToken, type MeUser } from "./api";
+import { ADULT_SERVICE } from "./privacyNotice";
 import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
   LANGS,
@@ -106,7 +107,7 @@ const COPY: Record<
     passwordMismatch: "As senhas não coincidem.",
     mustAcceptTerms: "Aceite os termos e a política de privacidade.",
     confirmAdult:
-      "Declaro ter 18 anos ou mais. Esta conta é minha, como pai, mãe ou responsável. Menores de 13 anos não podem criar conta.",
+      "Declaro ter 18 anos ou mais. Esta conta é minha, como pai, mãe ou responsável. Pessoas menores de 18 anos não podem criar conta.",
     mustBeAdult: "Confirme que você tem 18 anos ou mais.",
     resend: "Reenviar E-mail De Confirmação",
     resendBusy: "Enviando…",
@@ -156,7 +157,7 @@ const COPY: Record<
     passwordMismatch: "Passwords do not match.",
     mustAcceptTerms: "Please accept the terms and privacy policy.",
     confirmAdult:
-      "I am 18 or older. This account is mine, as a parent or guardian. Children under 13 may not create an account.",
+      "I am 18 or older. This account is mine, as a parent or guardian. People under 18 may not create an account.",
     mustBeAdult: "Confirm that you are 18 or older.",
     resend: "Resend Confirmation Email",
     resendBusy: "Sending…",
@@ -206,7 +207,7 @@ const COPY: Record<
     passwordMismatch: "Las contraseñas no coinciden.",
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
     confirmAdult:
-      "Declaro tener 18 años o más. Esta cuenta es mía, como padre, madre o tutor. Los menores de 13 años no pueden crear una cuenta.",
+      "Declaro tener 18 años o más. Esta cuenta es mía, como padre, madre o tutor. Los menores de 18 años no pueden crear una cuenta.",
     mustBeAdult: "Confirma que tienes 18 años o más.",
     resend: "Reenviar Correo De Confirmación",
     resendBusy: "Enviando…",
@@ -563,6 +564,7 @@ function AuthBody({
               </Link>
             </div>
             <SiteBackNav className="site-back-nav-center" />
+            <p className="auth-lead" data-testid="auth-adult-service">{ADULT_SERVICE[lang]}</p>
             <p className="auth-lead" data-testid="auth-clerk-hint">
               {mode === "login" ? t.loginLead : t.signupLead}
             </p>

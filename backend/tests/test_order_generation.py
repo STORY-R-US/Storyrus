@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 from app.config import settings
 from app.models import Asset, Job, OrderTicket, Project, User
+from app.services.privacy import NOTICE_VERSION, media_authorization
 from tests.test_usage import _session
 
 
@@ -16,7 +17,18 @@ def _order(auth_client):
         db.flush()
         ticket = OrderTicket(project_id=project.id, summary="Livro\nNome: Lia")
         db.add(ticket)
-        db.add(Asset(project_id=project.id, kind="photo", storage_key="photo.jpg"))
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind="photo",
+                storage_key="photo.jpg",
+                meta={
+                    "adult_authorization": media_authorization(
+                        user, confirmed=True, version=NOTICE_VERSION, scope="book_photos"
+                    )
+                },
+            )
+        )
         db.commit()
         return ticket.id, project.id
     finally:

@@ -3446,6 +3446,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           </div>
         </div>
         <p className="kfoot-tag"><IcHeart className="ci" /> {t.tagline}</p>
+        <p className="kfoot-copy">{lang === "pt" ? "Serviço exclusivo para adultos responsáveis (18+)." : lang === "en" ? "For adult parents and guardians only (18+)." : "Servicio exclusivo para adultos responsables (18+)."}</p>
         <p className="kfoot-copy">{t.foot_copy}</p>
       </footer>
     </div>

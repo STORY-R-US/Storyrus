@@ -16,7 +16,7 @@ from fastapi import (
     UploadFile,
     status,
 )
-from PIL import Image
+from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
 
 from app import storage
@@ -26,6 +26,7 @@ from app.deps import require_adult_user
 from app.models import Asset, AssetKind, OrderTicket, Project, User
 from app.order_tickets import register_order_ticket, resolve_buyer
 from app.schemas import UploadUrlIn, UploadUrlOut
+from app.services.privacy import media_authorization
 from app.services.transactional_email import send_new_order_email
 
 from .common import get_owned_project
@@ -52,7 +53,7 @@ def _normalize_photo(data: bytes) -> bytes:
             "Não foi possível ler a foto. Envie JPG, PNG ou WEBP. "
             "No iPhone, exporte a foto HEIC nesses formatos.",
         ) from exc
-    image = image.convert("RGB")
+    image = ImageOps.exif_transpose(image).convert("RGB")
     width, height = image.size
     edge = max(width, height)
     if edge > _MAX_EDGE:
@@ -82,14 +83,19 @@ def _schedule_new_order_notice(
     )
 
 
-def _save_photo_asset(db: Session, project: Project, key: str) -> Asset:
+def _save_photo_asset(db: Session, project: Project, key: str, authorization: dict) -> Asset:
     """Grava o asset da foto e confirma — sem depender do pedido/impresso.
 
     A foto é o insumo que a geração precisa; o pedido do dono é recuperável
     depois por `backfill_order_tickets`. Separar as duas coisas evita que uma
     falha de bookkeeping (pedido, impresso, e-mail) derrube o upload com 500.
     """
-    asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
+    asset = Asset(
+        project_id=project.id,
+        kind=AssetKind.PHOTO.value,
+        storage_key=key,
+        meta={"adult_authorization": authorization},
+    )
     db.add(asset)
     db.commit()
     db.refresh(asset)
@@ -124,12 +130,20 @@ def request_photo_upload(
 ) -> UploadUrlOut:
     """Gera URL assinada de upload e registra o asset (foto de origem)."""
     project = get_owned_project(db, user, project_id)
+    authorization = media_authorization(
+        user, confirmed=body.guardian_consent, version=body.consent_version, scope="book_photos"
+    )
+    if settings.app_env == "prod":
+        raise HTTPException(
+            410,
+            "Envie a foto pelo formulário do Estúdio para remover metadados antes do armazenamento.",
+        )
     key = storage.new_key(project.id, AssetKind.PHOTO.value, body.ext)
     try:
         buyer = resolve_buyer(user)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    asset = _save_photo_asset(db, project, key)
+    asset = _save_photo_asset(db, project, key, authorization)
     asset_id = asset.id
     ticket, created = _register_order_bookkeeping(
         db,
@@ -174,6 +188,8 @@ async def upload_photo(
     client_address: str = Form(""),
     client_notes: str = Form(""),
     finalize: str = Form("1"),
+    guardian_consent: bool = Form(False),
+    consent_version: str = Form(""),
 ) -> UploadUrlOut:
     """Upload da foto via API: o servidor grava direto no storage (sem PUT do navegador).
 
@@ -183,6 +199,9 @@ async def upload_photo(
     """
     del finalize  # aceito no form por compatibilidade com o Studio
     project = get_owned_project(db, user, project_id)
+    authorization = media_authorization(
+        user, confirmed=guardian_consent, version=consent_version, scope="book_photos"
+    )
     data = await file.read()
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
@@ -204,7 +223,7 @@ async def upload_photo(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     key = storage.new_key(project.id, AssetKind.PHOTO.value, "jpg")
     storage.put_bytes(key, data, "image/jpeg")
-    asset = _save_photo_asset(db, project, key)
+    asset = _save_photo_asset(db, project, key, authorization)
     asset_id = asset.id
     ticket, created = _register_order_bookkeeping(
         db,
@@ -236,9 +255,14 @@ async def upload_extra_character(
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
     name: str = "",
+    guardian_consent: bool = Form(False),
+    consent_version: str = Form(""),
 ) -> UploadUrlOut:
     """Upload de foto de personagem extra (amigo, irmao, etc.)."""
     project = get_owned_project(db, user, project_id)
+    authorization = media_authorization(
+        user, confirmed=guardian_consent, version=consent_version, scope="extra_character_photos"
+    )
     data = await file.read()
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
@@ -265,7 +289,10 @@ async def upload_extra_character(
         project_id=project.id,
         kind="extra_character",
         storage_key=key,
-        meta={"name": name.strip() or f"Personagem {len(extras)}"},
+        meta={
+            "name": name.strip() or f"Personagem {len(extras)}",
+            "adult_authorization": authorization,
+        },
     )
     db.add(asset)
     db.commit()

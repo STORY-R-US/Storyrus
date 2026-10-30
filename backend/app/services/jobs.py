@@ -106,6 +106,9 @@ def enqueue_job(
     Blip de conexão retenta uma vez. Corrida de chave e falha de refresh
     devolvem o job já gravado — não viram HTTP 500.
     """
+    from app.services.privacy import require_photo_authorization
+
+    require_photo_authorization(db, project.id)
     key = _clean_key(idempotency_key, 255)
     safe_payload = _json_value(payload) if payload else None
     if safe_payload is not None and not isinstance(safe_payload, dict):

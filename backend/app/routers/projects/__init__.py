@@ -7,8 +7,9 @@ Comportamento e rotas idênticos ao monolito anterior.
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,15 +17,61 @@ from app import storage, story_templates
 from app.database import get_db
 from app.deps import get_current_user, require_adult_user, require_registered_user
 from app.models import Asset, AssetKind, Job, Project, User
-from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut
+from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut, UploadUrlIn
 from app.services import book_profile
 from app.services.preview_mark import display_key
+from app.services.privacy import media_authorization, photos_authorized
 
 from . import approvals, book_flow, photos, purchase, steps
 from . import print as print_mod
 from .common import get_owned_project, purge_project
 
 router = APIRouter(prefix="/v1/projects", tags=["projects"])
+
+
+@router.post("/{project_id}/privacy/authorize", status_code=204)
+def authorize_existing_photos(
+    project_id: uuid.UUID,
+    body: UploadUrlIn,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+):
+    project = get_owned_project(db, user, project_id)
+    if project.user_id != user.id:
+        raise HTTPException(
+            403, "A autorização deve ser confirmada pela conta responsável pelo projeto"
+        )
+    authorization = media_authorization(
+        user, confirmed=body.guardian_consent, version=body.consent_version, scope="book_photos"
+    )
+    project.processing_revoked_at = None
+    project.last_accessed_at = datetime.now(UTC)
+    for asset in db.scalars(
+        select(Asset).where(
+            Asset.project_id == project.id,
+            Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
+        )
+    ):
+        asset.meta = {**(asset.meta or {}), "adult_authorization": authorization}
+    db.commit()
+    return Response(status_code=204)
+
+
+@router.post("/{project_id}/privacy/revoke", response_model=ProjectOut)
+def revoke_project_processing(
+    project_id: uuid.UUID,
+    user: User = Depends(require_registered_user),
+    db: Session = Depends(get_db),
+):
+    project = get_owned_project(db, user, project_id)
+    if project.user_id != user.id:
+        raise HTTPException(
+            403, "A retirada de autorização deve ser confirmada pela conta responsável."
+        )
+    project.processing_revoked_at = datetime.now(UTC)
+    db.commit()
+    db.refresh(project)
+    return project
 
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
@@ -99,7 +146,16 @@ def get_project(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Project:
-    return get_owned_project(db, user, project_id)
+    project = get_owned_project(db, user, project_id)
+    now = datetime.now(UTC)
+    previous = project.last_accessed_at
+    if previous and previous.tzinfo is None:
+        previous = previous.replace(tzinfo=UTC)
+    if project.user_id == user.id and (previous is None or previous < now - timedelta(hours=1)):
+        project.last_accessed_at = now
+        db.commit()
+        db.refresh(project)
+    return project
 
 
 @router.get("/{project_id}/assets")
@@ -204,9 +260,7 @@ def project_assets(
     preview_assets = [
         a
         for a in db.scalars(
-            select(Asset)
-            .where(Asset.project_id == project.id)
-            .order_by(Asset.created_at, Asset.id)
+            select(Asset).where(Asset.project_id == project.id).order_by(Asset.created_at, Asset.id)
         ).all()
         if (a.meta or {}).get("workflow") == 1
         and (a.meta or {}).get("role") in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
@@ -250,6 +304,7 @@ def project_assets(
         "video_url": video_url,
         "narrated_video_url": narrated_video_url,
         "photo_count": len(photos),
+        "photos_authorized": photos_authorized(db, project.id),
     }
 
 

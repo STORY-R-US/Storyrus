@@ -53,6 +53,9 @@ def _photos(db, project) -> list[bytes]:
 
 
 def _store(db, project, kind, data: bytes, *, language: str, role: str, name: str, **metadata):
+    from app.services.privacy import require_photo_authorization
+
+    require_photo_authorization(db, project.id)
     key = storage.new_key(project.id, kind, "pdf" if role == "ebook" else "png")
     key = f"{key.rsplit('.', 1)[0]}/{name}"
     mime = "application/pdf" if role == "ebook" else "image/png"

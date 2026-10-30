@@ -678,6 +678,7 @@ export function Conta() {
             </button>
           </form>
           <p className="auth-foot"><Link to="/meus-pedidos">{lang === "en" ? "My orders" : lang === "es" ? "Mis pedidos" : "Meus pedidos"}</Link></p>
+          <p className="auth-foot"><Link to={lang === "en" ? "/privacy" : "/privacidade"}>{lang === "en" ? "Privacy and deletion rights" : lang === "es" ? "Privacidad y eliminación de datos" : "Privacidade e exclusão de dados"}</Link></p>
           <p className="auth-foot">
             <Link to="/app" data-testid="conta-studio">
               {t.studio}

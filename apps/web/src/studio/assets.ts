@@ -12,6 +12,7 @@ export type StudioAssets = {
   video_url: string | null;
   narrated_video_url: string | null;
   photo_count?: number;
+  photos_authorized?: boolean;
 };
 
 export type BookImage = {

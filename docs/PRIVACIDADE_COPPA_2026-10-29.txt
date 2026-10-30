@@ -1,0 +1,147 @@
+STORY R US — PROTEÇÃO DE DADOS E MODELO EXCLUSIVO PARA ADULTOS
+29 de outubro de 2026
+
+DECISÕES CONFIRMADAS PELO RESPONSÁVEL
+
+- O site é exclusivo para adultos responsáveis com 18 anos ou mais.
+- Projetos abandonados sem pagamento: exclusão após 90 dias de inatividade.
+- Pedidos pagos, pagamentos pendentes e gerações ativas ficam fora da limpeza.
+
+ESCOPO DA IMPLEMENTAÇÃO
+
+Cadastro, Estúdio, pedidos, páginas públicas de privacidade e termos,
+API de fotos e voz, geração, arquivos privados, exclusão e retenção.
+O acabamento visual do Estúdio foi alinhado ao azul-marinho, dourado,
+verde e creme do site, incluindo celular e temas claro e escuro.
+
+CONTROLES IMPLEMENTADOS
+
+1. Conta e autorização
+   A conta continua exigindo e-mail verificado e declaração de maioridade.
+   Avisos de uso exclusivo por adultos aparecem no cadastro e no rodapé.
+   Uploads de fotos e voz exigem autorização explícita e a versão atual do
+   aviso no servidor, além da validação da conta adulta. O registro guarda
+   conta, momento, finalidade e versão. Não é um processo de consentimento
+   parental verificável para um serviço operado por crianças.
+
+2. Projetos anteriores e novos usos
+   Fotos antigas sem registro atual não podem iniciar novas gerações.
+   O responsável confirma o aviso no Estúdio. A leitura e a exclusão
+   continuam disponíveis. A API não permite ao administrador registrar
+   essa autorização em nome de outra conta.
+   Em Meus pedidos, o adulto pode retirar a autorização de novas gerações.
+   A retirada bloqueia novas tarefas e é verificada pelo worker antes de
+   processar tarefas pendentes. O novo fluxo verifica novamente antes de
+   guardar cada imagem. Uma requisição externa já enviada não pode ser
+   desfeita retroativamente. A conta pode autorizar novamente de forma explícita.
+
+3. Minimização e fornecedores
+   O aviso orienta a usar primeiro nome/apelido e só a idade necessária,
+   sem documentos, endereço da criança, escola ou informações sensíveis.
+   A voz enviada deve ser do próprio adulto. Vozes antigas sem autorização
+   registrada precisam ser enviadas novamente antes de serem usadas.
+   Fotos recebidas pelo formulário são normalizadas e perdem metadados EXIF,
+   preservando a orientação correta. O upload direto antigo é recusado em
+   produção, para não contornar essa normalização.
+   O tracing externo fica desligado por padrão mesmo se houver chave Opik.
+
+4. Arquivos e exclusão
+   URLs locais de arquivos passam a ter assinatura, prazo e método HTTP.
+   Conhecer o caminho do arquivo não permite ler ou alterar seu conteúdo.
+   API e novos objetos usam respostas privadas sem cache compartilhado.
+   Links S3 de leitura também solicitam Cache-Control private, no-store.
+   Apagar um projeto remove arquivos conhecidos, prévias com marca d'água
+   e objetos antigos ainda existentes no prefixo do projeto.
+   Se o armazenamento falhar, a API não informa falsamente sucesso: mantém
+   os registros e permite repetir a exclusão. Amostras locais de voz também
+   são removidas ao apagar uma voz.
+   A exclusão aguarda a geração terminar para impedir novas gravações durante
+   a limpeza. O pedido de interrupção também pode ser tratado pelo contato de
+   privacidade. A retirada de autorização bloqueia etapas posteriores.
+
+5. Retenção de projetos não pagos
+   A API, em produção, agenda uma verificação diária, com espera inicial de
+   60 segundos após iniciar. O prazo aprovado é de 90 dias.
+   Abertura do projeto pelo dono, modificações, novos arquivos e atividade
+   de tarefas/pedidos contam para o período de inatividade. Aberturas são
+   registradas no máximo uma vez por hora. Visitas do administrador não
+   prorrogam o prazo do cliente.
+   Projetos pagos, em pagamento ou com tarefas ativas são preservados.
+   Erros de exclusão ficam registrados para nova tentativa e acompanhamento.
+   Controle: PRIVACY_RETENTION_ENABLED=true, somente em APP_ENV=prod.
+
+VERIFICAÇÕES PARA PUBLICAR
+
+- Aplicar a migração 0030_voice_authorization antes da nova API. Ela adiciona
+  autorização de voz, retirada de autorização e última atividade do projeto.
+  Registros antigos não são preenchidos com autorizações presumidas.
+- Subir frontend e backend compatíveis. Clientes antigos que usam /photos
+  diretamente precisarão adotar o formulário de upload e a autorização atual.
+  O cliente mobile não foi redesenhado neste trabalho; não reabrir o bypass
+  do servidor para permitir versões antigas sem autorização.
+- Antes da primeira ativação em produção, conferir os candidatos reais:
+      cd backend
+      python -m scripts.privacy_retention --days 90
+  O comando acima apenas mostra os candidatos. --execute efetiva a exclusão.
+  Não foi executada nenhuma limpeza de produção nesta revisão.
+- Manter buckets privados; conceder ao serviço somente as permissões
+  necessárias de leitura, gravação, listagem do prefixo e exclusão.
+- Configurar descarte de versões não atuais, réplicas e backups no storage.
+  Remover o objeto atual não elimina automaticamente versões históricas S3.
+- Confirmar os acordos e configurações efetivos de OpenAI, ElevenLabs, Kling,
+  Clerk, hospedagem, storage, e-mail, pagamentos e gráfica: finalidade,
+  acesso, retenção, suboperadores e uso para treinamento/publicidade.
+- Definir períodos e procedimentos específicos para pedidos pagos e vozes
+  reutilizáveis. A regra de 90 dias aprovada cobre projetos sem pagamento.
+  Ela não é apresentada como autorização para conservar os demais dados
+  indefinidamente nem para apagar registros comerciais necessários.
+- Designar quem atende info@storyrus.ai, verifica a identidade do solicitante,
+  executa exclusão da conta no Clerk e nos demais sistemas e documenta a resposta.
+  Casos de conta de menor devem ter sessão/acesso bloqueados e dados tratados
+  pelo procedimento de exclusão; não basta desmarcar a declaração de adulto.
+- Confirmar autorização de uso das imagens demonstrativas públicas do site.
+- Validar juridicamente o enquadramento do público e o aviso final. Se o
+  serviço passar a ser operado por crianças, esta autorização de adulto não
+  substitui verificação parental apropriada nem os demais deveres aplicáveis.
+
+BASES CONSULTADAS
+
+FTC, Complying with COPPA: Frequently Asked Questions:
+https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions
+O guia distingue dados enviados por adultos de coleta direta de crianças.
+A classificação do público depende do serviço real, não apenas de uma frase
+nos termos.
+
+Regra final de 2025, 16 CFR Part 312, com prazo geral de cumprimento das
+alterações em 22 de abril de 2026:
+https://www.govinfo.gov/content/pkg/FR-2025-04-22/html/2025-05904.htm
+Inclui mudanças sobre notificações, consentimento, segurança, retenção e dados
+biométricos. Foi considerada a regra atual, não apenas a versão anterior.
+
+VALIDAÇÃO TÉCNICA
+
+- Suíte web: 219 testes passaram, incluindo retirada de autorização
+  em Meus pedidos.
+  Na rodada final conjunta, 217 passaram e dois casos de autenticação
+  falharam por tempo/espera. Os dois arquivos foram repetidos sem concorrência:
+  25/25 passaram, incluindo ambos os casos, sem mudança no código.
+- API, autorização, revogação, armazenamento, retenção, migração, pedidos e
+  geração: 158 testes passaram no conjunto de regressão executado.
+- Fluxo mestre do livro: 15 casos validados, incluindo as 16 páginas e os
+  três idiomas. Dois testes antigos passaram a comparar o arquivo original
+  preservado, respeitando a prévia com marca d'água antes do pagamento.
+- Compilação, TypeScript e verificações de estilo aprovadas.
+- Conferência visual com dados fictícios e componentes reais: formulário e
+  prévia, temas claro/escuro, telas de 320, 390 e 1440 pixels, sem overflow.
+- Não houve entrada em uma conta real nem operação de compra nos testes visuais.
+- Cabeçalho móvel ajustado e reconferido em 320, 390 e 1440 pixels,
+  sem sobreposição entre a marca e os controles.
+
+LIMITES DESTA ENTREGA
+
+São controles técnicos e documentação para o modelo confirmado de adultos.
+Não constituem certificação jurídica de conformidade integral com a COPPA,
+LGPD ou outras leis. Contratos, configuração efetiva de produção e os
+procedimentos operacionais precisam ser confirmados pela Story R Us.
+Não houve envio de mensagens, cobrança, geração paga, migração ou eliminação
+de dados em produção. As alterações estão em uma branch local para revisão.

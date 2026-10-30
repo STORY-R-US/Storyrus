@@ -92,7 +92,13 @@ def test_preview_enqueues_avatar_with_chain_flag(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
     assert (
         auth_client.post(
-            f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+            f"/v1/projects/{pid}/photos",
+            json={
+                "content_type": "image/jpeg",
+                "ext": "jpg",
+                "guardian_consent": True,
+                "consent_version": "2026-10-29",
+            },
         ).status_code
         == 201
     )
@@ -128,7 +134,13 @@ def test_preview_enqueues_avatar_with_chain_flag(auth_client):
 def test_preview_conflict_while_active(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
     auth_client.post(
-        f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+        f"/v1/projects/{pid}/photos",
+        json={
+            "content_type": "image/jpeg",
+            "ext": "jpg",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
     )
     assert (
         auth_client.post(
@@ -149,7 +161,13 @@ def test_preview_starts_at_story_when_character_exists(auth_client):
 
     pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
     auth_client.post(
-        f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+        f"/v1/projects/{pid}/photos",
+        json={
+            "content_type": "image/jpeg",
+            "ext": "jpg",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
     )
     gen = app.dependency_overrides[get_db]()
     db = next(gen)
@@ -176,7 +194,13 @@ def test_preview_starts_at_story_when_character_exists(auth_client):
 def test_story_endpoint_accepts_brief(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
     auth_client.post(
-        f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+        f"/v1/projects/{pid}/photos",
+        json={
+            "content_type": "image/jpeg",
+            "ext": "jpg",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
     )
     r = auth_client.post(
         f"/v1/projects/{pid}/story",
@@ -192,7 +216,14 @@ def test_story_endpoint_accepts_brief(auth_client):
 async def test_avatar_preview_chains_to_story(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     u, p = _seed(db, credits=20)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     j = _job(db, p, "AVATAR", payload={"preview_chain": True, "brief": "espaço"})
@@ -375,7 +406,14 @@ def test_preview_ready_email_failure_is_swallowed(db, monkeypatch):
 async def test_preview_chain_runs_with_zero_credits(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     u, p = _seed(db, credits=0)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     j = _job(db, p, "AVATAR", cost=0, payload={"preview_chain": True})
@@ -399,7 +437,14 @@ async def test_preview_chain_stops_on_insufficient_credits_when_enabled(
     monkeypatch.setattr(settings, "credits_enabled", True)
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     u, p = _seed(db, credits=0)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     j = _job(db, p, "AVATAR", cost=0, payload={"preview_chain": True})
@@ -421,7 +466,14 @@ async def test_preview_chain_stops_on_insufficient_credits_when_enabled(
 async def test_non_preview_avatar_does_not_chain(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     await runner.process_job(db, _job(db, p, "AVATAR"))
     db.refresh(p)
@@ -489,7 +541,14 @@ async def test_regenerating_images_reuses_saved_story(db, mem_storage, monkeypat
     _, project = _seed(db)
     story = "Título: História aprovada\n\nPágina 1: O texto original."
     project.story_text = story
-    db.add(Asset(project_id=project.id, kind="photo", storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind="photo",
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     job = _job(db, project, "AVATAR", cost=0, payload={"preview_chain": True, "reuse_story": True})
     await runner.process_job(db, job)
@@ -579,7 +638,13 @@ def _project_with_photo(auth_client) -> str:
     pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
     assert (
         auth_client.post(
-            f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+            f"/v1/projects/{pid}/photos",
+            json={
+                "content_type": "image/jpeg",
+                "ext": "jpg",
+                "guardian_consent": True,
+                "consent_version": "2026-10-29",
+            },
         ).status_code
         == 201
     )

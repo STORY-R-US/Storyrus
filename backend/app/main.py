@@ -43,6 +43,11 @@ jobs_svc.enqueue_fn = queue.notify
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     task: asyncio.Task[None] | None = None
+    privacy_task = None
+    if settings.app_env == "prod" and settings.privacy_retention_enabled:
+        from app.services.privacy_retention import retention_loop
+
+        privacy_task = asyncio.create_task(retention_loop())
     if settings.job_pump_enabled():
         from app.workers.api_pump import bind, pump_forever
 
@@ -51,6 +56,12 @@ async def lifespan(_app: FastAPI):
     try:
         yield
     finally:
+        if privacy_task is not None:
+            privacy_task.cancel()
+            try:
+                await privacy_task
+            except asyncio.CancelledError:
+                pass
         if task is not None:
             task.cancel()
             try:
@@ -67,6 +78,17 @@ app = FastAPI(
 )
 
 register_exception_handlers(app)
+
+
+@app.middleware("http")
+async def private_api_responses(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/v1/"):
+        response.headers["Cache-Control"] = "private, no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
 
 # Request ID primeiro (mais externo apos CORS? Starlette: ultimo add = mais externo).
 # Queremos request_id em toda request, inclusive CORS preflight — adicionamos por ultimo.

@@ -76,6 +76,12 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
         {doc.blocks.map((block, index) => (
           <Block key={`${block.type}-${index}`} block={block} />
         ))}
+        {kind === "privacy" && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 24 }}>
+            <Link className="kbtn kbtn-soft" to="/meus-pedidos">{lang === "pt" ? "Revisar ou apagar projetos" : lang === "en" ? "Review or delete projects" : "Revisar o borrar proyectos"}</Link>
+            <a className="kbtn kbtn-soft" href={`mailto:${LEGAL_CONTACT}?subject=Privacidade`}>{lang === "pt" ? "Revogar autorização ou excluir conta" : lang === "en" ? "Withdraw authorization or delete account" : "Retirar autorización o borrar cuenta"}</a>
+          </div>
+        )}
         <p style={{ marginTop: 28 }}>
           <Link to="/" className="kbtn kbtn-primary">
             {doc.back}

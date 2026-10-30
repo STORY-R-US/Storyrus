@@ -23,9 +23,11 @@ def _mime_for(key: str) -> str:
 
 
 @router.get("/{key:path}")
-def get_local_object(key: str) -> Response:
+def get_local_object(key: str, expires: int = 0, signature: str = "") -> Response:
     if not storage.uses_local_disk():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "storage local desligado")
+    if not storage.valid_local_signature(key, "GET", expires, signature):
+        raise HTTPException(403, "Link ausente, inválido ou expirado")
     try:
         data = storage.get_bytes(key)
     except FileNotFoundError:
@@ -36,11 +38,17 @@ def get_local_object(key: str) -> Response:
 
 
 @router.put("/{key:path}", status_code=204)
-async def put_local_object(key: str, request: Request) -> Response:
+async def put_local_object(
+    key: str, request: Request, expires: int = 0, signature: str = ""
+) -> Response:
     """PUT do fluxo mobile (presign_put → storage local)."""
     if not storage.uses_local_disk():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "storage local desligado")
+    if not storage.valid_local_signature(key, "PUT", expires, signature):
+        raise HTTPException(403, "Link ausente, inválido ou expirado")
     data = await request.body()
+    if len(data) > 10_000_000:
+        raise HTTPException(413, "Arquivo muito grande (máximo 10 MB)")
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "corpo vazio")
     try:

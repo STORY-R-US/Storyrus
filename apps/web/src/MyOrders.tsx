@@ -21,6 +21,7 @@ export function MyOrders() {
   );
   const [attempt, setAttempt] = useState(0);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<string | null>(null);
   useEffect(() => {
     if (gate !== "loading" && gate !== "ok") return;
     let cancelled = false;
@@ -94,6 +95,7 @@ export function MyOrders() {
       <SiteBackNav />
       <main className="studio-card purchase-orders">
         <h1>{t.myOrders}</h1>
+        <p className="studio-slogan"><a href={lang === "en" ? "/privacy" : "/privacidade"}>{lang === "pt" ? "Seus dados e como pedir a exclusão" : lang === "en" ? "Your information and deletion rights" : "Tus datos y cómo solicitar su eliminación"}</a></p>
         <a className="kbtn" href="/app">
           {t.create}
         </a>
@@ -133,10 +135,24 @@ export function MyOrders() {
                 {lang === "en" ? "View order" : "Ver pedido"} →
               </a>
               <button
+                type="button" className="kbtn" data-testid="order-revoke"
+                disabled={removing === p.id || revoking === p.id || !!p.processing_revoked_at}
+                onClick={async () => {
+                  setRevoking(p.id); setError(null);
+                  try {
+                    const updated = await api.revokeBookMedia(p.id);
+                    setProjects((prev) => prev?.map((item) => item.id === p.id ? updated : item) ?? null);
+                  } catch (reason) { setError((reason as Error).message); }
+                  finally { setRevoking(null); }
+                }}
+              >{p.processing_revoked_at
+                ? (lang === "pt" ? "Novas gerações bloqueadas" : lang === "en" ? "Further generation blocked" : "Nuevas generaciones bloqueadas")
+                : (lang === "pt" ? "Retirar autorização de novos usos" : lang === "en" ? "Withdraw authorization for further use" : "Retirar autorización para nuevos usos")}</button>
+              <button
                 type="button"
                 className="kbtn"
                 data-testid="order-delete"
-                disabled={removing === p.id}
+                disabled={removing === p.id || revoking === p.id}
                 onClick={() => void removeProject(p.id)}
               >
                 {removing === p.id ? t.deleteBusy : t.deleteProject}

@@ -19,7 +19,7 @@ export type LegalDoc = {
 
 const privacyPt: LegalDoc = {
   title: "Política De Privacidade",
-  updated: "Última atualização: 23 de outubro de 2026.",
+  updated: "Última atualização: 29 de outubro de 2026.",
   home: "Início",
   back: "Voltar à página inicial",
   blocks: [
@@ -55,7 +55,7 @@ const privacyPt: LegalDoc = {
     { type: "h", text: "Compartilhamento com fornecedores" },
     {
       type: "p",
-      text: "A OpenAI recebe a foto e o texto do projeto só para gerar ilustrações e história. A ElevenLabs recebe a amostra de voz do adulto só quando há narração clonada. O Clerk guarda o login do adulto, sem foto nem idade da criança. Hospedagem, armazenamento, e-mail, pagamento e frete recebem só o necessário para a tarefa. Orientamos esses fornecedores a usar o material apenas para prestar o serviço, sem publicidade e sem treinar modelos próprios.",
+      text: "Fotos, características e texto podem ser enviados à OpenAI para gerar o livro; áudio de adulto à ElevenLabs para narração; conteúdo necessário à Kling para vídeo, quando esse recurso for solicitado. Clerk cuida do login. Hospedagem, armazenamento, e-mail, pagamento e impressão recebem os dados necessários à sua função. Esses dados não são destinados a anúncios ou venda. Condições de retenção e uso dos fornecedores precisam ser compatíveis com a finalidade contratada.",
     },
     { type: "h", text: "Usuários internacionais" },
     {
@@ -73,12 +73,12 @@ const privacyPt: LegalDoc = {
     { type: "h", text: "Conta e sessão" },
     {
       type: "p",
-      text: "A conta é de um adulto. O login exige e-mail verificado. Cada pessoa vê só os próprios projetos. Menores de 13 anos não criam conta e não usam o estúdio.",
+      text: "Serviço exclusivo para adultos responsáveis com 18 anos ou mais. Crianças e adolescentes não criam conta nem utilizam o Estúdio.",
     },
     { type: "h", text: "Retenção e exclusão" },
     {
       type: "p",
-      text: "A foto, a história e os arquivos do projeto ficam até você apagar o projeto em Meus pedidos, ou até pedir a exclusão da conta. A amostra de voz clonada fica na conta até você apagá-la no estúdio. Não mantemos esses materiais para publicidade. Para corrigir o perfil, use a conta ou o contato desta página.",
+      text: "Guardamos os dados do projeto apenas enquanto necessários à criação, entrega e atendimento do pedido. Projetos sem pagamento são apagados após 90 dias sem abertura ou outra atividade registrada. Pagamentos pendentes, pedidos pagos e gerações em andamento ficam fora dessa limpeza automática. O adulto pode excluir o projeto em Meus pedidos e solicitar o encerramento da conta. A exclusão inclui fotos, arquivos gerados, cópias de prévia e amostras de voz sob nosso controle. Registros comerciais cuja guarda seja necessária são tratados separadamente dos materiais infantis. Cópias de segurança e dados já recebidos por fornecedores seguem seus próprios ciclos de eliminação; solicite informações pelo contato de privacidade.",
     },
     { type: "h", text: "Seus direitos" },
     {
@@ -88,18 +88,22 @@ const privacyPt: LegalDoc = {
     { type: "h", text: "Crianças" },
     {
       type: "p",
-      text: "O serviço é dirigido a pais e responsáveis com 18 anos ou mais. O envio da foto é feito por essa pessoa, que autoriza o uso apenas para criar o livro. Não coletamos dados de crianças para marketing e não abrimos conta para quem tem menos de 13 anos.",
+      text: "Serviço exclusivo para adultos responsáveis com 18 anos ou mais. Crianças e adolescentes não criam conta nem utilizam o Estúdio.",
     },
     { type: "h", text: "Estados Unidos (COPPA)" },
     {
       type: "p",
-      text: "Nos Estados Unidos, o COPPA protege dados pessoais de menores de 13 anos, inclusive foto e voz. O Story R Us não é um site para a criança usar. Quem cria a conta confirma ter 18 anos ou mais e ser o pai, a mãe ou o responsável. Nome, idade e foto de quem aparece no livro são informados por esse adulto. Se soubermos que uma conta foi aberta por alguém menor de 13 anos, apagamos a conta e os arquivos. A foto vai para a OpenAI só para ilustrar o livro. A voz, quando existe, é do adulto e vai para a ElevenLabs só para a narração. Não há venda de dados nem publicidade segmentada para crianças. O responsável revisa e apaga cada projeto em Meus pedidos.",
+      text: "A COPPA trata da coleta online de dados de menores de 13 anos. O serviço Story R Us é exclusivo para adultos responsáveis de 18 anos ou mais: a criança não cria conta, envia arquivos nem opera o Estúdio. Os dados de quem aparece no livro são fornecidos pelo adulto. A autorização registrada no envio não é apresentada como consentimento parental verificável para um serviço usado por crianças. Se identificarmos uso por menor de idade, restringimos a conta e tratamos a exclusão pelo contato de privacidade.",
     },
     { type: "h", text: "Alterações" },
     {
       type: "p",
       text: "Podemos atualizar esta política. A data no topo indica a versão vigente. Mudanças relevantes podem ser comunicadas no site ou por e-mail.",
     },
+    {"type":"h","text":"Autorização e controle do responsável"},
+    {"type":"p","text":"Antes de enviar arquivos, o adulto deve ler o aviso e autorizar o tratamento. Registramos a versão do aviso, o momento, a conta e a finalidade da autorização. Ela cobre a execução do pedido, sem autorização para publicar o material ou fazer publicidade. Você pode pedir a interrupção de novos usos, revisar os projetos e solicitar exclusão em info@storyrus.ai. Não envie dados de uma criança sem autoridade para isso."},
+    {"type":"h","text":"Processamento de imagens e informações sensíveis"},
+    {"type":"p","text":"As fotos podem passar por processamento automatizado e comparação de semelhança para manter a aparência nas ilustrações. Essa comparação não verifica a identidade ou a idade do adulto. Não pedimos documento da criança, localização exata, escola ou informações de saúde para criar um livro. Use apenas o primeiro nome ou apelido e a idade necessária à história. A localização aproximada por IP pode ser consultada para sugerir o idioma; você pode escolher o idioma manualmente."},
     { type: "h", text: "Contato" },
     { type: "contact", before: "Dúvidas sobre privacidade: " },
   ],
@@ -107,7 +111,7 @@ const privacyPt: LegalDoc = {
 
 const termsPt: LegalDoc = {
   title: "Termos De Uso",
-  updated: "Última atualização: 23 de outubro de 2026.",
+  updated: "Última atualização: 29 de outubro de 2026.",
   home: "Início",
   back: "Voltar à página inicial",
   blocks: [
@@ -123,7 +127,7 @@ const termsPt: LegalDoc = {
     { type: "h", text: "Cadastro e conta" },
     {
       type: "p",
-      text: "A conta é pessoal de quem tem 18 anos ou mais. É preciso aceitar estes Termos e a Política de privacidade, declarar a idade e confirmar o e-mail. Crianças menores de 13 anos não podem criar conta nem usar o estúdio. Você é responsável por manter a senha em sigilo e pelas atividades na sua conta.",
+      text: "Serviço exclusivo para adultos responsáveis com 18 anos ou mais. Crianças e adolescentes não criam conta nem utilizam o Estúdio. O acesso exige e-mail verificado e aceite dos Termos e da Política de privacidade.",
     },
     { type: "h", text: "Responsável legal" },
     {
@@ -143,7 +147,7 @@ const termsPt: LegalDoc = {
     { type: "h", text: "Usuários internacionais" },
     {
       type: "p",
-      text: "Contas e endereços fora do Brasil são aceitos no cadastro. Regras fiscais, impostos de importação ou restrições locais de envio, quando houver impressão internacional, são de responsabilidade do destinatário conforme a legislação aplicável, inclusive o COPPA para usuários nos Estados Unidos.",
+      text: "Contas e endereços fora do Brasil são aceitos. A disponibilidade de impressão e entrega depende dos parceiros e é informada antes da cobrança. O tratamento de dados continua sujeito à nossa Política de privacidade.",
     },
     { type: "h", text: "Propriedade e uso" },
     {
@@ -167,7 +171,7 @@ const termsPt: LegalDoc = {
 
 const privacyEn: LegalDoc = {
   title: "Privacy Policy",
-  updated: "Last updated: October 23, 2026.",
+  updated: "Last updated: October 29, 2026.",
   home: "Home",
   back: "Back to home",
   blocks: [
@@ -198,7 +202,7 @@ const privacyEn: LegalDoc = {
     { type: "h", text: "Processors" },
     {
       type: "p",
-      text: "OpenAI receives the photo and project text only to generate illustrations and the story. ElevenLabs receives the adult's voice sample only when a cloned narration is requested. Clerk stores the adult's login, not the child's photo or age. Hosting, storage, email, payment, and shipping receive only what the task needs. We instruct these providers to use the material only to perform the service, with no advertising and no training of their own models.",
+      text: "Photos, character details and text may go to OpenAI for book generation; adult audio to ElevenLabs for narration; necessary content to Kling for video when requested. Clerk handles sign-in. Hosting, storage, email, payment and printing providers receive information necessary for their role. This information is not intended for advertising or sale. Providers' retention and use conditions must be compatible with the contracted purpose.",
     },
     { type: "h", text: "International users" },
     {
@@ -208,7 +212,7 @@ const privacyEn: LegalDoc = {
     { type: "h", text: "Retention and deletion" },
     {
       type: "p",
-      text: "The photo, story, and project files stay until you delete the project in My orders, or until you ask us to delete the account. A cloned voice sample stays on the account until you delete it in the studio. We do not keep these materials for advertising.",
+      text: "We keep project information only as necessary to create, deliver and support the order. Unpaid projects are deleted after 90 days without opening or other recorded activity. Pending payments, paid orders and active generation are excluded from this automated cleanup. Adults can delete projects in My orders and request account closure. Deletion includes photos, generated files, preview copies and voice samples under our control. Necessary commercial records are handled separately from children's materials. Backups and information already received by providers follow their own deletion cycles; contact us for details.",
     },
     { type: "h", text: "Your rights" },
     {
@@ -218,18 +222,22 @@ const privacyEn: LegalDoc = {
     { type: "h", text: "Children" },
     {
       type: "p",
-      text: "The service is directed to parents and guardians who are 18 or older. That adult uploads the photo and authorizes its use only to create this book. We do not collect children's information for marketing, and people under 13 may not create an account or use the studio.",
+      text: "For adult parents and guardians aged 18 and over only. Children and teenagers cannot create accounts or use the Studio.",
     },
     { type: "h", text: "United States (COPPA)" },
     {
       type: "p",
-      text: "In the United States, COPPA protects personal information from children under 13, including a photograph and a voiceprint. Story R Us is not a site for a child to use. The account holder confirms they are 18 or older and a parent or legal guardian. The child's name, age, and photo are provided by that adult. If we learn an account was opened by someone under 13, we delete the account and its files. The photo goes to OpenAI only to illustrate the book. A voice, when one is provided, is the adult's and goes to ElevenLabs only for narration. We do not sell personal information and we do not serve targeted ads to children. The parent or guardian can review and delete each project from My orders.",
+      text: "COPPA addresses online collection of information from children under 13. Story R Us is exclusively for adult parents and guardians aged 18 and over: children do not create accounts, upload files or operate the Studio. Information about book characters is provided by the adult. The recorded upload authorization is not represented as verifiable parental consent for a child-operated service. If we identify use by a minor, we restrict the account and handle deletion through our privacy contact.",
     },
     { type: "h", text: "Changes" },
     {
       type: "p",
       text: "We may update this policy. The date at the top is the current version. Material changes may be posted on the site or sent by email.",
     },
+    {"type":"h","text":"Adult authorization and control"},
+    {"type":"p","text":"Before uploading, the adult must read the notice and authorize processing. We record the notice version, time, account and purpose. This covers fulfilling the order, not publishing materials or advertising. Request an end to further uses, review projects or request deletion at info@storyrus.ai. Do not submit a child's information without authority to do so."},
+    {"type":"h","text":"Image processing and sensitive information"},
+    {"type":"p","text":"Photos may undergo automated processing and similarity comparison to maintain appearance in illustrations. This does not verify the adult's identity or age. A child's identity documents, precise location, school and health information are not needed for a book. Use a first name or nickname and the age needed for the story. An approximate IP location may be consulted to suggest a language; you can choose a language manually."},
     { type: "h", text: "Contact" },
     { type: "contact", before: "Privacy questions: " },
   ],
@@ -237,7 +245,7 @@ const privacyEn: LegalDoc = {
 
 const termsEn: LegalDoc = {
   title: "Terms Of Use",
-  updated: "Last updated: October 23, 2026.",
+  updated: "Last updated: October 29, 2026.",
   home: "Home",
   back: "Back to home",
   blocks: [
@@ -253,7 +261,7 @@ const termsEn: LegalDoc = {
     { type: "h", text: "Account" },
     {
       type: "p",
-      text: "The account belongs to a person who is 18 or older. You must accept these Terms and the Privacy Policy, confirm your age, and verify your email. Children under 13 may not create an account or use the studio. You are responsible for your password and for activity on your account.",
+      text: "For adult parents and guardians aged 18 and over only. Children and teenagers cannot create accounts or use the Studio. Access requires verified email and acceptance of the Terms and Privacy Policy.",
     },
     { type: "h", text: "Legal guardian" },
     {
@@ -273,7 +281,7 @@ const termsEn: LegalDoc = {
     { type: "h", text: "International users" },
     {
       type: "p",
-      text: "Accounts and addresses outside Brazil are accepted. Local taxes and import rules, when international printing exists, are the recipient's responsibility under applicable law, including COPPA for people in the United States.",
+      text: "Accounts and addresses outside Brazil are accepted. Print and delivery availability depends on our partners and is shown before payment. Information handling remains subject to our Privacy Policy.",
     },
     { type: "h", text: "Ownership and use" },
     {
@@ -287,7 +295,7 @@ const termsEn: LegalDoc = {
 
 const privacyEs: LegalDoc = {
   title: "Política De Privacidad",
-  updated: "Última actualización: 23 de octubre de 2026.",
+  updated: "Última actualización: 29 de octubre de 2026.",
   home: "Inicio",
   back: "Volver al inicio",
   blocks: [
@@ -317,23 +325,27 @@ const privacyEs: LegalDoc = {
     { type: "h", text: "Proveedores" },
     {
       type: "p",
-      text: "OpenAI recibe la foto y el texto solo para generar las ilustraciones y la historia. ElevenLabs recibe la muestra de voz del adulto solo si hay narración clonada. Clerk guarda el acceso del adulto, sin la foto ni la edad del niño. Les pedimos usar el material solo para prestar el servicio.",
+      text: "Las fotos, características y textos pueden enviarse a OpenAI para crear el libro; el audio de adulto a ElevenLabs para narración; y el contenido necesario a Kling para vídeos solicitados. Clerk gestiona el acceso. Alojamiento, almacenamiento, correo, pagos e impresión reciben lo necesario para su función. No destinamos estos datos a publicidad ni venta. Las condiciones de retención y uso de los proveedores deben ser compatibles con la finalidad contratada.",
     },
     { type: "h", text: "Conservación y eliminación" },
     {
       type: "p",
-      text: "La foto, la historia y los archivos del proyecto permanecen hasta que eliminas el proyecto en Mis pedidos, o hasta que pides eliminar la cuenta. La muestra de voz permanece hasta que la borras en el estudio.",
+      text: "Guardamos los datos solo mientras sean necesarios para crear, entregar y atender el pedido. Los proyectos sin pago se eliminan tras 90 días sin abrirse ni otra actividad registrada. Los pagos pendientes, pedidos pagados y generaciones activas quedan fuera de esta limpieza automática. El adulto puede borrar proyectos en Mis pedidos y solicitar el cierre de la cuenta. Esto incluye fotos, archivos generados, copias de vista previa y muestras de voz bajo nuestro control. Los registros comerciales necesarios se gestionan por separado. Las copias de seguridad y los proveedores tienen sus propios ciclos de eliminación; contacta con nosotros para más información.",
     },
     { type: "h", text: "Niños" },
     {
       type: "p",
-      text: "El servicio es para padres y responsables de 18 años o más. Esa persona envía la foto y autoriza su uso solo para crear el libro. Quienes tienen menos de 13 años no crean cuenta ni usan el estudio.",
+      text: "Servicio exclusivo para padres y responsables mayores de 18 años. Los menores no pueden crear cuentas ni utilizar el Estudio.",
     },
     { type: "h", text: "Estados Unidos (COPPA)" },
     {
       type: "p",
-      text: "En Estados Unidos, la COPPA protege los datos personales de menores de 13 años, incluida la foto y la voz. Story R Us no es un sitio para que lo use un niño. Quien crea la cuenta confirma tener 18 años o más y ser el padre, la madre o el tutor. Si sabemos que una cuenta la abrió alguien menor de 13 años, borramos la cuenta y los archivos. No vendemos datos ni mostramos publicidad segmentada a niños. El responsable puede revisar y borrar cada proyecto en Mis pedidos.",
+      text: "La COPPA regula la recopilación en línea de datos de menores de 13 años. Story R Us es exclusivo para padres y responsables mayores de 18 años: los menores no crean cuentas, envían archivos ni usan el Estudio. El adulto facilita los datos de quienes aparecen en el libro. La autorización registrada no se presenta como consentimiento parental verificable para un servicio usado por menores. Si identificamos ese uso, restringimos la cuenta y gestionamos su eliminación mediante el contacto de privacidad.",
     },
+    {"type":"h","text":"Autorización y control del responsable"},
+    {"type":"p","text":"Antes de enviar archivos, el adulto debe leer el aviso y autorizar el tratamiento. Registramos versión, momento, cuenta y finalidad. La autorización cubre el pedido, no la publicación del material ni publicidad. Puedes pedir el cese de nuevos usos, revisar proyectos o solicitar su eliminación en info@storyrus.ai. No envíes datos de un menor sin autoridad para hacerlo."},
+    {"type":"h","text":"Tratamiento de imágenes e información sensible"},
+    {"type":"p","text":"Las fotos pueden procesarse automáticamente y compararse para conservar la apariencia en las ilustraciones. Esto no verifica la identidad ni la edad del adulto. No necesitamos documentos, ubicación exacta, escuela o datos de salud del menor. Usa el nombre o apodo y la edad necesaria para la historia. Podemos consultar una ubicación aproximada por IP para sugerir idioma; puedes cambiarlo manualmente."},
     { type: "h", text: "Contacto" },
     { type: "contact", before: "Preguntas de privacidad: " },
   ],
@@ -341,7 +353,7 @@ const privacyEs: LegalDoc = {
 
 const termsEs: LegalDoc = {
   title: "Términos De Uso",
-  updated: "Última actualización: 23 de octubre de 2026.",
+  updated: "Última actualización: 29 de octubre de 2026.",
   home: "Inicio",
   back: "Volver al inicio",
   blocks: [
@@ -357,7 +369,7 @@ const termsEs: LegalDoc = {
     { type: "h", text: "Cuenta" },
     {
       type: "p",
-      text: "La cuenta es de quien tiene 18 años o más. Hay que aceptar estos Términos y la Política de privacidad, declarar la edad y confirmar el correo. Los menores de 13 años no pueden crear cuenta ni usar el estudio.",
+      text: "Servicio exclusivo para padres y responsables mayores de 18 años. Los menores no pueden crear cuentas ni utilizar el Estudio. El acceso requiere correo verificado y aceptación de los Términos y la Política de privacidad.",
     },
     { type: "h", text: "Responsable legal" },
     {

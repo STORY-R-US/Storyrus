@@ -250,6 +250,7 @@ class ProjectCreateIn(BaseModel):
 
 
 class ProjectOut(BaseModel):
+    processing_revoked_at: datetime | None = None
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     status: str
@@ -279,6 +280,8 @@ class ProjectOut(BaseModel):
 
 
 class UploadUrlIn(BaseModel):
+    guardian_consent: bool = False
+    consent_version: str = ""
     content_type: str = "image/jpeg"
     ext: str = "jpg"
 

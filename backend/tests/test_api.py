@@ -115,7 +115,13 @@ def test_avatar_requires_photo(auth_client):
 
 def _add_photo(auth_client, pid):
     return auth_client.post(
-        f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+        f"/v1/projects/{pid}/photos",
+        json={
+            "content_type": "image/jpeg",
+            "ext": "jpg",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
     )
 
 

@@ -57,6 +57,7 @@ export interface ExtraCharacter {
 }
 
 export interface Project {
+  processing_revoked_at?: string | null;
   book_profile?: {
     version: number;
     stage: string;

@@ -56,7 +56,13 @@ def studio(auth_client, monkeypatch):
     assert created.status_code == 201, created.text
     pid = created.json()["id"]
     photo = auth_client.post(
-        f"/v1/projects/{pid}/photos", json={"content_type": "image/png", "ext": "png"}
+        f"/v1/projects/{pid}/photos",
+        json={
+            "content_type": "image/png",
+            "ext": "png",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
     )
     assert photo.status_code == 201, photo.text
     store[photo.json()["storage_key"]] = _png()
@@ -116,7 +122,13 @@ async def test_complete_flow_requires_each_approval_and_keeps_16_paired_pages(st
     spread = next(a for a in assets["previews"] if a["role"] == "02_LIVRO_ABERTO")
     spread_image = Image.open(io.BytesIO(store[spread["url"].removeprefix("https://test/")]))
     assert spread_image.width == spread_image.height * 2
-    cover = next(a for a in assets["previews"] if a["role"] == "01_CAPA")["url"]
+    cover = next(
+        a
+        for a in db.scalars(select(Asset).where(Asset.project_id == p.id))
+        if (a.meta or {}).get("role") == "01_CAPA"
+    )
+    cover_key = cover.storage_key
+    cover_bytes = store[cover_key]
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
     from app.printkit.service import get_print_order
 
@@ -131,7 +143,11 @@ async def test_complete_flow_requires_each_approval_and_keeps_16_paired_pages(st
         await _run(studio, "pages/next", key=f"page-{number}")
     assets = client.get(f"/v1/projects/{pid}/assets").json()
     assert len(assets["page_versions"]) == 32
-    assert next(a for a in assets["previews"] if a["role"] == "01_CAPA")["url"] == cover
+    assert (
+        next(a for a in assets["previews"] if a["role"] == "01_CAPA")["url"]
+        == f"https://test/{cover_key}"
+    )
+    assert store[cover_key] == cover_bytes
     p = db.get(Project, uuid.UUID(pid))
     assert p.book_profile["stage"] == "book_ready"
     assert p.book_approved_at is None
@@ -423,7 +439,13 @@ async def test_original_photos_and_approved_cover_are_sent_in_all_three_language
         db.get(Project, uuid.UUID(pid)).book_profile["locales"]["pt-BR"]["title"]
         == "Lia e as estrelas"
     )
-    assert all(a["url"].endswith(a["filename"]) for a in assets)
+    originals = db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid))).all()
+    for preview in assets:
+        original = next(
+            a for a in originals if (a.meta or {}).get("filename") == preview["filename"]
+        )
+        assert original.storage_key.endswith(preview["filename"])
+        assert preview["url"] != f"https://test/{original.storage_key}"
 
 
 @pytest.mark.asyncio

@@ -288,7 +288,14 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     j = _job(db, p, "AVATAR")
 
@@ -321,7 +328,14 @@ async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "AVATAR"))
@@ -341,7 +355,14 @@ async def test_avatar_skips_local_face_judge_when_disabled(db, mem_storage, monk
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "avatar_face_match", False)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "AVATAR"))
@@ -370,7 +391,14 @@ async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypa
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     j = _job(db, p, "AVATAR")
 
@@ -407,7 +435,14 @@ async def test_avatar_low_face_retries_fal_swap(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "avatar_face_match_min", 0.80)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     j = _job(db, p, "AVATAR")
 
@@ -442,7 +477,14 @@ async def test_avatar_face_judge_none_retries_then_fails(db, mem_storage, monkey
     monkeypatch.setattr(handlers.settings, "job_max_attempts", 1)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     j = _job(db, p, "AVATAR")
 
@@ -471,7 +513,14 @@ async def test_preview_avatar_continues_when_face_judge_has_no_score(db, mem_sto
     monkeypatch.setattr(handlers.settings, "face_match_retries", 1)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     j = _job(db, p, "AVATAR", payload={"preview_chain": True})
 
@@ -505,7 +554,14 @@ async def test_avatar_face_judge_exception_retries_then_succeeds(db, mem_storage
     monkeypatch.setattr(handlers.settings, "face_match_retries", 3)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
     j = _job(db, p, "AVATAR")
 
@@ -545,7 +601,14 @@ async def test_avatar_face_judge_recovers_on_second_fal(db, mem_storage, monkeyp
     monkeypatch.setattr(handlers.settings, "face_match_retries", 1)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "AVATAR"))
@@ -813,7 +876,14 @@ async def test_avatar_clears_approvals(db, mem_storage, monkeypatch):
     _, p = _seed(db)
     p.character_approved_at = datetime.now(UTC)
     p.book_approved_at = datetime.now(UTC)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "AVATAR"))
@@ -1144,7 +1214,14 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     j = _job(db, p, "EBOOK")
@@ -1182,7 +1259,14 @@ async def test_ebook_skips_refine_when_face_high(db, mem_storage, monkeypatch):
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
@@ -1204,7 +1288,14 @@ async def test_ebook_generate_scene_does_not_receive_photo(db, mem_storage, monk
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
@@ -1234,7 +1325,14 @@ async def test_ebook_bible_uses_avatar_not_photo(db, mem_storage, monkeypatch):
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
@@ -1270,7 +1368,14 @@ async def test_ebook_face_match_refine_scene_skips_fal(db, mem_storage, monkeypa
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
@@ -1303,7 +1408,14 @@ async def test_ebook_face_match_none_runs_refine_scene(db, mem_storage, monkeypa
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     j = _job(db, p, "EBOOK")
@@ -1338,7 +1450,14 @@ async def test_ebook_fails_when_refine_scene_score_stays_low(db, mem_storage, mo
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"adult_authorization": {"notice_version": "2026-10-29"}},
+        )
+    )
     db.commit()
 
     j = _job(db, p, "EBOOK")

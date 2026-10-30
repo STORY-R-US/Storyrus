@@ -7,9 +7,13 @@ assinada de curta duracao. Sem STORAGE_ACCESS_KEY/SECRET, usa disco local
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import time
 import uuid
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import quote
 
 from app.config import settings
 
@@ -68,16 +72,29 @@ def new_key(project_id: uuid.UUID, kind: str, ext: str) -> str:
     return f"projects/{project_id}/{kind}/{uuid.uuid4().hex}.{ext.lstrip('.')}"
 
 
-def local_object_url(key: str) -> str:
-    """Path relativo servido pela API (proxy Vite encaminha /v1)."""
-    return f"/v1/local-storage/{key.lstrip('/')}"
+def _local_signature(key: str, method: str, expires: int) -> str:
+    payload = f"{method.upper()}\n{key}\n{expires}".encode()
+    return hmac.new(settings.jwt_secret.encode(), payload, hashlib.sha256).hexdigest()
+
+
+def local_object_url(key: str, method: str = "GET") -> str:
+    """Short-lived capability URL, including for local-disk deployments."""
+    expires = int(time.time()) + settings.storage_signing_ttl
+    signature = _local_signature(key, method, expires)
+    return f"/v1/local-storage/{quote(key, safe='/')}?expires={expires}&signature={signature}"
+
+
+def valid_local_signature(key: str, method: str, expires: int, signature: str) -> bool:
+    return expires > int(time.time()) and hmac.compare_digest(
+        _local_signature(key, method, expires), signature
+    )
 
 
 def presign_put(key: str, content_type: str) -> str:
     """URL assinada para upload (PUT)."""
     client = _public_client()
     if client is None:
-        return local_object_url(key)
+        return local_object_url(key, "PUT")
     return client.generate_presigned_url(
         "put_object",
         Params={"Bucket": settings.storage_bucket, "Key": key, "ContentType": content_type},
@@ -92,7 +109,11 @@ def presign_get(key: str) -> str:
         return local_object_url(key)
     return client.generate_presigned_url(
         "get_object",
-        Params={"Bucket": settings.storage_bucket, "Key": key},
+        Params={
+            "Bucket": settings.storage_bucket,
+            "Key": key,
+            "ResponseCacheControl": "private, no-store",
+        },
         ExpiresIn=settings.storage_signing_ttl,
     )
 
@@ -121,7 +142,13 @@ def put_bytes(key: str, data: bytes, content_type: str = "application/octet-stre
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
         return key
-    client.put_object(Bucket=settings.storage_bucket, Key=key, Body=data, ContentType=content_type)
+    client.put_object(
+        Bucket=settings.storage_bucket,
+        Key=key,
+        Body=data,
+        ContentType=content_type,
+        CacheControl="private, no-store",
+    )
     return key
 
 
@@ -139,6 +166,27 @@ def delete_key(key: str | None) -> None:
             path.unlink()
         return
     client.delete_object(Bucket=settings.storage_bucket, Key=key)
+
+
+def delete_project_objects(project_id: uuid.UUID) -> None:
+    """Remove current objects, including superseded artwork no longer in the DB."""
+    project_id = uuid.UUID(str(project_id))
+    prefix = f"projects/{project_id}/"
+    client = _internal_client()
+    if client is None:
+        import shutil
+
+        root = local_root().resolve()
+        directory = (root / prefix).resolve()
+        if not directory.is_relative_to(root) or directory == root:
+            raise StorageNotConfigured("Diretório de exclusão inválido")
+        if directory.exists():
+            shutil.rmtree(directory)
+        return
+    paginator = client.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=settings.storage_bucket, Prefix=prefix):
+        for obj in page.get("Contents", []):
+            client.delete_object(Bucket=settings.storage_bucket, Key=obj["Key"])
 
 
 def get_bytes(key: str) -> bytes:

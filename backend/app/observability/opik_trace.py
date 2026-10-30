@@ -39,6 +39,8 @@ _ssl_hook_installed = False
 
 def enabled() -> bool:
     """True quando ha chave Cloud ou URL de self-host."""
+    if not settings.privacy_allow_external_tracing:
+        return False
     key = (getattr(settings, "opik_api_key", None) or "").strip()
     url = (getattr(settings, "opik_url_override", None) or "").strip()
     return bool(key or url)

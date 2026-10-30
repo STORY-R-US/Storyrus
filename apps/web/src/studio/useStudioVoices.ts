@@ -65,6 +65,7 @@ export function useStudioVoices({
         file,
         voiceName.trim() || defaultVoiceName,
         voices.length === 0,
+        mediaConsent,
       );
       await refreshVoices();
       setSelectedVoiceId(voice.id);

@@ -448,7 +448,7 @@ const pt: StudioCopy = {
   artStyleRealistic: "Rosto realista",
   defaultVoiceName: "Minha voz",
   consent:
-    "Declaro ter 18 anos ou mais e ser o responsável legal. Autorizo a imagem enviada só para criar este livro. Se eu enviar uma voz, ela é minha, de adulto, e não da criança, e serve só para narrar este livro. A foto vai para a OpenAI e, se houver voz, o áudio vai para a ElevenLabs, além do armazenamento do projeto. Esses materiais não entram em divulgação, publicidade nem treino de modelos.",
+    "Declaro ter 18 anos ou mais e ser o responsável legal ou estar autorizado por ele. Li o aviso acima e autorizo o tratamento das imagens e dos dados para criar este livro e os materiais que eu solicitar, conforme a Política de privacidade. Se enviar uma voz, ela será minha, de adulto. Esta autorização não permite divulgação nem publicidade.",
   privacyPolicy: "Política de privacidade",
   photoSent: "Foto enviada ✓",
   orderSent: "Projeto criado",
@@ -709,7 +709,7 @@ const en: StudioCopy = {
   artStyleRealistic: "Realistic face",
   defaultVoiceName: "My voice",
   consent:
-    "I am 18 or older and the legal guardian. I authorize the submitted image only to create this book. If I provide a voice, it is mine, an adult's, not the child's, and it is used only to narrate this book. The photo goes to OpenAI and, if there is a voice, the audio goes to ElevenLabs, plus project storage. These materials are not used for promotion, advertising, or model training.",
+    "I am 18 or older and the legal guardian or authorized by them. I have read the notice above and authorize processing of images and information to create this book and materials I request, under the Privacy policy. Any voice I upload will be my own adult voice. This authorization does not permit promotion or advertising.",
   privacyPolicy: "Privacy policy",
   photoSent: "Photo uploaded ✓",
   orderSent: "Project created",
@@ -970,7 +970,7 @@ const es: StudioCopy = {
   artStyleRealistic: "Rostro realista",
   defaultVoiceName: "Mi voz",
   consent:
-    "Declaro tener 18 años o más y ser el responsable legal. Autorizo la imagen enviada solo para crear este libro. Si envío una voz, es mía, de adulto, y no del niño, y sirve solo para narrar este libro. La foto va a OpenAI y, si hay voz, el audio va a ElevenLabs, además del almacenamiento del proyecto. Esos materiales no se usan para difusión, publicidad ni entrenamiento de modelos.",
+    "Declaro tener 18 años o más y ser el responsable legal o contar con su autorización. He leído el aviso anterior y autorizo el tratamiento de imágenes y datos para crear este libro y los materiales que solicite, según la Política de privacidad. La voz que envíe será mi propia voz de adulto. Esta autorización no permite difusión ni publicidad.",
   privacyPolicy: "Política de privacidad",
   photoSent: "Foto enviada ✓",
   orderSent: "Proyecto creado",
