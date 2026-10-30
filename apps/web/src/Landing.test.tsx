@@ -220,6 +220,8 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-enzo-primo.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-lucas-max.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-esther-higiene.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-pedro-amem-se.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("cartoon-capa-pedro-amem-se"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
     expect(imgs).toHaveLength(44);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
@@ -943,7 +945,8 @@ describe("Landing — CTAs e links", () => {
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(cards).toHaveLength(16);
+    expect(cards).toHaveLength(17);
+    expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining("cartoon-capa-pedro-amem-se.png"));
     expect(within(catalog).queryByText("Meu Pai, Meu Herói")).not.toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Tia")).toBeInTheDocument();

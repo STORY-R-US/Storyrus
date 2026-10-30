@@ -157,6 +157,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   23: "cartoon-capa-lucas.png",
   30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
   33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
+  38: { pt: "cartoon-capa-pedro-amem-se.png", en: "cartoon-capa-pedro-amem-se-en.png", es: "cartoon-capa-pedro-amem-se-es.png" },
   39: { pt: "cartoon-capa-meus-sobrinhos.png", en: "cartoon-capa-meus-sobrinhos-en.png", es: "cartoon-capa-meus-sobrinhos-es.png" },
   40: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
   41: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
