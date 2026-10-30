@@ -5,6 +5,7 @@ import type { StudioAssets } from "./assets";
 import { useStudioI18n } from "./useStudioI18n";
 import { PrintCheckout } from "./PrintCheckout";
 import { purchaseCopy } from "./purchaseCopy";
+import { StudioStageHeading } from "./StudioStageHeading";
 
 export function PostPreviewFlow({
   project,
@@ -107,8 +108,9 @@ export function PostPreviewFlow({
       </ol>
       {!approved ? (
         <>
-          <h3 id="purchase-heading">{t.next}</h3>
-          <p>{t.intro}</p>
+          <StudioStageHeading id="purchase-heading" title={t.next} illustration={2}>
+            <p>{t.intro}</p>
+          </StudioStageHeading>
           {dirty && <p role="status">{t.unsaved}</p>}
           <div className="studio-actions">
             <button
@@ -130,15 +132,14 @@ export function PostPreviewFlow({
         </>
       ) : (
         <>
-          <h3 id="purchase-heading">
-            {project.book_approved_at && fullReady
+          <StudioStageHeading id="purchase-heading" illustration={step === 3 ? 1 : 3}
+            title={project.book_approved_at && fullReady
               ? t.approved
               : fullReady
                 ? t.full
                 : flow?.stage === "generating_book"
                   ? t.generating
-                  : t.steps[step]}
-          </h3>
+                  : t.steps[step]} />
           {flow?.stage === "generating_book" && (
             <>
               <p role="status">

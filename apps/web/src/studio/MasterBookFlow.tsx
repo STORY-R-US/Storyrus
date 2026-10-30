@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { TitleSuggestions } from "./TitleSuggestions";
+import { StudioStageHeading } from "./StudioStageHeading";
 import { api } from "../api";
 import type { Job, Project } from "../types";
 import type { StudioAssets } from "./assets";
@@ -480,8 +481,9 @@ export function MasterBookFlow({
       {["preview_ready", "story_ready", "story_approved"].includes(stage) && editing && (
         <div className="studio-review-changes master-adjustment-panel" ref={adjustmentPanel}
           role="region" aria-labelledby="preview-adjust-heading">
-          <h3 id="preview-adjust-heading">{t.previewAdjustTitle}</h3>
-          <p className="master-title-hint">{t.previewAdjustHint}</p>
+          <StudioStageHeading id="preview-adjust-heading" title={t.previewAdjustTitle} illustration={0}>
+            <p className="master-title-hint">{t.previewAdjustHint}</p>
+          </StudioStageHeading>
           <label className="studio-field">
             {t.themeLabel}
             <textarea
@@ -551,7 +553,7 @@ export function MasterBookFlow({
       )}
       {stage === "story_ready" && (
         <section className="master-decision" aria-labelledby="master-story-decision">
-          <h3 id="master-story-decision">{t.story}</h3>
+          <StudioStageHeading id="master-story-decision" title={t.story} illustration={1} />
           <button type="button" className="kbtn kbtn-primary" disabled={active} onClick={() => void run(approveStory)}>
             {t.yes}
           </button>
@@ -594,7 +596,7 @@ export function MasterBookFlow({
       )}
       {stage === "avatar_ready" && (
         <div className="master-decision">
-          <p>{t.face}</p>
+          <StudioStageHeading title={t.face} illustration={2} />
           <button className="kbtn kbtn-primary" disabled={active} onClick={() => void run(approveFace)}>
             {t.yes}
           </button>

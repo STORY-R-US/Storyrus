@@ -290,10 +290,10 @@ export function PrintCheckout({
       </dl>
       <p className="muted">{t.printerFreightHint}</p>
       {order.payment_status === "paid" ? (
-        <p role="status">{t.paid}</p>
+        <p className="purchase-payment-status is-complete" role="status">{t.paid}</p>
       ) : order.payment_status === "pending" ? (
         <>
-          <p role="status">{t.paymentPending}</p>
+          <p className="purchase-payment-status" role="status">{t.paymentPending}</p>
           {order.checkout_available ? (
             <button
               className="kbtn kbtn-primary"

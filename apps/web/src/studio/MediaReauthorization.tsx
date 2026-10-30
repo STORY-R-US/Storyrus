@@ -11,6 +11,7 @@ export function MediaReauthorization({ projectId, lang, onAuthorized }: {
   const [error, setError] = useState("");
   const t = PRIVACY_NOTICE[lang];
   return <aside className="studio-card studio-privacy-notice" aria-label={t.title}>
+    <span className="studio-privacy-symbol" aria-hidden="true">✓</span>
     <div><h3>{t.title}</h3><p>{t.text}</p><p>{t.rights}</p>
       <a href={lang === "en" ? "/privacy" : "/privacidade"} target="_blank" rel="noreferrer">{t.link}</a>
       <label className="studio-consent"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />
@@ -22,7 +23,7 @@ export function MediaReauthorization({ projectId, lang, onAuthorized }: {
         catch (reason) { setError((reason as Error).message); }
         finally { setBusy(false); }
       }}>{lang === "pt" ? "Confirmar autorização" : lang === "en" ? "Confirm authorization" : "Confirmar autorización"}</button>
-      {error && <p role="alert">{error}</p>}
+      {error && <p className="studio-error" role="alert">{error}</p>}
     </div>
   </aside>;
 }

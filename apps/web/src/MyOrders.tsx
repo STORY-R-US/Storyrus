@@ -9,6 +9,8 @@ import { purchaseCopy } from "./studio/purchaseCopy";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import "./landing.css";
 import "./studio.css";
+import logo from "./assets/logo.png";
+import { StudioStageHeading } from "./studio/StudioStageHeading";
 
 export function MyOrders() {
   usePageMeta(staticPageMeta("/meus-pedidos"));
@@ -91,24 +93,29 @@ export function MyOrders() {
     return t.preview;
   }
   return (
-    <div className="studio-app kid">
-      <SiteBackNav />
-      <main className="studio-card purchase-orders">
-        <h1>{t.myOrders}</h1>
+    <div className="studio-app kid studio-orders-page">
+      <header className="khead"><div className="khead-inner">
+        <a href="/" className="kbrand" aria-label="Story R Us"><img className="hdr-logo" src={logo} alt="Story R Us" /></a>
+      </div></header>
+      <div className="ksection site-back-wrap"><SiteBackNav /></div>
+      <main className="studio-page"><section className="studio-card purchase-orders">
+        <StudioStageHeading title={t.myOrders} level="h1" illustration={3}>
+          <p>{lang === "pt" ? "Acompanhe seus livros e retome a criação de onde parou." : lang === "en" ? "Follow your books and pick up creating where you left off." : "Sigue tus libros y continúa la creación donde la dejaste."}</p>
+        </StudioStageHeading>
         <p className="studio-slogan"><a href={lang === "en" ? "/privacy" : "/privacidade"}>{lang === "pt" ? "Seus dados e como pedir a exclusão" : lang === "en" ? "Your information and deletion rights" : "Tus datos y cómo solicitar su eliminación"}</a></p>
-        <a className="kbtn" href="/app">
+        <a className="kbtn kbtn-primary" href="/app">
           {t.create}
         </a>
         {error && (
-          <p role="alert">
+          <p className="studio-error" role="alert">
             {error}
-            <button type="button" onClick={() => setAttempt((n) => n + 1)}>
+            <button className="kbtn kbtn-soft" type="button" onClick={() => setAttempt((n) => n + 1)}>
               {t.retry}
             </button>
           </p>
         )}
-        {!projects && !error && <p role="status">{t.loading}</p>}
-        {projects?.length === 0 && <p>{t.empty}</p>}
+        {!projects && !error && <p className="studio-state-message" role="status">{t.loading}</p>}
+        {projects?.length === 0 && <p className="studio-state-message">{t.empty}</p>}
         <div className="purchase-order-list">
           {projects?.map((p) => (
             <article key={p.id}>
@@ -123,7 +130,7 @@ export function MyOrders() {
                   p.child_name ||
                   t.steps[0]}
               </h2>
-              <p role="status">{status(p)}</p>
+              <p className="purchase-order-status" role="status">{status(p)}</p>
               <p>
                 {p.book_size === "P" ? "15 × 15 cm" : "20 × 20 cm"} ·{" "}
                 {p.cover_type === "hard" ? t.hard : t.soft}
@@ -135,7 +142,7 @@ export function MyOrders() {
                 {lang === "en" ? "View order" : "Ver pedido"} →
               </a>
               <button
-                type="button" className="kbtn" data-testid="order-revoke"
+                type="button" className="kbtn kbtn-soft" data-testid="order-revoke"
                 disabled={removing === p.id || revoking === p.id || !!p.processing_revoked_at}
                 onClick={async () => {
                   setRevoking(p.id); setError(null);
@@ -150,7 +157,7 @@ export function MyOrders() {
                 : (lang === "pt" ? "Retirar autorização de novos usos" : lang === "en" ? "Withdraw authorization for further use" : "Retirar autorización para nuevos usos")}</button>
               <button
                 type="button"
-                className="kbtn"
+                className="kbtn kbtn-soft purchase-order-delete"
                 data-testid="order-delete"
                 disabled={removing === p.id || revoking === p.id}
                 onClick={() => void removeProject(p.id)}
@@ -160,7 +167,7 @@ export function MyOrders() {
             </article>
           ))}
         </div>
-      </main>
+      </section></main>
     </div>
   );
 }
