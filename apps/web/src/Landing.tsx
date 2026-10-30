@@ -280,6 +280,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-amor-que-cresce.jpg", en: "capa-amor-que-cresce-en.jpg", es: "capa-amor-que-cresce-es.jpg" },
   { pt: "capa-matteo-nas-nuvens.png", en: "capa-matteo-nas-nuvens-en.png", es: "capa-matteo-nas-nuvens-es.png" },
   { pt: "capa-vovo-docura.jpg", en: "capa-vovo-docura-en.jpg", es: "capa-vovo-docura-es.jpg" },
+  { pt: "capa-matteo-trator.jpg", en: "capa-matteo-trator-en.jpg", es: "capa-matteo-trator-es.jpg" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -447,6 +448,11 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-vovo-docura.jpg", en: "pagina-vovo-docura-en.jpg", es: "pagina-vovo-docura-es.jpg" },
     photo: { pt: "foto-vovo-docura.jpg", en: "foto-vovo-docura-en.jpg", es: "foto-vovo-docura-es.jpg" },
   },
+  57: {
+    cover: { pt: "capa-matteo-trator.jpg", en: "capa-matteo-trator-en.jpg", es: "capa-matteo-trator-es.jpg" },
+    page: { pt: "pagina-matteo-trator.jpg", en: "pagina-matteo-trator-en.jpg", es: "pagina-matteo-trator-es.jpg" },
+    photo: { pt: "foto-matteo-trator.jpg", en: "foto-matteo-trator-en.jpg", es: "foto-matteo-trator-es.jpg" },
+  },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -527,6 +533,7 @@ const CATALOG_THEMES = [
   "mothers_day",
   "birthday",
   "grandparents_love",
+  "adventure",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -535,9 +542,9 @@ const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48, 50]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56, 57]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56, 57];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -769,6 +776,7 @@ const HERO_BY_CATALOG: Record<number, string> = {
   50: "Matteo",
   51: "Nonna",
   55: "Matteo",
+  57: "Matteo",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -1277,6 +1285,7 @@ const I18N = {
       { t: "Amor Que Cresce E Me Enobrece", p: "Antes viajavam juntas. Hoje ela parte e leva o amor, os lugares e os sonhos que ainda vão sonhar.", cover: "Hard", size: "M", tag: "Mãe e filha", quote: "Amor que cresce e me enobrece." },
       { t: "Feliz Aniversário, Matteo!", p: "Hoje o aniversário chegou: o Matteo voa alto, entre bolo, balões e o ursinho aviador.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Feliz aniversário, Matteo!" },
       { t: "Vovó, Sua Doçura Faz Da Vida Uma Aventura", p: "Ao lado da vovó, cada momento se transforma numa grande aventura, cheia de amor e histórias para guardar.", cover: "Hard", size: "M", tag: "Vovó e eu", quote: "Sua doçura faz da vida uma aventura." },
+      { t: "Matteo, Força No Motor, Gigante O Trator", p: "No trator verde, o Matteo escuta o motor, vê a pá levantar a terra e aprende que a segurança vem antes de brincar.", cover: "Hard", size: "M", tag: "Trator", quote: "Força no motor, gigante o trator." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1525,6 +1534,7 @@ const I18N = {
       { t: "A Love That Grows And Makes Me Stronger", p: "They used to travel together. Now she sets off and carries the love, the places and the dreams still ahead.", cover: "Hard", size: "M", tag: "Mother and daughter", quote: "A love that grows and makes me stronger." },
       { t: "Happy Birthday, Matteo!", p: "Today his birthday is here: Matteo flies high, with cake, balloons and his teddy pilot.", cover: "Hard", size: "M", tag: "Birthday", quote: "Happy birthday, Matteo!" },
       { t: "Grandma, Your Sweetness Turns Life Into An Adventure", p: "By her side, every moment becomes a beautiful adventure, full of love and stories to keep.", cover: "Hard", size: "M", tag: "Grandma and me", quote: "Your sweetness turns life into an adventure." },
+      { t: "Matteo, Mighty Motor, Giant Tractor", p: "On the green tractor, Matteo listens to the engine, watches the bucket lift the earth and learns that safety comes before play.", cover: "Hard", size: "M", tag: "Tractor", quote: "Mighty motor, giant tractor!" },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1773,6 +1783,7 @@ const I18N = {
       { t: "Un Amor Que Crece Y Me Enobrece", p: "Antes viajaban juntas. Hoy ella parte y se lleva el amor, los lugares y los sueños que aún viven en ella.", cover: "Hard", size: "M", tag: "Madre e hija", quote: "Un amor que crece y me enoblece." },
       { t: "¡Feliz Cumpleaños, Matteo!", p: "Hoy llegó su cumpleaños: Matteo vuela alto, entre la torta, los globos y su osito aviador.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Feliz cumpleaños, Matteo!" },
       { t: "Abuela, Tu Dulzura Convierte La Vida En Una Aventura", p: "A su lado, cada momento se convierte en una gran aventura, llena de amor e historias para guardar.", cover: "Hard", size: "M", tag: "Abuela y yo", quote: "Tu dulzura convierte la vida en una aventura." },
+      { t: "Matteo, Motor Potente, Tractor Gigante", p: "En el tractor verde, Matteo escucha el motor, ve la pala levantar la tierra y aprende que la seguridad viene antes de jugar.", cover: "Hard", size: "M", tag: "Tractor", quote: "Motor potente, tractor gigante." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
