@@ -221,7 +221,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-lucas-max.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-esther-higiene.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(43);
+    expect(imgs).toHaveLength(42);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(false);
   });
@@ -246,8 +246,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(43);
-    expect(cards).toHaveLength(43);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(42);
+    expect(cards).toHaveLength(42);
     expect(within(catalog).queryByText(/nano e suas aventuras/i)).not.toBeInTheDocument();
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
@@ -384,7 +384,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(43);
+    expect(personalize).toHaveLength(42);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
