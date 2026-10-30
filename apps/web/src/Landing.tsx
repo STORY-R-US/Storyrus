@@ -85,7 +85,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   {
     name: "Amor de Mãe",
     cover: heroAsset("capa-amordemae.jpg", "capa-amordemae-en.jpg", "capa-amordemae-es.jpg"),
-    page: heroAsset("pagina-amordemae.jpg", "pagina-amordemae-en.jpg", "pagina-amordemae-es.jpg"),
+    page: heroAsset("pagina-amordemae.png", "pagina-amordemae-en.png", "pagina-amordemae-es.png"),
     photo: heroAsset("foto-amordemae.jpg", "foto-amordemae-en.jpg", "foto-amordemae-es.jpg"),
   },
   {
@@ -294,7 +294,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   5: { cover: "capa-nicolas-maefilho.png", page: "pagina-nicolas-maefilho.jpg", photo: "foto-nicolas-maefilho.jpg" },
   6: {
     cover: { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
-    page: { pt: "pagina-amordemae.jpg", en: "pagina-amordemae-en.jpg", es: "pagina-amordemae-es.jpg" },
+    page: { pt: "pagina-amordemae.png", en: "pagina-amordemae-en.png", es: "pagina-amordemae-es.png" },
     photo: { pt: "foto-amordemae.jpg", en: "foto-amordemae-en.jpg", es: "foto-amordemae-es.jpg" },
   },
   7: {
