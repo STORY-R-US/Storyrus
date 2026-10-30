@@ -367,8 +367,8 @@ export function MasterBookFlow({
         </form>
       )}
       {selected && (
-        <div>
-          <label>
+        <div className="master-adjustment-panel">
+          <label className="studio-field">
             {t.adjust}
             <textarea
               value={adjustment}
@@ -377,6 +377,7 @@ export function MasterBookFlow({
             />
           </label>
           <button
+            className="kbtn kbtn-soft"
             disabled={active}
             onClick={() =>
               void run(() =>
@@ -470,6 +471,7 @@ export function MasterBookFlow({
             />
           </label>
           <button
+            className="kbtn kbtn-soft"
             disabled={active || !editTitle.trim() || !editTheme.trim()}
             onClick={() =>
               void run(() =>
@@ -488,6 +490,7 @@ export function MasterBookFlow({
       )}
       {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <button
+          className="kbtn kbtn-primary"
           disabled={active}
           onClick={() => void run(() => api.startStep(project.id, "story"))}
         >
@@ -539,6 +542,7 @@ export function MasterBookFlow({
       )}
       {stage === "story_approved" && !!project.purchase_flow?.preview_approved_at && (
         <button
+          className="kbtn kbtn-primary"
           disabled={active}
           onClick={() => void run(() => api.startStep(project.id, "avatar"))}
         >
@@ -546,19 +550,19 @@ export function MasterBookFlow({
         </button>
       )}
       {assets?.character_url && !reviewing && (
-        <img
+        <img className="master-character-preview"
           src={assets.character_url}
           alt={t.face}
-          style={{ maxWidth: 300, width: "100%" }}
         />
       )}
       {stage === "avatar_ready" && (
-        <div>
+        <div className="master-decision">
           <p>{t.face}</p>
-          <button disabled={active} onClick={() => void run(approveFace)}>
+          <button className="kbtn kbtn-primary" disabled={active} onClick={() => void run(approveFace)}>
             {t.yes}
           </button>
           <button
+            className="kbtn kbtn-soft"
             disabled={active}
             onClick={() => void run(() => api.startStep(project.id, "avatar"))}
           >
@@ -567,7 +571,7 @@ export function MasterBookFlow({
         </div>
       )}
       {!reviewing && versions.map((image) => (
-        <figure key={`${image.language}-${image.page}-${image.role}`}>
+        <figure className="master-version-card" key={`${image.language}-${image.page}-${image.role}`}>
           <figcaption>
             {t.page} {image.page} · {image.language.toUpperCase()} ·{" "}
             {image.role === "sem_texto" ? t.noText : t.withText}
@@ -587,6 +591,7 @@ export function MasterBookFlow({
           </a>
           {image.role === "com_texto" && (
             <button
+              className="kbtn kbtn-soft"
               disabled={active || !!project.book_approved_at}
               onClick={() => setPageToAdjust(image.page ?? 1)}
             >
@@ -606,6 +611,7 @@ export function MasterBookFlow({
       )}
       {["avatar_approved", "page_ready"].includes(stage) && (
         <button
+          className="kbtn kbtn-primary"
           disabled={active}
           onClick={() => void run(() => api.nextBookPage(project.id))}
         >
@@ -613,8 +619,8 @@ export function MasterBookFlow({
         </button>
       )}
       {!reviewing && ["page_ready", "book_ready"].includes(stage) && (
-        <div>
-          <label>
+        <div className="master-adjustment-panel">
+          <label className="studio-field">
             {t.adjust}
             <textarea
               value={adjustment}
@@ -623,6 +629,7 @@ export function MasterBookFlow({
             />
           </label>
           <button
+            className="kbtn kbtn-soft"
             disabled={active || !!project.book_approved_at}
             onClick={() =>
               void run(() =>

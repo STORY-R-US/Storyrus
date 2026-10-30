@@ -137,7 +137,7 @@ export function PostPreviewFlow({
                 ? t.full
                 : flow?.stage === "generating_book"
                   ? t.generating
-                  : t.steps[1]}
+                  : t.steps[step]}
           </h3>
           {flow?.stage === "generating_book" && (
             <>

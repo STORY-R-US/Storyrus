@@ -144,6 +144,8 @@ export function PrintCheckout({
         <strong>{order.code}</strong>
       </p>
       <p className="muted">{t.includes}</p>
+      <div className="purchase-checkout-layout">
+      <div className="purchase-checkout-details">
       <fieldset disabled={specLocked} className="purchase-fields">
         <label>
           {t.size}
@@ -262,6 +264,8 @@ export function PrintCheckout({
           {t.saveAddress}
         </button>
       </form>
+      </div>
+      <aside className="purchase-checkout-summary" aria-label={t.summary}>
       <dl className="purchase-totals">
         <div>
           <dt>
@@ -396,6 +400,8 @@ export function PrintCheckout({
           {note}
         </p>
       )}
+      </aside>
+      </div>
     </section>
   );
 }

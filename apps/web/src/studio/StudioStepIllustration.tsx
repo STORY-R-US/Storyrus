@@ -46,7 +46,7 @@ export function StudioStepIllustration({ step }: { step: number }) {
             <path d="m91 30 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill={gold} stroke="none" />
             <path d="M155 36v10M150 41h10" stroke={teal} />
           </>
-        ) : (
+        ) : step === 2 ? (
           <>
             <g transform="rotate(-8 134 86)">
               <rect x="81" y="24" width="107" height="125" rx="9" fill={teal} />
@@ -61,6 +61,23 @@ export function StudioStepIllustration({ step }: { step: number }) {
             <path d="M197 148c10-8 18-19 23-32 3-8-4-13-9-6l-14 17-17 8M197 151l-22-13" fill="#ecd5ba" />
             <circle cx="204" cy="55" r="25" fill="#518c77" stroke={paper} strokeWidth="4" />
             <path d="m193 55 7 7 14-15" stroke={paper} strokeWidth="4" />
+          </>
+        ) : (
+          <>
+            <g transform="rotate(-8 143 55)">
+              <rect x="102" y="17" width="74" height="99" rx="7" fill={teal} />
+              <path d="M113 18v97" opacity=".5" />
+              <rect x="124" y="31" width="40" height="55" rx="4" fill={paper} stroke="none" />
+              <path d="M133 45h22M133 55h17M133 65h20" opacity=".55" />
+              <path d="m147 17 0 22 6-4 6 4V17" fill={gold} stroke="none" />
+            </g>
+            <path d="m66 87 72-22 75 22-75 25Z" fill="#ead5b2" />
+            <path d="M66 87v52l72 22v-49Z" fill="#d4ab76" />
+            <path d="M138 112v49l75-22V87Z" fill="#e9c38d" />
+            <path d="m66 87-19 20 73 25 18-20M213 87l20 20-75 25-20-20" fill={paper} />
+            <path d="M163 135v12l24-8v-12Z" fill={paper} stroke="none" />
+            <path d="M93 142v-10M98 144v-10" opacity=".55" />
+            <path d="m216 35 3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill={gold} stroke="none" />
           </>
         )}
       </g>

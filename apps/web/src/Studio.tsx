@@ -3,6 +3,7 @@ import { api } from "./api";
 import { PRIVACY_NOTICE } from "./privacyNotice";
 import { StudioIntro, studioDesignCopy } from "./studio/StudioIntro";
 import { StudioStepIllustration } from "./studio/StudioStepIllustration";
+import { ProjectJourney } from "./studio/ProjectJourney";
 import { MediaReauthorization } from "./studio/MediaReauthorization";
 import { siteTitle } from "./pageMeta";
 import type { Job, Project } from "./types";
@@ -983,7 +984,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   return (
-    <div className="kid studio-app">
+    <div className={`kid studio-app${orderSent ? " is-reviewing-project" : ""}`}>
       <header className="khead" role="banner">
         <div className="khead-inner">
           <a href="/" className="kbrand" aria-label="Story R Us">
@@ -1069,6 +1070,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <h2 data-testid={previewHeadline === t.previewReadyTitle ? "studio-preview-ready" : undefined}>
               {previewHeadline}
             </h2>
+            {project && <ProjectJourney project={project} lang={lang} />}
             {isDemo && (
               <div className="demo-banner" role="status" aria-live="polite">
                 <p>{t.demoBanner}</p>

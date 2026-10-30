@@ -1433,3 +1433,114 @@
   .studio-app.kid .khead-main { flex: none; width: 100%; margin-left: 0; }
   .studio-app .khead-utils { justify-content: center; }
 }
+
+/* The same illustrated studio continues through preview, checkout and final review. */
+.studio-app .studio-review .kbtn:not(.kbtn-primary) { color: var(--ink); background: var(--studio-soft); border: 1px solid var(--studio-input-border); box-shadow: none; }
+.studio-app.is-reviewing-project .studio-intro { display: block; padding: 8px 4px 22px; }
+.studio-app.is-reviewing-project .studio-intro h1 { font-size: clamp(1.9rem,3vw,2.55rem); max-width: none; }
+.studio-app.is-reviewing-project .studio-intro-copy > p:not(.studio-eyebrow),
+.studio-app.is-reviewing-project .studio-intro-note,
+.studio-app.is-reviewing-project .studio-book-art { display: none; }
+.studio-app .studio-card.studio-review > h2 { text-align: left; font-size: clamp(1.55rem,2.5vw,2.05rem); margin-bottom: 8px; }
+.studio-app .project-journey { margin: 16px 0 30px; padding-bottom: 26px; border-bottom: 1px solid var(--studio-surface-border); }
+.studio-app .project-journey-overview { display: grid; grid-template-columns: minmax(0,1fr) 180px; align-items: center; gap: 30px; padding: 22px 26px; border: 1px solid var(--studio-surface-border); border-radius: 20px; background: var(--studio-soft); }
+.studio-app .project-journey .studio-eyebrow { margin-bottom: 9px; font-size: .65rem; }
+.studio-app .project-journey h3 { margin: 0; font-family: 'Baloo 2',sans-serif; font-size: clamp(1.4rem,2.2vw,1.85rem); line-height: 1.2; font-weight: 600; }
+.studio-app .project-journey-lead { max-width: 580px; margin: 12px 0 0; color: var(--studio-muted); font-size: .88rem; line-height: 1.8; }
+.studio-app .project-journey .studio-step-art { margin: 0; max-height: 125px; }
+.studio-app .project-journey-steps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; list-style: none; padding: 0; margin: 14px 0 0; }
+.studio-app .project-journey-steps li { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--studio-surface-border); border-radius: 12px; color: var(--studio-muted); font-size: .76rem; line-height: 1.5; }
+.studio-app .project-journey-number { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: var(--studio-soft); color: var(--studio-label); font-weight: 800; font-size: .68rem; }
+.studio-app .project-journey-steps .is-current { border-color: #bc9457; background: #efb65c0d; color: var(--ink); font-weight: 700; }
+.studio-app .project-journey-steps .is-current .project-journey-number { background: #efb65c; color: #294463; }
+.studio-app .project-journey-steps .is-complete .project-journey-number { background: #3f8f7d; color: white; }
+.studio-app .studio-master-flow { min-width: 0; }
+.studio-app .master-section { display: flex; align-items: center; gap: 10px; margin: 30px 0 16px; font-family: 'Baloo 2',sans-serif; font-size: 1.5rem; font-weight: 600; }
+.studio-app .master-section::before { content: ''; width: 5px; height: 23px; border-radius: 4px; background: var(--studio-accent); flex: none; }
+.studio-app .master-gallery, .studio-app .studio-preview-trio { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: 18px; margin-top: 14px; }
+.studio-app .master-shot.is-cover { grid-row: auto; }
+.studio-app .master-shot, .studio-app .studio-preview-shot { min-width: 0; margin: 0; border: 1px solid var(--studio-surface-border); border-radius: 18px; background: var(--studio-input-bg); box-shadow: 0 8px 24px #0000000c; overflow: hidden; }
+.studio-app .master-shot img, .studio-app .studio-preview-shot img { box-sizing: border-box; display: block; width: 100%; height: clamp(170px,21vw,255px); object-fit: contain; padding: 16px; background: var(--studio-soft); }
+.studio-app .master-shot figcaption { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 16px; font-size: .88rem; }
+.studio-app .studio-preview-shot figcaption { padding: 14px 16px; font-size: .85rem; font-weight: 700; }
+.studio-app .master-shot-actions { justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--studio-surface-border); font-size: .73rem; }
+.studio-app .master-shot-actions a, .studio-app .master-shot-actions button { line-height: 1.6; text-underline-offset: 4px; }
+.studio-app .master-title-card, .studio-app .master-decision, .studio-app .master-adjustment-panel { box-sizing: border-box; padding: 24px; border: 1px solid var(--studio-surface-border); border-radius: 18px; background: var(--studio-soft); margin-top: 24px; }
+.studio-app .master-title-hint { font-size: .79rem; line-height: 1.75; }
+.studio-app .master-title-card .studio-field, .studio-app .master-decision .studio-field, .studio-app .master-adjustment-panel .studio-field { font-size: .85rem; }
+.studio-app .master-decision h3, .studio-app .master-decision > p:first-child { font-family: 'Baloo 2',sans-serif; font-size: 1.4rem; margin-top: 0; }
+.studio-app .master-decision .kbtn + .kbtn { margin-left: 10px; }
+.studio-app .master-character-preview { display: block; width: 100%; max-width: 340px; box-sizing: border-box; padding: 18px; margin: 24px auto 0; border-radius: 22px; border: 1px solid var(--studio-surface-border); background: var(--studio-soft); }
+.studio-app .master-version-card { padding: 20px; border: 1px solid var(--studio-surface-border); border-radius: 18px; background: var(--studio-soft); }
+.studio-app .master-version-card figcaption { font-size: .82rem; font-weight: 700; margin-bottom: 14px; color: var(--studio-label); }
+.studio-app .master-version-card > a { display: inline-block; margin: 14px 14px 0 0; font-size: .8rem; }
+.studio-app .master-story-book { gap: 16px; margin-top: 16px; }
+.studio-app .master-story-book .studio-story-page { padding: 25px 28px; border-radius: 18px; }
+.studio-app .studio-card.studio-review .studio-story-verse p { text-align: left; text-align-last: left; overflow-wrap: break-word; }
+.studio-app .master-page-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
+.studio-app .master-page-card { padding: 20px; gap: 14px; }
+.studio-app .master-page-card h4 { font-size: .75rem; color: var(--studio-accent); letter-spacing: .08em; text-transform: uppercase; }
+.studio-app .master-page-card > a { font-size: .8rem; }
+.studio-app .master-page-card .studio-field { margin-top: 12px; }
+.studio-app .purchase-flow { margin-top: 30px; padding: 26px; background: var(--studio-soft); }
+.studio-app .purchase-flow > h3 { font-family: 'Baloo 2',sans-serif; font-size: 1.6rem; line-height: 1.25; }
+.studio-app .purchase-flow > p { color: var(--studio-muted); font-size: .88rem; line-height: 1.8; }
+.studio-app .purchase-steps { gap: 8px; margin-bottom: 26px; }
+.studio-app .purchase-steps li { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--studio-surface-border); border-radius: 13px; font-size: .69rem; background: var(--studio-surface); }
+.studio-app .purchase-steps span { border-radius: 10px; width: 28px; height: 28px; font-size: .7rem; }
+.studio-app .purchase-steps [aria-current="step"] { border-color: #bc9457; }
+.studio-app .purchase-steps [aria-current="step"] span { background: #efb65c; color: #294463; border-color: #efb65c; box-shadow: none; }
+.studio-app .purchase-flow > details, .studio-app .purchase-adjustments { padding: 0 20px 16px; border: 1px solid var(--studio-surface-border); background: var(--studio-surface); border-radius: 16px; margin-top: 20px; }
+.studio-app .purchase-flow > details > summary, .studio-app .purchase-adjustments > summary { padding: 18px 0; color: var(--ink); font-size: .87rem; }
+.studio-app .purchase-checkout > .muted { font-size: .83rem; line-height: 1.8; }
+.studio-app .purchase-order-code { margin: 0 0 12px; display: inline-flex; padding: 8px 12px; border-radius: 10px; color: var(--studio-accent); background: var(--studio-soft); font-size: .78rem; letter-spacing: .04em; }
+.studio-app .purchase-checkout-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(240px,.75fr); gap: 24px; margin-top: 24px; align-items: start; }
+.studio-app .purchase-checkout-details { min-width: 0; }
+.studio-app .purchase-checkout-details > .purchase-fields { margin-top: 0; }
+.studio-app .purchase-fields label { font-size: .8rem; line-height: 1.5; }
+.studio-app .purchase-checkout h4 { margin: 24px 0 16px; font-family: 'Baloo 2',sans-serif; font-size: 1.3rem; }
+.studio-app .purchase-checkout-summary { min-width: 0; padding: 20px; border: 1px solid var(--studio-surface-border); border-radius: 16px; background: var(--studio-soft); }
+.studio-app .purchase-checkout-summary .purchase-totals { margin: 0 0 18px; padding-top: 0; border-top: 0; font-size: .85rem; }
+.studio-app .purchase-checkout-summary .purchase-totals div:last-child { padding-top: 14px; border-top: 1px solid var(--studio-surface-border); font-size: 1.15rem; }
+.studio-app .purchase-checkout-summary .muted { font-size: .76rem; line-height: 1.75; }
+.studio-app .purchase-checkout-summary .kbtn { display: block; width: 100%; margin: 14px 0 0; padding: 12px 14px; font-size: .85rem; }
+.studio-app .purchase-checkout-summary > p[role="status"] { padding: 14px; border-radius: 12px; border: 1px solid #bc945755; background: #efb65c0d; font-size: .85rem; line-height: 1.7; }
+.studio-app .purchase-checkout-summary select { width: 100%; }
+.studio-app .purchase-orders-link { margin-top: 24px; font-size: .85rem; text-underline-offset: 4px; }
+.studio-app .purchase-pages a { padding: 10px; border: 1px solid var(--studio-surface-border); border-radius: 14px; background: var(--studio-surface); text-decoration: none; font-size: .75rem; }
+.studio-app .preview-steps { gap: 12px; }
+.studio-app .preview-step { background: var(--studio-soft); border: 1px solid var(--studio-surface-border); box-shadow: none; }
+.studio-app .preview-step.is-now { border-color: #bc9457; }
+.studio-app .preview-step-copy > span:first-child { font-weight: 700; font-size: .88rem; }
+.studio-app .preview-step-state { font-size: .72rem; }
+@media (max-width: 1000px) {
+  .studio-app .purchase-checkout-layout { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 760px) {
+  .studio-app .project-journey-overview { grid-template-columns: minmax(0,1fr) 120px; gap: 12px; padding: 20px; }
+  .studio-app .master-gallery, .studio-app .studio-preview-trio { grid-template-columns: minmax(0,1fr); gap: 16px; }
+  .studio-app .master-shot img, .studio-app .studio-preview-shot img { height: auto; max-height: 380px; padding: 18px; }
+  .studio-app .master-page-grid { grid-template-columns: minmax(0,1fr); }
+  .studio-app .purchase-steps { grid-template-columns: repeat(5,minmax(0,1fr)); }
+  .studio-app .purchase-steps li { padding: 10px 8px; font-size: .65rem; }
+}
+@media (max-width: 540px) {
+  .studio-app.is-reviewing-project .studio-intro { padding: 4px 2px 18px; }
+  .studio-app .project-journey-overview { grid-template-columns: minmax(0,1fr); padding: 20px 18px; }
+  .studio-app .project-journey .studio-step-art { width: 145px; margin: 0 auto; grid-row: 1; }
+  .studio-app .project-journey-lead { font-size: .82rem; }
+  .studio-app .project-journey-steps { grid-template-columns: minmax(0,1fr); gap: 7px; }
+  .studio-app .project-journey-steps li { padding: 9px 12px; font-size: .76rem; }
+  .studio-app .master-section { font-size: 1.3rem; margin-top: 24px; }
+  .studio-app .master-title-card, .studio-app .master-decision, .studio-app .master-adjustment-panel { padding: 18px; }
+  .studio-app .master-title-row .kbtn { width: 100%; }
+  .studio-app .master-decision .kbtn { width: 100%; }
+  .studio-app .master-decision .kbtn + .kbtn { margin-left: 0; }
+  .studio-app .master-story-book .studio-story-page { padding: 20px; }
+  .studio-app .purchase-flow { padding: 16px; }
+  .studio-app .purchase-steps { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .studio-app .purchase-steps li { flex-direction: row; align-items: center; padding: 9px 12px; font-size: .75rem; }
+  .studio-app .purchase-flow > details, .studio-app .purchase-adjustments { padding: 0 14px 14px; }
+  .studio-app .purchase-checkout-summary { padding: 16px; }
+  .studio-app .studio-actions .kbtn { max-width: 100%; }
+}

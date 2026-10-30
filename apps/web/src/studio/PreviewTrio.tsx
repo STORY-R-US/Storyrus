@@ -32,7 +32,6 @@ export function PreviewTrio({ coverUrl, pageUrl, inHandUrl }: Props) {
         className="studio-preview-trio"
         role="list"
         aria-label={t.previewTrioTitle}
-        style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 12 }}
       >
         {shots.map((shot) =>
           shot.url ? (
@@ -40,21 +39,14 @@ export function PreviewTrio({ coverUrl, pageUrl, inHandUrl }: Props) {
               key={shot.testId}
               role="listitem"
               data-testid={shot.testId}
-              style={{ margin: 0, width: 160, maxWidth: "100%" }}
+              className="studio-preview-shot"
             >
               <img
                 src={shot.url}
                 alt={shot.label}
                 loading="lazy"
-                style={{
-                  width: "100%",
-                  aspectRatio: shot.testId === "studio-preview-page" ? "2 / 1" : "1 / 1",
-                  objectFit: "contain",
-                  borderRadius: 10,
-                  display: "block",
-                }}
               />
-              <figcaption className="muted" style={{ marginTop: 6, fontSize: "0.85rem" }}>
+              <figcaption className="muted">
                 {shot.label}
               </figcaption>
             </figure>
