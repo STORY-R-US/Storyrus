@@ -469,10 +469,10 @@ def test_paid_webhook_leaves_shipping_with_the_printer(auth_client, monkeypatch)
         unregister_gateway("fake")
 
 
-def test_livro_teste_custa_um_centavo():
+def test_livro_teste_custa_o_minimo_do_stripe():
     from app.printkit.pricing import book_price_cents
 
-    assert book_price_cents("P", "livro_teste") == 1
-    assert book_price_cents("M", "livro_teste") == 1
+    assert book_price_cents("P", "livro_teste") == 50
+    assert book_price_cents("M", "livro_teste") == 50
     assert book_price_cents("M", "sport") == book_price_cents("M")
     assert book_price_cents("P") == book_price_cents("P", "birthday")

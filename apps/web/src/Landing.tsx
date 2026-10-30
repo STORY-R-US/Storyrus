@@ -1291,7 +1291,7 @@ const I18N = {
       { t: "Feliz Aniversário, Matteo!", p: "Hoje o aniversário chegou: o Matteo voa alto, entre bolo, balões e o ursinho aviador.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Feliz aniversário, Matteo!" },
       { t: "Vovó, Sua Doçura Faz Da Vida Uma Aventura", p: "Ao lado da vovó, cada momento se transforma numa grande aventura, cheia de amor e histórias para guardar.", cover: "Hard", size: "M", tag: "Vovó e eu", quote: "Sua doçura faz da vida uma aventura." },
       { t: "Matteo, Força No Motor, Gigante O Trator", p: "No trator verde, o Matteo escuta o motor, vê a pá levantar a terra e aprende que a segurança vem antes de brincar.", cover: "Hard", size: "M", tag: "Trator", quote: "Força no motor, gigante o trator." },
-      { t: "Livro Teste", p: "Livro de prova para conferir um pedido de um centavo. Não é um presente do catálogo.", cover: "Soft", size: "P", tag: "Teste de pedido", quote: "R$ 0,01." },
+      { t: "Livro Teste", p: "Livro de prova para conferir um pedido de cinquenta centavos. Não é um presente do catálogo.", cover: "Soft", size: "P", tag: "Teste de pedido", quote: "R$ 0,50." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1541,7 +1541,7 @@ const I18N = {
       { t: "Happy Birthday, Matteo!", p: "Today his birthday is here: Matteo flies high, with cake, balloons and his teddy pilot.", cover: "Hard", size: "M", tag: "Birthday", quote: "Happy birthday, Matteo!" },
       { t: "Grandma, Your Sweetness Turns Life Into An Adventure", p: "By her side, every moment becomes a beautiful adventure, full of love and stories to keep.", cover: "Hard", size: "M", tag: "Grandma and me", quote: "Your sweetness turns life into an adventure." },
       { t: "Matteo, Mighty Motor, Giant Tractor", p: "On the green tractor, Matteo listens to the engine, watches the bucket lift the earth and learns that safety comes before play.", cover: "Hard", size: "M", tag: "Tractor", quote: "Mighty motor, giant tractor!" },
-      { t: "Test Book", p: "A trial book for checking a one-cent order. It is not a catalog gift.", cover: "Soft", size: "P", tag: "Order test", quote: "R$ 0,01." },
+      { t: "Test Book", p: "A trial book for checking a fifty-cent order. It is not a catalog gift.", cover: "Soft", size: "P", tag: "Order test", quote: "R$ 0,50." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1791,7 +1791,7 @@ const I18N = {
       { t: "¡Feliz Cumpleaños, Matteo!", p: "Hoy llegó su cumpleaños: Matteo vuela alto, entre la torta, los globos y su osito aviador.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Feliz cumpleaños, Matteo!" },
       { t: "Abuela, Tu Dulzura Convierte La Vida En Una Aventura", p: "A su lado, cada momento se convierte en una gran aventura, llena de amor e historias para guardar.", cover: "Hard", size: "M", tag: "Abuela y yo", quote: "Tu dulzura convierte la vida en una aventura." },
       { t: "Matteo, Motor Potente, Tractor Gigante", p: "En el tractor verde, Matteo escucha el motor, ve la pala levantar la tierra y aprende que la seguridad viene antes de jugar.", cover: "Hard", size: "M", tag: "Tractor", quote: "Motor potente, tractor gigante." },
-      { t: "Libro De Prueba", p: "Libro de prueba para revisar un pedido de un centavo. No es un regalo del catálogo.", cover: "Soft", size: "P", tag: "Prueba de pedido", quote: "R$ 0,01." },
+      { t: "Libro De Prueba", p: "Libro de prueba para revisar un pedido de cincuenta centavos. No es un regalo del catálogo.", cover: "Soft", size: "P", tag: "Prueba de pedido", quote: "R$ 0,50." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -2262,7 +2262,7 @@ export function CatalogBookCard({
             <span>
               {choice === "M" ? copy.sizeM : copy.sizeP}:{" "}
               <span className={size === choice ? "is-price" : undefined}>
-                {book.catalogI === 58 ? "R$ 0,01" : choice === "M" ? copy.priceM : copy.priceP}.
+                {book.catalogI === 58 ? "R$ 0,50" : choice === "M" ? copy.priceM : copy.priceP}.
               </span>
             </span>
           </p>
@@ -2434,12 +2434,13 @@ export function catalogCategory(lang: Lang, id: string): CatalogSection | null {
 export function catalogEntry(lang: Lang, index: number) {
   const card = toCatalogCard(lang, index);
   if (!card) return null;
+  if (card.theme === "livro_teste") return { ...card, sectionId: "teste" };
   const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
   return { ...card, sectionId: section?.id ?? "aventuras" };
 }
 export function catalogSections(lang: Lang): CatalogSection[] {
   const names = I18N[lang].cats;
-  return NAV_CAT_META.map((meta, i) => {
+  const sections = NAV_CAT_META.map((meta, i) => {
     const catCopy = names[i];
     const sectionThemes = CATALOG_SECTION_THEMES[meta.id] ?? [];
     const placed = new Set<number>();
@@ -2470,6 +2471,18 @@ export function catalogSections(lang: Lang): CatalogSection[] {
       books: subs.flatMap((sub) => sub.books),
     };
   });
+  const testCard = toCatalogCard(lang, 58);
+  if (testCard) {
+    const testName = lang === "en" ? "Test" : lang === "es" ? "Prueba" : "Teste";
+    sections.push({
+      id: "teste",
+      name: testName,
+      color: "#9b8cff",
+      subs: [{ id: "livro_teste", name: testCard.t, books: [testCard] }],
+      books: [testCard],
+    });
+  }
+  return sections;
 }
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {

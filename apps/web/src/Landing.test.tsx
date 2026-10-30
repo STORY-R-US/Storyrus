@@ -250,7 +250,7 @@ describe("Landing — catálogo", () => {
     expect(cards).toHaveLength(44);
     const testBook = cards.find((card) => card.textContent?.includes("Livro Teste"));
     expect(testBook).toBeTruthy();
-    expect(testBook?.textContent).toContain("R$ 0,01");
+    expect(testBook?.textContent).toContain("R$ 0,50");
     expect(testBook?.textContent).not.toContain("R$ 157,00");
     expect(testBook?.textContent).not.toContain("R$ 177,00");
     expect(within(catalog).queryByText(/nano e suas aventuras/i)).not.toBeInTheDocument();
@@ -347,7 +347,7 @@ describe("Landing — catálogo", () => {
     expect(enCatalog.textContent).toContain("Grandpa's Love, My Safe Harbor");
     expect(enCatalog.textContent).toContain("$33.91");
     expect(enCatalog.textContent).toContain("$30.08");
-    expect(enCatalog.textContent?.replace(/R\$ 0,01/g, "")).not.toContain("R$");
+    expect(enCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
 
     await user.click(screen.getByTestId("landing-lang-es"));
     const esCatalog = (await screen.findByRole("heading", { name: /nuestros libros/i })).closest("section") as HTMLElement;
@@ -363,7 +363,7 @@ describe("Landing — catálogo", () => {
     expect(esCatalog.textContent).toContain("20 × 20 cm");
     expect(esCatalog.textContent).toContain("30,10 €");
     expect(esCatalog.textContent).toContain("26,70 €");
-    expect(esCatalog.textContent?.replace(/R\$ 0,01/g, "")).not.toContain("R$");
+    expect(esCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
   });
 
   it("mostra somente a capa sem navegação no card do catálogo", async () => {

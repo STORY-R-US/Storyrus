@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from app.config import settings
 
-# Livro de prova da vitrine. O valor fica em 1 centavo nos dois tamanhos.
+# Livro de prova da vitrine. O Stripe recusa cobrança em BRL abaixo de R$ 0,50.
 TEST_BOOK_THEME = "livro_teste"
-TEST_BOOK_CENTS = 1
+TEST_BOOK_CENTS = 50
 
 
 def book_price_cents(book_size: str | None, theme: str | None = None) -> int:
