@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # App
     app_env: Literal["dev", "test", "staging", "prod"] = "dev"
     app_name: str = "storyrus-api"
-    privacy_retention_enabled: bool = True
+    privacy_retention_enabled: bool = False
     log_level: str = "INFO"
     # text = legivel local; json = uma linha JSON (prod / Render). Vazio = auto
     # (json fora de dev).

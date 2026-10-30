@@ -60,7 +60,7 @@ CONTROLES IMPLEMENTADOS
    privacidade. A retirada de autorização bloqueia etapas posteriores.
 
 5. Retenção de projetos não pagos
-   A API, em produção, agenda uma verificação diária, com espera inicial de
+   Quando habilitada, a API em produção agenda uma verificação diária, com espera inicial de
    60 segundos após iniciar. O prazo aprovado é de 90 dias.
    Abertura do projeto pelo dono, modificações, novos arquivos e atividade
    de tarefas/pedidos contam para o período de inatividade. Aberturas são
@@ -69,6 +69,8 @@ CONTROLES IMPLEMENTADOS
    Projetos pagos, em pagamento ou com tarefas ativas são preservados.
    Erros de exclusão ficam registrados para nova tentativa e acompanhamento.
    Controle: PRIVACY_RETENTION_ENABLED=true, somente em APP_ENV=prod.
+   Publicação de 30/10/2026: desativada por padrão até conferir a simulação
+   com os dados reais. O prazo de 90 dias permanece aprovado e implementado.
 
 VERIFICAÇÕES PARA PUBLICAR
 
