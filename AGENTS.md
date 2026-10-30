@@ -27,12 +27,15 @@ de ambiente; não versione arquivos `.env` reais nem dados de produção.
 - Não use os serviços de My Workspace nem a API gratuita antiga do STORYRUS
   para publicar versões. Eles são anteriores à migração.
 - Mantenha os proxies de `vercel.json` e `apps/web/vercel.json` iguais.
-- A produção usa IA real: preserve `SKIP_OPENAI=false` e `OFFLINE_FALLBACK=false`.
-  Não substitua falhas de provedor ou falta de saldo por textos ou imagens de ensaio.
+- Até nova autorização expressa do usuário, **todas as solicitações** são testes
+  genéricos sem créditos: preserve `SKIP_OPENAI=true` e `OFFLINE_FALLBACK=false`.
+  Não reative IA paga nem ofereça um botão para reativá-la durante essa pausa.
 - Erros da IA devem falhar a geração, sem aprovar etapas nem enfileirar conteúdo simulado.
   Pedido, pagamento e livro completo exigem a aprovação explícita da prévia no servidor.
-- Testes sem créditos usam apenas `book_profile.test_mode=true` no projeto autorizado,
-  com aviso visível e aprovações manuais. Não ative ensaio global na produção.
+- A pausa atual é global e inclui novos projetos, ajustes e novas tentativas.
+  Mantenha aviso visível e aprovações manuais; `book_profile.test_mode` também
+  identifica projetos individuais de teste. Quando a IA voltar por autorização,
+  erros de provedor não podem gerar conteúdo de contingência silenciosamente.
 - O `render.yaml` é um modelo de provisionamento anterior à migração, não o
   estado atual a sincronizar. Não o aplique sobre os recursos existentes nem
   substitua DATABASE_URL por uma referência à base lógica antiga da instância.

@@ -39,14 +39,11 @@ def require_unpaid(db: Session, project: Project) -> None:
 
 
 def require_paid(db: Session, project: Project) -> None:
-    from app.config import settings
     from app.services import book_profile
 
     book_profile.require_real_preview(project)
     if book_profile.enabled(project) and not (project.purchase_flow or {}).get("preview_approved_at"):
         raise HTTPException(409, "Aprove a prévia antes de continuar o livro.")
-    if settings.skip_openai:
-        return
     if not (project.purchase_flow or {}).get("preview_ready_at"):
         return
     from app.printkit.service import get_print_order

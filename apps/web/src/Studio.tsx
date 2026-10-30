@@ -482,8 +482,18 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   );
   const previewFailedJob = latestPreviewJob?.status === "FAILED" ? latestPreviewJob : undefined;
   const latestByType = new Map<string, Job>();
-  for (const job of jobsByTime) latestByType.set(job.type, job);
-  const openJobErrors = [...latestByType.values()].filter((job) => job.status === "FAILED" && job.error);
+  for (const job of jobsByTime) {
+    if (!latestPreviewJob || job.created_at >= latestPreviewJob.created_at) latestByType.set(job.type, job);
+  }
+  const retiredAIError = (message?: string | null) => Boolean(project?.ai_generation_paused &&
+    /openai|insufficient_quota|credit_balance_exhausted/i.test(message || ""));
+  const openJobErrors = [...latestByType.values()].filter((job) => job.status === "FAILED" && job.error && !retiredAIError(job.error));
+  const generationError = error || previewFailedJob?.error;
+  const visibleGenerationError = retiredAIError(generationError) ? {
+    pt: "Esta tentativa anterior foi interrompida. Agora o teste usa imagens genéricas, sem créditos. Clique em Tentar prévia de novo para continuar.",
+    en: "This earlier attempt was interrupted. Tests now use generic images without credits. Click Retry preview to continue.",
+    es: "Este intento anterior se interrumpió. Ahora las pruebas usan imágenes genéricas sin créditos. Pulsa Reintentar vista previa para continuar.",
+  }[lang] : generationError;
   const previewReady = Boolean(
     project?.book_profile ? project.book_profile.stage !== "ficha" : project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
@@ -1079,9 +1089,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             )}
-            {(error || previewFailedJob?.error) && (
+            {visibleGenerationError && (
               <p className="studio-error" role="alert">
-                {error || previewFailedJob?.error}
+                {visibleGenerationError}
               </p>
             )}
             {openJobErrors.length > 0 && (

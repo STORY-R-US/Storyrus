@@ -277,6 +277,16 @@ class ProjectOut(BaseModel):
     print_requested_at: datetime | None = None
     print_status: str | None = None
     created_at: datetime
+    test_mode: bool = False
+    ai_generation_paused: bool = False
+
+    @model_validator(mode="after")
+    def generation_mode(self):
+        from app.config import settings
+
+        self.ai_generation_paused = settings.skip_openai
+        self.test_mode = settings.skip_openai or bool((self.book_profile or {}).get("test_mode"))
+        return self
 
 
 class UploadUrlIn(BaseModel):

@@ -301,8 +301,8 @@ async def test_explicit_rehearsal_still_requires_each_approval(studio, monkeypat
     assert project.book_profile["stage"] == "preview_ready"
     with pytest.raises(HTTPException):
         purchase_flow.require_paid(db, project)
-    story = db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
-    await runner.process_job(db, story)
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
+    await _run(studio, "story")
     db.expire_all()
     assert project.book_profile["stage"] == "story_ready"
     assert not (project.purchase_flow or {}).get("preview_approved_at")
@@ -714,3 +714,48 @@ async def test_project_test_mode_costs_zero_and_waits_at_every_review(studio, mo
     assert all(job.cost_credits == 0 and not job.cost_usd
                for job in db.scalars(select(Job).where(Job.project_id == project.id)))
     assert store
+
+
+@pytest.mark.asyncio
+async def test_global_pause_covers_new_requests_and_cannot_be_disabled_by_retry(studio, monkeypatch):
+    client, db, pid, _ = studio
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", True)
+    monkeypatch.setattr(settings, "credits_enabled", True)
+
+    class NoAI:
+        def __getattr__(self, name):
+            raise AssertionError(f"Global pause called AI: {name}")
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a: NoAI())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a: NoAI())
+    preview = await _run(studio, "preview")
+    assert preview.cost_credits == 0 and not preview.cost_usd
+    state = client.get(f"/v1/projects/{pid}").json()
+    assert state["test_mode"] is True and state["ai_generation_paused"] is True
+    assert state["book_profile"]["stage"] == "preview_ready"
+    assert not db.scalar(select(Job).where(Job.project_id == uuid.UUID(pid), Job.type == "STORY"))
+    assert client.post(f"/v1/projects/{pid}/preview/title-suggestions", json={}).status_code == 409
+    response = client.post(f"/v1/projects/{pid}/preview/retry-ai")
+    assert response.status_code == 202, response.text
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["test_mode"] is True
+    retry = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    assert retry.cost_credits == 0
+
+
+@pytest.mark.asyncio
+async def test_global_pause_blocks_paid_video_and_voice_providers(monkeypatch):
+    from app.ai_clients.video_kling import KlingVideoProvider
+    from app.media.tts import TtsError, clone_voice, elevenlabs_configured, get_tts_provider
+
+    monkeypatch.setattr(settings, "skip_openai", True)
+    monkeypatch.setattr(settings, "elevenlabs_api_key", "configured-but-paused")
+    assert elevenlabs_configured() is False
+    with pytest.raises(TtsError):
+        get_tts_provider()
+    with pytest.raises(TtsError):
+        await clone_voice("Teste", b"fake", "voice.mp3")
+    with pytest.raises(ProviderError):
+        await KlingVideoProvider().create_video(image=b"fake", prompt="test", duration_s=5)

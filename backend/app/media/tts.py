@@ -90,11 +90,13 @@ class ElevenLabsTtsProvider:
 
 
 def elevenlabs_configured() -> bool:
-    return bool(settings.elevenlabs_api_key)
+    return not settings.skip_openai and bool(settings.elevenlabs_api_key)
 
 
 def get_tts_provider(voice_id: str | None = None) -> TtsProvider:
     """Retorna provider TTS. Com voice_id custom exige ElevenLabs."""
+    if settings.skip_openai:
+        raise TtsError("Narração está pausada no teste sem créditos")
     if settings.elevenlabs_api_key:
         return ElevenLabsTtsProvider(voice_id=voice_id)
     return EdgeTtsProvider()
@@ -123,6 +125,8 @@ async def clone_voice(
     mime_type: str = "audio/mpeg",
 ) -> str:
     """Instant Voice Clone. Retorna elevenlabs_voice_id."""
+    if settings.skip_openai:
+        raise TtsError("Voz personalizada está pausada no teste sem créditos", transient=False)
     if not settings.elevenlabs_api_key:
         raise TtsError(
             "Voz personalizada exige ELEVENLABS_API_KEY configurada",

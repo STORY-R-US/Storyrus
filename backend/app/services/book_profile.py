@@ -32,7 +32,9 @@ def enabled(project) -> bool:
 
 
 def test_mode(project) -> bool:
-    return bool((project.book_profile or {}).get("test_mode"))
+    from app.config import settings
+
+    return settings.skip_openai or bool((project.book_profile or {}).get("test_mode"))
 
 
 def require_real_preview(project) -> None:

@@ -109,6 +109,8 @@ def enqueue_job(
     from app.services.privacy import require_photo_authorization
 
     require_photo_authorization(db, project.id)
+    if settings.skip_openai and job_type in {JobType.VIDEO, JobType.NARRATED_VIDEO}:
+        raise HTTPException(409, "Vídeos e narração estão pausados no teste sem créditos.")
     key = _clean_key(idempotency_key, 255)
     safe_payload = _json_value(payload) if payload else None
     if safe_payload is not None and not isinstance(safe_payload, dict):
@@ -151,7 +153,7 @@ def _enqueue_job_once(
             return existing
 
     cost = COST_BY_TYPE.get(job_type, 0) if settings.credits_enabled else 0
-    if (project.book_profile or {}).get("test_mode"):
+    if settings.skip_openai or (project.book_profile or {}).get("test_mode"):
         cost = 0
 
     # 2) Backpressure por usuario.

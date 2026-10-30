@@ -40,6 +40,24 @@ afterEach(() => {
   window.history.replaceState({}, "", "/");
 });
 
+it("não reapresenta erro antigo de IA depois de uma nova prévia genérica concluída", async () => {
+  const project = { id: "generic-ready", status: "EBOOK_READY", style: "cartoon", language: "pt-BR",
+    story_text: null, ebook_url: null, video_url: null, created_at: "2026-10-30",
+    test_mode: true, ai_generation_paused: true,
+    book_profile: { version: 1, stage: "preview_ready", title: "Livro de teste", gender: "f", languages: ["pt-BR"], current_page: 0 } };
+  vi.spyOn(api, "getProject").mockResolvedValue(project);
+  vi.spyOn(api, "listJobs").mockResolvedValue([
+    { ...ebookJob(), id: "old-story", type: "STORY", status: "FAILED", created_at: "2026-10-30T10:00:00Z", error: "OpenAI 429: insufficient_quota", result: {} },
+    { ...ebookJob(), id: "new-preview", status: "DONE", created_at: "2026-10-30T11:00:00Z", error: null, result: { payload: { preview_chain: true } } },
+  ]);
+  vi.spyOn(api, "getAssets").mockResolvedValue({ character_url: null, realistic_url: null, extra_characters: [], page_images: [], ebook_url: null, video_url: null, narrated_video_url: null });
+  window.history.replaceState({}, "", "/app?projeto=generic-ready");
+  renderApp("/app?projeto=generic-ready");
+  expect(await screen.findByTestId("studio-test-mode")).toBeInTheDocument();
+  expect(screen.queryByTestId("studio-error-report")).not.toBeInTheDocument();
+  expect(screen.queryByText(/insufficient_quota/)).not.toBeInTheDocument();
+});
+
 async function openBook(_user: ReturnType<typeof userEvent.setup>) {
   expect(screen.queryByTestId("studio-client")).not.toBeInTheDocument();
   await screen.findByRole("checkbox", { name: /responsável legal/i });

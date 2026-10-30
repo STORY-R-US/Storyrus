@@ -18,6 +18,14 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("aplica a pausa global a projetos comuns e impede reativar IA pela tela", async () => {
+    render(<MasterBookFlow project={{ ...project, test_mode: true, ai_generation_paused: true }}
+      assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    expect(screen.getByTestId("studio-test-mode")).toHaveTextContent("sem chamadas à IA");
+    expect(screen.queryByRole("button", { name: "Gerar versão real com IA" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sugerir 5 títulos com IA" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aprovar prévia e continuar o teste" })).toBeEnabled();
+  });
   it("identifica a prévia genérica e aguarda a aprovação manual no teste sem IA", async () => {
     const testProject = { ...project, book_profile: { ...project.book_profile!, test_mode: true } };
     const story = vi.spyOn(api, "startStep").mockResolvedValue(accepted);

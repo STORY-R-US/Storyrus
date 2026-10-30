@@ -37,8 +37,10 @@ def retry_real_preview(
     user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
+    from app.config import settings
+
     project = get_owned_project(db, user, project_id)
-    return _restart_preview(db, user, project, test_mode=False)
+    return _restart_preview(db, user, project, test_mode=settings.skip_openai)
 
 
 @router.post("/{project_id}/preview/test", response_model=JobAcceptedOut, status_code=202)
@@ -107,7 +109,9 @@ async def suggest_titles(
 
     project = get_owned_project(db, user, project_id)
     editable_title(db, project)
-    if (project.book_profile or {}).get("test_mode"):
+    from app.services.book_profile import test_mode
+
+    if test_mode(project):
         raise HTTPException(409, "Sugestões de IA estão desativadas no modo de teste sem créditos.")
     require_photo_authorization(db, project.id)
     if not allow(f"title-suggestions:{user.id}", 5, 3600):

@@ -35,10 +35,10 @@ async def test_title_suggestions_use_story_language_and_guidance(client):
     assert supplied["editorial_guidance"] == "Mais aventura"
 
 
-def test_rehearsal_is_never_the_implicit_default():
+def test_default_pause_prevents_unapproved_credit_spending():
     from app.config import Settings
 
-    assert Settings.model_fields["skip_openai"].default is False
+    assert Settings.model_fields["skip_openai"].default is True
 
 
 @pytest.mark.asyncio

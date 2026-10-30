@@ -57,6 +57,8 @@ export interface ExtraCharacter {
 }
 
 export interface Project {
+  test_mode?: boolean;
+  ai_generation_paused?: boolean;
   processing_revoked_at?: string | null;
   book_profile?: {
     version: number;

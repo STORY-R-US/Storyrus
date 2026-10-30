@@ -108,12 +108,16 @@ class KlingVideoProvider:
         return body.get("data", {})
 
     async def create_video(self, *, image: bytes, prompt: str, duration_s: int) -> VideoJob:
+        if settings.skip_openai:
+            raise ProviderError("Vídeos estão pausados no teste sem créditos", transient=False)
         billed_s = _clamp_duration(duration_s)
         if self.uses_api_key:
             return await self._create_new(image=image, prompt=prompt, duration_s=billed_s)
         return await self._create_legacy(image=image, prompt=prompt, duration_s=billed_s)
 
     async def poll_video(self, *, provider_task_id: str) -> VideoJob:
+        if settings.skip_openai:
+            raise ProviderError("Vídeos estão pausados no teste sem créditos", transient=False)
         if self.uses_api_key:
             return await self._poll_new(provider_task_id=provider_task_id)
         return await self._poll_legacy(provider_task_id=provider_task_id)

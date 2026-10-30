@@ -55,6 +55,7 @@ const COPY = {
     testHint: "As imagens e os textos são genéricos, gerados localmente, sem chamadas à IA. Cada etapa aguarda sua confirmação.",
     testContinue: "Aprovar prévia e continuar o teste",
     exitTest: "Gerar versão real com IA",
+    retryGeneric: "Gerar prévia genérica de teste",
   },
   en: {
     preview: "Approve the preview?",
@@ -103,6 +104,7 @@ const COPY = {
     testHint: "Images and text are generic, generated locally without AI calls. Each step waits for your confirmation.",
     testContinue: "Approve preview and continue the test",
     exitTest: "Create the real version with AI",
+    retryGeneric: "Create a generic test preview",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -151,6 +153,7 @@ const COPY = {
     testHint: "Las imágenes y los textos son genéricos, generados localmente sin llamadas a IA. Cada paso espera tu confirmación.",
     testContinue: "Aprobar vista previa y continuar la prueba",
     exitTest: "Crear la versión real con IA",
+    retryGeneric: "Crear vista previa genérica de prueba",
   },
 };
 
@@ -225,6 +228,7 @@ export function MasterBookFlow({
   const [pageToAdjust, setPageToAdjust] = useState<number | null>(null);
   const [pageNotes, setPageNotes] = useState<Record<number, string>>({});
   const p = project.book_profile!;
+  const testMode = Boolean(project.test_mode || p.test_mode);
   const active =
     sending ||
     jobs.some((j) => j.status === "RUNNING" || j.status === "PENDING");
@@ -330,22 +334,22 @@ export function MasterBookFlow({
   }
   if (p.credits_fallback) {
     return <section className="master-adjustment-panel" data-testid="studio-preview-recovery">
-      <StudioStageHeading title={t.retryPreviewTitle} illustration={0}>
-        <p>{t.retryPreviewHint}</p>
+      <StudioStageHeading title={testMode ? t.testTitle : t.retryPreviewTitle} illustration={0}>
+        <p>{testMode ? t.testHint : t.retryPreviewHint}</p>
       </StudioStageHeading>
       {error && <p className="studio-error" role="alert">{error}</p>}
       <button type="button" className="kbtn kbtn-primary" disabled={active}
         onClick={() => void run(() => api.retryRealPreview(project.id))}>
-        {active ? t.waiting : t.retryRealPreview}
+        {active ? t.waiting : testMode ? t.retryGeneric : t.retryRealPreview}
       </button>
     </section>;
   }
   return (
     <div className="studio-master-flow" data-testid="studio-master-flow">
-      {p.test_mode && <section className="master-adjustment-panel" data-testid="studio-test-mode">
+      {testMode && <section className="master-adjustment-panel" data-testid="studio-test-mode">
         <h3>{t.testTitle}</h3><p className="master-title-hint">{t.testHint}</p>
-        <button type="button" className="kbtn kbtn-soft" disabled={active}
-          onClick={() => void run(() => api.retryRealPreview(project.id))}>{t.exitTest}</button>
+        {!project.ai_generation_paused && <button type="button" className="kbtn kbtn-soft" disabled={active}
+          onClick={() => void run(() => api.retryRealPreview(project.id))}>{t.exitTest}</button>}
       </section>}
       {error && <p className="studio-error" role="alert">{error}</p>}
       {active && <p className="master-status" role="status">{t.waiting}</p>}
@@ -426,7 +430,7 @@ export function MasterBookFlow({
             </button>
           </div>
           <p className="master-title-hint">{t.titleHint}</p>
-          {!p.test_mode && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
+          {!testMode && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
             selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
       )}
@@ -571,7 +575,7 @@ export function MasterBookFlow({
           disabled={active}
           onClick={() => void run(() => api.startStep(project.id, "story"))}
         >
-          {p.test_mode ? t.testContinue : t.writeStory}
+          {testMode ? t.testContinue : t.writeStory}
         </button>
       )}
       {p.stories && (
