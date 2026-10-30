@@ -123,7 +123,7 @@ export function PostPreviewFlow({
             >
               {t.approve}
             </button>
-            <button type="button" className="kbtn" onClick={onAdjust}>
+            <button type="button" className="kbtn" disabled={isDemo || busy || active} onClick={onAdjust}>
               {t.adjust}
             </button>
           </div>

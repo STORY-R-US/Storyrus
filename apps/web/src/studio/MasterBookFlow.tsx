@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { TitleSuggestions } from "./TitleSuggestions";
 import { api } from "../api";
@@ -42,6 +42,11 @@ const COPY = {
     pagesHeading: "Páginas do livro",
     improve: "O que melhorar nesta página",
     improveSend: "Melhorar esta página",
+    previewAdjustTitle: "Ajustar minha prévia",
+    previewAdjustHint: "Descreva o que deseja melhorar. Ao aplicar, a IA refaz a prévia e a história para uma nova revisão.",
+    themeLabel: "Tema da história",
+    previewNotes: "O que você quer melhorar?",
+    cancelAdjust: "Cancelar ajustes",
   },
   en: {
     preview: "Approve the preview?",
@@ -78,6 +83,11 @@ const COPY = {
     pagesHeading: "Book pages",
     improve: "What to improve on this page",
     improveSend: "Improve this page",
+    previewAdjustTitle: "Adjust my preview",
+    previewAdjustHint: "Describe what you would like to improve. Applying changes asks AI to recreate the preview and story for a new review.",
+    themeLabel: "Story theme",
+    previewNotes: "What would you like to improve?",
+    cancelAdjust: "Cancel adjustments",
   },
   es: {
     preview: "¿Apruebas la vista previa?",
@@ -114,6 +124,11 @@ const COPY = {
     pagesHeading: "Páginas del libro",
     improve: "Qué mejorar en esta página",
     improveSend: "Mejorar esta página",
+    previewAdjustTitle: "Ajustar mi vista previa",
+    previewAdjustHint: "Describe qué te gustaría mejorar. Al aplicar, la IA vuelve a crear la vista previa y la historia para una nueva revisión.",
+    themeLabel: "Tema de la historia",
+    previewNotes: "¿Qué quieres mejorar?",
+    cancelAdjust: "Cancelar ajustes",
   },
 };
 
@@ -171,6 +186,13 @@ export function MasterBookFlow({
   const [adjustment, setAdjustment] = useState("");
   const [selected, setSelected] = useState("");
   const [editing, setEditing] = useState(false);
+  const adjustmentPanel = useRef<HTMLDivElement>(null);
+  const adjustmentNotes = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!editing) return;
+    adjustmentPanel.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    adjustmentNotes.current?.focus({ preventScroll: true });
+  }, [editing]);
   const [editTitle, setEditTitle] = useState(project.book_profile?.title || "");
   useEffect(() => {
     setEditTitle(project.book_profile?.title || "");
@@ -448,17 +470,20 @@ export function MasterBookFlow({
           jobs={jobs}
           assets={assets}
           isDemo={false}
-          dirty={false}
+          dirty={editing}
           onProject={setProject}
           onJobs={setJobs}
           onAdjust={() => setEditing(true)}
           canConfirmPayment={canConfirmPayment}
         />
       )}
-      {stage === "preview_ready" && editing && (
-        <div className="studio-review-changes">
+      {["preview_ready", "story_ready", "story_approved"].includes(stage) && editing && (
+        <div className="studio-review-changes master-adjustment-panel" ref={adjustmentPanel}
+          role="region" aria-labelledby="preview-adjust-heading">
+          <h3 id="preview-adjust-heading">{t.previewAdjustTitle}</h3>
+          <p className="master-title-hint">{t.previewAdjustHint}</p>
           <label className="studio-field">
-            {lang === "en" ? "Theme" : "Tema"}
+            {t.themeLabel}
             <textarea
               value={editTheme}
               maxLength={500}
@@ -466,8 +491,9 @@ export function MasterBookFlow({
             />
           </label>
           <label className="studio-field">
-            {t.adjust}
+            {t.previewNotes}
             <textarea
+              ref={adjustmentNotes}
               value={adjustment}
               maxLength={500}
               onChange={(e) => setAdjustment(e.target.value)}
@@ -475,20 +501,28 @@ export function MasterBookFlow({
           </label>
           <button
             className="kbtn kbtn-soft"
-            disabled={active || !editTitle.trim() || !editTheme.trim()}
+            type="button"
+            disabled={active || !editTitle.trim() || !editTheme.trim() ||
+              (!adjustment.trim() && editTheme.trim() === (project.purchase_flow?.theme_description || project.theme || "").trim())}
             onClick={() =>
-              void run(() =>
-                api.savePreviewChanges(project.id, {
+              void run(async () => {
+                await api.savePreviewChanges(project.id, {
                   title: editTitle,
                   theme_description: editTheme,
                   photo_notes: adjustment,
                   story_text: "",
-                }),
-              )
+                });
+                setEditing(false);
+              })
             }
           >
             {t.send}
           </button>
+          <button type="button" className="kbtn kbtn-soft" disabled={active} onClick={() => {
+            setEditing(false);
+            setEditTheme(project.purchase_flow?.theme_description || project.theme || "");
+            setAdjustment("");
+          }}>{t.cancelAdjust}</button>
         </div>
       )}
       {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (

@@ -169,7 +169,7 @@ def save_changes(
     from app.services import book_profile
 
     if book_profile.enabled(project):
-        book_profile.require_stage(project, "preview_ready")
+        book_profile.require_stage(project, "preview_ready", "story_ready", "story_approved")
         if not body.title.strip() or not body.theme_description.strip():
             raise HTTPException(422, "Preencha título e tema.")
         from sqlalchemy import select

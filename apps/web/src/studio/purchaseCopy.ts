@@ -42,7 +42,9 @@ const pt = {
   confirmPay: "Confirmar pagamento e continuar",
   confirmPayHint:
     "Confirmação manual de hoje. Nenhum valor é cobrado. O livro completo entra em produção.",
-  quote: "Salvar cotação e acompanhar",
+  quote: "Salvar cotação",
+  saveForLater: "Salvar para depois",
+  savedForLater: "Pedido salvo. Você pode pagar agora ou retomar em Meus pedidos.",
   quotation: "Pedido em cotação",
   unavailable:
     "Salve o pedido como cotação. A cobrança ainda não está disponível e nenhum valor será cobrado nesta etapa.",
@@ -134,7 +136,9 @@ const en: Copy = {
   confirmPay: "Confirm payment and continue",
   confirmPayHint:
     "Manual confirmation for today. Nothing is charged. The complete book goes into production.",
-  quote: "Save quotation and track order",
+  quote: "Save quotation",
+  saveForLater: "Save for later",
+  savedForLater: "Order saved. You can pay now or resume it in My orders.",
   quotation: "Order awaiting quotation",
   unavailable:
     "Save your order as a quotation. Payment is not available yet; no charge will be made at this stage.",
@@ -224,7 +228,9 @@ const es: Copy = {
   confirmPay: "Confirmar pago y continuar",
   confirmPayHint:
     "Confirmación manual de hoy. No se cobra ningún valor. El libro completo entra en producción.",
-  quote: "Guardar cotización y seguir pedido",
+  quote: "Guardar cotización",
+  saveForLater: "Guardar para después",
+  savedForLater: "Pedido guardado. Puedes pagar ahora o continuar en Mis pedidos.",
   quotation: "Pedido en cotización",
   unavailable:
     "Guarda el pedido como cotización. El cobro aún no está disponible; no se cobrará ningún valor en esta etapa.",

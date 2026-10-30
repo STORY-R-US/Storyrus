@@ -373,8 +373,8 @@ export function PrintCheckout({
               <p className="muted">{t.unavailable}</p>
             </>
           )}
-          <button
-            className="kbtn"
+          {(!saved || addressDirty || quantityDirty) && <button
+            className="kbtn kbtn-soft"
             disabled={specLocked || addressDirty || quantityDirty}
             type="button"
             onClick={() =>
@@ -385,11 +385,11 @@ export function PrintCheckout({
               })
             }
           >
-            {busy ? t.wait : t.quote}
-          </button>
+            {busy ? t.wait : order.checkout_available ? t.saveForLater : t.quote}
+          </button>}
         </>
       )}
-      {saved && <p role="status">{t.saved}</p>}
+      {saved && !addressDirty && !quantityDirty && <p role="status">{order.checkout_available ? t.savedForLater : t.saved}</p>}
       {order.tracking_code && (
         <p>
           {t.tracking}: <strong>{order.tracking_code}</strong>

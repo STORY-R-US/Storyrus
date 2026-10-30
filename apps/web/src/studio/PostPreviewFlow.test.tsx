@@ -86,6 +86,21 @@ function Harness({
 afterEach(() => vi.restoreAllMocks());
 
 describe("continuação da prévia", () => {
+  it("oferece salvar para depois e remove a ação após salvar, mantendo o pagamento", async () => {
+    const approved = { ...project, purchase_flow: { ...project.purchase_flow, preview_approved_at: "2026-10-15" } };
+    vi.spyOn(api, "printOrder").mockResolvedValue({ ...order, checkout_available: true });
+    const save = vi.spyOn(api, "saveQuotation").mockResolvedValue({ ...approved,
+      purchase_flow: { ...approved.purchase_flow, quoted_at: "2026-10-30" } });
+    const checkout = vi.spyOn(api, "checkoutPrint");
+    render(<Harness initial={approved} />);
+    expect(await screen.findByRole("button", { name: "Continuar para pagamento" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Salvar para depois" }));
+    expect(await screen.findByText("Pedido salvo. Você pode pagar agora ou retomar em Meus pedidos.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Salvar para depois" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continuar para pagamento" })).toBeInTheDocument();
+    expect(save).toHaveBeenCalledWith("p1");
+    expect(checkout).not.toHaveBeenCalled();
+  });
   it("aprova a prévia e salva uma cotação sem oferecer cobrança indisponível", async () => {
     const approved = {
       ...project,

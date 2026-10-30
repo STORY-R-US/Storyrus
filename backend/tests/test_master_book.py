@@ -627,3 +627,40 @@ def test_pending_checkout_can_refine_title_without_changing_payment_or_delivery(
     order.payment_status = "paid"
     db.commit()
     assert client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Outro"}).status_code == 409
+
+
+@pytest.mark.parametrize("stage", ["preview_ready", "story_ready", "story_approved"])
+def test_preview_adjustments_accept_all_preapproval_review_stages(studio, stage):
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage=stage, stories={"pt-BR": "História anterior"})
+    db.commit()
+    response = client.put(f"/v1/projects/{pid}/preview/changes", json={
+        "title": "Lia e as estrelas", "theme_description": "Aventura espacial",
+        "photo_notes": "Mais estrelas na capa", "story_text": "",
+    })
+    assert response.status_code == 202, response.text
+    db.refresh(project)
+    assert project.book_profile["stage"] == "ficha"
+    assert project.book_profile["stories"] is None
+    assert project.purchase_flow["preview_approved_at"] is None
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    assert job.result["payload"]["master_preview"] is True
+    assert job.result["payload"]["adjustment"] == "Mais estrelas na capa"
+
+
+def test_preview_adjustments_keep_pending_payment_locked(studio):
+    from app.printkit.service import open_print_order
+
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="story_approved")
+    order = open_print_order(db, project, prepare=False)
+    order.payment_status = "pending"
+    db.commit()
+    response = client.put(f"/v1/projects/{pid}/preview/changes", json={
+        "title": "Lia", "theme_description": "Aventura", "photo_notes": "Mais luz",
+    })
+    assert response.status_code == 409
+    db.refresh(project)
+    assert project.book_profile["stage"] == "story_approved"

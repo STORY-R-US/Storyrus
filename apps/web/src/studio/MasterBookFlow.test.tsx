@@ -18,6 +18,42 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("abre os ajustes depois da aprovação da história e envia o pedido de melhoria", async () => {
+    const ready = { ...project, theme: "space", book_profile: { ...project.book_profile!, stage: "story_approved" } };
+    const save = vi.spyOn(api, "savePreviewChanges").mockResolvedValue(accepted);
+    const approve = vi.spyOn(api, "approvePreview");
+    vi.spyOn(api, "getProject").mockResolvedValue(ready);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    render(<MasterBookFlow project={ready} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Quero ajustar" }));
+    expect(screen.getByRole("region", { name: "Ajustar minha prévia" })).toBeInTheDocument();
+    const notes = screen.getByLabelText("O que você quer melhorar?");
+    expect(notes).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Gostei, continuar com meu livro" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Aplicar ajuste" })).toBeDisabled();
+    await userEvent.type(notes, "Mais estrelas na capa");
+    await userEvent.click(screen.getByRole("button", { name: "Aplicar ajuste" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith("master", {
+      title: "Lia e as estrelas", theme_description: "space", photo_notes: "Mais estrelas na capa", story_text: "",
+    }));
+    expect(approve).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Ajustar minha prévia" })).not.toBeInTheDocument());
+  });
+
+  it("cancela os ajustes sem alterar o livro e libera a aprovação", async () => {
+    const ready = { ...project, theme: "space", book_profile: { ...project.book_profile!, stage: "story_approved" } };
+    const save = vi.spyOn(api, "savePreviewChanges");
+    render(<MasterBookFlow project={ready} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Quero ajustar" }));
+    await userEvent.type(screen.getByLabelText("O que você quer melhorar?"), "Mais luz");
+    await userEvent.click(screen.getByRole("button", { name: "Cancelar ajustes" }));
+    expect(screen.queryByRole("region", { name: "Ajustar minha prévia" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gostei, continuar com meu livro" })).toBeEnabled();
+    expect(save).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Quero ajustar" }));
+    expect(screen.getByLabelText("O que você quer melhorar?")).toHaveValue("");
+  });
+
   it("gera cinco títulos por IA e só altera a capa após confirmar a escolha", async () => {
     const titles = ["Lia na Lua", "Lia e o cometa", "Lia astronauta", "As estrelas de Lia", "Lia e o universo"];
     const suggest = vi.spyOn(api, "suggestPreviewTitles").mockResolvedValue({ titles });
