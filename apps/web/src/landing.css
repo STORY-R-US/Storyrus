@@ -1771,8 +1771,23 @@ img.ex-tab-cover {
 .cat-badges .cat-price { margin: 0 0 0 auto; }
 [data-theme="light"] .kid #catalogo .cat-opt button { color: #1f3568; border-color: #d5dced; }
 [data-theme="light"] .kid #catalogo .cat-opt button.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
-.catalog-knav { flex-wrap: wrap; row-gap: 8px; }
-.catalog-knav .kbrand { margin-right: auto; }
+.kid:has(> .catalog-knav) { padding-top: 0; }
+.catalog-knav {
+  flex-wrap: wrap;
+  row-gap: 8px;
+  align-items: flex-end;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 8px var(--page-gutter) 10px;
+  box-sizing: border-box;
+}
+.catalog-knav .kbrand { margin-right: auto; align-self: flex-end; }
+.catalog-knav .kbrand img {
+  height: 104px;
+  width: auto;
+  max-width: 100%;
+}
 .catalog-banner-nav {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   gap: 8px; flex: 1 0 100%; margin: 0; padding: 0;
@@ -2265,7 +2280,8 @@ img.ex-tab-cover {
   .khead .kbrand { grid-column: 1; align-self: center; }
   .khead-main { display: none; }
   .khead .kbrand img { height: 84px; }
-  .kid:not(.studio-app) .khead .kbrand img { height: 52px; }
+  .kid:not(.studio-app) .khead .kbrand img,
+  .kid:not(.studio-app) .catalog-knav .kbrand img { height: 52px; }
   .khead-bar-inner { justify-content: flex-end; align-items: center; min-height: 0; }
   .khead-actions { grid-column: 2; gap: 8px; margin-left: auto; max-width: 100%; }
   .khead-utils { gap: 6px; min-height: auto; margin-left: auto; }
@@ -2497,7 +2513,8 @@ img.ex-tab-cover {
   .knav .kbrand img { height: 72px; }
   .khead-inner { grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; }
   .khead .kbrand img { height: 76px; transform: none; }
-  .kid:not(.studio-app) .khead .kbrand img { height: 52px; }
+  .kid:not(.studio-app) .khead .kbrand img,
+  .kid:not(.studio-app) .catalog-knav .kbrand img { height: 52px; }
   .kid:not(.studio-app) .khead-links .kbtn { padding: 8px 10px; font-size: .78rem; }
   .kid:not(.studio-app) .lang button { padding: 4px 7px; }
   .kid { --khead-h: 92px; }
@@ -2505,7 +2522,8 @@ img.ex-tab-cover {
 }
 @media (max-width: 360px) {
   .kid:not(.studio-app) .khead-inner { padding-left: 8px; padding-right: 8px; column-gap: 6px; }
-  .kid:not(.studio-app) .khead .kbrand img { height: 44px; }
+  .kid:not(.studio-app) .khead .kbrand img,
+  .kid:not(.studio-app) .catalog-knav .kbrand img { height: 44px; }
   .kid:not(.studio-app) .lang button { padding: 4px 5px; font-size: .7rem; }
   .kid:not(.studio-app) .khead-links .kbtn { padding: 7px 8px; font-size: .72rem; min-height: 36px; }
   .kid:not(.studio-app) .khamb { width: 40px; height: 40px; }
@@ -3300,11 +3318,21 @@ img.ex-tab-cover {
 
 /* Favoritos do catálogo */
 #catalogo .cat-card { position: relative; }
-.catalog-favorite { position: absolute; z-index: 8; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #a6b4d1; background: #fff; color: #713e62; cursor: pointer; font-size: 28px; line-height: 1; display: grid; place-items: center; box-shadow: 0 2px 8px #0003; }
+.catalog-favorite {
+  position: absolute; z-index: 8; top: 10px; right: 10px;
+  width: 40px; height: 40px; padding: 0;
+  border-radius: 50%; border: 1px solid #a6b4d1;
+  background: #fff; color: #713e62; cursor: pointer;
+  display: grid; place-items: center;
+  box-shadow: 0 2px 8px #0003;
+}
+.catalog-favorite svg { display: block; width: 22px; height: 22px; }
+.catalog-favorite:hover:not(:disabled) { transform: none; box-shadow: 0 2px 8px #0003; }
 .catalog-favorite[aria-pressed="true"] { color: #b52059; background: #fff0f5; border-color: #b52059; }
 .catalog-favorite:focus-visible, .catalog-favorites-filter button:focus-visible { outline: 3px solid #f4b740; outline-offset: 3px; }
 .catalog-favorites-filter { text-align: center; margin: 20px 0 28px; }
 .catalog-favorites-filter [role="group"] { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .catalog-favorites-filter button { cursor: pointer; }
+.catalog-favorites-filter .catalog-favorite-mark { width: 14px; height: 14px; display: block; flex: none; transform: translateY(1px); }
 .catalog-favorites-filter button[aria-pressed="true"] { border-color: #f4b740; box-shadow: 0 0 0 1px #f4b740; }
 .catalog-favorites-filter p { margin: 10px 0 0; font-size: 13px; opacity: .8; }
