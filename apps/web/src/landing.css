@@ -3297,3 +3297,14 @@ img.ex-tab-cover {
   opacity: 0.65;
   cursor: wait;
 }
+
+/* Favoritos do catálogo */
+#catalogo .cat-card { position: relative; }
+.catalog-favorite { position: absolute; z-index: 8; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #a6b4d1; background: #fff; color: #713e62; cursor: pointer; font-size: 28px; line-height: 1; display: grid; place-items: center; box-shadow: 0 2px 8px #0003; }
+.catalog-favorite[aria-pressed="true"] { color: #b52059; background: #fff0f5; border-color: #b52059; }
+.catalog-favorite:focus-visible, .catalog-favorites-filter button:focus-visible { outline: 3px solid #f4b740; outline-offset: 3px; }
+.catalog-favorites-filter { text-align: center; margin: 20px 0 28px; }
+.catalog-favorites-filter [role="group"] { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.catalog-favorites-filter button { cursor: pointer; }
+.catalog-favorites-filter button[aria-pressed="true"] { border-color: #f4b740; box-shadow: 0 0 0 1px #f4b740; }
+.catalog-favorites-filter p { margin: 10px 0 0; font-size: 13px; opacity: .8; }

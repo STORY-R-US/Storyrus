@@ -1,4 +1,5 @@
-import { useEffect, type CSSProperties } from "react";
+import { CatalogFavoritesFilter, CatalogFavoritesEmpty, useCatalogFavorites } from "./catalogFavorites";
+import { useState, useEffect, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -86,7 +87,17 @@ export function CatalogPage() {
   usePageMeta(staticPageMeta("/catalogo"));
   const [lang, setLang] = useSiteLang();
   const copy = catalogPageCopy(lang);
-  const sections = catalogSections(lang);
+  const favorites = useCatalogFavorites();
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const sections = catalogSections(lang)
+    .map((section) => ({
+      ...section,
+      subs: section.subs.map((sub) => ({
+        ...sub,
+        books: sub.books.filter((book) => !favoritesOnly || (book.catalogI != null && favorites.includes(book.catalogI))),
+      })).filter((sub) => sub.books.length),
+    }))
+    .filter((section) => section.subs.length);
   const { hash } = useLocation();
   useEffect(() => {
     const id = hash.replace("#", "");
@@ -118,8 +129,11 @@ export function CatalogPage() {
       </header>
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
+        <CatalogFavoritesFilter lang={lang} active={favoritesOnly} onChange={setFavoritesOnly} />
+        {favoritesOnly && !sections.length && <CatalogFavoritesEmpty lang={lang} />}
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
+            <CatalogSectionTitle name={section.name} color={section.color} />
             {section.subs.map((sub) => (
               <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
                 <h3 className="catalog-sub-title">{sub.name}</h3>

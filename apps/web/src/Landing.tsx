@@ -1,3 +1,4 @@
+import { FavoriteBookButton, CatalogFavoritesFilter, CatalogFavoritesEmpty, useCatalogFavorites } from "./catalogFavorites";
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
@@ -135,6 +136,24 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
     page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
     photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
+  },
+  {
+    name: "Matteo, Força No Motor, Gigante O Trator",
+    cover: heroAsset("capa-matteo-trator.jpg", "capa-matteo-trator-en.jpg", "capa-matteo-trator-es.jpg"),
+    page: heroAsset("pagina-matteo-trator.jpg", "pagina-matteo-trator-en.jpg", "pagina-matteo-trator-es.jpg"),
+    photo: heroAsset("foto-matteo-trator.jpg", "foto-matteo-trator-en.jpg", "foto-matteo-trator-es.jpg"),
+  },
+  {
+    name: "Feliz 90 Anos, Nonna",
+    cover: heroAsset("capa-nonna-90-anos.png", "capa-nonna-90-anos-en.png", "capa-nonna-90-anos-es.png"),
+    page: heroAsset("pagina-nonna-90-anos.jpg", "pagina-nonna-90-anos-en.jpg", "pagina-nonna-90-anos-es.jpg"),
+    photo: heroAsset("foto-nonna-90-anos.jpg", "foto-nonna-90-anos-en.jpg", "foto-nonna-90-anos-es.jpg"),
+  },
+  {
+    name: "Maria E Os Segredos Do Fundo Do Mar",
+    cover: heroAsset("capa-maria-fundo-do-mar.png", "capa-maria-fundo-do-mar-en.png", "capa-maria-fundo-do-mar-es.png"),
+    page: heroAsset("pagina-maria-fundo-do-mar.jpg", "pagina-maria-fundo-do-mar-en.jpg", "pagina-maria-fundo-do-mar-es.jpg"),
+    photo: heroAsset("foto-maria-fundo-do-mar.jpg", "foto-maria-fundo-do-mar-en.jpg", "foto-maria-fundo-do-mar-es.jpg"),
   },
 ];
 /** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
@@ -549,7 +568,24 @@ const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48, 50]);
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
 const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56, 57, 58]);
-/** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
+/** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
+const HOME_CATALOG_ORDER = [
+  25, 26, 27,
+  21, 30, 22,
+  20, 38, 47,
+  0, 36, 53,
+  28, 34, 57,
+  11, 12, 23,
+  29, 46, 31,
+  39, 40, 37,
+  43, 49, 55,
+  6, 44, 5,
+  8, 7, 19,
+  54, 56, 52,
+  24, 41, 42,
+  51, 35, 9,
+  45, 58,
+];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
@@ -568,10 +604,32 @@ const VIDEO_SRCS: (string | null)[] = [
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
-  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "recem_nascidos", "casamento", "pets"],
+  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "recem_nascidos", "casamento", "pets", "tio_tia"],
   ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love", "easter"],
-  educativo: ["animais_sons", "higiene_desfralde", "biblico", "economia"],
+  educativo: ["animais_sons", "higiene_desfralde", "biblico", "economia", "cores", "literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"],
 };
+/** Relações editoriais adicionais; o tema de personalização do livro permanece intacto. */
+const RELATED_CATALOG_THEMES: Record<number, readonly string[]> = {
+  1: ["sport"],
+  5: ["family_love"], 6: ["family_love"],
+  8: ["family_love"], 9: ["family_love", "grandparents_love", "grandfather_love"],
+  11: ["animais_sons"], 12: ["animais_sons"],
+  14: ["adventure", "family_love"], 19: ["tio_tia"],
+  21: ["family_love"], 23: ["animais_sons"],
+  28: ["animais_sons", "pets"], 29: ["tio_tia"], 30: ["family_love"],
+  33: ["pets"], 34: ["adventure"],
+  37: ["family_love", "grandfather_love"], 38: ["family_love"],
+  39: ["tio_tia"], 40: ["tio_tia"], 42: ["consciencia_corporal"],
+  44: ["family_love", "biblico"], 45: ["family_love"],
+  46: ["family_love"], 51: ["grandparents_love", "family_love"],
+  52: ["family_love"], 53: ["sport"], 54: ["family_love"],
+  56: ["family_love"],
+};
+function belongsToCatalogTheme(index: number, theme: string): boolean {
+  // Ballet faz parte de esportes e movimento, sem mudar o link de personalização.
+  if (index === 1 || index === 53) return theme === "sport";
+  return CATALOG_THEMES[index] === theme || Boolean(RELATED_CATALOG_THEMES[index]?.includes(theme));
+}
 const NAV_CAT_META = [
   {
     id: "aventuras",
@@ -679,7 +737,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dia_do_idoso: [8, 30, 37, 46, 51, 52],
   family_love: [7, 29, 39, 40, 42],
   recem_nascidos: [42],
-  pets: [11, 12, 23],
+  pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29, 39, 40],
@@ -2313,6 +2371,7 @@ export function CatalogBookCard({
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
+        {book.catalogI != null && <FavoriteBookButton index={book.catalogI} title={book.t} lang={lang} />}
         <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={flipLabels} />
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
@@ -2333,6 +2392,7 @@ export function CatalogBookCard({
   }
   return (
     <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
+      {book.catalogI != null && <FavoriteBookButton index={book.catalogI} title={book.t} lang={lang} />}
       <div className="cat-display">
         <div className="cat-book" data-size={size}>
           <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
@@ -2444,16 +2504,14 @@ export function catalogSections(lang: Lang): CatalogSection[] {
   const sections: CatalogSection[] = NAV_CAT_META.map((meta, i) => {
     const catCopy = names[i];
     const sectionThemes = CATALOG_SECTION_THEMES[meta.id] ?? [];
-    const placed = new Set<number>();
     const subs = meta.subs.flatMap((subMeta, j) => {
       const theme = themeFromHref(subMeta.href);
       if (!theme || !sectionThemes.includes(theme)) return [];
       const books = sortCatalogBooks(
-        CATALOG_THEMES.flatMap((bookTheme, index) => {
-          if (bookTheme !== theme || placed.has(index) || isCartoonOnlyCover(index)) return [];
+        CATALOG_THEMES.flatMap((_bookTheme, index) => {
+          if (!belongsToCatalogTheme(index, theme) || isCartoonOnlyCover(index)) return [];
           const card = toCatalogCard(lang, index);
           if (!card) return [];
-          placed.add(index);
           return [card];
         }),
       );
@@ -2464,12 +2522,25 @@ export function catalogSections(lang: Lang): CatalogSection[] {
         books,
       }];
     });
+    if (meta.id === "voce-e-eu") {
+      const books = sortCatalogBooks([19, 29, 39, 40].flatMap((index) => {
+        const card = toCatalogCard(lang, index);
+        return card ? [card] : [];
+      }));
+      const cousin = toCatalogCard(lang, 22);
+      if (cousin) subs.push({ id: "irmaos_primos", name: catCopy?.subs[5] ?? "Irmãos e Primos", books: [cousin] });
+      if (books.length) subs.push({ id: "tio_tia", name: lang === "en" ? "Aunts and Uncles" : lang === "es" ? "Tíos y Tías" : "Tios e Tias", books });
+    }
+    if (meta.id === "educativo") {
+      const card = toCatalogCard(lang, 3);
+      if (card) subs.push({ id: "alfabetizacao_inicial", name: lang === "en" ? "Alphabet" : lang === "es" ? "Alfabeto" : "Alfabetização", books: [card] });
+    }
     return {
       id: meta.id,
       name: catCopy?.name ?? meta.id,
       color: meta.color,
       subs,
-      books: subs.flatMap((sub) => sub.books),
+      books: [...new Map(subs.flatMap((sub) => sub.books).map((book) => [book.catalogI, book])).values()],
     };
   });
   const testCard = toCatalogCard(lang, 58);
@@ -2554,6 +2625,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     if (shots.some((src) => !src)) return [];
     return [{ name: entry.name, shots }];
   });
+  const favorites = useCatalogFavorites();
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
@@ -2561,8 +2634,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, lang))))
         .sort((a, b) => {
           const rank = (i: number) => {
-            const lead = CATALOG_LEAD.indexOf(i);
-            return lead === -1 ? CATALOG_LEAD.length + i : lead;
+            const order = variant === "cartoon" ? CATALOG_LEAD : HOME_CATALOG_ORDER;
+            const lead = order.indexOf(i);
+            return lead === -1 ? order.length + i : lead;
           };
           return rank(a.i) - rank(b.i);
         })
@@ -3321,8 +3395,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
+        <CatalogFavoritesFilter lang={lang} active={favoritesOnly} onChange={setFavoritesOnly} />
+        {favoritesOnly && !catalogBooks.some((book) => favorites.includes(book.catalogI)) && <CatalogFavoritesEmpty lang={lang} />}
         <div className="cat-grid">
-          {catalogBooks.map((c) => (
+          {catalogBooks.filter((book) => !favoritesOnly || favorites.includes(book.catalogI)).map((c) => (
             <CatalogBookCard
               key={c.t}
               book={c}
