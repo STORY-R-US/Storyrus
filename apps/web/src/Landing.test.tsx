@@ -223,7 +223,8 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-pedro-amem-se.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("cartoon-capa-pedro-amem-se"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(44);
+    expect(srcs.some((src) => src.includes("capa-matteo-aniversario.png"))).toBe(true);
+    expect(imgs).toHaveLength(45);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(false);
   });
@@ -248,8 +249,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(44);
-    expect(cards).toHaveLength(44);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(45);
+    expect(cards).toHaveLength(45);
     const testBook = cards.find((card) => card.textContent?.includes("Livro Teste"));
     expect(testBook).toBeTruthy();
     expect(testBook?.textContent).toContain("R$ 0,50");
@@ -418,7 +419,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(44);
+    expect(personalize).toHaveLength(45);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
@@ -895,6 +896,13 @@ describe("Landing — CTAs e links", () => {
     const occasionFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
     expect(occasionFeats).toHaveLength(4);
     expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /aniversário especial de ester/i })).not.toBeInTheDocument();
+    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /^aniversário$/i }));
+    const birthdayLinks = within(feats).getAllByRole("link").map((link) => link.textContent ?? "");
+    expect(birthdayLinks.some((label) => /feliz aniversário, grace/i.test(label))).toBe(true);
+    expect(birthdayLinks.some((label) => /feliz aniversário, matteo(?!!)/i.test(label))).toBe(true);
+    expect(birthdayLinks.some((label) => /feliz 90 anos, nonna/i.test(label))).toBe(true);
+    expect(birthdayLinks.some((label) => /feliz aniversário, matteo!/i.test(label))).toBe(true);
+    expect(birthdayLinks.some((label) => /ester/i.test(label))).toBe(false);
     const educativo = panel.querySelectorAll(".kcat-group")[3] as HTMLElement;
     fireEvent.mouseEnter(educativo);
     const eduFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
@@ -1055,6 +1063,10 @@ describe("Catálogo e página do livro", () => {
     expect(within(ocasioes).getByRole("heading", { name: /o amor de mãe/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /amor de bisavó/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /meu pai, meu herói/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /^aniversário$/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /^feliz aniversário, matteo$/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /feliz aniversário, matteo!/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /feliz aniversário, grace/i })).toBeInTheDocument();
   });
 
   it("abre a categoria ocasiões especiais com os livros das datas", async () => {
@@ -1072,6 +1084,11 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getAllByRole("heading", { name: /nicolas, meu primeiro amor/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("heading", { name: /raquel e papai/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("heading", { name: /amor de bisavó/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: /^aniversário$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^feliz aniversário, matteo$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /feliz aniversário, matteo!/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /feliz aniversário, grace/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: /feliz 90 anos, nonna/i }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("heading", { name: /o aniversário especial de ester/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /nano e suas aventuras/i })).not.toBeInTheDocument();
   });
@@ -1166,6 +1183,8 @@ describe("Classificação editorial do catálogo", () => {
       expect(shelf("voce-e-eu", "family_love")).toContain(9);
       expect(shelf("voce-e-eu", "pets")).toContain(28);
       expect(shelf("ocasioes", "christmas")).toContain(9);
+      expect(shelf("ocasioes", "birthday")).toEqual(expect.arrayContaining([41, 50, 51, 55]));
+      expect(shelf("ocasioes", "birthday")).not.toContain(13);
       if (catalogEntry(lang, 3)) expect(shelf("educativo", "alfabetizacao_inicial")).toContain(3);
       const all = new Set(sections.flatMap((s) => s.books.map((b) => b.catalogI)));
       for (let index = 0; index <= 58; index++) {

@@ -563,11 +563,11 @@ const CATALOG_THEMES = [
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48, 50]);
+const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56, 57, 58]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58]);
 /** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   25, 26, 27,
@@ -583,10 +583,10 @@ const HOME_CATALOG_ORDER = [
   8, 7, 19,
   54, 56, 52,
   24, 41, 42,
-  51, 35, 9,
-  45, 58,
+  51, 50, 35,
+  9, 45, 58,
 ];
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 52, 53, 54, 55, 56, 57, 58];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 50, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -742,7 +742,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29, 39, 40],
   christmas: [9, 45],
-  birthday: [41, 51],
+  birthday: [41, 50, 51, 55],
   easter: [31],
   animais_sons: [34],
   economia: [35],
