@@ -26,10 +26,39 @@ function useSiteLang() {
   return [lang, setLang] as const;
 }
 
-function CatalogBannerNav({ lang }: { lang: Lang }) {
+function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
+  if (theme === "dark") {
+    return (
+      <svg className="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+        <circle cx="12" cy="12" r="4.2" />
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <path d="M20 15A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 11z" />
+    </svg>
+  );
+}
+
+function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang) => void }) {
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    try {
+      const stored = localStorage.getItem("theme");
+      if (stored === "light" || stored === "dark") return stored;
+    } catch { /* ignore */ }
+    return "dark";
+  });
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("theme", theme); } catch { /* ignore */ }
+  }, [theme]);
   const copy = catalogPageCopy(lang);
-  const sections = catalogSections(lang);
-  const extras = [
+  const closeMenu = () => setMenuOpen(false);
+  const links = [
+    { href: "/catalogo", label: copy.cats, color: "#9b8cff" },
     { href: "/#como", label: copy.hiw, color: "#7aa2ff" },
     { href: "/#passo", label: copy.passo, color: "#f08a4b" },
     { href: "/cartoon", label: copy.cartoon, color: "#3ecf8e" },
@@ -37,20 +66,44 @@ function CatalogBannerNav({ lang }: { lang: Lang }) {
     { href: "/#reviews", label: copy.reviews, color: "#f4b740" },
   ];
   return (
-    <nav className="catalog-banner-nav" aria-label={copy.cats}>
-      {sections.map((section) => (
-        <Link key={section.id} to={`/catalogo#${section.id}`} className="kcat-btn">
-          <span className="kcat-dot" style={{ background: section.color, boxShadow: `0 0 10px ${section.color}` }} />
-          {section.name}
-        </Link>
-      ))}
-      {extras.map((item) => (
-        <a key={item.label} href={item.href} className="kcat-btn">
-          <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
-          {item.label}
-        </a>
-      ))}
-    </nav>
+    <header className="khead">
+      <div className="khead-inner">
+        <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
+        <div className="khead-main">
+          <div className="khead-bar">
+            <div className="khead-bar-inner">
+              <nav className="kcats" aria-label={copy.cats}>
+                {links.map((item) => (
+                  <Link key={item.href} to={item.href} className="kcat-btn" style={{ "--cat": item.color } as CSSProperties} onClick={closeMenu}>
+                    <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+        <div className="khead-actions">
+          <div className="khead-utils">
+            <button className="theme-toggle" type="button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={copy.theme}>
+              <ThemeIcon theme={theme} />
+              <span className="theme-toggle-label">{theme === "dark" ? copy.themeLight : copy.themeDark}</span>
+            </button>
+            <LangSwitch lang={lang} setLang={setLang} />
+            <div className="khead-links">
+              <Link to="/entrar" className="kbtn kbtn-login">{copy.login}</Link>
+              <Link to="/cadastro" className="kbtn kbtn-primary">{copy.signup}</Link>
+            </div>
+          </div>
+          <button className="khamb" type="button" aria-label={copy.menu} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>☰</button>
+        </div>
+        <nav className={`kmobile${menuOpen ? " open" : ""}`} hidden={!menuOpen}>
+          {links.map((item) => (
+            <Link key={item.href} to={item.href} className="kmobile-link" onClick={closeMenu}>{item.label}</Link>
+          ))}
+        </nav>
+      </div>
+    </header>
   );
 }
 
@@ -105,7 +158,7 @@ export function CatalogPage() {
     const scrollToSection = () => {
       const el = document.getElementById(id);
       if (!el) return false;
-      const header = document.querySelector(".catalog-knav");
+      const header = document.querySelector(".khead");
       const offset = header ? header.getBoundingClientRect().height + 12 : 0;
       const top = el.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top });
@@ -122,11 +175,7 @@ export function CatalogPage() {
   }, [sections, hash]);
   return (
     <div className="kid">
-      <header className="knav catalog-knav">
-        <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
-        <LangSwitch lang={lang} setLang={setLang} />
-        <CatalogBannerNav lang={lang} />
-      </header>
+      <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
         <CatalogFavoritesFilter lang={lang} active={favoritesOnly} onChange={setFavoritesOnly} />
@@ -160,11 +209,7 @@ export function CategoryCatalogPage() {
   const copy = catalogPageCopy(lang);
   return (
     <div className="kid">
-      <header className="knav catalog-knav">
-        <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
-        <LangSwitch lang={lang} setLang={setLang} />
-        <CatalogBannerNav lang={lang} />
-      </header>
+      <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection catalog-page" id="catalogo">
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <CatalogSectionTitle name={section.name} color={section.color} as="h1" />
@@ -202,11 +247,7 @@ export function BookPage() {
   const copy = catalogPageCopy(lang);
   return (
     <div className="kid">
-      <header className="knav catalog-knav">
-        <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
-        <LangSwitch lang={lang} setLang={setLang} />
-        <CatalogBannerNav lang={lang} />
-      </header>
+      <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection book-page" id="catalogo">
         <SiteBackNav />
         <div className="book-page-card">

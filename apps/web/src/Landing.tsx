@@ -155,6 +155,24 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     page: heroAsset("pagina-maria-fundo-do-mar.jpg", "pagina-maria-fundo-do-mar-en.jpg", "pagina-maria-fundo-do-mar-es.jpg"),
     photo: heroAsset("foto-maria-fundo-do-mar.jpg", "foto-maria-fundo-do-mar-en.jpg", "foto-maria-fundo-do-mar-es.jpg"),
   },
+  {
+    name: "Nano E Suas Aventuras",
+    cover: heroAsset("capa-nanoaventuras.png", "capa-nanoaventuras-en.png", "capa-nanoaventuras-es.png"),
+    page: heroAsset("pagina-nanoaventuras.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
+    photo: heroAsset("foto-nanoaventuras.jpg", "foto-nanoaventuras-en.jpg", "foto-nanoaventuras-es.jpg"),
+  },
+  {
+    name: "Feliz Natal, Família",
+    cover: heroAsset("capa-feliz-natal-familia.png", "capa-feliz-natal-familia-en.png", "capa-feliz-natal-familia-es.png"),
+    page: heroAsset("pagina-feliz-natal-familia.png", "pagina-feliz-natal-familia-en.png", "pagina-feliz-natal-familia-es.png"),
+    photo: heroAsset("foto-feliz-natal-familia.png", "foto-feliz-natal-familia-en.png", "foto-feliz-natal-familia-es.png"),
+  },
+  {
+    name: "Segredos Do Dinossauro, Enzo",
+    cover: heroAsset("capa-enzo-dinossauro.png", "capa-enzo-dinossauro-en.png", "capa-enzo-dinossauro-es.png"),
+    page: heroAsset("pagina-enzo-dinossauro.png", "pagina-enzo-dinossauro-en.png", "pagina-enzo-dinossauro-es.png"),
+    photo: heroAsset("foto-enzo-dinossauro.png", "foto-enzo-dinossauro-en.png", "foto-enzo-dinossauro-es.png"),
+  },
 ];
 /** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
 const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
@@ -302,6 +320,8 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-vovo-docura.jpg", en: "capa-vovo-docura-en.jpg", es: "capa-vovo-docura-es.jpg" },
   { pt: "capa-matteo-trator.jpg", en: "capa-matteo-trator-en.jpg", es: "capa-matteo-trator-es.jpg" },
   { pt: "capa-livro-teste.jpg", en: "capa-livro-teste-en.jpg", es: "capa-livro-teste-es.jpg" },
+  { pt: "capa-feliz-natal-familia.png", en: "capa-feliz-natal-familia-en.png", es: "capa-feliz-natal-familia-es.png" },
+  { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -477,6 +497,16 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   58: {
     cover: { pt: "capa-livro-teste.jpg", en: "capa-livro-teste-en.jpg", es: "capa-livro-teste-es.jpg" },
   },
+  59: {
+    cover: { pt: "capa-feliz-natal-familia.png", en: "capa-feliz-natal-familia-en.png", es: "capa-feliz-natal-familia-es.png" },
+    page: { pt: "pagina-feliz-natal-familia.png", en: "pagina-feliz-natal-familia-en.png", es: "pagina-feliz-natal-familia-es.png" },
+    photo: { pt: "foto-feliz-natal-familia.png", en: "foto-feliz-natal-familia-en.png", es: "foto-feliz-natal-familia-es.png" },
+  },
+  60: {
+    cover: { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
+    page: { pt: "pagina-enzo-dinossauro.png", en: "pagina-enzo-dinossauro-en.png", es: "pagina-enzo-dinossauro-es.png" },
+    photo: { pt: "foto-enzo-dinossauro.png", en: "foto-enzo-dinossauro-en.png", es: "foto-enzo-dinossauro-es.png" },
+  },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -559,15 +589,17 @@ const CATALOG_THEMES = [
   "grandparents_love",
   "adventure",
   "livro_teste",
+  "christmas",
+  "dinosaurs",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([10, 13, 16, 17, 32, 48]);
+const HIDDEN_BOOK_INDEXES = new Set([13, 16, 17, 32, 48]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]);
 /** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   25, 26, 27,
@@ -585,6 +617,7 @@ const HOME_CATALOG_ORDER = [
   24, 41, 42,
   51, 50, 35,
   9, 45, 58,
+  10, 59, 60,
 ];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 50, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
@@ -611,6 +644,7 @@ const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
 /** Relações editoriais adicionais; o tema de personalização do livro permanece intacto. */
 const RELATED_CATALOG_THEMES: Record<number, readonly string[]> = {
   1: ["sport"],
+  10: ["pets"],
   5: ["family_love"], 6: ["family_love"],
   8: ["family_love"], 9: ["family_love", "grandparents_love", "grandfather_love"],
   11: ["animais_sons"], 12: ["animais_sons"],
@@ -724,7 +758,7 @@ const NAV_CAT_META = [
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
   adventure: [33, 2, 25],
-  dinosaurs: [18],
+  dinosaurs: [18, 60],
   underwater: [43],
   space: [49],
   princess: [53, 1],
@@ -737,11 +771,11 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dia_do_idoso: [8, 30, 37, 46, 51, 52],
   family_love: [7, 29, 39, 40, 42],
   recem_nascidos: [42],
-  pets: [11, 12, 23, 28],
+  pets: [11, 12, 23, 28, 10],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29, 39, 40],
-  christmas: [9, 45],
+  christmas: [9, 45, 59],
   birthday: [41, 50, 51, 55],
   easter: [31],
   animais_sons: [34],
@@ -1351,6 +1385,8 @@ const I18N = {
       { t: "Vovó, Sua Doçura Faz Da Vida Uma Aventura", p: "Ao lado da vovó, cada momento se transforma numa grande aventura, cheia de amor e histórias para guardar.", cover: "Hard", size: "M", tag: "Vovó e eu", quote: "Sua doçura faz da vida uma aventura." },
       { t: "Matteo, Força No Motor, Gigante O Trator", p: "No trator verde, o Matteo escuta o motor, vê a pá levantar a terra e aprende que a segurança vem antes de brincar.", cover: "Hard", size: "M", tag: "Trator", quote: "Força no motor, gigante o trator." },
       { t: "Livro Teste", p: "Livro de prova para conferir um pedido de cinquenta centavos. Não é um presente do catálogo.", cover: "Soft", size: "P", tag: "Teste de pedido", quote: "R$ 0,50." },
+      { t: "Feliz Natal, Família!", p: "Árvore, presentes e o Papai Noel ao lado: a família inteira guarda o Natal numa história só deles.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Feliz Natal, família!" },
+      { t: "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro", p: "Com uma lupa na mão, o Enzo atravessa o tempo ao lado de um triceratops e descobre os segredos dos dinossauros.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Do passado ao futuro, a aventura continua." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1601,6 +1637,8 @@ const I18N = {
       { t: "Grandma, Your Sweetness Turns Life Into An Adventure", p: "By her side, every moment becomes a beautiful adventure, full of love and stories to keep.", cover: "Hard", size: "M", tag: "Grandma and me", quote: "Your sweetness turns life into an adventure." },
       { t: "Matteo, Mighty Motor, Giant Tractor", p: "On the green tractor, Matteo listens to the engine, watches the bucket lift the earth and learns that safety comes before play.", cover: "Hard", size: "M", tag: "Tractor", quote: "Mighty motor, giant tractor!" },
       { t: "Test Book", p: "A trial book for checking a fifty-cent order. It is not a catalog gift.", cover: "Soft", size: "P", tag: "Order test", quote: "R$ 0,50." },
+      { t: "Merry Christmas, Family!", p: "The tree, the presents and Santa beside them: the whole family keeps Christmas in a story all their own.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Merry Christmas, family!" },
+      { t: "Dinosaur Secrets, Enzo, From Past To Future", p: "Magnifying glass in hand, Enzo travels through time beside a triceratops and discovers the secrets of the dinosaurs.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "From the past to the future, the adventure goes on." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1851,6 +1889,8 @@ const I18N = {
       { t: "Abuela, Tu Dulzura Convierte La Vida En Una Aventura", p: "A su lado, cada momento se convierte en una gran aventura, llena de amor e historias para guardar.", cover: "Hard", size: "M", tag: "Abuela y yo", quote: "Tu dulzura convierte la vida en una aventura." },
       { t: "Matteo, Motor Potente, Tractor Gigante", p: "En el tractor verde, Matteo escucha el motor, ve la pala levantar la tierra y aprende que la seguridad viene antes de jugar.", cover: "Hard", size: "M", tag: "Tractor", quote: "Motor potente, tractor gigante." },
       { t: "Libro De Prueba", p: "Libro de prueba para revisar un pedido de cincuenta centavos. No es un regalo del catálogo.", cover: "Soft", size: "P", tag: "Prueba de pedido", quote: "R$ 0,50." },
+      { t: "¡Feliz Navidad, Familia!", p: "El árbol, los regalos y Papá Noel al lado: toda la familia guarda la Navidad en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "¡Feliz Navidad, familia!" },
+      { t: "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro", p: "Con una lupa en la mano, Enzo cruza el tiempo junto a un triceratops y descubre los secretos de los dinosaurios.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Del pasado al futuro, la aventura sigue." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -2444,6 +2484,12 @@ export function catalogPageCopy(lang: Lang) {
     videos: t.videos_link,
     reviews: t.reviews_link,
     cartoon: t.cartoon_link,
+    login: t.cta_login,
+    signup: t.cta_play,
+    menu: t.a11y_menu,
+    theme: t.a11y_theme,
+    themeLight: t.theme_to_light,
+    themeDark: t.theme_to_dark,
   };
 }
 /** Rótulo de subcategoria no catálogo: tira a data do menu ("Natal · 25 de dezembro" → "Natal"). */

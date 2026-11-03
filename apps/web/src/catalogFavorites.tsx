@@ -25,7 +25,7 @@ export function useCatalogFavorites() {
 }
 function HeartIcon({ filled, className }: { filled: boolean; className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <svg className={className} viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
       <path
         d="M12 20.35 10.55 19C5.4 14.36 2 11.28 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.78-3.4 6.86-8.55 11.54L12 20.35z"
         fill={filled ? "currentColor" : "none"}
@@ -45,7 +45,17 @@ export function FavoriteBookButton({ index, title, lang }: { index: number; titl
     try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { return; }
     window.dispatchEvent(new Event(EVENT));
   };
-  return <button type="button" className="catalog-favorite" aria-pressed={selected} aria-label={`${selected ? COPY[lang].remove : COPY[lang].add}: ${title}`} onClick={toggle}><HeartIcon filled={selected} /></button>;
+  return (
+    <button
+      type="button"
+      className="catalog-favorite"
+      aria-pressed={selected}
+      aria-label={`${selected ? COPY[lang].remove : COPY[lang].add}: ${title}`}
+      onClick={toggle}
+    >
+      <HeartIcon filled={selected} />
+    </button>
+  );
 }
 export function CatalogFavoritesFilter({ lang, active, onChange }: { lang: Lang; active: boolean; onChange: (value: boolean) => void }) {
   return <div className="catalog-favorites-filter"><div role="group" aria-label={COPY[lang].filter}>

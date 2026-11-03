@@ -224,9 +224,11 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("cartoon-capa-pedro-amem-se"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-matteo-aniversario.png"))).toBe(true);
-    expect(imgs).toHaveLength(45);
+    expect(imgs).toHaveLength(48);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
-    expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(false);
+    expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-feliz-natal-familia.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-enzo-dinossauro.png"))).toBe(true);
   });
 
   it("mostra os livros realistas com a mesma capa, o valor e sem o resumo", async () => {
@@ -249,14 +251,16 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(45);
-    expect(cards).toHaveLength(45);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(48);
+    expect(cards).toHaveLength(48);
     const testBook = cards.find((card) => card.textContent?.includes("Livro Teste"));
     expect(testBook).toBeTruthy();
     expect(testBook?.textContent).toContain("R$ 0,50");
     expect(testBook?.textContent).not.toContain("R$ 157,00");
     expect(testBook?.textContent).not.toContain("R$ 177,00");
-    expect(within(catalog).queryByText(/nano e suas aventuras/i)).not.toBeInTheDocument();
+    expect(within(catalog).getByText(/nano e suas aventuras/i)).toBeInTheDocument();
+    expect(within(catalog).getByText(/feliz natal, família/i)).toBeInTheDocument();
+    expect(within(catalog).getByText(/segredos do dinossauro, enzo/i)).toBeInTheDocument();
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
@@ -419,7 +423,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(45);
+    expect(personalize).toHaveLength(48);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
@@ -551,7 +555,7 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining("capa-amordebisavo.jpg"));
     expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("src", expect.stringContaining("pagina-amordebisavo.jpg"));
     expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-amordebisavo.jpg"));
-    expect(screen.queryByRole("button", { name: "Nano" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Nano E Suas Aventuras" }).length).toBeGreaterThan(0);
 
     const track = cover.closest(".hero-carousel-track") as HTMLElement;
     expect(track.querySelector(".hero-slide, .hero-slide-frame")).toBeNull();
@@ -575,6 +579,9 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(heroSrcs.some((src) => src.includes("capa-matteo-trator.jpg"))).toBe(true);
     expect(heroSrcs.some((src) => src.includes("capa-nonna-90-anos.png"))).toBe(true);
     expect(heroSrcs.some((src) => src.includes("capa-maria-fundo-do-mar.png"))).toBe(true);
+    expect(heroSrcs.some((src) => src.includes("capa-nanoaventuras.png"))).toBe(true);
+    expect(heroSrcs.some((src) => src.includes("capa-feliz-natal-familia.png"))).toBe(true);
+    expect(heroSrcs.some((src) => src.includes("capa-enzo-dinossauro.png"))).toBe(true);
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("button", { name: /próxima página/i }));
@@ -620,6 +627,9 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(heroImgs.some((src) => src.includes("capa-matteo-trator-es.jpg"))).toBe(true);
     expect(heroImgs.some((src) => src.includes("capa-nonna-90-anos-es.png"))).toBe(true);
     expect(heroImgs.some((src) => src.includes("capa-maria-fundo-do-mar-es.png"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes("capa-nanoaventuras-es.png"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes("capa-feliz-natal-familia-es.png"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes("capa-enzo-dinossauro-es.png"))).toBe(true);
 
     expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-amordebisavo-es.jpg"));
     expect(carousel).toHaveAttribute("aria-label", expect.stringMatching(/carrusel de libros/i));
@@ -1035,7 +1045,9 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
     expect(screen.getByRole("link", { name: /avaliações/i })).toHaveAttribute("href", "/#reviews");
     expect(screen.getByRole("link", { name: /livros cartoon/i })).toHaveAttribute("href", "/cartoon");
-    expect(screen.getByRole("link", { name: /^temáticas$/i })).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(screen.getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
+    expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
+    expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
     expect(screen.getByRole("heading", { name: /^temáticas$/i })).toBeInTheDocument();
     expect(document.getElementById("educativo")).toBeTruthy();
     expect(document.getElementById("ocasioes")).toBeTruthy();
@@ -1142,7 +1154,8 @@ describe("Catálogo e página do livro", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole("heading", { name: /^temáticas$/i }, { timeout: 15000 })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /nano e suas aventuras/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /nano e suas aventuras/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /segredos do dinossauro, enzo/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /emilia e os primeiros passos da bailarina/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /meu pai, meu herói/i })).not.toBeInTheDocument();
     expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
@@ -1181,13 +1194,14 @@ describe("Classificação editorial do catálogo", () => {
       expect(shelf("aventuras", "princess")).not.toContain(53);
       expect(shelf("voce-e-eu", "tio_tia")).toEqual(expect.arrayContaining([19, 29, 39, 40].filter((index) => catalogEntry(lang, index))));
       expect(shelf("voce-e-eu", "family_love")).toContain(9);
-      expect(shelf("voce-e-eu", "pets")).toContain(28);
-      expect(shelf("ocasioes", "christmas")).toContain(9);
+      expect(shelf("voce-e-eu", "pets")).toEqual(expect.arrayContaining([10, 28]));
+      expect(shelf("aventuras", "dinosaurs")).toContain(60);
+      expect(shelf("ocasioes", "christmas")).toEqual(expect.arrayContaining([9, 59]));
       expect(shelf("ocasioes", "birthday")).toEqual(expect.arrayContaining([41, 50, 51, 55]));
       expect(shelf("ocasioes", "birthday")).not.toContain(13);
       if (catalogEntry(lang, 3)) expect(shelf("educativo", "alfabetizacao_inicial")).toContain(3);
       const all = new Set(sections.flatMap((s) => s.books.map((b) => b.catalogI)));
-      for (let index = 0; index <= 58; index++) {
+      for (let index = 0; index <= 60; index++) {
         if (catalogEntry(lang, index) && index !== 33) expect(all.has(index), `livro ${index}`).toBe(true);
       }
       for (const section of sections) {

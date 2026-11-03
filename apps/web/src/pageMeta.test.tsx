@@ -38,12 +38,12 @@ describe("catálogo no sitemap", () => {
   const books = parsePtCatalog(source);
 
   it("acompanha as fichas públicas de livro", () => {
-    expect(catalogEntry("pt", 10)).toBeNull();
+    expect(catalogEntry("pt", 10)?.t).toBe("Nano E Suas Aventuras");
     expect(catalogEntry("pt", 13)).toBeNull();
     expect(catalogEntry("pt", 16)).toBeNull();
     expect(catalogEntry("pt", 17)).toBeNull();
     expect(catalogEntry("pt", 32)).toBeNull();
-    expect(books.some((book) => book.index === 10 || book.title === "Nano E Suas Aventuras")).toBe(false);
+    expect(books.some((book) => book.index === 10 && book.title === "Nano E Suas Aventuras")).toBe(true);
     expect(books.some((book) => book.index === 13)).toBe(false);
     expect(books.some((book) => book.index === 16 || book.title === "Abigail Em Uma Aventura Pelo Espaço")).toBe(false);
     expect(books.some((book) => book.index === 17 || book.title === "Miriam E Os Segredos Do Fundo Do Mar")).toBe(false);
@@ -69,7 +69,7 @@ describe("catálogo no sitemap", () => {
     expect(xml).toContain("https://storyrus.ai/livro/20");
     expect(xml).toContain("https://storyrus.ai/privacidade");
     expect(xml).toContain("https://storyrus.ai/exemplos");
-    expect(xml).not.toContain("https://storyrus.ai/livro/10");
+    expect(xml).toContain("https://storyrus.ai/livro/10");
     expect(xml).not.toContain("https://storyrus.ai/livro/13");
     expect(xml).not.toContain("https://storyrus.ai/livro/16");
     expect(xml).not.toContain("https://storyrus.ai/livro/17");
