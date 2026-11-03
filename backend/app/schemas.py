@@ -341,6 +341,10 @@ class StoryRequestIn(BaseModel):
     page: int | None = Field(default=None, ge=1, le=16)
 
 
+class StoryPageUndoIn(BaseModel):
+    page: int = Field(ge=1, le=16)
+
+
 class PreviewRequestIn(BaseModel):
     image: Literal["01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"] | None = None
     language: Literal["pt-BR", "en", "es"] | None = None

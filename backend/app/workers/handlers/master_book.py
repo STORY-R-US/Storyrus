@@ -454,6 +454,11 @@ async def _correct_story_page(db, job, project, page_no: int, adjustment: str) -
 async def _correct_story_languages(
     db, job, project, page_no: int, adjustment: str, stories: dict
 ) -> None:
+    revisions = {
+        language: dict(pages)
+        for language, pages in ((project.book_profile or {}).get("page_revisions") or {}).items()
+        if isinstance(pages, dict)
+    }
     for language in project.book_profile["languages"]:
         title = project.book_profile["locales"][language]["title"]
         existing = ((project.book_profile or {}).get("stories") or {}).get(language) or ""
@@ -487,6 +492,9 @@ async def _correct_story_languages(
             raise ProviderError(
                 "A IA não devolveu o texto da página. Tente novamente.", transient=True
             )
+        saved = dict(revisions.get(language) or {})
+        saved.setdefault(str(page_no), current[page_no - 1])
+        revisions[language] = saved
         current[page_no - 1] = replacement
         if project.dedication and page_no == 2:
             current[1] = project.dedication
@@ -494,7 +502,7 @@ async def _correct_story_languages(
             f"Página {i}:\n{verse}" for i, verse in enumerate(current, 1)
         )
     project.story_text = stories[project.language]
-    contract.update(project, stage="story_ready", stories=stories)
+    contract.update(project, stage="story_ready", stories=stories, page_revisions=revisions)
     _set_status(db, project, ProjectStatus.STORY_READY)
 
 
@@ -558,7 +566,7 @@ async def story(db, job, project):
             f"Página {i}:\n{verse}" for i, verse in enumerate(pages, 1)
         )
     project.story_text = stories[project.language]
-    contract.update(project, stage="story_ready", stories=stories)
+    contract.update(project, stage="story_ready", stories=stories, page_revisions={})
     _set_status(db, project, ProjectStatus.STORY_READY)
 
 

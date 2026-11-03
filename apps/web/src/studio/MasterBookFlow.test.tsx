@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -179,6 +180,43 @@ describe("Studio approval stages", () => {
     }));
   });
 
+  it("marca a página alterada e desfaz a alteração", async () => {
+    const ready = {
+      ...project,
+      story_text: "Título: Lia e as estrelas\n\nPágina 1:\nLia acendeu estrelas.",
+      book_profile: {
+        ...project.book_profile!,
+        stage: "story_ready",
+        stories: { "pt-BR": "Título: Lia e as estrelas\n\nPágina 1:\nLia acendeu estrelas." },
+        page_revisions: { "pt-BR": { "1": "Lia olhou o céu." } },
+      },
+    };
+    const undo = vi.spyOn(api, "undoStoryPage").mockResolvedValue(ready);
+    const cleared = {
+      ...ready,
+      book_profile: { ...ready.book_profile, page_revisions: {} },
+    };
+    vi.spyOn(api, "getProject").mockResolvedValue(cleared);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    function Harness() {
+      const [current, setCurrent] = useState(ready);
+      return (
+        <MasterBookFlow
+          project={current}
+          assets={assets}
+          jobs={[]}
+          setProject={setCurrent}
+          setJobs={vi.fn()}
+        />
+      );
+    }
+    render(<Harness />);
+    expect(screen.getByText("Página alterada")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Desfazer alteração" }));
+    await waitFor(() => expect(undo).toHaveBeenCalledWith("master", 1));
+    await waitFor(() => expect(screen.queryByText("Página alterada")).not.toBeInTheDocument());
+  });
+
   it("pede a aprovação da história antes da cotação", async () => {
     const ready = {
       ...project,
@@ -212,12 +250,13 @@ describe("Studio approval stages", () => {
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     render(<MasterBookFlow project={approved} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     expect(story).not.toHaveBeenCalled();
+    expect(screen.getByTestId("studio-story-review")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Revisão" })).toBeInTheDocument();
+    expect(screen.getByText("Lia e as estrelas")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ir para o pedido" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("studio-child-profile")).not.toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Resumo do pedido" })).not.toBeInTheDocument();
     const labels = screen.getAllByRole("figure").map((el) => el.textContent);
-    const jump = screen.getByRole("button", { name: "Ir para o pedido" });
-    const scroll = vi.fn();
-    document.getElementById("pedido")!.scrollIntoView = scroll;
-    await userEvent.click(jump);
-    expect(scroll).toHaveBeenCalled();
     expect(labels[0]).toContain("Capa");
     expect(labels[1]).toContain("Livro Aberto");
     expect(labels[2]).toContain("Leitura");

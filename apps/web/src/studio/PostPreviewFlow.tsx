@@ -87,6 +87,8 @@ export function PostPreviewFlow({
     onProject(await api.getProject(project.id));
     onJobs(await api.listJobs(project.id));
   }
+  const compactReview =
+    project.book_profile?.stage === "story_approved" && !flow?.preview_approved_at;
   return (
     <section
       className="purchase-flow"
@@ -94,6 +96,7 @@ export function PostPreviewFlow({
       aria-labelledby="purchase-heading"
       data-testid="purchase-flow"
     >
+      {!compactReview && (
       <ol className="purchase-steps" aria-label={t.summary}>
         {t.steps.map((label, i) => (
           <li
@@ -106,10 +109,11 @@ export function PostPreviewFlow({
           </li>
         ))}
       </ol>
+      )}
       {!approved ? (
         <>
-          <StudioStageHeading id="purchase-heading" title={t.next} illustration={2}>
-            <p>{t.intro}</p>
+          <StudioStageHeading id="purchase-heading" title={compactReview ? t.reviewNext : t.next} illustration={2}>
+            {!compactReview && <p>{t.intro}</p>}
           </StudioStageHeading>
           {dirty && <p role="status">{t.unsaved}</p>}
           <div className="studio-actions">

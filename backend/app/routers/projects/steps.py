@@ -32,6 +32,7 @@ from app.schemas import (
     PreviewRequestIn,
     ProjectOut,
     StoryExtractOut,
+    StoryPageUndoIn,
     StoryRequestIn,
     StoryTemplateApplyIn,
     StoryTextIn,
@@ -142,6 +143,21 @@ def start_story(
         payload=payload,
     )
     return accept_job(job)
+
+
+@router.post("/{project_id}/story/page-undo", response_model=ProjectOut)
+def undo_story_page(
+    project_id: uuid.UUID,
+    body: StoryPageUndoIn,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    """Restaura o texto anterior de uma página, sem gerar a história de novo."""
+    project = get_owned_project(db, user, project_id)
+    book_profile.undo_page_change(project, body.page)
+    db.commit()
+    db.refresh(project)
+    return project
 
 
 @router.post("/{project_id}/preview", response_model=JobAcceptedOut, status_code=202)

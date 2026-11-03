@@ -746,7 +746,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const previewHeadline = project?.book_profile?.credits_fallback ? t.previewRetry : previewReady && !showPreviewLoading && !showPreviewRetry
     ? project?.purchase_flow?.full_book_ready_at
       ? (project.book_approved_at ? purchaseCopy(lang).approved : purchaseCopy(lang).full)
-      : project?.purchase_flow?.stage === "generating_book" ? purchaseCopy(lang).generating : t.previewReadyTitle
+      : project?.purchase_flow?.stage === "generating_book" ? purchaseCopy(lang).generating
+      : project?.book_profile?.stage === "story_approved" && !project?.purchase_flow?.preview_approved_at
+        ? t.storyReviewTitle
+        : t.previewReadyTitle
     : t.orderSent;
 
   const [previewWaitedSec, setPreviewWaitedSec] = useState(0);

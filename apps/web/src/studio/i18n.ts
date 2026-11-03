@@ -122,6 +122,7 @@ export type StudioCopy = {
   previewEta: (min: number, max: number) => string;
   previewReadyCue: string;
   previewReadyTitle: string;
+  storyReviewTitle: string;
   previewStepCharacter: string;
   previewStepCharacterHint: string;
   previewStepStory: string;
@@ -490,6 +491,7 @@ const pt: StudioCopy = {
       : `Previsão: cerca de ${min} a ${max} minutos.`,
   previewReadyCue: "Ficou pronto quando o título mudar para Prévia Pronta e a história e as imagens aparecerem aqui.",
   previewReadyTitle: "Prévia Pronta",
+  storyReviewTitle: "Revisão",
   previewStepCharacter: "Personagem",
   previewStepCharacterHint: "A foto vira o personagem ilustrado.",
   previewStepStory: "História",
@@ -766,6 +768,7 @@ const en: StudioCopy = {
       : `Estimate: about ${min} to ${max} minutes.`,
   previewReadyCue: "It's ready when the title changes to Preview Ready and the story and images show up here.",
   previewReadyTitle: "Preview Ready",
+  storyReviewTitle: "Review",
   previewStepCharacter: "Character",
   previewStepCharacterHint: "The photo becomes the illustrated character.",
   previewStepStory: "Story",
@@ -1042,6 +1045,7 @@ const es: StudioCopy = {
       : `Previsión: unos ${min} a ${max} minutos.`,
   previewReadyCue: "Está lista cuando el título cambie a Vista Previa Lista y aparezcan aquí la historia y las imágenes.",
   previewReadyTitle: "Vista Previa Lista",
+  storyReviewTitle: "Revisión",
   previewStepCharacter: "Personaje",
   previewStepCharacterHint: "La foto se convierte en el personaje ilustrado.",
   previewStepStory: "Historia",

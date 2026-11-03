@@ -420,6 +420,7 @@ async def test_page_correction_keeps_the_story_while_ai_is_paused(studio, monkey
     assert "pausada" in (job.error or "")
     assert project.story_text == original
     assert "Verso 3." in project.book_profile["stories"]["pt-BR"]
+    assert not project.book_profile.get("page_revisions")
     assert project.status == "STORY_READY"
 
 
@@ -461,6 +462,33 @@ async def test_page_correction_rewrites_only_the_asked_page(studio, monkeypatch)
     assert "Lia acendeu três estrelas." in text
     assert "Verso 1." in text and "Verso 2." in text and "Verso 4." in text
     assert "Verso 3." not in text
+    assert project.book_profile["page_revisions"]["pt-BR"]["3"] == "Verso 3."
+
+
+def test_undo_restores_the_changed_story_page(studio):
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    changed = _sixteen().replace("Verso 3.", "Lia acendeu três estrelas.")
+    book_profile.update(
+        project,
+        stage="story_ready",
+        locales={"pt-BR": {"title": "Lia"}},
+        stories={"pt-BR": changed},
+        page_revisions={"pt-BR": {"3": "Verso 3."}},
+    )
+    project.story_text = changed
+    db.commit()
+    response = client.post(f"/v1/projects/{pid}/story/page-undo", json={"page": 3})
+    assert response.status_code == 200, response.text
+    db.expire_all()
+    text = project.book_profile["stories"]["pt-BR"]
+    assert "Verso 3." in text
+    assert "Lia acendeu três estrelas." not in text
+    assert "Verso 1." in text and "Verso 4." in text
+    assert not (project.book_profile.get("page_revisions") or {})
+    assert project.story_text == text
+    again = client.post(f"/v1/projects/{pid}/story/page-undo", json={"page": 3})
+    assert again.status_code == 409
 
 
 @pytest.mark.asyncio

@@ -4,6 +4,7 @@ const pt = {
   next: "Revise Sua Prévia E Continue Seu Pedido",
   intro:
     "Gostou do resultado? Aprove a prévia para conferir seu livro e a cotação.",
+  reviewNext: "Tudo certo?",
   approve: "Gostei, continuar com meu livro",
   adjust: "Quero ajustar",
   unsaved: "Envie suas alterações e revise a nova prévia antes de continuar.",
@@ -97,6 +98,7 @@ const en: Copy = {
   next: "Review Your Preview And Continue Your Order",
   intro:
     "Happy with the result? Approve the preview to review your book and quotation.",
+  reviewNext: "All set?",
   approve: "I like it, continue with my book",
   adjust: "Request changes",
   unsaved:
@@ -189,6 +191,7 @@ const es: Copy = {
   next: "Revisa Tu Vista Previa Y Continúa Tu Pedido",
   intro:
     "¿Te gustó? Aprueba la vista previa para revisar los detalles y la cotización.",
+  reviewNext: "¿Todo bien?",
   approve: "Me gusta, continuar con mi libro",
   adjust: "Quiero ajustar",
   unsaved:

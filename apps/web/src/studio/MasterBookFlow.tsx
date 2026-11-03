@@ -35,10 +35,12 @@ const COPY = {
     retry: "Tentar novamente",
     writeStory: "Gerar a história",
     edit: "Ajuste da história",
-    editHint: "É para a história em geral. A IA reescreve o conjunto das páginas.",
+    editHint: "É para a história em geral. A mudança vale para todas as páginas.",
     alter: "Alterar",
     alterField: "O que devemos ajustar",
     alterSend: "Ajustar página",
+    pageChanged: "Página alterada",
+    undoPage: "Desfazer alteração",
     summary:
       "Cada página tem a versão sem texto e a versão com texto, nessa ordem. A prévia está no início.",
     continue: "Continuar",
@@ -48,6 +50,12 @@ const COPY = {
     previewNextHeading: "Tudo Certo Com A Prévia?",
     previewNextHint: "Confira as imagens e o título antes de continuar. A história será apresentada para sua revisão na próxima etapa.",
     storyHeading: "A História",
+    reviewHeading: "Revisão",
+    reviewLead: "A história está aprovada. Este é o resumo.",
+    reviewTitle: "Título",
+    reviewChild: "Criança",
+    reviewTheme: "Tema",
+    reviewStory: "Ver a história",
     titleLabel: "Título do livro",
     titleSave: "Atualizar título",
     titleHint: "A capa é refeita com este título. O restante da história fica.",
@@ -110,10 +118,12 @@ const COPY = {
     retry: "Try again",
     writeStory: "Write the story",
     edit: "Story adjustment",
-    editHint: "This is for the story as a whole. AI rewrites the pages together.",
+    editHint: "This is for the story as a whole. The change applies to every page.",
     alter: "Change",
     alterField: "What should we adjust",
     alterSend: "Adjust page",
+    pageChanged: "Page changed",
+    undoPage: "Undo change",
     summary:
       "Each page has a version without text followed by a version with text. The preview is at the start.",
     continue: "Continue",
@@ -123,6 +133,12 @@ const COPY = {
     previewNextHeading: "Happy With The Preview?",
     previewNextHint: "Review the images and title before continuing. The story will be presented for your review in the next step.",
     storyHeading: "The Story",
+    reviewHeading: "Review",
+    reviewLead: "The story is approved. This is the summary.",
+    reviewTitle: "Title",
+    reviewChild: "Child",
+    reviewTheme: "Theme",
+    reviewStory: "See the story",
     titleLabel: "Book title",
     titleSave: "Update title",
     titleHint: "The cover is remade with this title. The rest of the story stays.",
@@ -185,10 +201,12 @@ const COPY = {
     retry: "Intentar de nuevo",
     writeStory: "Escribir la historia",
     edit: "Ajuste de la historia",
-    editHint: "Es para la historia en general. La IA reescribe el conjunto de las páginas.",
+    editHint: "Es para la historia en general. El cambio vale para todas las páginas.",
     alter: "Cambiar",
     alterField: "Qué debemos ajustar",
     alterSend: "Ajustar página",
+    pageChanged: "Página cambiada",
+    undoPage: "Deshacer cambio",
     summary:
       "Cada página tiene la versión sin texto y luego con texto. La vista previa está al inicio.",
     continue: "Continuar",
@@ -198,6 +216,12 @@ const COPY = {
     previewNextHeading: "¿Todo Bien Con La Vista Previa?",
     previewNextHint: "Revisa las imágenes y el título antes de continuar. La historia se presentará para tu revisión en el siguiente paso.",
     storyHeading: "La Historia",
+    reviewHeading: "Revisión",
+    reviewLead: "La historia está aprobada. Este es el resumen.",
+    reviewTitle: "Título",
+    reviewChild: "Protagonista",
+    reviewTheme: "Tema",
+    reviewStory: "Ver la historia",
     titleLabel: "Título del libro",
     titleSave: "Actualizar título",
     titleHint: "La portada se rehace con este título. El resto de la historia queda.",
@@ -385,8 +409,9 @@ export function MasterBookFlow({
   const lastJob = jobs[jobs.length - 1];
   const failed = lastJob?.status === "FAILED" ? lastJob : null;
   const stage = p.stage;
-  const isPreviewReview = ["preview_ready", "story_ready", "story_approved"].includes(stage)
+  const isPreviewReview = ["preview_ready", "story_ready"].includes(stage)
     && !project.purchase_flow?.preview_approved_at;
+  const storyReview = stage === "story_approved" && !project.purchase_flow?.preview_approved_at;
   const previews = [...(assets?.previews ?? [])].sort(
     (a, b) =>
       p.languages.indexOf(a.language) - p.languages.indexOf(b.language) ||
@@ -481,14 +506,26 @@ export function MasterBookFlow({
           <div key={language}>
             {p.languages.length > 1 && <h4 className="master-lang">{language.toUpperCase()}</h4>}
             <div className="master-story-book">
-              {blocks.map((block, index) => (
+              {blocks.map((block, index) => {
+                const page = block.kind === "page" ? Number(block.label.match(/\d+/)?.[0]) : 0;
+                const altered =
+                  page >= 1 && page <= 16 && Boolean(p.page_revisions?.[language]?.[String(page)]);
+                const key = `${language}:${page}`;
+                const note = pageCorrections[key] || "";
+                const open = alteringPage === key;
+                return (
                 <article
                   key={`${language}-${index}`}
-                  className={block.kind === "title" ? "studio-story-page is-title" : "studio-story-page"}
+                  className={[
+                    "studio-story-page",
+                    block.kind === "title" ? "is-title" : "",
+                    altered ? "is-altered" : "",
+                  ].filter(Boolean).join(" ")}
                 >
                   {block.label ? (
                     <header className="studio-story-page-head">
                       <span className="studio-story-page-num">{block.label}</span>
+                      {altered && <span className="studio-story-page-mark">{t.pageChanged}</span>}
                     </header>
                   ) : null}
                   <div className="studio-story-verse">
@@ -496,14 +533,8 @@ export function MasterBookFlow({
                       <p key={`${language}-${index}-${lineIndex}`}>{line}</p>
                     ))}
                   </div>
-                  {stage === "story_ready" && block.kind === "page" && (() => {
-                    const page = Number(block.label.match(/\d+/)?.[0]);
-                    if (!page || page < 1 || page > 16) return null;
-                    const key = `${language}:${page}`;
-                    const note = pageCorrections[key] || "";
-                    const open = alteringPage === key;
-                    return (
-                      <>
+                  {stage === "story_ready" && block.kind === "page" && page >= 1 && page <= 16 && (
+                      <div className="studio-story-actions">
                         <button
                           type="button"
                           className="story-alter-toggle"
@@ -513,6 +544,16 @@ export function MasterBookFlow({
                         >
                           {t.alter}
                         </button>
+                        {altered && (
+                          <button
+                            type="button"
+                            className="story-undo"
+                            disabled={active}
+                            onClick={() => void run(() => api.undoStoryPage(project.id, page))}
+                          >
+                            {t.undoPage}
+                          </button>
+                        )}
                         {open && (
                           <div className="studio-story-alter">
                             <label className="studio-field">
@@ -540,11 +581,11 @@ export function MasterBookFlow({
                             </button>
                           </div>
                         )}
-                      </>
-                    );
-                  })()}
+                      </div>
+                  )}
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -579,6 +620,53 @@ export function MasterBookFlow({
       {error && <p className="studio-error" role="alert">{error}</p>}
       {active && <p className="master-status" role="status">{t.waiting}</p>}
       {!active && failed?.error && <p className="studio-error" role="alert">{failed.error}</p>}
+      {storyReview && (
+        <section className="master-story-review" aria-labelledby="story-review-heading" data-testid="studio-story-review">
+          <h3 id="story-review-heading">{t.reviewHeading}</h3>
+          <p className="master-title-hint">{t.reviewLead}</p>
+          <dl>
+            <div>
+              <dt>{t.reviewTitle}</dt>
+              <dd>{savedTitle || "—"}</dd>
+            </div>
+            {(project.child_name || project.child_age != null) && (
+              <div>
+                <dt>{t.reviewChild}</dt>
+                <dd>
+                  {capitalizeChildName(project.child_name || "")}
+                  {project.child_age != null && project.child_age !== 0 ? ` · ${project.child_age}` : ""}
+                </dd>
+              </div>
+            )}
+            {(project.purchase_flow?.theme_description || project.theme) && (
+              <div>
+                <dt>{t.reviewTheme}</dt>
+                <dd>{project.purchase_flow?.theme_description || project.theme}</dd>
+              </div>
+            )}
+          </dl>
+          {gallery.length > 0 && (
+            <div className="master-review-gallery">
+              {gallery.map((shot) => {
+                const label = shot.role === "01_CAPA" ? t.cover : shot.role === "02_LIVRO_ABERTO" ? t.open : t.reading;
+                return (
+                  <figure key={`${shot.language}-${shot.role}`}>
+                    <img src={shot.url} alt={label} />
+                    <figcaption>{label}</figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+          )}
+          {p.stories && (
+            <details className="master-review-story">
+              <summary>{t.reviewStory}</summary>
+              {storyView}
+            </details>
+          )}
+        </section>
+      )}
+      {!storyReview && (
       <form className="master-child-card" onSubmit={(event) => void saveChild(event)} data-testid="studio-child-profile">
         <h3>{t.childHeading}</h3>
         <p className="master-title-hint">{t.childHint}</p>
@@ -634,7 +722,8 @@ export function MasterBookFlow({
         </label>
         <button type="submit" className="kbtn kbtn-soft" disabled={active}>{t.childSave}</button>
       </form>
-      {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
+      )}
+      {!storyReview && ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
         <button
           type="button"
           className="kbtn kbtn-primary master-order-jump"
@@ -645,7 +734,7 @@ export function MasterBookFlow({
           {t.goToOrder}
         </button>
       )}
-      {gallery.length > 0 && (
+      {!storyReview && gallery.length > 0 && (
         <section className={isPreviewReview ? "master-preview-panel master-preview-images" : undefined}
           aria-labelledby="master-preview-images-heading">
           <div className="master-preview-panel-heading">
@@ -725,7 +814,7 @@ export function MasterBookFlow({
       </div>
         </section>
       )}
-      {canEditTitle && (
+      {!storyReview && canEditTitle && (
         <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
           {isPreviewReview && (
             <div className="master-preview-panel-heading">
@@ -901,7 +990,7 @@ export function MasterBookFlow({
           }}>{t.cancelAdjust}</button>
         </div>
       )}
-      {p.stories && (
+      {!storyReview && p.stories && (
         <div data-testid="studio-master-story">
           {reviewing ? (
             <details>

@@ -639,7 +639,10 @@
 }
 
 .studio-app .studio-story-page-head {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
   width: 100%;
   margin: 0 0 0.75rem;
   text-align: left;
@@ -696,8 +699,32 @@
   margin-bottom: 0;
 }
 
+.studio-app .studio-story-page.is-altered {
+  border-color: rgba(240, 194, 122, 0.72);
+}
+
+.studio-app .studio-story-page-mark {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(240, 194, 122, 0.18);
+  color: #f0c27a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.studio-app .studio-story-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+  margin-top: 0.85rem;
+}
+
 .studio-app .story-alter-toggle {
-  margin: 0.85rem 0 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -705,6 +732,21 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.studio-app .story-undo {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #f0c27a;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.studio-app .studio-story-alter {
+  flex: 1 1 100%;
 }
 
 .studio-app .story-alter-toggle[aria-expanded="true"] {
@@ -746,6 +788,15 @@
 
 [data-theme="light"] .studio-app .studio-story-page-num {
   color: #9a6a22;
+}
+
+[data-theme="light"] .studio-app .studio-story-page-mark,
+[data-theme="light"] .studio-app .story-undo {
+  color: #9a6a22;
+}
+
+[data-theme="light"] .studio-app .studio-story-page.is-altered {
+  border-color: rgba(154, 106, 34, 0.45);
 }
 
 [data-theme="light"] .studio-app .studio-story-verse {
@@ -1073,6 +1124,7 @@
 .studio-order-meta dd { margin: 0; }
 @media (max-width: 720px) {
   .studio-order-meta dl > div { grid-template-columns: 1fr; }
+  .studio-app .master-review-gallery { grid-template-columns: 1fr; }
 }
 .studio-master-flow a {
   color: var(--studio-link, #76baff);
@@ -1115,6 +1167,69 @@
 
 .studio-app .master-child-card .kbtn {
   margin-top: 0.4rem;
+}
+
+.studio-app .master-story-review {
+  margin: 0 0 1.2rem;
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1px solid var(--studio-surface-border);
+  border-radius: 18px;
+  background: var(--studio-surface);
+}
+
+.studio-app .master-story-review h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.studio-app .master-story-review dl {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.9rem 0 0;
+}
+
+.studio-app .master-story-review dt {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.studio-app .master-story-review dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.05rem;
+}
+
+.studio-app .master-review-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.studio-app .master-review-gallery figure {
+  margin: 0;
+}
+
+.studio-app .master-review-gallery img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.studio-app .master-review-gallery figcaption {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.studio-app .master-review-story {
+  margin-top: 0.9rem;
+}
+
+.studio-app .master-review-story summary {
+  cursor: pointer;
+  font-weight: 700;
 }
 
 .studio-app .master-chips {

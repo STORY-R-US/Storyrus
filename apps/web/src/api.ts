@@ -450,6 +450,12 @@ export const api = {
       }),
     });
   },
+  async undoStoryPage(id: string, page: number) {
+    return req<Project>(`/v1/projects/${id}/story/page-undo`, {
+      method: "POST",
+      body: JSON.stringify({ page }),
+    });
+  },
   async updatePreviewTitle(id: string, title: string) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/title`, { method: "PUT", body: JSON.stringify({ title }) });
   },

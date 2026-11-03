@@ -106,6 +106,47 @@ def capitalize_child_name(name: str | None) -> str | None:
     return " ".join(words)
 
 
+_PAGE_MARK = re.compile(r"(?im)^P[aá]gina\s+(\d+)\s*:\s*")
+
+
+def replace_story_page(text: str, page_no: int, verse: str) -> str:
+    """Troca só o verso de uma página e conserva o restante da história."""
+    matches = list(_PAGE_MARK.finditer(text or ""))
+    for index, match in enumerate(matches):
+        if int(match.group(1)) != page_no:
+            continue
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        gap = "\n\n" if end < len(text) else ""
+        return f"{text[: match.end()]}{verse.strip()}{gap}{text[end:]}"
+    raise HTTPException(409, "Esta página não está na história.")
+
+
+def undo_page_change(project, page_no: int) -> None:
+    """Devolve a página ao texto anterior e tira a marca de alteração."""
+    profile = project.book_profile or {}
+    if profile.get("stage") != "story_ready":
+        raise HTTPException(409, "A história precisa estar em revisão para desfazer.")
+    revisions = {
+        language: dict(pages)
+        for language, pages in (profile.get("page_revisions") or {}).items()
+        if isinstance(pages, dict)
+    }
+    key = str(page_no)
+    if not any(key in pages for pages in revisions.values()):
+        raise HTTPException(409, "Esta página não tem alteração para desfazer.")
+    stories = dict(profile.get("stories") or {})
+    for language, pages in revisions.items():
+        if key not in pages:
+            continue
+        previous = str(pages.pop(key) or "").strip()
+        stories[language] = replace_story_page(stories.get(language) or "", page_no, previous)
+    revisions = {language: pages for language, pages in revisions.items() if pages}
+    update(project, stories=stories, page_revisions=revisions)
+    primary = project.language or "pt-BR"
+    if primary in stories:
+        project.story_text = stories[primary]
+
+
 def initial_profile(body) -> dict:
     languages = [
         lang for lang in LANGUAGES if lang in (body.languages or [body.language or "pt-BR"])
