@@ -27,15 +27,15 @@ de ambiente; não versione arquivos `.env` reais nem dados de produção.
 - Não use os serviços de My Workspace nem a API gratuita antiga do STORYRUS
   para publicar versões. Eles são anteriores à migração.
 - Mantenha os proxies de `vercel.json` e `apps/web/vercel.json` iguais.
-- Até nova autorização expressa do usuário, **todas as solicitações** são testes
-  genéricos sem créditos: preserve `SKIP_OPENAI=true` e `OFFLINE_FALLBACK=false`.
-  Não reative IA paga nem ofereça um botão para reativá-la durante essa pausa.
+- Em 03/11/2026 o responsável autorizou a geração de imagens pela OpenAI.
+  Na API de produção, `SKIP_OPENAI=false`. Mantenha `OFFLINE_FALLBACK=false`:
+  se a OpenAI falhar, a geração falha. Não substitua a imagem por um teste genérico
+  e não ofereça um botão para religar a pausa.
 - Erros da IA devem falhar a geração, sem aprovar etapas nem enfileirar conteúdo simulado.
   Pedido, pagamento e livro completo exigem a aprovação explícita da prévia no servidor.
-- A pausa atual é global e inclui novos projetos, ajustes e novas tentativas.
-  Mantenha aviso visível e aprovações manuais; `book_profile.test_mode` também
-  identifica projetos individuais de teste. Quando a IA voltar por autorização,
-  erros de provedor não podem gerar conteúdo de contingência silenciosamente.
+- A geração pela OpenAI está liberada na API de produção. Projetos com
+  `book_profile.test_mode` continuam em teste genérico. Erros de provedor não
+  podem gerar conteúdo de contingência silenciosamente.
 - O `render.yaml` é um modelo de provisionamento anterior à migração, não o
   estado atual a sincronizar. Não o aplique sobre os recursos existentes nem
   substitua DATABASE_URL por uma referência à base lógica antiga da instância.
