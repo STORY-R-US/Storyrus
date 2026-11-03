@@ -25,6 +25,7 @@ import { PostPreviewFlow } from "./studio/PostPreviewFlow";
 import { purchaseCopy } from "./studio/purchaseCopy";
 import { PreviewTrio } from "./studio/PreviewTrio";
 import { MasterBookFlow } from "./studio/MasterBookFlow";
+import { capitalizeChildName } from "./studio/childName";
 import {
   masterPreviewEta,
   masterPreviewSteps,
@@ -258,6 +259,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [dragOver, setDragOver] = useState(false);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
+  const [storyOutfit, setStoryOutfit] = useState("");
+  const [childWay, setChildWay] = useState("");
+  const [childLikes, setChildLikes] = useState("");
   const [bookTitle, setBookTitle] = useState("");
   const [bookLanguages, setBookLanguages] = useState<string[]>([]);
   const [themeText, setThemeText] = useState("");
@@ -347,6 +351,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setThemeText(p.purchase_flow?.theme_description || p.theme || "");
       setStoryDraft(p.story_text || ""); setPhotoNotes(p.purchase_flow?.photo_notes || "");
       setChildName(p.child_name || ""); setChildAge(String(p.child_age ?? ""));
+      setStoryOutfit(p.book_profile?.costume || "");
+      setChildWay(p.child_trait || p.book_profile?.trait || "");
+      setChildLikes(p.child_interest || p.book_profile?.interest || "");
       if (p.book_profile?.gender === "f" || p.book_profile?.gender === "m") setGender(p.book_profile.gender);
       if (p.style === "cartoon") setArtMode("cartoon");
       if (p.style === "realistic") setArtMode("realista");
@@ -600,6 +607,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         characters: [extraNames.trim(), alsoName.trim()].filter(Boolean).join(", "),
         theme: temaId || themeText.trim(),
         childName,
+        childTrait: childWay,
+        childInterest: childLikes,
+        costume: storyOutfit,
         dedication,
         childAge: Number.isNaN(age) ? null : age,
         style: artMode,
@@ -631,6 +641,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           characters: [extraNames.trim(), alsoName.trim()].filter(Boolean).join(", "),
           theme: temaId || themeText.trim(),
           childName,
+          childTrait: childWay,
+          childInterest: childLikes,
+          costume: storyOutfit,
           dedication,
           childAge: Number.isNaN(age) ? undefined : age,
           style: artMode === "cartoon" ? "cartoon" : "realistic",
@@ -1453,7 +1466,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 disabled={fieldsLocked}
                 value={childName}
                 onChange={(e) => {
-                  const name = e.target.value;
+                  const name = capitalizeChildName(e.target.value);
                   setChildName(name);
                   syncTitle(name, alsoName);
                   if (name.trim()) clearMissing("name");
@@ -1495,6 +1508,47 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               />
               {fieldAlert("age", t.errAge)}
             </label>
+          </div>
+          <div className="studio-grid">
+            <label className="studio-field">
+              {t.storyOutfit}
+              <input
+                disabled={fieldsLocked}
+                value={storyOutfit}
+                onChange={(e) => setStoryOutfit(e.target.value)}
+                placeholder={t.storyOutfitPh}
+                maxLength={160}
+                data-testid="studio-story-outfit"
+                aria-describedby="studio-story-outfit-hint"
+              />
+            </label>
+            <p id="studio-story-outfit-hint" className="muted field-hint">{t.storyOutfitHint}</p>
+            <label className="studio-field">
+              {t.childWay}
+              <input
+                disabled={fieldsLocked}
+                value={childWay}
+                onChange={(e) => setChildWay(e.target.value)}
+                placeholder={t.childWayPh}
+                maxLength={300}
+                data-testid="studio-child-way"
+                aria-describedby="studio-child-way-hint"
+              />
+            </label>
+            <p id="studio-child-way-hint" className="muted field-hint">{t.childWayHint}</p>
+            <label className="studio-field">
+              {t.childLikes}
+              <input
+                disabled={fieldsLocked}
+                value={childLikes}
+                onChange={(e) => setChildLikes(e.target.value)}
+                placeholder={t.childLikesPh}
+                maxLength={300}
+                data-testid="studio-child-likes"
+                aria-describedby="studio-child-likes-hint"
+              />
+            </label>
+            <p id="studio-child-likes-hint" className="muted field-hint">{t.childLikesHint}</p>
           </div>
           {askGender ? genderButtons(gender, setGender, t.gender, "gender") : null}
           {companionCopy ? (

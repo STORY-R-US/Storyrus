@@ -31,6 +31,15 @@ export type StudioCopy = {
   childNamePh: string;
   childAge: string;
   childAgePh: string;
+  storyOutfit: string;
+  storyOutfitPh: string;
+  storyOutfitHint: string;
+  childWay: string;
+  childWayPh: string;
+  childWayHint: string;
+  childLikes: string;
+  childLikesPh: string;
+  childLikesHint: string;
   bookTitle: string;
   bookTitlePh: string;
   themeFree: string;
@@ -376,6 +385,15 @@ const pt: StudioCopy = {
   childNamePh: "Ex.: Lila",
   childAge: "Idade",
   childAgePh: "Ex.: 5",
+  storyOutfit: "Roupa na história",
+  storyOutfitPh: "Ex.: vestido azul de exploradora",
+  storyOutfitHint: "É a roupa do livro, não a da foto.",
+  childWay: "Jeito da criança",
+  childWayPh: "Ex.: curiosa e corajosa",
+  childWayHint: "Como ela é no começo da história.",
+  childLikes: "O que ela gosta",
+  childLikesPh: "Ex.: estrelas e dinossauros",
+  childLikesHint: "Isso entra na aventura porque faz parte dela.",
   bookTitle: "Título do livro",
   bookTitlePh: "Ex.: A Lila e o dragão das estrelas",
   themeFree: "Insira o tema desejado",
@@ -643,6 +661,15 @@ const en: StudioCopy = {
   childNamePh: "e.g. Lila",
   childAge: "Age",
   childAgePh: "e.g. 5",
+  storyOutfit: "Outfit in the story",
+  storyOutfitPh: "e.g. blue explorer dress",
+  storyOutfitHint: "This is the book's outfit, not the clothes in the photo.",
+  childWay: "The child's way",
+  childWayPh: "e.g. curious and brave",
+  childWayHint: "How the child is at the start of the story.",
+  childLikes: "What the child likes",
+  childLikesPh: "e.g. stars and dinosaurs",
+  childLikesHint: "This becomes part of the adventure because it is part of the child.",
   bookTitle: "Book title",
   bookTitlePh: "e.g. Lila and the star dragon",
   themeFree: "Enter the desired theme",
@@ -910,6 +937,15 @@ const es: StudioCopy = {
   childNamePh: "Ej.: Lila",
   childAge: "Edad",
   childAgePh: "Ej.: 5",
+  storyOutfit: "Ropa en la historia",
+  storyOutfitPh: "Ej.: vestido azul de exploradora",
+  storyOutfitHint: "Es la ropa del libro, no la de la foto.",
+  childWay: "Manera de ser",
+  childWayPh: "Ej.: curiosa y valiente",
+  childWayHint: "Cómo es al empezar la historia.",
+  childLikes: "Lo que le gusta",
+  childLikesPh: "Ej.: estrellas y dinosaurios",
+  childLikesHint: "Esto entra en la aventura porque forma parte de ella.",
   bookTitle: "Título del libro",
   bookTitlePh: "Ej.: Lila y el dragón de las estrellas",
   themeFree: "Ingresa el tema deseado",

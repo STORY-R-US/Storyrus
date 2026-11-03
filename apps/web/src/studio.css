@@ -1096,6 +1096,27 @@
   font-weight: 700;
 }
 
+.studio-app .master-child-card {
+  margin: 0 0 1.2rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--studio-surface-border);
+  border-radius: 18px;
+  background: var(--studio-surface);
+}
+
+.studio-app .master-child-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.studio-app .master-child-card .master-title-hint {
+  margin: 0 0 0.9rem;
+}
+
+.studio-app .master-child-card .kbtn {
+  margin-top: 0.4rem;
+}
+
 .studio-app .master-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1816,6 +1837,10 @@
   margin: 4px 0 0;
   font-size: .75rem;
   line-height: 1.65;
+}
+
+.studio-app .is-preview-review > .master-child-card {
+  margin: 0;
 }
 
 .studio-app .is-preview-review > .master-chips {

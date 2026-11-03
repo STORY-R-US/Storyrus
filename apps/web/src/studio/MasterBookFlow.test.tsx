@@ -18,6 +18,42 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("explica os dados da criança e salva o que o adulto escreve", async () => {
+    const named = {
+      ...project,
+      child_name: "lila",
+      child_age: 5,
+      child_trait: "curiosidade",
+      child_interest: "descobertas",
+      book_profile: {
+        ...project.book_profile!,
+        costume: "roupa de aventura azul",
+        trait: "curiosidade",
+        interest: "descobertas",
+      },
+    };
+    const save = vi.spyOn(api, "saveChildProfile").mockResolvedValue(named);
+    vi.spyOn(api, "getProject").mockResolvedValue(named);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    vi.spyOn(api, "getAssets").mockResolvedValue(assets);
+    render(<MasterBookFlow project={named} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} setAssets={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "A Criança Nesta História" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome da criança")).toHaveValue("Lila");
+    expect(screen.getByLabelText("Roupa na história")).toHaveValue("roupa de aventura azul");
+    expect(screen.queryByText("lila · 5")).not.toBeInTheDocument();
+    const outfit = screen.getByLabelText("Roupa na história");
+    await userEvent.clear(outfit);
+    await userEvent.type(outfit, "vestido de estrelas");
+    await userEvent.click(screen.getByRole("button", { name: "Salvar dados da criança" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith("master", {
+      childName: "Lila",
+      childAge: 5,
+      costume: "vestido de estrelas",
+      trait: "curiosidade",
+      interest: "descobertas",
+    }));
+  });
+
   it("aplica a pausa global a projetos comuns e impede reativar IA pela tela", async () => {
     render(<MasterBookFlow project={{ ...project, test_mode: true, ai_generation_paused: true }}
       assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
@@ -221,17 +257,12 @@ describe("Studio approval stages", () => {
     await waitFor(() => expect(save).toHaveBeenCalledWith("master", "A história de Lia"));
   });
 
-  it("regenerates only the selected preview image and language", async () => {
-    const regenerate = vi.spyOn(api, "startPreview").mockResolvedValue(accepted);
-    vi.spyOn(api, "getProject").mockResolvedValue(project);
-    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+  it("não mostra o ajuste solto da imagem na prévia pronta", () => {
     render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
-    await userEvent.click(screen.getAllByRole("button", { name: "Gerar novamente" })[1]);
-    await userEvent.type(screen.getByLabelText("Ajuste desta imagem"), "Mais luz");
-    await userEvent.click(screen.getByRole("button", { name: "Aplicar ajuste" }));
-    await waitFor(() => expect(regenerate).toHaveBeenCalledWith("master", {
-      language: "pt-BR", image: "02_LIVRO_ABERTO", adjustment: "Mais luz",
-    }));
+    expect(screen.queryByRole("button", { name: "Gerar novamente" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Ajuste desta imagem")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Aplicar ajuste" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Sugerir melhoria" })).toHaveLength(3);
   });
 
   it("atualiza o título da prévia e conserva a história", async () => {

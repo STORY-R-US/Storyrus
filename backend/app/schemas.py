@@ -245,8 +245,20 @@ class ProjectCreateIn(BaseModel):
     # Interesse/talento: a ferramenta que a criança usa para vencer o obstáculo no clímax
     # (ex.: "adora dinossauros", "é curiosa e observadora").
     child_interest: str | None = Field(default=None, max_length=300)
+    # Figurino da história, escrito pelo adulto. Diferente da roupa da foto.
+    costume: str | None = Field(default=None, max_length=160)
     # Idioma do livro: 'pt-BR' (padrao) ou 'en'.
     language: str | None = Field(default="pt-BR", max_length=8)
+
+
+class ChildProfileIn(BaseModel):
+    """Dados da criança escritos pelo adulto, com rótulos próprios na criação."""
+
+    child_name: str = Field(min_length=1, max_length=80)
+    child_age: int | None = Field(default=None, ge=0, le=120)
+    costume: str = Field(default="", max_length=160)
+    trait: str = Field(default="", max_length=300)
+    interest: str = Field(default="", max_length=300)
 
 
 class ProjectOut(BaseModel):

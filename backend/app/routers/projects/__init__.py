@@ -17,7 +17,14 @@ from app import storage, story_templates
 from app.database import get_db
 from app.deps import get_current_user, require_adult_user, require_registered_user
 from app.models import Asset, AssetKind, Job, Project, User
-from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut, UploadUrlIn
+from app.schemas import (
+    ChildProfileIn,
+    JobOut,
+    ProjectCreateIn,
+    ProjectOut,
+    StoryTemplateOut,
+    UploadUrlIn,
+)
 from app.services import book_profile
 from app.services.preview_mark import display_key
 from app.services.privacy import media_authorization, photos_authorized
@@ -87,16 +94,47 @@ def create_project(
         book_size=body.book_size,
         cover_type=body.cover_type,
         extra_theme=(body.extra_theme or None),
-        child_name=(body.child_name or None),
+        child_name=book_profile.capitalize_child_name(body.child_name),
         child_age=body.child_age,
         dedication=(body.dedication or None),
-        child_trait=(body.child_trait or None),
-        child_interest=(body.child_interest or None),
+        child_trait=(body.child_trait or "").strip() or None,
+        child_interest=(body.child_interest or "").strip() or None,
         language=(body.language or "pt-BR"),
         purchase_flow={"title": body.title, "theme_description": body.theme_description},
         book_profile=book_profile.initial_profile(body) if body.gender or body.languages else None,
     )
     db.add(project)
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@router.put("/{project_id}/child", response_model=ProjectOut)
+def save_child_profile(
+    project_id: uuid.UUID,
+    body: ChildProfileIn,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    """Grava nome, idade, roupa, jeito e o que a criança gosta, sem gerar imagens."""
+    from .purchase import editable
+
+    project = get_owned_project(db, user, project_id)
+    editable(db, project)
+    name = book_profile.capitalize_child_name(body.child_name)
+    if not name:
+        raise HTTPException(422, "Preencha o nome da criança.")
+    project.child_name = name
+    project.child_age = body.child_age
+    project.child_trait = body.trait.strip() or None
+    project.child_interest = body.interest.strip() or None
+    if book_profile.enabled(project):
+        book_profile.update(
+            project,
+            costume=body.costume.strip(),
+            trait=body.trait.strip(),
+            interest=body.interest.strip(),
+        )
     db.commit()
     db.refresh(project)
     return project

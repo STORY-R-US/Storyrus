@@ -385,6 +385,9 @@ export const api = {
     childName?: string;
     dedication?: string;
     childAge?: number;
+    childTrait?: string;
+    childInterest?: string;
+    costume?: string;
     style?: "cgi_3d" | "realistic" | "cartoon";
     bookSize?: "M" | "P";
     coverType?: "soft" | "hard";
@@ -405,6 +408,9 @@ export const api = {
         cover_type: input.coverType,
         child_name: input.childName?.trim() || undefined,
         child_age: input.childAge ?? undefined,
+        child_trait: input.childTrait?.trim() || undefined,
+        child_interest: input.childInterest?.trim() || undefined,
+        costume: input.costume?.trim() || undefined,
         dedication: input.dedication?.trim() || undefined,
         language: input.language,
       }),
@@ -428,6 +434,21 @@ export const api = {
   },
   async savePreviewChanges(id: string, body: { title: string; theme_description: string; story_text: string; photo_notes: string }) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/changes`, { method: "PUT", body: JSON.stringify(body) });
+  },
+  async saveChildProfile(
+    id: string,
+    input: { childName: string; childAge?: number; costume: string; trait: string; interest: string },
+  ) {
+    return req<Project>(`/v1/projects/${id}/child`, {
+      method: "PUT",
+      body: JSON.stringify({
+        child_name: input.childName,
+        child_age: input.childAge ?? null,
+        costume: input.costume,
+        trait: input.trait,
+        interest: input.interest,
+      }),
+    });
   },
   async updatePreviewTitle(id: string, title: string) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/title`, { method: "PUT", body: JSON.stringify({ title }) });

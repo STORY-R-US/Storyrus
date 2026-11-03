@@ -6,6 +6,7 @@ import { api } from "../api";
 import type { Job, Project } from "../types";
 import type { StudioAssets } from "./assets";
 import { useStudioI18n } from "./useStudioI18n";
+import { capitalizeChildName } from "./childName";
 
 const COPY = {
   pt: {
@@ -54,6 +55,17 @@ const COPY = {
     titleOptionsHint: "Escolha uma opção e confirme em Atualizar título.",
     titleUse: "Usar este título",
     titleChosen: "Selecionado",
+    childHeading: "A Criança Nesta História",
+    childHint: "Estes dados entram na história e nas ilustrações. Escreva com as suas palavras. As imagens já geradas só mudam quando você pede uma nova.",
+    childName: "Nome da criança",
+    childAge: "Idade",
+    costume: "Roupa na história",
+    costumePh: "Ex.: vestido azul de exploradora",
+    trait: "Jeito da criança",
+    traitPh: "Ex.: curiosa e corajosa",
+    interest: "O que ela gosta",
+    interestPh: "Ex.: estrelas e dinossauros",
+    childSave: "Salvar dados da criança",
     goToOrder: "Ir para o pedido",
     pagesHeading: "Páginas Do Livro",
     improve: "O que melhorar nesta página",
@@ -118,6 +130,17 @@ const COPY = {
     titleOptionsHint: "Choose an option and confirm with Update title.",
     titleUse: "Use this title",
     titleChosen: "Selected",
+    childHeading: "The Child In This Story",
+    childHint: "These details go into the story and the pictures. Write them in your own words. Pictures already made change only when you ask for new ones.",
+    childName: "Child's name",
+    childAge: "Age",
+    costume: "Outfit in the story",
+    costumePh: "e.g. blue explorer dress",
+    trait: "The child's way",
+    traitPh: "e.g. curious and brave",
+    interest: "What the child likes",
+    interestPh: "e.g. stars and dinosaurs",
+    childSave: "Save the child's details",
     goToOrder: "Go to the order",
     pagesHeading: "Book Pages",
     improve: "What to improve on this page",
@@ -182,6 +205,17 @@ const COPY = {
     titleOptionsHint: "Elige una opción y confirma con Actualizar título.",
     titleUse: "Usar este título",
     titleChosen: "Seleccionado",
+    childHeading: "El Protagonista En Esta Historia",
+    childHint: "Estos datos entran en la historia y en las ilustraciones. Escríbelos con tus palabras. Las imágenes ya hechas solo cambian cuando pides unas nuevas.",
+    childName: "Nombre del protagonista",
+    childAge: "Edad",
+    costume: "Ropa en la historia",
+    costumePh: "Ej.: vestido azul de exploradora",
+    trait: "Manera de ser",
+    traitPh: "Ej.: curiosa y valiente",
+    interest: "Lo que le gusta",
+    interestPh: "Ej.: estrellas y dinosaurios",
+    childSave: "Guardar datos del protagonista",
     goToOrder: "Ir al pedido",
     pagesHeading: "Páginas Del Libro",
     improve: "Qué mejorar en esta página",
@@ -205,6 +239,17 @@ const COPY = {
 type StoryBlock = { kind: "title" | "page" | "body"; label: string; lines: string[] };
 
 const TITLE_ARTICLES = new Set(["a", "o", "os", "as", "um", "uma", "the", "el", "la", "los", "las", "un", "una"]);
+
+function childDraftFrom(project: Project) {
+  const profile = project.book_profile;
+  return {
+    name: capitalizeChildName(project.child_name || ""),
+    age: project.child_age != null ? String(project.child_age) : "",
+    costume: profile?.costume || "",
+    trait: profile?.trait || project.child_trait || "",
+    interest: profile?.interest || project.child_interest || "",
+  };
+}
 
 function titleProtagonist(childName: string, title: string) {
   const named = childName.trim();
@@ -303,7 +348,6 @@ export function MasterBookFlow({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [adjustment, setAdjustment] = useState("");
-  const [selected, setSelected] = useState("");
   const [suggesting, setSuggesting] = useState("");
   const [alteringPage, setAlteringPage] = useState("");
   const [pageCorrections, setPageCorrections] = useState<Record<string, string>>({});
@@ -321,6 +365,10 @@ export function MasterBookFlow({
     if (suggesting) suggestionField.current?.focus();
   }, [suggesting]);
   const [editTitle, setEditTitle] = useState(project.book_profile?.title || "");
+  const [childDraft, setChildDraft] = useState(() => childDraftFrom(project));
+  useEffect(() => {
+    setChildDraft(childDraftFrom(project));
+  }, [project]);
   useEffect(() => {
     setEditTitle(project.book_profile?.title || "");
   }, [project.book_profile?.title]);
@@ -359,7 +407,6 @@ export function MasterBookFlow({
       setProject(await api.getProject(project.id));
       setJobs(await api.listJobs(project.id));
       if (setAssets) setAssets(await api.getAssets(project.id));
-      setSelected("");
       setSuggesting("");
       setSuggestionText({});
       setAlteringPage("");
@@ -379,6 +426,24 @@ export function MasterBookFlow({
       setSending(false);
     }
   }
+  async function saveChild(event: FormEvent) {
+    event.preventDefault();
+    const name = capitalizeChildName(childDraft.name).trim();
+    if (!name) {
+      setError(t.childName);
+      return;
+    }
+    const ageNumber = childDraft.age.trim() === "" ? undefined : Number(childDraft.age);
+    await run(() =>
+      api.saveChildProfile(project.id, {
+        childName: name,
+        childAge: ageNumber != null && !Number.isNaN(ageNumber) ? Math.max(0, Math.min(120, Math.floor(ageNumber))) : undefined,
+        costume: childDraft.costume.trim(),
+        trait: childDraft.trait.trim(),
+        interest: childDraft.interest.trim(),
+      }),
+    );
+  }
   const approveStory = async () => {
     await api.approveStory(project.id);
   };
@@ -396,7 +461,6 @@ export function MasterBookFlow({
   const canEditTitle =
     p.current_page === 0 &&
     ["preview_ready", "story_ready", "story_approved", "preview_approved"].includes(stage);
-  const chips = [p.costume, p.trait, p.interest].filter((item): item is string => Boolean(item));
   const severalLanguages = new Set(previews.map((shot) => shot.language)).size > 1;
   const bookLanguage = project.language || "pt-BR";
   const finishedPages = versions.filter(
@@ -515,19 +579,61 @@ export function MasterBookFlow({
       {error && <p className="studio-error" role="alert">{error}</p>}
       {active && <p className="master-status" role="status">{t.waiting}</p>}
       {!active && failed?.error && <p className="studio-error" role="alert">{failed.error}</p>}
-      {(project.child_name || chips.length > 0) && (
-        <ul className="master-chips">
-          {project.child_name && (
-            <li>
-              {project.child_name}
-              {project.child_age ? ` · ${project.child_age}` : ""}
-            </li>
-          )}
-          {chips.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      )}
+      <form className="master-child-card" onSubmit={(event) => void saveChild(event)} data-testid="studio-child-profile">
+        <h3>{t.childHeading}</h3>
+        <p className="master-title-hint">{t.childHint}</p>
+        <div className="studio-grid two">
+          <label className="studio-field">
+            {t.childName}
+            <input
+              value={childDraft.name}
+              maxLength={80}
+              onChange={(event) =>
+                setChildDraft((current) => ({ ...current, name: capitalizeChildName(event.target.value) }))
+              }
+            />
+          </label>
+          <label className="studio-field">
+            {t.childAge}
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={120}
+              value={childDraft.age}
+              onChange={(event) => setChildDraft((current) => ({ ...current, age: event.target.value }))}
+            />
+          </label>
+        </div>
+        <label className="studio-field">
+          {t.costume}
+          <input
+            value={childDraft.costume}
+            maxLength={160}
+            placeholder={t.costumePh}
+            onChange={(event) => setChildDraft((current) => ({ ...current, costume: event.target.value }))}
+          />
+        </label>
+        <label className="studio-field">
+          {t.trait}
+          <input
+            value={childDraft.trait}
+            maxLength={300}
+            placeholder={t.traitPh}
+            onChange={(event) => setChildDraft((current) => ({ ...current, trait: event.target.value }))}
+          />
+        </label>
+        <label className="studio-field">
+          {t.interest}
+          <input
+            value={childDraft.interest}
+            maxLength={300}
+            placeholder={t.interestPh}
+            onChange={(event) => setChildDraft((current) => ({ ...current, interest: event.target.value }))}
+          />
+        </label>
+        <button type="submit" className="kbtn kbtn-soft" disabled={active}>{t.childSave}</button>
+      </form>
       {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
         <button
           type="button"
@@ -576,15 +682,6 @@ export function MasterBookFlow({
                     <a href={shot.url} download={shot.filename} target="_blank" rel="noreferrer">
                       {t.save}
                     </a>
-                  )}
-                  {stage === "preview_ready" && (
-                    <button
-                      type="button"
-                      disabled={active}
-                      onClick={() => setSelected(`${shot.language}:${shot.role}`)}
-                    >
-                      {t.redo}
-                    </button>
                   )}
                 </span>
               </figcaption>
@@ -679,33 +776,6 @@ export function MasterBookFlow({
           {!testMode && !project.ai_generation_paused && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
             selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
-      )}
-      {selected && (
-        <div className="master-adjustment-panel">
-          <label className="studio-field">
-            {t.adjust}
-            <textarea
-              value={adjustment}
-              onChange={(e) => setAdjustment(e.target.value)}
-              maxLength={500}
-            />
-          </label>
-          <button
-            className="kbtn kbtn-soft"
-            disabled={active || !adjustment.trim()}
-            onClick={() =>
-              void run(() =>
-                api.startPreview(project.id, {
-                  language: selected.split(":")[0],
-                  image: selected.split(":")[1],
-                  adjustment,
-                }),
-              )
-            }
-          >
-            {t.send}
-          </button>
-        </div>
       )}
       {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <section className="master-preview-next" aria-labelledby="master-preview-next-heading">

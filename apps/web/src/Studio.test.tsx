@@ -117,6 +117,23 @@ describe("Studio — foto HEIC", () => {
   });
 });
 
+describe("Studio — dados da criança", () => {
+  it("começa o nome com maiúscula e explica roupa, jeito e o que ela gosta", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    const name = screen.getByLabelText(/nome do protagonista/i);
+    await user.type(name, "lila");
+    expect(name).toHaveValue("Lila");
+    expect(screen.getByLabelText(/roupa na história/i)).toBeInTheDocument();
+    expect(screen.getByText(/é a roupa do livro, não a da foto/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/jeito da criança/i)).toBeInTheDocument();
+    expect(screen.getByText(/como ela é no começo da história/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/o que ela gosta/i)).toBeInTheDocument();
+    expect(screen.getByText(/isso entra na aventura porque faz parte dela/i)).toBeInTheDocument();
+  });
+});
+
 describe("Studio — gênero padrão", () => {
   it("abre com Feminino já acionado", async () => {
     const user = userEvent.setup();

@@ -87,13 +87,32 @@ def require_stage(project, *stages: str) -> None:
         raise HTTPException(409, "Conclua e aprove a etapa atual antes de continuar")
 
 
+def capitalize_child_name(name: str | None) -> str | None:
+    """A primeira letra de cada parte do nome fica maiúscula. O resto permanece como foi escrito."""
+    text = " ".join((name or "").split())
+    if not text:
+        return None
+    words = []
+    for word in text.split(" "):
+        parts = []
+        for part in word.split("-"):
+            chars = list(part)
+            for index, char in enumerate(chars):
+                if char.isalpha():
+                    chars[index] = char.upper()
+                    break
+            parts.append("".join(chars))
+        words.append("-".join(parts))
+    return " ".join(words)
+
+
 def initial_profile(body) -> dict:
     languages = [
         lang for lang in LANGUAGES if lang in (body.languages or [body.language or "pt-BR"])
     ]
     if (body.language or "pt-BR") not in languages:
         raise HTTPException(400, "Inclua o idioma principal nos idiomas do livro")
-    return {
+    profile = {
         "version": VERSION,
         "stage": "ficha",
         "title": (body.title or "").strip(),
@@ -103,6 +122,10 @@ def initial_profile(body) -> dict:
         "theme_description": (body.theme_description or body.theme or "").strip(),
         "characters": (body.characters or "").strip(),
     }
+    costume = (getattr(body, "costume", None) or "").strip()
+    if costume:
+        profile["costume"] = costume
+    return profile
 
 
 def validate_ficha(project, photos: list) -> None:

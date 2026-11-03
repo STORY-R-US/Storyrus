@@ -231,6 +231,80 @@ def test_text_overlay_sits_in_the_sky_and_keeps_the_photo():
     assert (255, 250, 242) not in list(second.getdata())
 
 
+def test_child_name_keeps_a_capital_on_each_part():
+    assert book_profile.capitalize_child_name("lila") == "Lila"
+    assert book_profile.capitalize_child_name("ana maria") == "Ana Maria"
+    assert book_profile.capitalize_child_name("  ana-luiza ") == "Ana-Luiza"
+    assert book_profile.capitalize_child_name("  ") is None
+
+
+def test_create_project_stores_the_child_details_in_plain_language(auth_client):
+    created = auth_client.post(
+        "/v1/projects",
+        json={
+            "style": "cartoon",
+            "child_name": "lila",
+            "child_age": 5,
+            "child_trait": "curiosa",
+            "child_interest": "estrelas",
+            "costume": "vestido azul",
+            "gender": "f",
+            "title": "Lila e as estrelas",
+            "book_size": "M",
+            "cover_type": "soft",
+            "language": "pt-BR",
+            "languages": ["pt-BR"],
+        },
+    )
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["child_name"] == "Lila"
+    assert body["child_trait"] == "curiosa"
+    assert body["child_interest"] == "estrelas"
+    assert body["book_profile"]["costume"] == "vestido azul"
+
+
+def test_child_profile_can_be_rewritten_without_generating(studio):
+    client, _db, pid, _store = studio
+    response = client.put(
+        f"/v1/projects/{pid}/child",
+        json={
+            "child_name": "lila",
+            "child_age": 6,
+            "costume": "capa de estrelas",
+            "trait": "corajosa",
+            "interest": "luas",
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["child_name"] == "Lila"
+    assert body["child_age"] == 6
+    assert body["child_trait"] == "corajosa"
+    assert body["child_interest"] == "luas"
+    assert body["book_profile"]["costume"] == "capa de estrelas"
+    assert body["book_profile"]["stage"] == "ficha"
+
+
+@pytest.mark.asyncio
+async def test_paused_preview_keeps_the_details_the_adult_wrote(studio, monkeypatch):
+    _client, db, pid, _store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    project.child_name = "lila"
+    project.child_trait = "corajosa"
+    project.child_interest = "estrelas"
+    book_profile.update(project, costume="capa de estrelas")
+    db.commit()
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", True)
+    await _run(studio, "preview")
+    db.expire_all()
+    assert project.child_name == "Lila"
+    assert project.book_profile["costume"] == "capa de estrelas"
+    assert project.book_profile["trait"] == "corajosa"
+    assert project.book_profile["interest"] == "estrelas"
+
+
 def test_partial_visual_ficha_is_completed_instead_of_failing():
     from app.workers.handlers.master_book import _fill_visual_ficha
 

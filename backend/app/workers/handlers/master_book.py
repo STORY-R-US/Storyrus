@@ -176,15 +176,18 @@ async def _prepare(db, job, project, photos):
     profile = project.book_profile
     if profile.get("locales"):
         return
+    named = contract.capitalize_child_name(project.child_name)
+    if named and named != project.child_name:
+        project.child_name = named
     title = profile.get("title") or f"A Grande Aventura de {project.child_name}"
     if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
         prepared = {
             "visual_identity": "DEMO: identidade nao verificada",
-            "costume": "roupa de aventura azul",
+            "costume": (profile.get("costume") or "").strip(),
             "palette": "azul, creme e dourado",
             "animal": "",
-            "trait": "curiosidade",
-            "interest": "descobertas",
+            "trait": (project.child_trait or "").strip(),
+            "interest": (project.child_interest or "").strip(),
             "locales": {
                 lang: {
                     "title": title,

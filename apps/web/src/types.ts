@@ -83,6 +83,8 @@ export interface Project {
   extra_theme?: string | null;
   child_name?: string | null;
   child_age?: number | null;
+  child_trait?: string | null;
+  child_interest?: string | null;
   dedication?: string | null;
   language?: string | null;
   extra_characters?: ExtraCharacter[];
