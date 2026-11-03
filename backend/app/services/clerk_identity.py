@@ -116,7 +116,11 @@ def _clerk_json(method: str, path: str, payload: dict) -> dict:
         timeout=15.0,
     )
     if response.status_code >= 400:
-        code = status.HTTP_400_BAD_REQUEST if response.status_code < 500 else status.HTTP_502_BAD_GATEWAY
+        code = (
+            status.HTTP_400_BAD_REQUEST
+            if response.status_code < 500
+            else status.HTTP_502_BAD_GATEWAY
+        )
         raise HTTPException(code, _clerk_error(response))
     return response.json() if response.content else {}
 
@@ -377,9 +381,7 @@ def verify_svix(
     signed = f"{svix_id}.{svix_timestamp}.".encode() + body
     expected = base64.b64encode(hmac.new(key, signed, hashlib.sha256).digest()).decode()
     presented = [
-        part[3:]
-        for part in svix_signature.split()
-        if part.startswith("v1,") and len(part) > 3
+        part[3:] for part in svix_signature.split() if part.startswith("v1,") and len(part) > 3
     ]
     if not presented:
         return "Assinatura invalida"
@@ -410,9 +412,7 @@ def apply_clerk_event(db: Session, event_type: str, data: dict) -> None:
     except HTTPException:
         return
     if email != user.email.lower():
-        clash = db.scalar(
-            select(User).where(func.lower(User.email) == email, User.id != user.id)
-        )
+        clash = db.scalar(select(User).where(func.lower(User.email) == email, User.id != user.id))
         if clash is not None:
             logger.warning("clerk_email_conflict clerk_user_id=%s", clerk_user_id)
         else:

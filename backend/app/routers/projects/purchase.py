@@ -66,25 +66,47 @@ def _restart_preview(db, user, project, *, test_mode):
     if not (profile.get("credits_fallback") or profile.get("test_mode") or test_mode):
         raise HTTPException(409, "Esta prévia não precisa desta recuperação.")
     archive = {
-        "profile": profile, "story_text": project.story_text, "ebook_url": project.ebook_url,
-        "character_ref": project.character_ref, "purchase_flow": project.purchase_flow,
+        "profile": profile,
+        "story_text": project.story_text,
+        "ebook_url": project.ebook_url,
+        "character_ref": project.character_ref,
+        "purchase_flow": project.purchase_flow,
         "recovered_at": purchase_flow.timestamp(),
     }
     for asset in db.scalars(select(Asset).where(Asset.project_id == project.id)):
         if (asset.meta or {}).get("workflow") == 1:
             asset.meta = {**asset.meta, "workflow": 0, "archived_fallback": True}
-    book_profile.update(project, stage="ficha", current_page=0, locales=None, stories=None,
-                        credits_fallback=False, fallback_archive=archive, test_mode=test_mode,
-                        test_preview_approved_at=None)
+    book_profile.update(
+        project,
+        stage="ficha",
+        current_page=0,
+        locales=None,
+        stories=None,
+        credits_fallback=False,
+        fallback_archive=archive,
+        test_mode=test_mode,
+        test_preview_approved_at=None,
+    )
     project.story_text = project.ebook_url = project.character_ref = None
     project.character_approved_at = project.book_approved_at = None
-    purchase_flow.update(project, preview_ready_at=None, preview_approved_at=None,
-                         full_book_ready_at=None, quoted_at=None, stage="preview_generating")
-    return accept_job(jobs.enqueue_job(
-        db, user=user, project=project, job_type=JobType.EBOOK,
-        payload={PREVIEW_FLAG: True, "master_preview": True},
-        idempotency_key=f"real-preview-{project.id}-{uuid.uuid4()}",
-    ))
+    purchase_flow.update(
+        project,
+        preview_ready_at=None,
+        preview_approved_at=None,
+        full_book_ready_at=None,
+        quoted_at=None,
+        stage="preview_generating",
+    )
+    return accept_job(
+        jobs.enqueue_job(
+            db,
+            user=user,
+            project=project,
+            job_type=JobType.EBOOK,
+            payload={PREVIEW_FLAG: True, "master_preview": True},
+            idempotency_key=f"real-preview-{project.id}-{uuid.uuid4()}",
+        )
+    )
 
 
 class TitleSuggestionsIn(BaseModel):
@@ -128,9 +150,13 @@ async def suggest_titles(
         "story": story[:12000],
     }
     try:
-        titles = await get_text_provider().suggest_titles(context=context, guidance=body.guidance.strip())
+        titles = await get_text_provider().suggest_titles(
+            context=context, guidance=body.guidance.strip()
+        )
     except ProviderError as exc:
-        raise HTTPException(502, "Não foi possível gerar os títulos com IA. Tente novamente.") from exc
+        raise HTTPException(
+            502, "Não foi possível gerar os títulos com IA. Tente novamente."
+        ) from exc
     return TitleSuggestionsOut(titles=titles)
 
 

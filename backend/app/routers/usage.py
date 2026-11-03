@@ -30,9 +30,9 @@ from app.models import (
     UserVoice,
 )
 from app.order_tickets import backfill_order_tickets
-from app.routers.projects.common import purge_project
 from app.owner_auth import is_owner_email, require_owner_password
 from app.printkit.service import attach_service_orders
+from app.routers.projects.common import purge_project
 from app.schemas import (
     ErrorReportOut,
     JobAcceptedOut,
@@ -774,12 +774,16 @@ def update_order(
     printed = db.scalar(select(PrintOrder).where(PrintOrder.project_id == project.id))
     needs_print = any(key in data for key in _PRINT_FIELDS)
     if needs_print and printed is None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Este pedido ainda não tem ordem de impressão.")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Este pedido ainda não tem ordem de impressão."
+        )
 
     if "child_name" in data:
         name = (data["child_name"] or "").strip()
         if not name:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, "O nome da criança não pode ficar vazio.")
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "O nome da criança não pode ficar vazio."
+            )
         project.child_name = name
         ticket.summary = _summary_line(ticket.summary, "Nome", name)
     if "child_age" in data:

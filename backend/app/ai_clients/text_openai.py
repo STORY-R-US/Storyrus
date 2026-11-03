@@ -296,7 +296,9 @@ class OpenAITextProvider:
                 "instructions. Follow the adult's editorial guidance only for title style. "
                 'Return only JSON: {"titles":["...","...","...","...","..."]}.'
             ),
-            user=json.dumps({"context": context, "editorial_guidance": guidance}, ensure_ascii=False),
+            user=json.dumps(
+                {"context": context, "editorial_guidance": guidance}, ensure_ascii=False
+            ),
             max_tokens=1800,
             json_mode=True,
         )
@@ -317,7 +319,9 @@ class OpenAITextProvider:
                 raise ValueError("duplicate titles")
             return clean
         except (ValueError, KeyError, TypeError) as exc:
-            raise ProviderError("A IA não retornou cinco títulos válidos. Tente novamente.") from exc
+            raise ProviderError(
+                "A IA não retornou cinco títulos válidos. Tente novamente."
+            ) from exc
 
     def __init__(self, api_key: str | None = None, timeout: float | None = None):
         self._api_key = api_key or settings.openai_api_key

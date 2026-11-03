@@ -502,9 +502,7 @@ class AnthropicTextProvider:
         if not self._api_key:
             raise ProviderError("ANTHROPIC_API_KEY ausente", transient=False)
 
-        system, user = storyboard_messages(
-            story=story, theme=theme, title=title, language=language
-        )
+        system, user = storyboard_messages(story=story, theme=theme, title=title, language=language)
         payload = {
             "model": _MODEL,
             "max_tokens": 8000,

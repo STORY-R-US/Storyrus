@@ -235,7 +235,10 @@ def test_print_shop_email_attaches_cover_and_interior(monkeypatch):
         "app.services.transactional_email._shop_pdfs",
         lambda db, project, order: [
             (f"{order.code}_01_Capa_e_Contracapa_Separadas_Sangria_5mm.pdf", b"%PDF-capa"),
-            (f"{order.code}_02_Miolo_Impares_Espelhadas_Dedicatoria_Sangria_5mm.pdf", b"%PDF-miolo"),
+            (
+                f"{order.code}_02_Miolo_Impares_Espelhadas_Dedicatoria_Sangria_5mm.pdf",
+                b"%PDF-miolo",
+            ),
         ],
     )
 

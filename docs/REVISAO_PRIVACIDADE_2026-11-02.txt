@@ -1,0 +1,67 @@
+REVISÃO DA POLÍTICA DE PRIVACIDADE — 02/11/2026
+
+Escopo
+Revisão do texto público em português, inglês e espanhol, considerando o
+consentimento do Estúdio restrito à criação e entrega do livro. Sem publicação,
+alteração de contratos, exclusão de dados ou mudança dos controles do servidor.
+Os Termos de Uso não foram alterados neste pedido.
+
+Correções aplicadas
+- Separação dos dados da conta, projeto, pedido e uso técnico.
+- Autorização das fotos para o livro sem autorização automática de voz, vídeo,
+  publicidade ou outra finalidade. Recursos opcionais e arquivos anteriores
+  permanecem descritos: existem rotas de voz e geração no sistema.
+- Explicação das consultas a ipapi.co e do carregamento de Google Fonts.
+- Explicação do processamento internacional sem declarar que contratos ou
+  mecanismos de transferência ainda não verificados já estão adotados.
+- Direitos, canal gratuito, verificação proporcional da identidade e distinção
+  entre revogar novos usos, apagar projeto e encerrar a conta.
+- Correção da exclusão: purge_project não remove UserVoice nem a conta Clerk.
+  Vozes reutilizáveis possuem exclusão própria na conta/fornecedor.
+- Regra de 90 dias para projetos sem pagamento, com exceções de pedidos pagos,
+  pagamento pendente e geração em andamento, conforme privacy_retention.py.
+  A rotina é condicionada a APP_ENV=prod e PRIVACY_RETENTION_ENABLED=true;
+  a habilitação de produção em 30/10 está documentada no relatório anterior.
+- Diferenciação entre geração por provedores e modo genérico de teste.
+
+Informações pendentes de confirmação pelo responsável
+1. Razão social/nome jurídico, país, registro e endereço comercial do controlador.
+   O usuário informou que enviará esses dados depois. Não foram inventados.
+2. Países efetivos de processamento, entidades contratadas, suboperadores e
+   mecanismos de transferência aplicáveis a cada fornecedor.
+3. Prazos concretos de pedidos pagos, conta, vozes reutilizáveis, backups,
+   versões anteriores do armazenamento e obrigações fiscais/comerciais.
+4. Condições contratuais e configurações efetivas de uso e retenção de cada
+   provedor, incluindo treinamento. A política não certifica essas condições.
+
+Versões
+A data do texto da política foi atualizada para 02/11/2026. A versão técnica
+do aviso de autorização, validada pelo servidor, não foi trocada isoladamente.
+Qualquer futura troca dessa versão deve ser coordenada entre web e API,
+sem considerar autorizações antigas como autorização de nova finalidade.
+
+Fontes primárias consultadas
+LGPD, texto atualizado, arts. 9, 14, 18 e regras de transferência:
+https://www2.camara.leg.br/legin/fed/lei/2018/lei-13709-14-agosto-2018-787077-normaatualizada-pl.html
+ANPD, tratamento de dados de crianças e adolescentes:
+https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-divulga-enunciado-sobre-o-tratamento-de-dados-pessoais-de-criancas-e-adolescentes
+ANPD, transferências internacionais:
+https://www.gov.br/anpd/pt-br/assuntos/assuntos-internacionais/transferencia-internacional-de-dados
+FTC, orientações sobre COPPA:
+https://www.ftc.gov/business-guidance/resources/complying-coppa-frequently-asked-questions
+Regra final de 2025, 16 CFR Part 312:
+https://www.govinfo.gov/content/pkg/FR-2025-04-22/html/2025-05904.htm
+
+Limite
+Esta é uma revisão editorial e de correspondência com o código disponível.
+Não constitui certificação de conformidade ou validação dos contratos e
+procedimentos operacionais que ainda dependem das confirmações acima.
+
+Validação
+- 14 testes de páginas legais e controles de privacidade passaram.
+- Compilação web aprovada.
+- Comparação dos documentos confirmou que os Termos de Uso foram preservados
+  integralmente em português, inglês e espanhol.
+- Página pública conferida no navegador local, sem transbordamento horizontal.
+- Textos completos exportados para outputs/revisao-privacidade-2026-11-02/.
+- Nenhuma publicação ou alteração de dados de produção.

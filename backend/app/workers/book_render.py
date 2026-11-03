@@ -193,7 +193,8 @@ def interior_pdf(
 ) -> bytes:
     """Miolo em 210 mm. Página ímpar é espelhada. A dedicatória fecha o arquivo."""
     frames = [
-        _print_page(raw, number, mirror=number % 2 == 1) for number, raw in enumerate(pages, start=1)
+        _print_page(raw, number, mirror=number % 2 == 1)
+        for number, raw in enumerate(pages, start=1)
     ]
     frames.append(dedication_page(dedication or ""))
     return _pages_pdf(frames, size_cm=size_cm, title=title)
@@ -223,7 +224,9 @@ def _page_badge(image: Image.Image, number: int) -> None:
     margin = int(TARGET_PX * (14 / 210))
     x0 = margin
     y0 = image.height - margin - height
-    draw.rounded_rectangle((x0, y0, x0 + width, y0 + height), radius=height / 2, fill=(255, 255, 255))
+    draw.rounded_rectangle(
+        (x0, y0, x0 + width, y0 + height), radius=height / 2, fill=(255, 255, 255)
+    )
     draw.text((x0 + pad_x, y0 + pad_y * 0.45), label, font=font, fill=NAVY)
 
 
@@ -264,7 +267,9 @@ def dedication_page(text: str) -> bytes:
         mark = ImageFont.truetype(str(FONT), int(TARGET_PX * 0.035))
         label = "STORY R US"
         drawn = draw.textlength(label, font=mark)
-        draw.text(((TARGET_PX - drawn) / 2, int(TARGET_PX * 0.74)), label, font=mark, fill=(210, 214, 220))
+        draw.text(
+            ((TARGET_PX - drawn) / 2, int(TARGET_PX * 0.74)), label, font=mark, fill=(210, 214, 220)
+        )
     out = io.BytesIO()
     image.save(out, "PNG")
     return out.getvalue()

@@ -1,0 +1,82 @@
+BORRADOR LOCAL — identificación jurídica y condiciones operativas pendientes de confirmación.
+
+Política De Privacidad
+
+Última actualización: 2 de noviembre de 2026.
+
+Story R Us (storyrus.ai) crea libros ilustrados personalizados con datos y fotos enviados por un adulto responsable. Esta política explica qué tratamos, por qué y cómo ejercer tus derechos. La LGPD brasileña y otras normas se aplican según el caso; la sección sobre menores explica el modelo del servicio y las consideraciones sobre la COPPA de Estados Unidos.
+
+Quiénes somos
+
+Responsable: Story R Us. El contacto de privacidad está al final de esta página.
+
+Qué recopilamos
+
+- Cuenta del adulto: la autenticación actual se realiza mediante Clerk. Conservamos correo, identificador de cuenta, nombre, teléfono, dirección facilitada, fecha de registro y constancias de aceptación y declaración de mayoría de edad.
+- Proyecto: nombre o apodo, edad, dedicatoria, fotos de los personajes, tema, estilo, instrucciones, aprobaciones y archivos generados, como ilustraciones, páginas y PDF.
+- Pedido: formato, acabado, cantidad, destinatario, entrega, cotización, estado del pago e historial de atención, cuando corresponda.
+- Uso técnico: información de sesión, preferencias de idioma y apariencia, IP y registros necesarios para la operación y seguridad. Los recursos opcionales de audio y vídeo, cuando estén disponibles y se soliciten, se explican por separado más abajo.
+
+Para qué los usamos
+
+Usamos los datos necesarios para crear y entregar el libro, mantener la cuenta, enviar comunicaciones del servicio, atender solicitudes y preparar la impresión y entrega solicitadas. La autorización del Estudio cubre el libro; no autoriza automáticamente voz, vídeo, publicación ni publicidad. No vendemos datos personales, no hacemos publicidad segmentada ni usamos los archivos enviados para nuestra propia promoción o entrenamiento de modelos.
+
+Finalidades Y Bases Legales
+
+Tratamos los datos de cuenta y pedido para prestar el servicio y ejecutar el contrato. Podemos conservar información para cumplir obligaciones legales o ejercer derechos. El uso de las fotos en el libro exige la autorización específica que se presenta al adulto antes del envío. El consentimiento puede retirarse cuando sea la base del tratamiento. Los datos de menores requieren atención a su interés superior; la declaración de mayoría de edad del adulto no elimina esa protección. La LGPD brasileña se aplica cuando corresponda.
+
+Proveedores
+
+Cuando la generación con IA esté disponible y se solicite, las fotos, características y textos necesarios pueden ser procesados por OpenAI. Clerk gestiona el acceso; el sitio y la API usan Vercel y Render, y los archivos pueden almacenarse en servicios compatibles con S3, incluido Cloudflare R2. Los proveedores de correo, pago, impresión y entrega reciben lo necesario para la etapa solicitada. El modo de prueba genérico identificado en el Estudio no llama a proveedores de IA para generar su contenido. La conservación y demás condiciones de cada proveedor dependen del servicio contratado; contacta con nosotros para más información.
+
+Voz Y Vídeo Opcionales
+
+Crear el libro no requiere enviar voz ni pedir un vídeo. Si estos recursos están disponibles, la muestra de voz debe ser del propio adulto y exige autorización específica al enviarla; el audio puede ser procesado por ElevenLabs. El contenido necesario para un vídeo solicitado puede ser procesado por Kling. La autorización de fotos para el libro no sustituye la información ni la autorización exigidas para una finalidad adicional. Los archivos anteriores de estos recursos y las voces guardadas en la cuenta siguen sujetos a esta política.
+
+Transferencias Internacionales De Datos
+
+Los proveedores pueden tratar datos fuera de Brasil. Los requisitos de la LGPD sobre transferencias internacionales se aplican cuando corresponda. Puedes solicitar información sobre países, destinatarios y garantías de la operación mediante el contacto de privacidad. Crear una cuenta o aceptar esta política no equivale a autorizar de forma genérica cualquier transferencia o nueva finalidad.
+
+Usuarios Internacionales
+
+Puedes indicar una dirección fuera de Brasil. La disponibilidad del servicio digital, impresión y entrega depende de los recursos y socios disponibles. Revisa las condiciones antes de confirmar el pedido y cualquier cobro.
+
+Conservación y eliminación
+
+Los proyectos sin pago entran en la rutina de eliminación tras 90 días sin abrirse ni otra actividad registrada. Los pagos pendientes, pedidos pagados y generaciones activas quedan fuera de esa rutina; la conservación debe limitarse a lo necesario para el pedido, atención, obligaciones legales o ejercicio de derechos. El adulto puede borrar el proyecto y sus archivos en Mis pedidos; las tareas activas deben terminar o interrumpirse antes. Borrar un proyecto no elimina la cuenta de Clerk ni una voz reutilizable guardada en la cuenta. Solicita la eliminación de esas voces o el cierre de cuenta mediante el contacto de privacidad. Las copias de seguridad, versiones anteriores y datos recibidos por proveedores pueden exigir pasos y plazos adicionales. Al atender la solicitud, informaremos sobre alcance, plazos aplicables y cualquier conservación necesaria.
+
+Tus Derechos
+
+Según la legislación aplicable, puedes solicitar confirmación del tratamiento, acceso y corrección; información sobre cesiones; anonimización, bloqueo o eliminación de datos innecesarios o tratados irregularmente; portabilidad conforme a la regulación; retirada del consentimiento y eliminación de datos tratados con esa base, salvo conservación legal. También puedes preguntar por la posibilidad de no consentir y sus consecuencias y reclamar ante la ANPD brasileña cuando corresponda. Las solicitudes son gratuitas y pueden enviarse a info@storyrus.ai. Solo pediremos lo necesario para verificar tu identidad y autoridad para actuar por el titular. Informaremos los plazos y límites legales aplicables. Retirar el consentimiento impide los nuevos usos que abarque, pero no deshace automáticamente tratamientos previos ni un pedido ya ejecutado.
+
+Niños
+
+Servicio exclusivo para padres y responsables mayores de 18 años. Los menores no pueden crear cuentas ni utilizar el Estudio.
+
+Estados Unidos (COPPA)
+
+La COPPA regula la recopilación en línea de datos de menores de 13 años. Story R Us es exclusivo para padres y responsables mayores de 18 años: los menores no crean cuentas, envían archivos ni usan el Estudio. El adulto facilita los datos de quienes aparecen en el libro. La autorización registrada no se presenta como consentimiento parental verificable para un servicio usado por menores. Si identificamos ese uso, restringimos la cuenta y gestionamos su eliminación mediante el contacto de privacidad.
+
+Autorización y control del responsable
+
+Antes de enviar fotos, el adulto debe leer el aviso y confirmar la autorización para crear el libro. Registramos versión, momento, cuenta y finalidad. En Mis pedidos puedes retirar la autorización para nuevos usos de las fotos; es una acción distinta de borrar el proyecto. La autorización no permite publicar archivos ni usarlos en publicidad. Envía datos de un menor solo si eres su representante legal o tienes su autorización. Para otras solicitudes, escribe a info@storyrus.ai.
+
+Tratamiento de imágenes e información sensible
+
+Las fotos pueden procesarse automáticamente y compararse para conservar la apariencia en las ilustraciones. Esto no verifica la identidad ni la edad del adulto. No necesitamos documentos, ubicación exacta, escuela o datos de salud del menor. Usa el nombre o apodo y la edad necesaria para la historia.
+
+Sesión, Preferencias Y Servicios Del Navegador
+
+El navegador puede guardar información de sesión y preferencias de idioma y apariencia en cookies o almacenamiento local. Sin una preferencia de idioma guardada, se consulta ipapi.co para sugerir el idioma según el país de la IP; ese servicio recibe los datos técnicos de la conexión. Puedes cambiar el idioma manualmente. Las fuentes se cargan desde Google Fonts, que también recibe los datos técnicos necesarios para la conexión. Borrar los datos del navegador puede cerrar la sesión o eliminar preferencias, pero no borra los proyectos guardados en la cuenta.
+
+Acceso Y Seguridad
+
+El acceso a proyectos depende de la cuenta y los permisos del servicio; el personal autorizado puede acceder para operación y atención. Los archivos se facilitan mediante enlaces temporales cuando se utiliza ese mecanismo de almacenamiento. No publiques ni compartas enlaces privados. Ningún sistema ofrece seguridad absoluta; comunica posibles accesos indebidos mediante nuestro contacto de privacidad.
+
+Cambios
+
+Podemos actualizar esta política. La fecha al inicio indica la versión del texto. Los cambios relevantes pueden comunicarse en el sitio o por correo. Una nueva finalidad que requiera consentimiento debe informarse y autorizarse por separado.
+
+Contacto
+
+Preguntas de privacidad: info@storyrus.ai

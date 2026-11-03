@@ -42,7 +42,12 @@ def test_resume_returns_the_open_session(monkeypatch):
 
     def retrieve(reference):
         assert reference == "cs_test_123"
-        return {"id": reference, "status": "open", "payment_status": "unpaid", "url": "https://pay.test/open"}
+        return {
+            "id": reference,
+            "status": "open",
+            "payment_status": "unpaid",
+            "url": "https://pay.test/open",
+        }
 
     monkeypatch.setattr("stripe.checkout.Session.retrieve", retrieve)
     charge = StripeGateway().resume_charge("cs_test_123")
@@ -54,7 +59,12 @@ def test_resume_of_an_expired_session_is_empty(monkeypatch):
     monkeypatch.setattr(settings, "stripe_secret_key", "sk_test_example")
     monkeypatch.setattr(
         "stripe.checkout.Session.retrieve",
-        lambda reference: {"id": reference, "status": "expired", "payment_status": "unpaid", "url": None},
+        lambda reference: {
+            "id": reference,
+            "status": "expired",
+            "payment_status": "unpaid",
+            "url": None,
+        },
     )
     assert StripeGateway().resume_charge("cs_test_old") is None
 

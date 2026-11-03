@@ -319,7 +319,9 @@ def test_webhook_updates_email_and_delete_clears_link(client, monkeypatch):
 
 
 def test_webhook_rejects_bad_signature(client, monkeypatch):
-    monkeypatch.setattr(settings, "clerk_webhook_secret", "whsec_" + base64.b64encode(b"k").decode())
+    monkeypatch.setattr(
+        settings, "clerk_webhook_secret", "whsec_" + base64.b64encode(b"k").decode()
+    )
     r = client.post(
         "/v1/webhooks/clerk",
         content=b"{}",

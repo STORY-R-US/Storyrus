@@ -50,6 +50,11 @@ describe("Adult-only privacy information", () => {
     expect(text).toContain("ElevenLabs");
     expect(text).toContain("OpenAI");
     expect(text).toContain("info@storyrus.ai");
-    expect(doc.updated).toContain("29");
+    const updated = {
+      pt: "Última atualização: 2 de novembro de 2026.",
+      en: "Last updated: November 2, 2026.",
+      es: "Última actualización: 2 de noviembre de 2026.",
+    };
+    expect(doc.updated).toBe(updated[lang]);
   });
 });

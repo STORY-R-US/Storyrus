@@ -20,8 +20,14 @@ def _ok(text: str = "Título: Luna\nPágina 1: Era uma vez.") -> dict:
 
 @pytest.mark.asyncio
 async def test_title_suggestions_use_story_language_and_guidance(client):
-    titles = ["Lia e o céu", "Lia na Lua", "As descobertas de Lia", "Lia e o cometa", "Lia astronauta"]
-    client.script = [(200, _ok(json.dumps({"titles": titles}))) ]
+    titles = [
+        "Lia e o céu",
+        "Lia na Lua",
+        "As descobertas de Lia",
+        "Lia e o cometa",
+        "Lia astronauta",
+    ]
+    client.script = [(200, _ok(json.dumps({"titles": titles})))]
     result = await oai.OpenAITextProvider().suggest_titles(
         context={"title": "Lia", "story": "Lia voou até a Lua", "language": "pt-BR"},
         guidance="Mais aventura",
@@ -50,11 +56,19 @@ async def test_title_suggestions_do_not_return_demo_titles(client, monkeypatch):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("titles", [
-    ["Um", "Dois"], ["Igual"] * 5, ["Lia", "A", "B", "C", "D"],
-    ["A", "B", "C", "D", "x" * 121], ["A", "B", "C", "D", None],
-])
-async def test_title_suggestions_reject_bad_ai_output_without_inventing_replacements(client, titles):
+@pytest.mark.parametrize(
+    "titles",
+    [
+        ["Um", "Dois"],
+        ["Igual"] * 5,
+        ["Lia", "A", "B", "C", "D"],
+        ["A", "B", "C", "D", "x" * 121],
+        ["A", "B", "C", "D", None],
+    ],
+)
+async def test_title_suggestions_reject_bad_ai_output_without_inventing_replacements(
+    client, titles
+):
     client.script = [(200, _ok(json.dumps({"titles": titles})))]
     with pytest.raises(ProviderError):
         await oai.OpenAITextProvider().suggest_titles(context={"title": "Lia"})

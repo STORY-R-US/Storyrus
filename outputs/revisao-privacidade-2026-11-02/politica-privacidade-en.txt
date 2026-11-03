@@ -1,0 +1,82 @@
+LOCAL DRAFT — legal entity and operational conditions await confirmation.
+
+Privacy Policy
+
+Last updated: November 2, 2026.
+
+Story R Us (storyrus.ai) creates personalized illustrated books using information and photos provided by a responsible adult. This policy explains what we process, why, and how to exercise your rights. Brazil's LGPD and other privacy rules apply where relevant; the children's section explains the service model and considerations under the US Children's Online Privacy Protection Act (COPPA).
+
+Who we are
+
+Data controller: Story R Us. The privacy contact is at the end of this page.
+
+What we collect
+
+- Adult account: current authentication is provided by Clerk. We keep email, account identifier, name, phone, address provided, signup date and records of acceptance and the declaration of adult status.
+- Project: name or nickname, age, dedication, character photos, theme, style, instructions, approvals and generated files such as illustrations, pages and PDF.
+- Order: format, finish, quantity, recipient and delivery details, quotation, payment status and support history, where applicable.
+- Technical use: session information, language and appearance preferences, IP and records needed for operation and security. Optional audio and video resources, when available and requested, are addressed separately below.
+
+How we use it
+
+We use necessary information to create and deliver the book, maintain your account, send service communications, provide support and arrange printing and delivery when requested. The Studio authorization covers the book; it does not automatically authorize voice, video, publication or advertising. We do not sell personal information, run targeted advertising or use uploaded files for our own promotion or model training.
+
+Purposes And Legal Grounds
+
+Account and order information is processed to provide the service and perform the contract. Information may also be kept to meet legal obligations or exercise rights. Using photos in a book requires the specific authorization shown to the adult before upload. Consent-based processing can be withdrawn. Children's information requires attention to their best interests; an adult's declaration of age does not remove that protection. Brazilian LGPD rights and legal requirements apply where relevant.
+
+Processors
+
+When AI generation is available and requested, necessary photos, character details and text may be processed by OpenAI. Clerk handles sign-in; the site and API use Vercel and Render, and files may be stored in S3-compatible services including Cloudflare R2. Email, payment, printing and delivery providers receive information needed for the requested step. The generic test mode identified in the Studio does not call AI providers to generate its content. Provider retention and other conditions depend on the contracted service; contact us for details.
+
+Optional Voice And Video
+
+Creating a book does not require a voice upload or a video request. If these resources are available, a voice sample must be the adult's own voice and requires specific authorization on upload; audio may be processed by ElevenLabs. Content needed for a requested video may be processed by Kling. Book-photo authorization does not replace the notice and authorization required for an additional purpose. Existing files from these resources and voices saved to an account remain subject to this policy.
+
+International Data Transfers
+
+Providers may process information outside Brazil. LGPD requirements on international transfers apply where relevant. Contact us for information about processing countries, recipients and safeguards for the operation. Creating an account or accepting this policy is not blanket authorization for any transfer or new purpose.
+
+International users
+
+You may enter an address outside Brazil. Digital service, printing and delivery availability depend on available resources and partners. Review order conditions before confirming an order and any charge.
+
+Retention and deletion
+
+Unpaid projects enter the deletion routine after 90 days without opening or other recorded activity. Pending payments, paid orders and active generation are excluded from that routine; retention must be limited to what is needed for the order, support, legal obligations or exercising rights. Adults can delete a project and its files in My orders; running tasks must finish or be stopped first. Deleting a project does not delete the Clerk account or a reusable voice saved to the account. Request deletion of these voices or account closure through our privacy contact. Backups, previous file versions and information already received by providers may require additional steps and time. We will explain the scope, applicable timelines and any required retention when handling your request.
+
+Your rights
+
+Under applicable law, you may request confirmation of processing, access and correction; information about sharing; anonymization, restriction or deletion of unnecessary or unlawfully processed information; portability under applicable rules; withdrawal of consent and deletion of consent-based information, subject to lawful retention exceptions. You may also ask about declining consent and its consequences and complain to the Brazilian ANPD where applicable. Requests are free and can be sent to info@storyrus.ai. We may request only the information needed to confirm your identity and authority to act for the person concerned. Applicable response periods and legal limits will be explained. Withdrawal stops the further uses it covers but does not automatically undo prior processing or an already fulfilled order.
+
+Children
+
+For adult parents and guardians aged 18 and over only. Children and teenagers cannot create accounts or use the Studio.
+
+United States (COPPA)
+
+COPPA addresses online collection of information from children under 13. Story R Us is exclusively for adult parents and guardians aged 18 and over: children do not create accounts, upload files or operate the Studio. Information about book characters is provided by the adult. The recorded upload authorization is not represented as verifiable parental consent for a child-operated service. If we identify use by a minor, we restrict the account and handle deletion through our privacy contact.
+
+Changes
+
+We may update this policy. The date at the top identifies the text version. Material changes may be posted on the site or sent by email. A new purpose requiring consent must be explained and authorized separately.
+
+Adult authorization and control
+
+Before uploading photos, the adult must read the notice and confirm authorization to create the book. We record the notice version, time, account and purpose. In My orders you can withdraw authorization for further uses of the photos; this is different from deleting a project. The authorization does not permit publishing the files or using them for advertising. Upload a child's information only as their legal guardian or with that guardian's authorization. Contact info@storyrus.ai for additional requests.
+
+Image processing and sensitive information
+
+Photos may undergo automated processing and similarity comparison to maintain appearance in illustrations. This does not verify the adult's identity or age. A child's identity documents, precise location, school and health information are not needed for a book. Use a first name or nickname and the age needed for the story.
+
+Session, Preferences And Browser Services
+
+Your browser may keep session information and language and appearance preferences in cookies or local storage. Without a saved language preference, ipapi.co is queried to suggest a language from the IP country; that service receives technical connection information. You can change the language manually. Site fonts are loaded from Google Fonts, which also receives the technical information needed for the connection. Clearing browser data may end your session or remove preferences but does not delete projects stored in your account.
+
+Access And Security
+
+Project access depends on the account and service permissions; authorized staff may access projects for operation and support. Files are provided through temporary access links when that storage mechanism is used. Do not publish or share private links. No system offers absolute security; report suspected unauthorized access through our privacy contact.
+
+Contact
+
+Privacy questions: info@storyrus.ai

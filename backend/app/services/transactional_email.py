@@ -554,7 +554,11 @@ def _shop_pdfs(db, project, order) -> list[tuple[str, bytes]] | None:
         found = []
         for asset in rows:
             meta = asset.meta or {}
-            if meta.get("workflow") != 1 or meta.get("language") != language or meta.get("role") != role:
+            if (
+                meta.get("workflow") != 1
+                or meta.get("language") != language
+                or meta.get("role") != role
+            ):
                 continue
             if page is not None and meta.get("page") != page:
                 continue
@@ -608,9 +612,7 @@ def notify_print_shop(_db, project, order) -> bool:
             (order.complement or "").strip(),
             (order.district or "").strip(),
             " / ".join(
-                part
-                for part in ((order.city or "").strip(), (order.state or "").strip())
-                if part
+                part for part in ((order.city or "").strip(), (order.state or "").strip()) if part
             ),
             postal,
         )
@@ -646,7 +648,9 @@ def notify_print_shop(_db, project, order) -> bool:
             else "Livro aprovado para impressão. Os PDFs não estavam disponíveis para anexar."
         )
     )
-    text = "\n".join([intro, "", *[f"{label}: {value}" for label, value in rows], "", "www.storyrus.ai"])
+    text = "\n".join(
+        [intro, "", *[f"{label}: {value}" for label, value in rows], "", "www.storyrus.ai"]
+    )
     html = _new_order_html(
         rows=rows,
         summary=intro,

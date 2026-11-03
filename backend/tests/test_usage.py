@@ -561,7 +561,9 @@ def test_delete_drafts_removes_projects_and_guest_accounts():
         debug = User(email="storyrus-debug@example.com", password_hash="x", credits=0)
         db.add_all([owner, guest, debug])
         db.flush()
-        db.add(UserVoice(user_id=guest.id, name="Voz", elevenlabs_voice_id="v", sample_storage_key="a"))
+        db.add(
+            UserVoice(user_id=guest.id, name="Voz", elevenlabs_voice_id="v", sample_storage_key="a")
+        )
         own = Project(user_id=owner.id, status="CREATED", child_name="Lia")
         theirs = Project(user_id=guest.id, status="CREATED", child_name="Bia")
         db.add_all([own, theirs])
