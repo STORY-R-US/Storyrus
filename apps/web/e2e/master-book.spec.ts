@@ -1,3 +1,4 @@
+import { TEST_SESSION_TOKEN } from "./session";
 import { test, expect } from "@playwright/test";
 
 test("Studio requires preview, story and face approvals in the browser", async ({ page }, testInfo) => {
@@ -15,14 +16,14 @@ test("Studio requires preview, story and face approvals in the browser", async (
   let paid = false;
   let character: string | null = null;
   const versions: object[] = [];
-  await page.addInitScript(() => { localStorage.setItem("lang", "pt"); localStorage.setItem("storyrus_token", "browser-test-session"); });
+  await page.addInitScript((sessionToken) => { localStorage.setItem("lang", "pt"); localStorage.setItem("storyrus_token", sessionToken); }, TEST_SESSION_TOKEN);
   await page.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//, (route) => route.abort());
   await page.route("**/health", (route) => route.fulfill({ json: { status: "ok" } }));
   await page.route("**/v1/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     const json = (value: unknown, status = 200) => route.fulfill({ status, json: value });
     if (path.endsWith("/auth/me")) return json({ id: "user", email: "test@example.com", is_guest: false,
-      email_verified: true, full_name: "Ana", phone: "11999999999", street: "Rua", number: "1", city: "São Paulo", state: "SP", country: "BR", credits: 10 });
+      email_verified: true, terms_accepted_at: "2026-10-30", adult_confirmed_at: "2026-10-30", full_name: "Ana", phone: "11999999999", street: "Rua", number: "1", city: "São Paulo", state: "SP", country: "BR", credits: 10 });
     if (path.endsWith("/print-order")) return json({id: "order", project_id: p.id, code: "SR-TEST", quantity: 1, book_size: "M", cover_type: "soft", book_price_cents: 17700, freight_options: [], payment_status: paid ? "paid" : "unpaid", checkout_available: false});
     if (path.endsWith("/credits")) return json({ credits: 10 });
     if (path.endsWith("/jobs")) return json([]);
@@ -51,8 +52,8 @@ test("Studio requires preview, story and face approvals in the browser", async (
     return json({ detail: "Unexpected test endpoint" }, 404);
   });
   await page.goto("/app?project=master-browser", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("Aprovo a história?", { exact: true })).toBeVisible({ timeout: 20_000 });
-  expect(page.getByRole("button", { name: "Gostei, continuar com meu livro" })).toHaveCount(0);
+  await expect(page.getByText("Aprovo A História?", { exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: "Gostei, continuar com meu livro" })).toHaveCount(0);
   expect(calls).toHaveLength(0);
   await page.screenshot({ path: testInfo.outputPath("studio-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -69,10 +70,12 @@ test("Studio requires preview, story and face approvals in the browser", async (
   p.book_profile.stage = "avatar_ready";
   character = image;
   await page.reload();
-  await expect(page.getByText("Este é o rosto?", { exact: true })).toBeVisible();
+  await expect(page.getByText("Este É O Rosto?", { exact: true })).toBeVisible();
   expect(calls.some((call) => call.endsWith("/pages/next"))).toBe(false);
   await page.getByRole("button", { name: "Sim, aprovo", exact: true }).click();
   await expect(page.getByText("Próxima?", { exact: true })).toBeVisible();
-  await expect(page.getByText("Página 1 · PT-BR · Sem texto", { exact: true })).toBeVisible();
-  await expect(page.getByText("Página 1 · PT-BR · Com texto", { exact: true })).toBeVisible();
+  const pages = page.getByRole("region", { name: "Páginas Do Livro", exact: true });
+  await expect(pages.getByRole("img", { name: "Página 1", exact: true })).toHaveCount(1);
+  expect(calls.filter((call) => call.endsWith("/pages/next"))).toHaveLength(1);
+  await expect(pages.getByRole("button", { name: "Melhorar esta página" })).toHaveCount(1);
 });

@@ -9,147 +9,192 @@ import { useStudioI18n } from "./useStudioI18n";
 
 const COPY = {
   pt: {
-    preview: "Aprovo a prévia?",
+    preview: "Aprovo A Prévia?",
     yes: "Sim, aprovo",
-    story: "Aprovo a história?",
-    face: "Este é o rosto?",
+    story: "Aprovo A História?",
+    face: "Este É O Rosto?",
     next: "Próxima?",
     redo: "Gerar novamente",
     adjust: "Ajuste desta imagem",
     send: "Aplicar ajuste",
     waiting: "Gerando…",
     cover: "Capa",
-    open: "Livro aberto",
+    open: "Livro Aberto",
     reading: "Leitura",
     noText: "Sem texto",
     withText: "Com texto",
     page: "Página",
     save: "Baixar imagem",
+    suggest: "Sugerir melhoria",
+    suggestField: "O que melhorar nesta imagem?",
+    suggestSend: "Enviar sugestão",
     finish: "As 16 páginas estão prontas.",
     download: "Abrir livro",
     approveBook: "Aprovar livro",
     retry: "Tentar novamente",
     writeStory: "Gerar a história",
     edit: "Ajuste da história",
+    editHint: "É para a história em geral. A IA reescreve o conjunto das páginas.",
+    alter: "Alterar",
+    alterField: "O que devemos ajustar",
+    alterSend: "Ajustar página",
     summary:
       "Cada página tem a versão sem texto e a versão com texto, nessa ordem. A prévia está no início.",
     continue: "Continuar",
-    images: "As imagens",
-    storyHeading: "A história",
+    images: "As Imagens",
+    previewImagesHint: "Confira a capa, o livro aberto e a leitura. Os ajustes ficam junto de cada imagem.",
+    previewTitleHeading: "Revise O Título",
+    previewNextHeading: "Tudo Certo Com A Prévia?",
+    previewNextHint: "Confira as imagens e o título antes de continuar. A história será apresentada para sua revisão na próxima etapa.",
+    storyHeading: "A História",
     titleLabel: "Título do livro",
     titleSave: "Atualizar título",
     titleHint: "A capa é refeita com este título. O restante da história fica.",
+    titleOptions: "Outras opções de título",
+    titleOptionsHint: "Escolha uma opção e confirme em Atualizar título.",
+    titleUse: "Usar este título",
+    titleChosen: "Selecionado",
     goToOrder: "Ir para o pedido",
-    pagesHeading: "Páginas do livro",
+    pagesHeading: "Páginas Do Livro",
     improve: "O que melhorar nesta página",
     improveSend: "Melhorar esta página",
-    previewAdjustTitle: "Ajustar minha prévia",
+    previewAdjustTitle: "Ajustar Minha Prévia",
     previewAdjustHint: "Descreva o que deseja melhorar. Ao aplicar, a IA refaz a prévia e a história para uma nova revisão.",
     themeLabel: "Tema da história",
     previewNotes: "O que você quer melhorar?",
     cancelAdjust: "Cancelar ajustes",
-    retryPreviewTitle: "Sua prévia precisa de uma nova geração",
+    retryPreviewTitle: "Sua Prévia Precisa De Uma Nova Geração",
     retryPreviewHint: "Precisamos refazer esta prévia com IA antes da sua revisão. O livro só continuará depois da sua aprovação.",
     retryRealPreview: "Refazer prévia com IA",
-    testTitle: "Modo de teste · sem créditos",
+    testTitle: "Modo De Teste · Sem Créditos",
     testHint: "As imagens e os textos são genéricos, gerados localmente, sem chamadas à IA. Cada etapa aguarda sua confirmação.",
     testContinue: "Aprovar prévia e continuar o teste",
     exitTest: "Gerar versão real com IA",
     retryGeneric: "Gerar prévia genérica de teste",
   },
   en: {
-    preview: "Approve the preview?",
+    preview: "Approve The Preview?",
     yes: "Yes, I approve",
-    story: "Approve the story?",
-    face: "Is this the face?",
+    story: "Approve The Story?",
+    face: "Is This The Face?",
     next: "Next?",
     redo: "Regenerate",
     adjust: "Adjustment to this image",
     send: "Apply adjustment",
     waiting: "Generating…",
     cover: "Cover",
-    open: "Open book",
+    open: "Open Book",
     reading: "Reading",
     noText: "Without text",
     withText: "With text",
     page: "Page",
     save: "Download image",
+    suggest: "Suggest an improvement",
+    suggestField: "What should improve in this image?",
+    suggestSend: "Send suggestion",
     finish: "All 16 pages are ready.",
     download: "Open book",
     approveBook: "Approve book",
     retry: "Try again",
     writeStory: "Write the story",
     edit: "Story adjustment",
+    editHint: "This is for the story as a whole. AI rewrites the pages together.",
+    alter: "Change",
+    alterField: "What should we adjust",
+    alterSend: "Adjust page",
     summary:
       "Each page has a version without text followed by a version with text. The preview is at the start.",
     continue: "Continue",
     images: "Images",
-    storyHeading: "The story",
+    previewImagesHint: "Review the cover, open book and reading scene. Adjustments are next to each image.",
+    previewTitleHeading: "Review The Title",
+    previewNextHeading: "Happy With The Preview?",
+    previewNextHint: "Review the images and title before continuing. The story will be presented for your review in the next step.",
+    storyHeading: "The Story",
     titleLabel: "Book title",
     titleSave: "Update title",
     titleHint: "The cover is remade with this title. The rest of the story stays.",
+    titleOptions: "Other title options",
+    titleOptionsHint: "Choose an option and confirm with Update title.",
+    titleUse: "Use this title",
+    titleChosen: "Selected",
     goToOrder: "Go to the order",
-    pagesHeading: "Book pages",
+    pagesHeading: "Book Pages",
     improve: "What to improve on this page",
     improveSend: "Improve this page",
-    previewAdjustTitle: "Adjust my preview",
+    previewAdjustTitle: "Adjust My Preview",
     previewAdjustHint: "Describe what you would like to improve. Applying changes asks AI to recreate the preview and story for a new review.",
     themeLabel: "Story theme",
     previewNotes: "What would you like to improve?",
     cancelAdjust: "Cancel adjustments",
-    retryPreviewTitle: "Your preview needs to be generated again",
+    retryPreviewTitle: "Your Preview Needs To Be Generated Again",
     retryPreviewHint: "We need to recreate this preview with AI before your review. The book will only continue after your approval.",
     retryRealPreview: "Recreate preview with AI",
-    testTitle: "Test mode · no credits",
+    testTitle: "Test Mode · No Credits",
     testHint: "Images and text are generic, generated locally without AI calls. Each step waits for your confirmation.",
     testContinue: "Approve preview and continue the test",
     exitTest: "Create the real version with AI",
     retryGeneric: "Create a generic test preview",
   },
   es: {
-    preview: "¿Apruebas la vista previa?",
+    preview: "¿Apruebas La Vista Previa?",
     yes: "Sí, apruebo",
-    story: "¿Apruebas la historia?",
-    face: "¿Es este el rostro?",
+    story: "¿Apruebas La Historia?",
+    face: "¿Es Este El Rostro?",
     next: "¿Siguiente?",
     redo: "Generar de nuevo",
     adjust: "Ajuste de esta imagen",
     send: "Aplicar ajuste",
     waiting: "Generando…",
     cover: "Portada",
-    open: "Libro abierto",
+    open: "Libro Abierto",
     reading: "Lectura",
     noText: "Sin texto",
     withText: "Con texto",
     page: "Página",
     save: "Descargar imagen",
+    suggest: "Sugerir mejora",
+    suggestField: "¿Qué mejorar en esta imagen?",
+    suggestSend: "Enviar sugerencia",
     finish: "Las 16 páginas están listas.",
     download: "Abrir libro",
     approveBook: "Aprobar libro",
     retry: "Intentar de nuevo",
     writeStory: "Escribir la historia",
     edit: "Ajuste de la historia",
+    editHint: "Es para la historia en general. La IA reescribe el conjunto de las páginas.",
+    alter: "Cambiar",
+    alterField: "Qué debemos ajustar",
+    alterSend: "Ajustar página",
     summary:
       "Cada página tiene la versión sin texto y luego con texto. La vista previa está al inicio.",
     continue: "Continuar",
-    images: "Las imágenes",
-    storyHeading: "La historia",
+    images: "Las Imágenes",
+    previewImagesHint: "Revisa la portada, el libro abierto y la lectura. Los ajustes están junto a cada imagen.",
+    previewTitleHeading: "Revisa El Título",
+    previewNextHeading: "¿Todo Bien Con La Vista Previa?",
+    previewNextHint: "Revisa las imágenes y el título antes de continuar. La historia se presentará para tu revisión en el siguiente paso.",
+    storyHeading: "La Historia",
     titleLabel: "Título del libro",
     titleSave: "Actualizar título",
     titleHint: "La portada se rehace con este título. El resto de la historia queda.",
+    titleOptions: "Otras opciones de título",
+    titleOptionsHint: "Elige una opción y confirma con Actualizar título.",
+    titleUse: "Usar este título",
+    titleChosen: "Seleccionado",
     goToOrder: "Ir al pedido",
-    pagesHeading: "Páginas del libro",
+    pagesHeading: "Páginas Del Libro",
     improve: "Qué mejorar en esta página",
     improveSend: "Mejorar esta página",
-    previewAdjustTitle: "Ajustar mi vista previa",
+    previewAdjustTitle: "Ajustar Mi Vista Previa",
     previewAdjustHint: "Describe qué te gustaría mejorar. Al aplicar, la IA vuelve a crear la vista previa y la historia para una nueva revisión.",
     themeLabel: "Tema de la historia",
     previewNotes: "¿Qué quieres mejorar?",
     cancelAdjust: "Cancelar ajustes",
-    retryPreviewTitle: "Tu vista previa necesita una nueva generación",
+    retryPreviewTitle: "Tu Vista Previa Necesita Una Nueva Generación",
     retryPreviewHint: "Necesitamos volver a crear esta vista previa con IA antes de tu revisión. El libro solo continuará después de tu aprobación.",
     retryRealPreview: "Volver a crear la vista previa con IA",
-    testTitle: "Modo de prueba · sin créditos",
+    testTitle: "Modo De Prueba · Sin Créditos",
     testHint: "Las imágenes y los textos son genéricos, generados localmente sin llamadas a IA. Cada paso espera tu confirmación.",
     testContinue: "Aprobar vista previa y continuar la prueba",
     exitTest: "Crear la versión real con IA",
@@ -158,6 +203,55 @@ const COPY = {
 };
 
 type StoryBlock = { kind: "title" | "page" | "body"; label: string; lines: string[] };
+
+const TITLE_ARTICLES = new Set(["a", "o", "os", "as", "um", "uma", "the", "el", "la", "los", "las", "un", "una"]);
+
+function titleProtagonist(childName: string, title: string) {
+  const named = childName.trim();
+  if (named) return named;
+  const first = title.trim().split(/\s+/)[0]?.replace(/[,:.]+$/g, "") || "";
+  if (!first || TITLE_ARTICLES.has(first.toLocaleLowerCase())) return "";
+  return first;
+}
+
+export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, title: string, theme: string) {
+  const name = titleProtagonist(childName, title);
+  if (!name) return [];
+  const phrase = theme.trim();
+  const topic = phrase.length >= 3 && phrase.length <= 40 && phrase.includes(" ") && !/[\n\r]/.test(phrase)
+    ? phrase
+    : "";
+  const patterns = lang === "en"
+    ? [
+        `The story of ${name}`,
+        `The great adventure of ${name}`,
+        `${name} and a world of discoveries`,
+        `A book about ${name}`,
+        `A story for ${name}`,
+        topic ? `${name} and ${topic}` : "",
+      ]
+    : lang === "es"
+      ? [
+          `La historia de ${name}`,
+          `La gran aventura de ${name}`,
+          `${name} y un mundo de descubrimientos`,
+          `El libro de ${name}`,
+          `Una historia para ${name}`,
+          topic ? `${name} y ${topic}` : "",
+        ]
+      : [
+          `A história de ${name}`,
+          `A grande aventura de ${name}`,
+          `${name} e um mundo de descobertas`,
+          `O livro de ${name}`,
+          `Uma história para ${name}`,
+          topic ? `${name} e ${topic}` : "",
+        ];
+  const current = title.trim().toLocaleLowerCase();
+  return [...new Set(patterns.map((item) => item.trim()).filter(Boolean))]
+    .filter((item) => item.toLocaleLowerCase() !== current)
+    .slice(0, 6);
+}
 
 function verseLines(text: string): string[] {
   return text
@@ -210,6 +304,11 @@ export function MasterBookFlow({
   const [error, setError] = useState("");
   const [adjustment, setAdjustment] = useState("");
   const [selected, setSelected] = useState("");
+  const [suggesting, setSuggesting] = useState("");
+  const [alteringPage, setAlteringPage] = useState("");
+  const [pageCorrections, setPageCorrections] = useState<Record<string, string>>({});
+  const [suggestionText, setSuggestionText] = useState<Record<string, string>>({});
+  const suggestionField = useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = useState(false);
   const adjustmentPanel = useRef<HTMLDivElement>(null);
   const adjustmentNotes = useRef<HTMLTextAreaElement>(null);
@@ -218,6 +317,9 @@ export function MasterBookFlow({
     adjustmentPanel.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
     adjustmentNotes.current?.focus({ preventScroll: true });
   }, [editing]);
+  useEffect(() => {
+    if (suggesting) suggestionField.current?.focus();
+  }, [suggesting]);
   const [editTitle, setEditTitle] = useState(project.book_profile?.title || "");
   useEffect(() => {
     setEditTitle(project.book_profile?.title || "");
@@ -235,6 +337,8 @@ export function MasterBookFlow({
   const lastJob = jobs[jobs.length - 1];
   const failed = lastJob?.status === "FAILED" ? lastJob : null;
   const stage = p.stage;
+  const isPreviewReview = ["preview_ready", "story_ready", "story_approved"].includes(stage)
+    && !project.purchase_flow?.preview_approved_at;
   const previews = [...(assets?.previews ?? [])].sort(
     (a, b) =>
       p.languages.indexOf(a.language) - p.languages.indexOf(b.language) ||
@@ -256,6 +360,10 @@ export function MasterBookFlow({
       setJobs(await api.listJobs(project.id));
       if (setAssets) setAssets(await api.getAssets(project.id));
       setSelected("");
+      setSuggesting("");
+      setSuggestionText({});
+      setAlteringPage("");
+      setPageCorrections({});
       setAdjustment("");
       setPageToAdjust(null);
     } catch (e) {
@@ -279,6 +387,12 @@ export function MasterBookFlow({
     await api.nextBookPage(project.id);
   };
   const savedTitle = (p.title || "").trim();
+  const titleOptions = extraTitleOptions(
+    lang,
+    project.child_name || "",
+    savedTitle,
+    project.purchase_flow?.theme_description || project.theme || "",
+  );
   const canEditTitle =
     p.current_page === 0 &&
     ["preview_ready", "story_ready", "story_approved", "preview_approved"].includes(stage);
@@ -318,6 +432,53 @@ export function MasterBookFlow({
                       <p key={`${language}-${index}-${lineIndex}`}>{line}</p>
                     ))}
                   </div>
+                  {stage === "story_ready" && block.kind === "page" && (() => {
+                    const page = Number(block.label.match(/\d+/)?.[0]);
+                    if (!page || page < 1 || page > 16) return null;
+                    const key = `${language}:${page}`;
+                    const note = pageCorrections[key] || "";
+                    const open = alteringPage === key;
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          className="story-alter-toggle"
+                          aria-expanded={open}
+                          disabled={active}
+                          onClick={() => setAlteringPage((current) => (current === key ? "" : key))}
+                        >
+                          {t.alter}
+                        </button>
+                        {open && (
+                          <div className="studio-story-alter">
+                            <label className="studio-field">
+                              {t.alterField}
+                              <textarea
+                                value={note}
+                                maxLength={500}
+                                rows={3}
+                                onChange={(event) =>
+                                  setPageCorrections((current) => ({ ...current, [key]: event.target.value }))
+                                }
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              className="kbtn kbtn-soft"
+                              disabled={active || !note.trim()}
+                              onClick={() =>
+                                void run(() =>
+                                  api.startStep(project.id, "story", { page, brief: note.trim() }),
+                                )
+                              }
+                            >
+                              {t.alterSend}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </article>
               ))}
             </div>
@@ -345,7 +506,7 @@ export function MasterBookFlow({
     </section>;
   }
   return (
-    <div className="studio-master-flow" data-testid="studio-master-flow">
+    <div className={`studio-master-flow${isPreviewReview ? " is-preview-review" : ""}`} data-testid="studio-master-flow">
       {testMode && <section className="master-adjustment-panel" data-testid="studio-test-mode">
         <h3>{t.testTitle}</h3><p className="master-title-hint">{t.testHint}</p>
         {!project.ai_generation_paused && <button type="button" className="kbtn kbtn-soft" disabled={active}
@@ -378,7 +539,15 @@ export function MasterBookFlow({
           {t.goToOrder}
         </button>
       )}
-      {gallery.length > 0 && <h3 className="master-section">{t.images}</h3>}
+      {gallery.length > 0 && (
+        <section className={isPreviewReview ? "master-preview-panel master-preview-images" : undefined}
+          aria-labelledby="master-preview-images-heading">
+          <div className="master-preview-panel-heading">
+            <h3 id="master-preview-images-heading" className="master-section">
+              {isPreviewReview && <span className="master-preview-number" aria-hidden="true">01</span>}{t.images}
+            </h3>
+            {isPreviewReview && <p className="master-title-hint">{t.previewImagesHint}</p>}
+          </div>
       <div className="master-gallery">
         {gallery.map((shot) => {
           const label =
@@ -391,9 +560,23 @@ export function MasterBookFlow({
               <figcaption>
                 <span>{severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label}</span>
                 <span className="master-shot-actions">
-                  <a href={shot.url} download={shot.filename} target="_blank" rel="noreferrer">
-                    {t.save}
-                  </a>
+                  {stage === "preview_ready" ? (
+                    <button
+                      type="button"
+                      aria-expanded={suggesting === `${shot.language}:${shot.role}`}
+                      disabled={active}
+                      onClick={() => {
+                        const key = `${shot.language}:${shot.role}`;
+                        setSuggesting((current) => (current === key ? "" : key));
+                      }}
+                    >
+                      {t.suggest}
+                    </button>
+                  ) : (
+                    <a href={shot.url} download={shot.filename} target="_blank" rel="noreferrer">
+                      {t.save}
+                    </a>
+                  )}
                   {stage === "preview_ready" && (
                     <button
                       type="button"
@@ -405,12 +588,53 @@ export function MasterBookFlow({
                   )}
                 </span>
               </figcaption>
+              {stage === "preview_ready" && suggesting === `${shot.language}:${shot.role}` && (
+                <div className="master-shot-suggestion">
+                  <label className="studio-field">
+                    {t.suggestField}
+                    <textarea
+                      ref={suggestionField}
+                      value={suggestionText[`${shot.language}:${shot.role}`] || ""}
+                      maxLength={500}
+                      rows={3}
+                      onChange={(event) => {
+                        const key = `${shot.language}:${shot.role}`;
+                        setSuggestionText((current) => ({ ...current, [key]: event.target.value }));
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="kbtn kbtn-soft"
+                    disabled={active || !(suggestionText[`${shot.language}:${shot.role}`] || "").trim()}
+                    onClick={() => {
+                      const key = `${shot.language}:${shot.role}`;
+                      void run(() =>
+                        api.startPreview(project.id, {
+                          language: shot.language,
+                          image: shot.role,
+                          adjustment: (suggestionText[key] || "").trim(),
+                        }),
+                      );
+                    }}
+                  >
+                    {t.suggestSend}
+                  </button>
+                </div>
+              )}
             </figure>
           );
         })}
       </div>
+        </section>
+      )}
       {canEditTitle && (
         <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
+          {isPreviewReview && (
+            <div className="master-preview-panel-heading">
+              <h3 className="master-section"><span className="master-preview-number" aria-hidden="true">02</span>{t.previewTitleHeading}</h3>
+            </div>
+          )}
           <div className="master-title-row">
             <label className="studio-field">
               {t.titleLabel}
@@ -430,7 +654,29 @@ export function MasterBookFlow({
             </button>
           </div>
           <p className="master-title-hint">{t.titleHint}</p>
-          {!testMode && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
+          {titleOptions.length > 0 && (
+            <details className="master-title-alternatives" open={!isPreviewReview}>
+              <summary>{t.titleOptions}</summary>
+              <p className="master-title-hint">{t.titleOptionsHint}</p>
+              <ul className="master-title-options" aria-label={t.titleOptions}>
+                {titleOptions.map((option) => (
+                  <li key={option}>
+                    <button
+                      type="button"
+                      className={editTitle.trim() === option ? "is-selected" : ""}
+                      aria-pressed={editTitle.trim() === option}
+                      disabled={active}
+                      onClick={() => setEditTitle(option)}
+                    >
+                      <span>{option}</span>
+                      <span className="master-title-choice">{editTitle.trim() === option ? t.titleChosen : t.titleUse}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {!testMode && !project.ai_generation_paused && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
             selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
       )}
@@ -446,7 +692,7 @@ export function MasterBookFlow({
           </label>
           <button
             className="kbtn kbtn-soft"
-            disabled={active}
+            disabled={active || !adjustment.trim()}
             onClick={() =>
               void run(() =>
                 api.startPreview(project.id, {
@@ -460,6 +706,22 @@ export function MasterBookFlow({
             {t.send}
           </button>
         </div>
+      )}
+      {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
+        <section className="master-preview-next" aria-labelledby="master-preview-next-heading">
+          <div>
+            <h3 id="master-preview-next-heading">{t.previewNextHeading}</h3>
+            <p className="master-title-hint">{t.previewNextHint}</p>
+          </div>
+          <button
+            className="kbtn kbtn-primary studio-create"
+            disabled={active}
+            data-testid="studio-write-story"
+            onClick={() => void run(() => api.startStep(project.id, "story"))}
+          >
+            {testMode ? t.testContinue : t.writeStory}
+          </button>
+        </section>
       )}
       {reviewing && (
         <section className="master-pages" aria-labelledby="master-pages-heading">
@@ -569,15 +831,6 @@ export function MasterBookFlow({
           }}>{t.cancelAdjust}</button>
         </div>
       )}
-      {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
-        <button
-          className="kbtn kbtn-primary"
-          disabled={active}
-          onClick={() => void run(() => api.startStep(project.id, "story"))}
-        >
-          {testMode ? t.testContinue : t.writeStory}
-        </button>
-      )}
       {p.stories && (
         <div data-testid="studio-master-story">
           {reviewing ? (
@@ -607,6 +860,7 @@ export function MasterBookFlow({
               maxLength={2000}
             />
           </label>
+          <p className="master-title-hint">{t.editHint}</p>
           <button
             type="button"
             className="kbtn kbtn-soft"
@@ -711,7 +965,7 @@ export function MasterBookFlow({
           </label>
           <button
             className="kbtn kbtn-soft"
-            disabled={active || !!project.book_approved_at}
+            disabled={active || !!project.book_approved_at || !adjustment.trim()}
             onClick={() =>
               void run(() =>
                 api.nextBookPage(project.id, {

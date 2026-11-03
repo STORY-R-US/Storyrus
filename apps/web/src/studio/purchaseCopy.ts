@@ -1,7 +1,7 @@
 import type { Lang } from "../i18n/lang";
 
 const pt = {
-  next: "Revise sua prévia e continue seu pedido",
+  next: "Revise Sua Prévia E Continue Seu Pedido",
   intro:
     "Gostou do resultado? Aprove a prévia para conferir seu livro e a cotação.",
   approve: "Gostei, continuar com meu livro",
@@ -9,10 +9,10 @@ const pt = {
   unsaved: "Envie suas alterações e revise a nova prévia antes de continuar.",
   steps: [
     "Prévia",
-    "Pedido e entrega",
+    "Pedido E Entrega",
     "Pagamento",
-    "Livro completo",
-    "Impressão e envio",
+    "Livro Completo",
+    "Impressão E Envio",
   ],
   summary: "Resumo do pedido",
   size: "Tamanho",
@@ -38,7 +38,7 @@ const pt = {
   days: "dias úteis",
   installments: "Parcelas",
   pay: "Continuar para pagamento",
-  confirmPayTitle: "Confirmar pagamento",
+  confirmPayTitle: "Confirmar Pagamento",
   confirmPay: "Confirmar pagamento e continuar",
   confirmPayHint:
     "Confirmação manual de hoje. Nenhum valor é cobrado. O livro completo entra em produção.",
@@ -62,20 +62,20 @@ const pt = {
   deleteBusy: "Apagando…",
   deleteFailed: "Não foi possível apagar o projeto. Tente de novo.",
   create: "Criar meu livro",
-  generating: "Estamos preparando seu livro completo",
+  generating: "Estamos Preparando Seu Livro Completo",
   generatingHint:
     "A capa, a dedicatória e as primeiras páginas aparecem aqui. O restante segue em produção e a impressão aguarda sua revisão.",
   readyCover: "Capa",
   readyDedication: "Dedicatória",
   readyPage: "Página",
   dedicationFor: "Para {name}.",
-  full: "Seu livro completo está pronto para revisão",
+  full: "Seu Livro Completo Está Pronto Para Revisão",
   fullHint: "Confira todas as páginas e o PDF antes de autorizar a impressão.",
   pdf: "Abrir livro completo em PDF",
   confirm:
     "Revisei todas as páginas e entendo que, depois de aprovado, não dá para voltar atrás.",
   final: "Aprovar livro para impressão",
-  approved: "Livro aprovado para impressão",
+  approved: "Livro Aprovado Para Impressão",
   approvedHint: "Acompanhe a preparação e o envio em Meus pedidos.",
   notes: "O que precisa ser ajustado no livro?",
   sendNotes: "Solicitar ajustes no livro",
@@ -94,7 +94,7 @@ const pt = {
 };
 type Copy = typeof pt;
 const en: Copy = {
-  next: "Review your preview and continue your order",
+  next: "Review Your Preview And Continue Your Order",
   intro:
     "Happy with the result? Approve the preview to review your book and quotation.",
   approve: "I like it, continue with my book",
@@ -103,10 +103,10 @@ const en: Copy = {
     "Submit your changes and review the updated preview before continuing.",
   steps: [
     "Preview",
-    "Order and delivery",
+    "Order And Delivery",
     "Payment",
-    "Complete book",
-    "Printing and shipping",
+    "Complete Book",
+    "Printing And Shipping",
   ],
   summary: "Order summary",
   size: "Size",
@@ -132,7 +132,7 @@ const en: Copy = {
   days: "business days",
   installments: "Installments",
   pay: "Continue to payment",
-  confirmPayTitle: "Confirm payment",
+  confirmPayTitle: "Confirm Payment",
   confirmPay: "Confirm payment and continue",
   confirmPayHint:
     "Manual confirmation for today. Nothing is charged. The complete book goes into production.",
@@ -156,20 +156,20 @@ const en: Copy = {
   deleteBusy: "Deleting…",
   deleteFailed: "Could not delete the project. Try again.",
   create: "Create my book",
-  generating: "We're preparing your complete book",
+  generating: "We're Preparing Your Complete Book",
   generatingHint:
     "The cover, the dedication, and the first pages appear here. The rest stays in production, and printing awaits your review.",
   readyCover: "Cover",
   readyDedication: "Dedication",
   readyPage: "Page",
   dedicationFor: "For {name}.",
-  full: "Your complete book is ready to review",
+  full: "Your Complete Book Is Ready To Review",
   fullHint: "Check every page and the PDF before authorizing printing.",
   pdf: "Open complete book PDF",
   confirm:
     "I reviewed every page and understand that, once approved, this cannot be undone.",
   final: "Approve book for printing",
-  approved: "Book approved for printing",
+  approved: "Book Approved For Printing",
   approvedHint: "Track preparation and shipping in My orders.",
   notes: "What needs to change in the book?",
   sendNotes: "Request book changes",
@@ -186,7 +186,7 @@ const en: Copy = {
   preview: "Preparing preview",
 };
 const es: Copy = {
-  next: "Revisa tu vista previa y continúa tu pedido",
+  next: "Revisa Tu Vista Previa Y Continúa Tu Pedido",
   intro:
     "¿Te gustó? Aprueba la vista previa para revisar los detalles y la cotización.",
   approve: "Me gusta, continuar con mi libro",
@@ -194,11 +194,11 @@ const es: Copy = {
   unsaved:
     "Envía los cambios y revisa la nueva vista previa antes de continuar.",
   steps: [
-    "Vista previa",
-    "Pedido y entrega",
+    "Vista Previa",
+    "Pedido Y Entrega",
     "Pago",
-    "Libro completo",
-    "Impresión y envío",
+    "Libro Completo",
+    "Impresión Y Envío",
   ],
   summary: "Resumen del pedido",
   size: "Tamaño",
@@ -224,7 +224,7 @@ const es: Copy = {
   days: "días hábiles",
   installments: "Cuotas",
   pay: "Continuar al pago",
-  confirmPayTitle: "Confirmar pago",
+  confirmPayTitle: "Confirmar Pago",
   confirmPay: "Confirmar pago y continuar",
   confirmPayHint:
     "Confirmación manual de hoy. No se cobra ningún valor. El libro completo entra en producción.",
@@ -248,21 +248,21 @@ const es: Copy = {
   deleteBusy: "Borrando…",
   deleteFailed: "No fue posible borrar el proyecto. Inténtalo de nuevo.",
   create: "Crear mi libro",
-  generating: "Estamos preparando tu libro completo",
+  generating: "Estamos Preparando Tu Libro Completo",
   generatingHint:
     "La portada, la dedicatoria y las primeras páginas aparecen aquí. El resto sigue en producción y la impresión espera tu revisión.",
   readyCover: "Portada",
   readyDedication: "Dedicatoria",
   readyPage: "Página",
   dedicationFor: "Para {name}.",
-  full: "Tu libro completo está listo para revisar",
+  full: "Tu Libro Completo Está Listo Para Revisar",
   fullHint:
     "Revisa todas las páginas y el PDF antes de autorizar la impresión.",
   pdf: "Abrir libro completo en PDF",
   confirm:
     "Revisé todas las páginas y entiendo que, después de aprobar, no se puede volver atrás.",
   final: "Aprobar libro para impresión",
-  approved: "Libro aprobado para impresión",
+  approved: "Libro Aprobado Para Impresión",
   approvedHint: "Sigue la preparación y el envío en Mis pedidos.",
   notes: "¿Qué necesitas ajustar en el libro?",
   sendNotes: "Solicitar ajustes del libro",

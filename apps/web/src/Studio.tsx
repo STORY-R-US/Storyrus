@@ -1543,16 +1543,30 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           )}
 
           {!onlyName && (
-            <label className="studio-field">
-              {t.dedication}
-              <input
+            <div className="studio-dedication-field">
+              <label className="studio-field">
+                {t.dedication}
+                <input
+                  disabled={fieldsLocked}
+                  value={dedication}
+                  onChange={(e) => setDedication(e.target.value)}
+                  placeholder={t.dedicationPh}
+                  maxLength={200}
+                />
+              </label>
+              <button
+                type="button"
+                className="kbtn kbtn-soft studio-suggest-dedication"
                 disabled={fieldsLocked}
-                value={dedication}
-                onChange={(e) => setDedication(e.target.value)}
-                placeholder={t.dedicationPh}
-                maxLength={200}
-              />
-            </label>
+                onClick={() => {
+                  const suggestions = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
+                  const next = (suggestions.indexOf(dedication) + 1) % suggestions.length;
+                  setDedication(suggestions[next]);
+                }}
+              >
+                {t.suggestDedication}
+              </button>
+            </div>
           )}
 
           <label className="studio-field">

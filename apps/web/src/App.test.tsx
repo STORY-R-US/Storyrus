@@ -58,7 +58,7 @@ describe("Fluxo E2E (com conta)", () => {
     setToken(null);
     renderApp("/app");
     expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
-    expect(screen.getByTestId("clerk-sign-up")).toBeInTheDocument();
+    expect(await screen.findByTestId("clerk-sign-up")).toBeInTheDocument();
   });
 
   it("criar livro mostra tela Projeto criado com prévia automática", async () => {
@@ -84,7 +84,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(sent).toHaveTextContent(/projeto criado/i);
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
     await waitFor(() => {
-      expect(document.title).toBe("Story R Us - Projeto criado");
+      expect(document.title).toBe("Story R Us - Projeto Criado");
     });
     expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
@@ -98,7 +98,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(await screen.findByText(/você está vendo um exemplo pronto/i)).toBeInTheDocument();
     expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
     await waitFor(() => {
-      expect(document.title).toBe("Story R Us - Prévia pronta");
+      expect(document.title).toBe("Story R Us - Prévia Pronta");
     });
     expect(await screen.findByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();

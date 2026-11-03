@@ -128,6 +128,28 @@ describe("Studio — gênero padrão", () => {
 });
 
 describe("Studio — ordem dos campos", () => {
+  it("sugere dedicatórias editáveis sem iniciar a criação ou consumir créditos", async () => {
+    const create = vi.spyOn(api, "createProject");
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    const dedication = screen.getByLabelText(/dedicatória/i);
+    const suggest = screen.getByRole("button", { name: "Sugerir Dedicatória" });
+
+    await user.click(suggest);
+    expect((dedication as HTMLInputElement).value).toContain("Para Lila,");
+    const first = (dedication as HTMLInputElement).value;
+    await user.click(suggest);
+    expect(dedication).not.toHaveValue(first);
+    await user.clear(dedication);
+    await user.type(dedication, "Uma dedicatória escrita por mim.");
+    await user.type(screen.getByLabelText(/nome do protagonista/i), " Souza");
+    expect(dedication).toHaveValue("Uma dedicatória escrita por mim.");
+    expect(create).not.toHaveBeenCalled();
+    expect(state.credits).toBe(10);
+  });
+
   it("mostra personagens, dedicatória, título, tema, tipo, fotos e gerar nessa ordem", async () => {
     const user = userEvent.setup();
     render(<Studio />);
@@ -191,6 +213,7 @@ describe("Studio — avisos nos campos", () => {
 
   it("gera o livro depois que os campos vazios são preenchidos", async () => {
     state.credits = 10;
+    const create = vi.spyOn(api, "createProject");
     const preview = vi.spyOn(api, "startPreview");
     const user = userEvent.setup();
     render(<Studio />);
@@ -200,11 +223,14 @@ describe("Studio — avisos nos campos", () => {
     expect(screen.getByTestId("studio-error-name")).toBeInTheDocument();
 
     await fillStory(user);
+    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória" }));
+    const dedication = (screen.getByLabelText(/dedicatória/i) as HTMLInputElement).value;
     expect(screen.queryByTestId("studio-error-name")).not.toBeInTheDocument();
     expect(screen.queryByTestId("studio-error-photo")).not.toBeInTheDocument();
     await user.click(screen.getByTestId("studio-generate-book"));
 
     expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ dedication }));
     expect(preview).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({ brief: expect.stringMatching(/Lila|estrelas|espaço/i) }),
@@ -514,7 +540,7 @@ describe("Revisão do projeto", () => {
 
     expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
     expect(screen.getByRole("heading", { name: /prévia pronta/i })).toBeInTheDocument();
-    expect(document.title).toBe("Story R Us - Prévia pronta");
+    expect(document.title).toBe("Story R Us - Prévia Pronta");
     expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/matteo/i);
@@ -568,7 +594,7 @@ describe("Prévia automática", () => {
     expect(screen.getByTestId("studio-preview-elapsed")).toHaveTextContent(/já se passaram 0:0/i);
     expect(screen.getByTestId("studio-preview-must-move")).toHaveTextContent(/não fica parado/i);
     expect(screen.getByText(/a foto vira o personagem ilustrado/i)).toBeInTheDocument();
-    expect(document.title).toBe("Story R Us - Projeto criado");
+    expect(document.title).toBe("Story R Us - Projeto Criado");
   });
 
   it("mostra retry quando a prévia falha com 500", async () => {

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 
 from sqlalchemy import select
 
@@ -220,9 +221,7 @@ async def _prepare(db, job, project, photos):
                 result.text.strip().removeprefix("```json").removesuffix("```").strip()
             )
         except (ValueError, TypeError) as exc:
-            raise ProviderError(
-                "Ficha visual invalida; tente novamente", transient=True
-            ) from exc
+            raise ProviderError("Ficha visual invalida; tente novamente", transient=True) from exc
     if not isinstance(prepared, dict):
         raise ProviderError("Ficha visual invalida", transient=True)
     prepared = _fill_visual_ficha(
@@ -372,7 +371,11 @@ async def preview(db, job, project):
 
 def _queue_story_after_preview(db, job, project) -> None:
     """A prévia pronta pede a história antes do pagamento."""
-    if contract.test_mode(project) or _payload(job).get("image") or (project.book_profile or {}).get("stories"):
+    if (
+        contract.test_mode(project)
+        or _payload(job).get("image")
+        or (project.book_profile or {}).get("stories")
+    ):
         return
     from app.models import JobType, User
     from app.services import jobs as jobs_svc
@@ -394,9 +397,111 @@ def _queue_story_after_preview(db, job, project) -> None:
         logger.exception("historia da previa nao entrou na fila project=%s", project.id)
 
 
+def _page_request(job) -> tuple[int | None, str]:
+    payload = _payload(job)
+    raw = payload.get("page")
+    try:
+        page = int(raw) if raw is not None else None
+    except (TypeError, ValueError):
+        page = None
+    if page is not None and not 1 <= page <= 16:
+        page = None
+    return page, str(payload.get("brief") or "").strip()
+
+
+def _page_replacement(text: str, page_no: int) -> str:
+    """Keep a one-page AI reply intact, or pick the asked page when markers exist."""
+    cleaned = re.sub(r"(?is)^\s*t[íi]tulo\s*[:\-].*?(?:\n+|$)", "", text or "", count=1).strip()
+    marked = list(re.finditer(r"(?im)^\s*p[áa]gina\s*(\d+)\s*[:\-]\s*", cleaned))
+    if marked:
+        chunks: dict[int, str] = {}
+        for index, match in enumerate(marked):
+            start = match.end()
+            end = marked[index + 1].start() if index + 1 < len(marked) else len(cleaned)
+            body = cleaned[start:end].strip()
+            if body:
+                chunks[int(match.group(1))] = body
+        if chunks.get(page_no):
+            return chunks[page_no]
+        if len(chunks) == 1:
+            return next(iter(chunks.values()))
+    cleaned = re.sub(r"(?im)^\s*p[áa]gina\s*\d+\s*[:\-]\s*", "", cleaned).strip()
+    return cleaned[:2000]
+
+
+async def _correct_story_page(db, job, project, page_no: int, adjustment: str) -> None:
+    """Ask AI to rewrite one page and leave the other fifteen untouched."""
+    paused = contract.test_mode(project) or settings.offline_fallback or settings.skip_openai
+    if paused:
+        if project.story_text or (project.book_profile or {}).get("stories"):
+            _set_status(db, project, ProjectStatus.STORY_READY)
+        raise ProviderError(
+            "A correção por IA está pausada. Esta página não foi alterada.",
+            transient=False,
+        )
+    stories = {}
+    try:
+        await _correct_story_languages(db, job, project, page_no, adjustment, stories)
+    except ProviderError:
+        if project.story_text or (project.book_profile or {}).get("stories"):
+            _set_status(db, project, ProjectStatus.STORY_READY)
+        raise
+
+
+async def _correct_story_languages(
+    db, job, project, page_no: int, adjustment: str, stories: dict
+) -> None:
+    for language in project.book_profile["languages"]:
+        title = project.book_profile["locales"][language]["title"]
+        existing = ((project.book_profile or {}).get("stories") or {}).get(language) or ""
+        current = _parse_pages(existing)
+        if len(current) != 16:
+            raise ProviderError(
+                "A história precisa das 16 páginas antes da correção.", transient=False
+            )
+        brief = (
+            f"Ajuste somente a página {page_no} de um livro infantil. "
+            f"Título imutável: {title}. Idioma: {language}. "
+            f"Texto atual da página:\n{current[page_no - 1]}\n\n"
+            f"Pedido do adulto, que não pode ser copiado como texto da página: {adjustment}\n"
+            "Reescreva o verso dessa página a partir do pedido, em 2 a 4 versos. "
+            "Não devolva o pedido literal, nem título, nem outras páginas."
+        )
+        result = (
+            await _pkg()
+            .get_text_provider()
+            .generate_story(
+                brief=brief,
+                style=contract.art_direction(project.style),
+                pages=1,
+                language=language,
+                age=project.child_age,
+            )
+        )
+        job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
+        replacement = _page_replacement(result.text, page_no)
+        if not replacement:
+            raise ProviderError(
+                "A IA não devolveu o texto da página. Tente novamente.", transient=True
+            )
+        current[page_no - 1] = replacement
+        if project.dedication and page_no == 2:
+            current[1] = project.dedication
+        stories[language] = f"Título: {title}\n\n" + "\n\n".join(
+            f"Página {i}:\n{verse}" for i, verse in enumerate(current, 1)
+        )
+    project.story_text = stories[project.language]
+    contract.update(project, stage="story_ready", stories=stories)
+    _set_status(db, project, ProjectStatus.STORY_READY)
+
+
 async def story(db, job, project):
     contract.require_stage(project, "preview_ready", "preview_approved", "story_ready")
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
+    page_no, page_note = _page_request(job)
+    if page_no and page_note:
+        await _correct_story_page(db, job, project, page_no, page_note)
+        return
     stories = {}
     for language in project.book_profile["languages"]:
         title = project.book_profile["locales"][language]["title"]
@@ -418,7 +523,11 @@ async def story(db, job, project):
             )
         adjustment = _payload(job).get("brief")
         if adjustment:
-            brief += f"Ajuste de conteudo (preserve titulo/estrutura): {adjustment}"
+            brief += (
+                "Ajuste da historia EM GERAL, nao de uma pagina isolada. "
+                "Reescreva o conjunto das 16 paginas conforme o pedido, "
+                f"preservando o titulo: {adjustment}"
+            )
         if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
             text = _free_story(project, title)
         else:
@@ -579,7 +688,12 @@ async def page(db, job, project):
     contract.update(
         project, current_page=current, stage="book_ready" if current == 16 else "page_ready"
     )
-    if _payload(job).get("purchase_full_book") and not contract.test_mode(project) and finished_frontier and current < 16:
+    if (
+        _payload(job).get("purchase_full_book")
+        and not contract.test_mode(project)
+        and finished_frontier
+        and current < 16
+    ):
         from app.models import JobType
 
         _enqueue_next_page(

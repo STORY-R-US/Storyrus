@@ -696,6 +696,32 @@
   margin-bottom: 0;
 }
 
+.studio-app .story-alter-toggle {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--studio-link, #76baff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.studio-app .story-alter-toggle[aria-expanded="true"] {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.studio-app .studio-story-alter {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+}
+
+.studio-app .studio-story-alter .kbtn {
+  justify-self: start;
+}
+
 .studio-app .studio-story-page.is-title .studio-story-verse {
   font-size: 1.32rem;
   font-weight: 600;
@@ -1150,6 +1176,21 @@
   cursor: pointer;
 }
 
+.studio-app .master-shot-actions button[aria-expanded="true"] {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.studio-app .master-shot-suggestion {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 0.9rem 0.95rem;
+}
+
+.studio-app .master-shot-suggestion .kbtn {
+  justify-self: start;
+}
+
 .studio-app .master-order-jump {
   margin: 0.35rem 0 1.15rem;
 }
@@ -1303,6 +1344,19 @@
 .studio-app .studio-card { max-width: 960px; margin: 0 auto 28px; border-radius: 26px; padding: clamp(24px,4vw,44px); box-shadow: 0 16px 40px #00000012; }
 [data-theme="light"] .studio-app .studio-card { box-shadow: 0 16px 40px #233c5410; }
 .studio-app .studio-card h2 { font-size: 1.95rem; line-height: 1.2; letter-spacing: -.02em; }
+.studio-app :is(
+  h1,
+  h2,
+  h3,
+  .studio-section-title,
+  .project-journey-steps li,
+  .purchase-steps li,
+  .preview-step-copy > span:first-child,
+  .master-shot figcaption > span:first-child,
+  .studio-preview-shot figcaption
+) {
+  text-transform: capitalize;
+}
 .studio-app .studio-card > .studio-slogan { max-width: 74ch; font-size: .92rem; line-height: 1.75; margin-top: 12px; }
 .studio-app .studio-card > .how { margin-top: 26px; padding-top: 0; }
 .studio-app .how > h3 { font-family: inherit; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--studio-muted); margin-bottom: 12px; }
@@ -1453,7 +1507,7 @@
   .studio-app .master-title-choice { width: 100%; padding-left: 26px; }
 }
 .studio-app .studio-review .kbtn:not(.kbtn-primary) { color: var(--ink); background: var(--studio-soft); border: 1px solid var(--studio-input-border); box-shadow: none; }
-.studio-app.is-reviewing-project .studio-intro { display: block; padding: 8px 4px 22px; }
+.studio-app.is-reviewing-project .studio-intro { display: none; }
 .studio-app.is-reviewing-project .studio-intro h1 { font-size: clamp(1.9rem,3vw,2.55rem); max-width: none; }
 .studio-app.is-reviewing-project .studio-book-art { display: none; }
 .studio-app .studio-card.studio-review > h2 { text-align: left; font-size: clamp(1.55rem,2.5vw,2.05rem); margin-bottom: 8px; }
@@ -1631,4 +1685,330 @@
   .studio-app .master-adjustment-panel > .kbtn { width: 100%; margin-right: 0; }
   .studio-orders-page .purchase-order-list article { padding: 20px; }
   .studio-app .purchase-confirm { padding: 16px; }
+}
+
+/* Capitalização da interface, sem modificar os textos do livro ou dos campos. */
+.studio-app :is(
+  h1, h2, h3, h4, h5, h6,
+  .how > h3,
+  .how strong,
+  .master-page-card h4,
+  button,
+  .kbtn,
+  summary,
+  .field-label,
+  .studio-field,
+  .studio-choice-label,
+  .studio-chosen > span,
+  .studio-eyebrow,
+  .preview-step-state,
+  .purchase-fields label,
+  .purchase-checkout label
+) {
+  text-transform: capitalize;
+}
+
+.studio-app :is(input, textarea, select, option),
+.studio-app .studio-field > .muted,
+.studio-app .studio-field > .field-hint {
+  text-transform: none;
+}
+
+/* Mesmas margens de conteúdo na apresentação, formulário e revisão. */
+.studio-app .studio-intro {
+  box-sizing: border-box;
+  max-width: 960px;
+  margin-inline: auto;
+  padding-inline: clamp(24px, 4vw, 44px);
+}
+
+.studio-app :is(.studio-card, .studio-stage-heading, .studio-choice, .studio-drop) {
+  text-align: left;
+}
+
+.studio-app .studio-card.studio-order > p,
+.studio-app .studio-preview-building,
+.studio-app .studio-preview-building > .studio-slogan {
+  max-width: none;
+  margin-inline: 0;
+  text-align: left;
+}
+
+.studio-app .studio-choice .studio-actions {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.studio-app .studio-drop {
+  justify-items: start;
+}
+
+.studio-app .studio-privacy-notice > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.studio-app .studio-dedication-field {
+  display: grid;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-dedication-field + label.studio-field {
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-suggest-dedication {
+  justify-self: start;
+  max-width: 100%;
+}
+
+/* Revisão da prévia: imagens, título e decisão em uma sequência única. */
+.studio-app .studio-review:has(.is-preview-review) > h2 {
+  margin-bottom: 18px;
+}
+
+.studio-app .studio-review:has(.is-preview-review) .project-journey {
+  margin: 0 0 22px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.studio-app .studio-review:has(.is-preview-review) .project-journey-overview {
+  padding: 0 0 20px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  gap: 20px;
+}
+
+.studio-app .studio-review:has(.is-preview-review) .project-journey h3 {
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.studio-app .studio-review:has(.is-preview-review) .project-journey-lead {
+  margin-top: 8px;
+  font-size: .82rem;
+  line-height: 1.7;
+}
+
+.studio-app .studio-master-flow.is-preview-review {
+  display: grid;
+  gap: 20px;
+}
+
+.studio-app .is-preview-review > [data-testid="studio-test-mode"] {
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border-left: 3px solid var(--studio-accent);
+  background: var(--studio-soft);
+}
+
+.studio-app .is-preview-review > [data-testid="studio-test-mode"] h3 {
+  font-family: inherit;
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.studio-app .is-preview-review > [data-testid="studio-test-mode"] p {
+  margin: 4px 0 0;
+  font-size: .75rem;
+  line-height: 1.65;
+}
+
+.studio-app .is-preview-review > .master-chips {
+  margin: -8px 0 0;
+  gap: 7px;
+}
+
+.studio-app .is-preview-review :is(.master-preview-panel, .master-title-card) {
+  min-width: 0;
+  padding: 22px;
+  margin: 0;
+  border: 1px solid var(--studio-surface-border);
+  border-radius: 18px;
+  background: var(--studio-surface);
+}
+
+.studio-app .is-preview-review .master-preview-panel-heading .master-section {
+  margin: 0;
+  font-size: 1.3rem;
+  gap: 12px;
+}
+
+.studio-app .is-preview-review .master-preview-panel-heading .master-section::before {
+  display: none;
+}
+
+.studio-app .master-preview-number {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--studio-soft);
+  color: var(--studio-accent);
+  font: 700 .72rem/1 'Quicksand', sans-serif;
+}
+
+.studio-app .is-preview-review .master-preview-panel-heading > p {
+  margin: 10px 0 0;
+  color: var(--studio-muted);
+  font-size: .8rem;
+  line-height: 1.7;
+}
+
+.studio-app .is-preview-review .master-gallery {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.studio-app .is-preview-review .master-shot {
+  display: flex;
+  flex-direction: column;
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+.studio-app .is-preview-review .master-shot > img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  padding: 12px;
+}
+
+.studio-app .is-preview-review .master-shot figcaption {
+  flex: 1;
+  padding: 14px;
+  gap: 12px;
+}
+
+.studio-app .is-preview-review .master-shot figcaption > span:first-child {
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.studio-app .is-preview-review .master-shot-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-top: auto;
+}
+
+.studio-app .is-preview-review .master-shot-actions button {
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--studio-input-border);
+  border-radius: 8px;
+  background: var(--studio-soft);
+  color: var(--ink);
+  font-size: .73rem;
+  line-height: 1.5;
+  text-align: left;
+  box-shadow: none;
+}
+
+.studio-app .is-preview-review .master-shot-actions button + button {
+  background: transparent;
+  color: var(--studio-link);
+}
+
+.studio-app .is-preview-review .master-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.studio-app .is-preview-review .master-title-row .kbtn {
+  min-height: 50px;
+  margin: 0;
+  font-size: .83rem;
+}
+
+.studio-app .master-title-alternatives {
+  padding-top: 16px;
+  margin-top: 18px;
+  border-top: 1px solid var(--studio-surface-border);
+}
+
+.studio-app .master-title-alternatives > summary {
+  color: var(--studio-link);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.studio-app .master-title-alternatives[open] > .master-title-hint {
+  margin-top: 12px;
+}
+
+.studio-app .master-preview-next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--studio-surface-border);
+  border-radius: 18px;
+  background: var(--studio-soft);
+}
+
+.studio-app .master-preview-next h3 {
+  margin: 0;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.3rem;
+}
+
+.studio-app .master-preview-next p {
+  margin: 8px 0 0;
+  max-width: 420px;
+  color: var(--studio-muted);
+  font-size: .78rem;
+  line-height: 1.75;
+}
+
+.studio-app .master-preview-next .studio-create {
+  min-width: 0;
+  max-width: 300px;
+  min-height: 50px;
+  margin: 0;
+  padding: 12px 18px;
+  font-size: .87rem;
+}
+
+@media (max-width: 680px) {
+  .studio-app .studio-review:has(.is-preview-review) .project-journey-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .studio-app .studio-review:has(.is-preview-review) .project-journey-overview .studio-step-art {
+    display: none;
+  }
+  .studio-app .is-preview-review :is(.master-preview-panel, .master-title-card) {
+    padding: 16px;
+  }
+  .studio-app .is-preview-review .master-gallery {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .studio-app .is-preview-review .master-shot > img {
+    max-height: 320px;
+  }
+  .studio-app .is-preview-review .master-title-row,
+  .studio-app .master-preview-next {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .studio-app .master-preview-next {
+    padding: 20px;
+    gap: 18px;
+  }
+  .studio-app .master-preview-next .studio-create {
+    max-width: none;
+    width: 100%;
+  }
 }

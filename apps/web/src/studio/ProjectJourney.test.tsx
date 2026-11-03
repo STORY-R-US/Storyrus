@@ -10,18 +10,18 @@ const project: Project = { id: "test", status: "STORY_READY", style: "cartoon", 
 describe("Project journey approval gates", () => {
   it("mantém a prévia como etapa atual até sua aprovação explícita", () => {
     render(<ProjectJourney project={project} lang="pt" />);
-    expect(screen.getByText("Prévia e história").closest("li")).toHaveAttribute("aria-current", "step");
-    expect(screen.getByText("Pedido e criação").closest("li")).not.toHaveAttribute("aria-current");
+    expect(screen.getByText("Prévia E História").closest("li")).toHaveAttribute("aria-current", "step");
+    expect(screen.getByText("Pedido E Criação").closest("li")).not.toHaveAttribute("aria-current");
     expect(screen.getByText("Etapa 1 de 3")).toBeInTheDocument();
   });
   it("avança para o pedido após a aprovação da prévia", () => {
     render(<ProjectJourney project={{ ...project, purchase_flow: { preview_approved_at: "2026-10-30" } }} lang="pt" />);
-    expect(screen.getByText("Pedido e criação").closest("li")).toHaveAttribute("aria-current", "step");
+    expect(screen.getByText("Pedido E Criação").closest("li")).toHaveAttribute("aria-current", "step");
   });
   it("não apresenta o livro de contingência como pronto para revisão final", () => {
     render(<ProjectJourney project={{ ...project, book_profile: { ...project.book_profile!, stage: "book_ready", current_page: 16, credits_fallback: true },
       purchase_flow: { full_book_ready_at: "2026-10-30" } }} lang="pt" />);
     expect(screen.getByText("Etapa 1 de 3")).toBeInTheDocument();
-    expect(screen.getByText("Revisão e entrega").closest("li")).not.toHaveAttribute("aria-current");
+    expect(screen.getByText("Revisão E Entrega").closest("li")).not.toHaveAttribute("aria-current");
   });
 });

@@ -213,7 +213,7 @@ describe("continuação da prévia", () => {
     expect(approve).toHaveBeenCalledOnce();
     expect(
       await screen.findByRole("heading", {
-        name: "Livro aprovado para impressão",
+        name: "Livro Aprovado Para Impressão",
       }),
     ).toBeInTheDocument();
   });

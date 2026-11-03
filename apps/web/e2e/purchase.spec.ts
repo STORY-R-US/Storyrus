@@ -1,3 +1,4 @@
+import { TEST_SESSION_TOKEN } from "./session";
 import { expect, test } from "@playwright/test";
 
 for (const master of [false, true]) {
@@ -8,7 +9,7 @@ for (const master of [false, true]) {
       book_profile: master
         ? {
             version: 1,
-            stage: "preview_ready",
+            stage: "story_approved",
             title: "Lila e as estrelas",
             gender: "f",
             languages: ["pt-BR"],
@@ -63,11 +64,11 @@ for (const master of [false, true]) {
       city: "São Paulo",
       state: "SP",
     };
-    await page.addInitScript(() => {
+    await page.addInitScript((sessionToken) => {
       localStorage.setItem("lang", "pt");
       localStorage.setItem("theme", "light");
-      localStorage.setItem("storyrus_token", "e2e-purchase-token");
-    });
+      localStorage.setItem("storyrus_token", sessionToken);
+    }, TEST_SESSION_TOKEN);
     await page.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//, (r) =>
       r.abort(),
     );
@@ -82,6 +83,9 @@ for (const master of [false, true]) {
           full_name: "Ana Souza",
           is_guest: false,
           email_verified: true,
+          terms_accepted_at: "2026-10-30",
+          adult_confirmed_at: "2026-10-30",
+          phone: "11999999999", street: "Rua de Teste", city: "São Paulo",
           is_owner: false,
         });
       if (path.endsWith("/preview/approve")) {
@@ -143,7 +147,7 @@ for (const master of [false, true]) {
       page.getByRole("button", { name: "Continuar para pagamento" }),
     ).toHaveCount(0);
     await page
-      .getByRole("button", { name: "Salvar cotação e acompanhar" })
+      .getByRole("button", { name: "Salvar cotação", exact: true })
       .click();
     await expect(page.getByText(/Cotação salva/)).toBeVisible();
     await page.getByTestId("purchase-flow").screenshot({

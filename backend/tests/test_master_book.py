@@ -253,16 +253,24 @@ def test_partial_visual_ficha_is_completed_instead_of_failing():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("message", ["OpenAI 429: credit_balance_exhausted", "OpenAI 500: unavailable"])
+@pytest.mark.parametrize(
+    "message", ["OpenAI 429: credit_balance_exhausted", "OpenAI 500: unavailable"]
+)
 @pytest.mark.parametrize("failure_stage", ["profile", "image"])
-async def test_ai_errors_fail_preview_without_substitutes_or_automatic_approvals(studio, monkeypatch, message, failure_stage):
+async def test_ai_errors_fail_preview_without_substitutes_or_automatic_approvals(
+    studio, monkeypatch, message, failure_stage
+):
     client, db, pid, _ = studio
 
     class Text:
         async def prepare_book_profile(self, **kwargs):
             if failure_stage == "profile":
                 raise ProviderError(message, transient=False)
-            return TextResult(text=json.dumps({"locales": {"pt-BR": {"title": "Lia", "left": "Um", "right": "Dois"}}}))
+            return TextResult(
+                text=json.dumps(
+                    {"locales": {"pt-BR": {"title": "Lia", "left": "Um", "right": "Dois"}}}
+                )
+            )
 
     class Images:
         async def generate_scene(self, **kwargs):
@@ -309,11 +317,85 @@ async def test_explicit_rehearsal_still_requires_each_approval(studio, monkeypat
     assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "AVATAR"))
 
 
+def _sixteen(title: str = "Lia") -> str:
+    return f"Título: {title}\n\n" + "\n\n".join(f"Página {i}:\nVerso {i}." for i in range(1, 17))
+
+
+@pytest.mark.asyncio
+async def test_page_correction_keeps_the_story_while_ai_is_paused(studio, monkeypatch):
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    original = _sixteen()
+    book_profile.update(
+        project,
+        stage="story_ready",
+        costume="azul",
+        locales={"pt-BR": {"title": "Lia"}},
+        stories={"pt-BR": original},
+    )
+    project.story_text = original
+    db.commit()
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", True)
+    response = client.post(f"/v1/projects/{pid}/story", json={"page": 3, "brief": "Mais luz"})
+    assert response.status_code == 202, response.text
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    db.expire_all()
+    assert job.status == "FAILED"
+    assert "pausada" in (job.error or "")
+    assert project.story_text == original
+    assert "Verso 3." in project.book_profile["stories"]["pt-BR"]
+    assert project.status == "STORY_READY"
+
+
+@pytest.mark.asyncio
+async def test_page_correction_rewrites_only_the_asked_page(studio, monkeypatch):
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    original = _sixteen()
+    book_profile.update(
+        project,
+        stage="story_ready",
+        costume="azul",
+        locales={"pt-BR": {"title": "Lia"}},
+        stories={"pt-BR": original},
+    )
+    project.story_text = original
+    db.commit()
+
+    class Text:
+        async def generate_story(self, **kwargs):
+            assert kwargs["pages"] == 1
+            assert (
+                "Pedido do adulto, que não pode ser copiado como texto da página: Mais luz"
+                in kwargs["brief"]
+            )
+            assert "Verso 3." in kwargs["brief"]
+            return TextResult(text="Lia acendeu três estrelas.", cost_usd=0, meta={})
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: Text())
+    response = client.post(f"/v1/projects/{pid}/story", json={"page": 3, "brief": "Mais luz"})
+    assert response.status_code == 202, response.text
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    db.expire_all()
+    text = project.book_profile["stories"]["pt-BR"]
+    assert job.status == "DONE"
+    assert "Lia acendeu três estrelas." in text
+    assert "Verso 1." in text and "Verso 2." in text and "Verso 4." in text
+    assert "Verso 3." not in text
+
+
 @pytest.mark.asyncio
 async def test_story_provider_error_never_approves_or_enqueues_avatar(studio, monkeypatch):
     client, db, pid, _ = studio
     project = db.get(Project, uuid.UUID(pid))
-    book_profile.update(project, stage="preview_ready", costume="azul", locales={"pt-BR": {"title": "Lia"}})
+    book_profile.update(
+        project, stage="preview_ready", costume="azul", locales={"pt-BR": {"title": "Lia"}}
+    )
     db.commit()
 
     class Text:
@@ -558,7 +640,9 @@ def test_title_suggestions_respect_processing_revocation_and_provider_failure(st
     assert client.post(endpoint, json={}).status_code == 403
 
 
-def test_pending_checkout_can_refine_title_without_changing_payment_or_delivery(studio, monkeypatch):
+def test_pending_checkout_can_refine_title_without_changing_payment_or_delivery(
+    studio, monkeypatch
+):
     from app.ai_clients.text_openai import OpenAITextProvider
     from app.printkit.service import open_print_order
 
@@ -578,12 +662,16 @@ def test_pending_checkout_can_refine_title_without_changing_payment_or_delivery(
     response = client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Lia na Lua"})
     assert response.status_code == 202, response.text
     db.refresh(order)
-    assert {column.name: getattr(order, column.name) for column in order.__table__.columns} == before
+    assert {
+        column.name: getattr(order, column.name) for column in order.__table__.columns
+    } == before
     assert project.book_profile["title"] == "Lia na Lua"
     assert project.book_profile["stage"] == "preview_approved"
     order.payment_status = "paid"
     db.commit()
-    assert client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Outro"}).status_code == 409
+    assert (
+        client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Outro"}).status_code == 409
+    )
 
 
 @pytest.mark.parametrize("stage", ["preview_ready", "story_ready", "story_approved"])
@@ -592,10 +680,15 @@ def test_preview_adjustments_accept_all_preapproval_review_stages(studio, stage)
     project = db.get(Project, uuid.UUID(pid))
     book_profile.update(project, stage=stage, stories={"pt-BR": "História anterior"})
     db.commit()
-    response = client.put(f"/v1/projects/{pid}/preview/changes", json={
-        "title": "Lia e as estrelas", "theme_description": "Aventura espacial",
-        "photo_notes": "Mais estrelas na capa", "story_text": "",
-    })
+    response = client.put(
+        f"/v1/projects/{pid}/preview/changes",
+        json={
+            "title": "Lia e as estrelas",
+            "theme_description": "Aventura espacial",
+            "photo_notes": "Mais estrelas na capa",
+            "story_text": "",
+        },
+    )
     assert response.status_code == 202, response.text
     db.refresh(project)
     assert project.book_profile["stage"] == "ficha"
@@ -615,9 +708,14 @@ def test_preview_adjustments_keep_pending_payment_locked(studio):
     order = open_print_order(db, project, prepare=False)
     order.payment_status = "pending"
     db.commit()
-    response = client.put(f"/v1/projects/{pid}/preview/changes", json={
-        "title": "Lia", "theme_description": "Aventura", "photo_notes": "Mais luz",
-    })
+    response = client.put(
+        f"/v1/projects/{pid}/preview/changes",
+        json={
+            "title": "Lia",
+            "theme_description": "Aventura",
+            "photo_notes": "Mais luz",
+        },
+    )
     assert response.status_code == 409
     db.refresh(project)
     assert project.book_profile["stage"] == "story_approved"
@@ -630,12 +728,22 @@ def test_fallback_book_requires_regeneration_and_preserves_archived_material(stu
     project.story_text = "História anterior de contingência"
     project.ebook_url = "old-book.pdf"
     project.purchase_flow = {"full_book_ready_at": "2026-10-30", "stage": "book_ready"}
-    asset = Asset(project_id=project.id, kind="page_image", storage_key="old-page.png",
-                  meta={"workflow": 1, "role": "com_texto", "page": 1})
+    asset = Asset(
+        project_id=project.id,
+        kind="page_image",
+        storage_key="old-page.png",
+        meta={"workflow": 1, "role": "com_texto", "page": 1},
+    )
     db.add(asset)
     store["old-page.png"] = _png()
     db.commit()
-    for path in ("preview/approve", "story/approve", "avatar/approve", "book/approve", "pages/next"):
+    for path in (
+        "preview/approve",
+        "story/approve",
+        "avatar/approve",
+        "book/approve",
+        "pages/next",
+    ):
         assert client.post(f"/v1/projects/{pid}/{path}", json={}).status_code == 409
     response = client.post(f"/v1/projects/{pid}/preview/retry-ai")
     assert response.status_code == 202, response.text
@@ -645,7 +753,10 @@ def test_fallback_book_requires_regeneration_and_preserves_archived_material(stu
     assert project.book_profile["current_page"] == 0
     assert project.book_profile["credits_fallback"] is False
     assert project.book_profile["fallback_archive"]["ebook_url"] == "old-book.pdf"
-    assert project.book_profile["fallback_archive"]["story_text"] == "História anterior de contingência"
+    assert (
+        project.book_profile["fallback_archive"]["story_text"]
+        == "História anterior de contingência"
+    )
     assert asset.meta["archived_fallback"] is True and asset.meta["workflow"] == 0
     assert store["old-page.png"]
     assert not project.purchase_flow["preview_approved_at"]
@@ -702,22 +813,30 @@ async def test_project_test_mode_costs_zero_and_waits_at_every_review(studio, mo
     assert project.character_approved_at is None
     assert client.post(f"/v1/projects/{pid}/pages/next", json={}).status_code == 409
     assert client.post(f"/v1/projects/{pid}/avatar/approve").status_code == 200
-    page = jobs_service.enqueue_job(db, user=project.user, project=project,
+    page = jobs_service.enqueue_job(
+        db,
+        user=project.user,
+        project=project,
         job_type=JobType.EBOOK,
-        payload={"master_page": True, "page": 1, "purchase_full_book": True})
+        payload={"master_page": True, "page": 1, "purchase_full_book": True},
+    )
     await runner.process_job(db, page)
     db.expire_all()
     assert page.status == "DONE", page.error
     assert project.book_profile["stage"] == "page_ready"
     assert project.book_profile["current_page"] == 1
     assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.status == "PENDING"))
-    assert all(job.cost_credits == 0 and not job.cost_usd
-               for job in db.scalars(select(Job).where(Job.project_id == project.id)))
+    assert all(
+        job.cost_credits == 0 and not job.cost_usd
+        for job in db.scalars(select(Job).where(Job.project_id == project.id))
+    )
     assert store
 
 
 @pytest.mark.asyncio
-async def test_global_pause_covers_new_requests_and_cannot_be_disabled_by_retry(studio, monkeypatch):
+async def test_global_pause_covers_new_requests_and_cannot_be_disabled_by_retry(
+    studio, monkeypatch
+):
     client, db, pid, _ = studio
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(settings, "skip_openai", True)

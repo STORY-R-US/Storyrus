@@ -1,3 +1,4 @@
+import { TEST_SESSION_TOKEN } from "./session";
 import { expect, test, type Page } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
@@ -314,9 +315,9 @@ async function fillSignupForm(page: Page) {
 }
 
 async function loginViaEntrar(page: Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem("storyrus_token", "e2e-token");
-  });
+  await page.addInitScript((sessionToken) => {
+    localStorage.setItem("storyrus_token", sessionToken);
+  }, TEST_SESSION_TOKEN);
   await page.goto("/app");
 }
 
@@ -329,9 +330,9 @@ test("perfil aguarda o despertar sem erro nem envio duplicado", async ({ page },
   state.termsAcceptedAt = null;
   state.adultConfirmedAt = null;
   await mockApi(page, state);
-  await page.addInitScript(() => {
-    localStorage.setItem("storyrus_token", "e2e-token");
-  });
+  await page.addInitScript((sessionToken) => {
+    localStorage.setItem("storyrus_token", sessionToken);
+  }, TEST_SESSION_TOKEN);
   let ready = false;
   let saves = 0;
   await page.route("**/health", (route) => route.fulfill({
@@ -363,14 +364,14 @@ test("perfil aguarda o despertar sem erro nem envio duplicado", async ({ page },
     });
   });
   await page.goto("/cadastro", { waitUntil: "domcontentloaded" });
-  await fillSignupForm(page);
-  await page.getByTestId("auth-submit").click();
   await expect(page.getByRole("status")).toContainText("preparando sua conexão");
-  await expect(page.getByTestId("auth-submit")).toBeDisabled();
+  await expect(page.getByTestId("auth-submit")).toHaveCount(0);
   await expect(page.getByTestId("auth-error")).toHaveCount(0);
   expect(saves).toBe(0);
   await page.screenshot({ path: testInfo.outputPath("cold-start.png") });
   ready = true;
+  await fillSignupForm(page);
+  await page.getByTestId("auth-submit").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
   await expect(page.getByRole("status")).toHaveCount(0);
   expect(saves).toBe(1);
@@ -420,7 +421,7 @@ test("avisos ficam nos campos e titulo opcional permite criar a previa", async (
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Projeto criado" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projeto Criado" })).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {
@@ -463,11 +464,11 @@ test("após gerar o livro mostra Projeto criado sem botões de crédito", async 
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Projeto criado" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projeto Criado" })).toBeVisible();
   await expect(page.getByTestId("studio-preview-eta")).toContainText("Previsão: cerca de");
   await expect(page.getByTestId("studio-preview-must-move")).toContainText("Não fica parado");
   await expect(page.getByText("Fique nesta tela. Ela atualiza sozinha.")).toBeVisible();
-  await expect(page.getByText(/título mudar para Prévia pronta/)).toBeVisible();
+  await expect(page.getByText(/título mudar para Prévia Pronta/)).toBeVisible();
   await expect(page.getByTestId("studio-preview-step-AVATAR")).toBeVisible();
   await expect(page.getByTestId("studio-generate-preview")).toHaveCount(0);
 });
@@ -481,11 +482,11 @@ test("exemplo pronto mostra Prévia pronta", async ({ page }) => {
     }
   });
   await page.goto("/app?exemplo=dinosaurs");
-  await expect(page.getByRole("heading", { name: "Prévia pronta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Prévia Pronta" })).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toHaveCount(0);
   await expect(page.getByTestId("studio-story-result")).toBeVisible();
   await expect(page.getByTestId("studio-preview-trio")).toBeVisible();
-  await expect(page).toHaveTitle("Story R Us - Prévia pronta");
+  await expect(page).toHaveTitle("Story R Us - Prévia Pronta");
 });
 
 test("path inexistente mostra 404", async ({ page }) => {
