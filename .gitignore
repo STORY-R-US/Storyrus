@@ -190,6 +190,9 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/foto-maya-cachorra-en.jpg
 !apps/web/public/exemplos/foto-maya-cachorra-es.jpg
 !apps/web/public/exemplos/capa-mako-amigofiel.jpg
+!apps/web/public/exemplos/capa-mako-amigofiel.png
+!apps/web/public/exemplos/capa-mako-amigofiel-en.png
+!apps/web/public/exemplos/capa-mako-amigofiel-es.png
 !apps/web/public/exemplos/pagina-mako-amigofiel.jpg
 !apps/web/public/exemplos/foto-mako-amigofiel.jpg
 !apps/web/public/exemplos/capa-mako-amigofiel-en.jpg
@@ -324,6 +327,9 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/capa-amor-de-avo-en.png
 !apps/web/public/exemplos/capa-amor-de-avo.png
 !apps/web/public/exemplos/capa-natalmemetata.jpg
+!apps/web/public/exemplos/capa-natalmemetata.png
+!apps/web/public/exemplos/capa-natalmemetata-en.png
+!apps/web/public/exemplos/capa-natalmemetata-es.png
 !apps/web/public/exemplos/foto-amordebisavo.jpg
 !apps/web/public/exemplos/foto-amordemae.jpg
 !apps/web/public/exemplos/foto-nanoaventuras.jpg
@@ -541,3 +547,12 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/foto-enzo-dinossauro.png
 !apps/web/public/exemplos/foto-enzo-dinossauro-en.png
 !apps/web/public/exemplos/foto-enzo-dinossauro-es.png
+!apps/web/public/exemplos/capa-pai-e-filha.png
+!apps/web/public/exemplos/capa-pai-e-filha-en.png
+!apps/web/public/exemplos/capa-pai-e-filha-es.png
+!apps/web/public/exemplos/pagina-pai-e-filha.png
+!apps/web/public/exemplos/pagina-pai-e-filha-en.png
+!apps/web/public/exemplos/pagina-pai-e-filha-es.png
+!apps/web/public/exemplos/foto-pai-e-filha.png
+!apps/web/public/exemplos/foto-pai-e-filha-en.png
+!apps/web/public/exemplos/foto-pai-e-filha-es.png

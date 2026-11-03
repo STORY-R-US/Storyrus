@@ -1,4 +1,3 @@
-import { FavoriteBookButton, CatalogFavoritesFilter, CatalogFavoritesEmpty, useCatalogFavorites } from "./catalogFavorites";
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
@@ -91,7 +90,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   },
   {
     name: "Mako",
-    cover: heroAsset("capa-mako-amigofiel.jpg", "capa-mako-amigofiel-en.jpg", "capa-mako-amigofiel-es.jpg"),
+    cover: heroAsset("capa-mako-amigofiel.png", "capa-mako-amigofiel-en.png", "capa-mako-amigofiel-es.png"),
     page: heroAsset("pagina-mako-amigofiel.jpg", "pagina-mako-amigofiel-en.jpg", "pagina-mako-amigofiel-es.jpg"),
     photo: heroAsset("foto-mako-amigofiel.jpg", "foto-mako-amigofiel-en.jpg", "foto-mako-amigofiel-es.jpg"),
   },
@@ -133,7 +132,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   },
   {
     name: "Meme e Tata",
-    cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
+    cover: heroAsset("capa-natalmemetata.png", "capa-natalmemetata-en.png", "capa-natalmemetata-es.png"),
     page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
     photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
   },
@@ -172,6 +171,12 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     cover: heroAsset("capa-enzo-dinossauro.png", "capa-enzo-dinossauro-en.png", "capa-enzo-dinossauro-es.png"),
     page: heroAsset("pagina-enzo-dinossauro.png", "pagina-enzo-dinossauro-en.png", "pagina-enzo-dinossauro-es.png"),
     photo: heroAsset("foto-enzo-dinossauro.png", "foto-enzo-dinossauro-en.png", "foto-enzo-dinossauro-es.png"),
+  },
+  {
+    name: "Pai e Filha: Uma Dupla que Brilha",
+    cover: heroAsset("capa-pai-e-filha.png", "capa-pai-e-filha-en.png", "capa-pai-e-filha-es.png"),
+    page: heroAsset("pagina-pai-e-filha.png", "pagina-pai-e-filha-en.png", "pagina-pai-e-filha-es.png"),
+    photo: heroAsset("foto-pai-e-filha.png", "foto-pai-e-filha-en.png", "foto-pai-e-filha-es.png"),
   },
 ];
 /** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
@@ -270,10 +275,10 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
   { pt: "capa-mamaepapaimatteo.png", en: "capa-mamaepapaimatteo-en.png", es: "capa-mamaepapaimatteo-es.png" },
   { pt: "capa-amordebisavo.png", en: "capa-amordebisavo-en.png", es: "capa-amordebisavo-es.png" },
-  { pt: "capa-natalmemetata.jpg", en: "capa-natalmemetata-en.jpg", es: "capa-natalmemetata-es.jpg" },
+  { pt: "capa-natalmemetata.png", en: "capa-natalmemetata-en.png", es: "capa-natalmemetata-es.png" },
   { pt: "capa-nanoaventuras.png", en: "capa-nanoaventuras-en.png", es: "capa-nanoaventuras-es.png" },
   { pt: "capa-maya-cachorra-pt.jpg", en: "capa-maya-cachorra-en.jpg", es: "capa-maya-cachorra-es.jpg" },
-  { pt: "capa-mako-amigofiel.jpg", en: "capa-mako-amigofiel-en.jpg", es: "capa-mako-amigofiel-es.jpg" },
+  { pt: "capa-mako-amigofiel.png", en: "capa-mako-amigofiel-en.png", es: "capa-mako-amigofiel-es.png" },
   { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" },
   { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" },
   { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" },
@@ -322,6 +327,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-livro-teste.jpg", en: "capa-livro-teste-en.jpg", es: "capa-livro-teste-es.jpg" },
   { pt: "capa-feliz-natal-familia.png", en: "capa-feliz-natal-familia-en.png", es: "capa-feliz-natal-familia-es.png" },
   { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
+  { pt: "capa-pai-e-filha.png", en: "capa-pai-e-filha-en.png", es: "capa-pai-e-filha-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -340,7 +346,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   7: {
     cover: { pt: "capa-mamaepapaimatteo.png", en: "capa-mamaepapaimatteo-en.png", es: "capa-mamaepapaimatteo-es.png" },
     page: { pt: "pagina-mamaepapaimatteo.jpg", en: "pagina-mamaepapaimatteo-en.jpg", es: "pagina-mamaepapaimatteo-es.jpg" },
-    photo: { pt: "foto-mamaepapaimatteo-en.jpg", en: "foto-mamaepapaimatteo-en.jpg", es: "foto-mamaepapaimatteo-es.jpg" },
+    photo: { en: "foto-mamaepapaimatteo-en.jpg", es: "foto-mamaepapaimatteo-es.jpg" },
   },
   8: {
     cover: { pt: "capa-amordebisavo.png", en: "capa-amordebisavo-en.png", es: "capa-amordebisavo-es.png" },
@@ -348,7 +354,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     photo: { pt: "foto-amordebisavo.jpg", en: "foto-amordebisavo-en.jpg", es: "foto-amordebisavo-es.jpg" },
   },
   9: {
-    cover: { pt: "capa-natalmemetata.jpg", en: "capa-natalmemetata-en.jpg", es: "capa-natalmemetata-es.jpg" },
+    cover: { pt: "capa-natalmemetata.png", en: "capa-natalmemetata-en.png", es: "capa-natalmemetata-es.png" },
     page: { pt: "pagina-natalmemetata.jpg", en: "pagina-natalmemetata-en.jpg", es: "pagina-natalmemetata-es.jpg" },
     photo: { pt: "foto-natalmemetata.jpg", en: "foto-natalmemetata-en.jpg", es: "foto-natalmemetata-es.jpg" },
   },
@@ -363,23 +369,65 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     photo: { pt: "foto-maya-cachorra-pt.jpg", en: "foto-maya-cachorra-en.jpg", es: "foto-maya-cachorra-es.jpg" },
   },
   12: {
-    cover: { pt: "capa-mako-amigofiel.jpg", en: "capa-mako-amigofiel-en.jpg", es: "capa-mako-amigofiel-es.jpg" },
+    cover: { pt: "capa-mako-amigofiel.png", en: "capa-mako-amigofiel-en.png", es: "capa-mako-amigofiel-es.png" },
     page: { pt: "pagina-mako-amigofiel.jpg", en: "pagina-mako-amigofiel-en.jpg", es: "pagina-mako-amigofiel-es.jpg" },
     photo: { pt: "foto-mako-amigofiel.jpg", en: "foto-mako-amigofiel-en.jpg", es: "foto-mako-amigofiel-es.jpg" },
   },
   13: { cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" }, photo: "foto-ester.png" },
-  14: { cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" }, photo: "foto-raquel-papai.png" },
-  15: { cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" }, photo: "foto-rebeca.png" },
+  14: {
+    cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" },
+    page: { pt: "pagina-raquel-papai.png", en: "pagina-raquel-papai-en.png", es: "pagina-raquel-papai-es.png" },
+    photo: "foto-raquel-papai.png",
+  },
+  15: {
+    cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" },
+    page: { pt: "pagina-rebeca.png", en: "pagina-rebeca-en.png", es: "pagina-rebeca-es.png" },
+    photo: "foto-rebeca.png",
+  },
   16: { cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" }, photo: "foto-abigail.png" },
   17: { cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" }, photo: "foto-miriam.png" },
-  18: { cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" }, photo: "foto-noe.png" },
+  18: {
+    cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" },
+    page: { pt: "pagina-noe.png", en: "pagina-noe-en.png", es: "pagina-noe-es.png" },
+    photo: "foto-noe.png",
+  },
   19: { cover: "capa-amordetia.png", page: "pagina-amordetia.png", photo: "foto-amordetia.png" },
   20: { cover: "capa-davi-pastor.png", page: "pagina-davi-pastor.png", photo: "foto-davi-pastor.png" },
   21: { cover: "capa-meupai-heroi.png", page: "pagina-meupai-heroi.png", photo: "foto-meupai-heroi.png" },
   22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
   23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
   24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
-  30: { cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png" } },
+  25: { cover: "capa-construtor.png", page: "pagina-construtor.png", photo: "foto-construtor.png" },
+  26: {
+    cover: { pt: "capa-heroi-bombeiro.png", en: "capa-heroi-bombeiro-en.png", es: "capa-heroi-bombeiro-es.png" },
+    page: { pt: "pagina-heroi-bombeiro.png", en: "pagina-heroi-bombeiro-en.png", es: "pagina-heroi-bombeiro-es.png" },
+    photo: { pt: "foto-heroi-bombeiro.png", en: "foto-heroi-bombeiro-en.png", es: "foto-heroi-bombeiro-es.png" },
+  },
+  27: {
+    cover: { pt: "capa-heroi-policia.png", en: "capa-heroi-policia-en.png", es: "capa-heroi-policia-es.png" },
+    page: { pt: "pagina-heroi-policia.png", en: "pagina-heroi-policia-en.png", es: "pagina-heroi-policia-es.png" },
+    photo: { pt: "foto-heroi-policia.png", en: "foto-heroi-policia-en.png", es: "foto-heroi-policia-es.png" },
+  },
+  28: {
+    cover: { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
+    page: { pt: "pagina-heroi-aranha.png", en: "pagina-heroi-aranha-en.png", es: "pagina-heroi-aranha-es.png" },
+    photo: { pt: "foto-heroi-aranha.png", en: "foto-heroi-aranha-en.png", es: "foto-heroi-aranha-es.png" },
+  },
+  29: {
+    cover: { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
+    page: { pt: "pagina-tia-especial.png", en: "pagina-tia-especial-en.png", es: "pagina-tia-especial-es.png" },
+    photo: { pt: "foto-tia-especial.png", en: "foto-tia-especial-en.png", es: "foto-tia-especial-es.png" },
+  },
+  30: {
+    cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png" },
+    page: { pt: "pagina-amor-de-avo.png", en: "pagina-amor-de-avo-en.png" },
+    photo: { pt: "foto-amor-de-avo.png", en: "foto-amor-de-avo-en.png" },
+  },
+  31: {
+    cover: { pt: "capa-pascoa.png", en: "capa-pascoa-en.png", es: "capa-pascoa-es.png" },
+    page: { pt: "pagina-pascoa.png", en: "pagina-pascoa-en.png", es: "pagina-pascoa-es.png" },
+    photo: { pt: "foto-pascoa.png", en: "foto-pascoa-en.png", es: "foto-pascoa-es.png" },
+  },
   34: {
     cover: { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
     page: "pagina-bruno-animais.jpg",
@@ -457,7 +505,6 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   50: {
     cover: { pt: "capa-matteo-aniversario.png", en: "capa-matteo-aniversario-en.png", es: "capa-matteo-aniversario-es.png" },
     page: { pt: "pagina-matteo-aniversario.jpg", en: "pagina-matteo-aniversario-en.jpg", es: "pagina-matteo-aniversario-es.jpg" },
-    photo: { pt: "foto-matteo-aniversario.jpg", en: "foto-matteo-aniversario-en.jpg", es: "foto-matteo-aniversario-es.jpg" },
   },
   51: {
     cover: { pt: "capa-nonna-90-anos.png", en: "capa-nonna-90-anos-en.png", es: "capa-nonna-90-anos-es.png" },
@@ -506,6 +553,11 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     cover: { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
     page: { pt: "pagina-enzo-dinossauro.png", en: "pagina-enzo-dinossauro-en.png", es: "pagina-enzo-dinossauro-es.png" },
     photo: { pt: "foto-enzo-dinossauro.png", en: "foto-enzo-dinossauro-en.png", es: "foto-enzo-dinossauro-es.png" },
+  },
+  61: {
+    cover: { pt: "capa-pai-e-filha.png", en: "capa-pai-e-filha-en.png", es: "capa-pai-e-filha-es.png" },
+    page: { pt: "pagina-pai-e-filha.png", en: "pagina-pai-e-filha-en.png", es: "pagina-pai-e-filha-es.png" },
+    photo: { pt: "foto-pai-e-filha.png", en: "foto-pai-e-filha-en.png", es: "foto-pai-e-filha-es.png" },
   },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
@@ -591,15 +643,16 @@ const CATALOG_THEMES = [
   "livro_teste",
   "christmas",
   "dinosaurs",
+  "fathers_day",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([13, 16, 17, 32, 48]);
+const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61]);
 /** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   25, 26, 27,
@@ -618,6 +671,7 @@ const HOME_CATALOG_ORDER = [
   51, 50, 35,
   9, 45, 58,
   10, 59, 60,
+  61,
 ];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 50, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
@@ -645,6 +699,7 @@ const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
 const RELATED_CATALOG_THEMES: Record<number, readonly string[]> = {
   1: ["sport"],
   10: ["pets"],
+  61: ["family_love"],
   5: ["family_love"], 6: ["family_love"],
   8: ["family_love"], 9: ["family_love", "grandparents_love", "grandfather_love"],
   11: ["animais_sons"], 12: ["animais_sons"],
@@ -765,7 +820,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   superhero: [15, 26, 27, 28],
   sport: [0, 4, 36],
   mothers_day: [5, 6, 44],
-  fathers_day: [21, 14],
+  fathers_day: [21, 14, 61],
   grandparents_love: [8, 37, 51],
   grandfather_love: [30, 46, 52],
   dia_do_idoso: [8, 30, 37, 46, 51, 52],
@@ -1387,6 +1442,7 @@ const I18N = {
       { t: "Livro Teste", p: "Livro de prova para conferir um pedido de cinquenta centavos. Não é um presente do catálogo.", cover: "Soft", size: "P", tag: "Teste de pedido", quote: "R$ 0,50." },
       { t: "Feliz Natal, Família!", p: "Árvore, presentes e o Papai Noel ao lado: a família inteira guarda o Natal numa história só deles.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Feliz Natal, família!" },
       { t: "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro", p: "Com uma lupa na mão, o Enzo atravessa o tempo ao lado de um triceratops e descobre os segredos dos dinossauros.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Do passado ao futuro, a aventura continua." },
+      { t: "Pai e Filha: Uma Dupla que Brilha", p: "No dia da formatura, pai e filha seguram juntos o diploma: uma dupla que brilha em cada conquista.", cover: "Hard", size: "M", tag: "Pai e filha", quote: "Uma dupla que brilha." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1639,6 +1695,7 @@ const I18N = {
       { t: "Test Book", p: "A trial book for checking a fifty-cent order. It is not a catalog gift.", cover: "Soft", size: "P", tag: "Order test", quote: "R$ 0,50." },
       { t: "Merry Christmas, Family!", p: "The tree, the presents and Santa beside them: the whole family keeps Christmas in a story all their own.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Merry Christmas, family!" },
       { t: "Dinosaur Secrets, Enzo, From Past To Future", p: "Magnifying glass in hand, Enzo travels through time beside a triceratops and discovers the secrets of the dinosaurs.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "From the past to the future, the adventure goes on." },
+      { t: "Dad and Daughter: A Pair Beyond Compare", p: "On graduation day, dad and daughter hold the diploma together: a pair that shines in every achievement.", cover: "Hard", size: "M", tag: "Dad and daughter", quote: "A pair beyond compare." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1891,6 +1948,7 @@ const I18N = {
       { t: "Libro De Prueba", p: "Libro de prueba para revisar un pedido de cincuenta centavos. No es un regalo del catálogo.", cover: "Soft", size: "P", tag: "Prueba de pedido", quote: "R$ 0,50." },
       { t: "¡Feliz Navidad, Familia!", p: "El árbol, los regalos y Papá Noel al lado: toda la familia guarda la Navidad en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "¡Feliz Navidad, familia!" },
       { t: "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro", p: "Con una lupa en la mano, Enzo cruza el tiempo junto a un triceratops y descubre los secretos de los dinosaurios.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Del pasado al futuro, la aventura sigue." },
+      { t: "Papá e Hija: Un Equipo que Brilla", p: "El día de la graduación, papá e hija sostienen juntos el diploma: un equipo que brilla en cada logro.", cover: "Hard", size: "M", tag: "Papá e hija", quote: "Un equipo que brilla." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -2411,7 +2469,6 @@ export function CatalogBookCard({
         : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        {book.catalogI != null && <FavoriteBookButton index={book.catalogI} title={book.t} lang={lang} />}
         <BookImageGallery key={`${book.catalogI ?? book.img}:${lang}`} shots={series} alt={book.t} size={size} labels={flipLabels} />
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
@@ -2432,7 +2489,6 @@ export function CatalogBookCard({
   }
   return (
     <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
-      {book.catalogI != null && <FavoriteBookButton index={book.catalogI} title={book.t} lang={lang} />}
       <div className="cat-display">
         <div className="cat-book" data-size={size}>
           <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
@@ -2671,8 +2727,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     if (shots.some((src) => !src)) return [];
     return [{ name: entry.name, shots }];
   });
-  const favorites = useCatalogFavorites();
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
@@ -3441,10 +3495,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
-        <CatalogFavoritesFilter lang={lang} active={favoritesOnly} onChange={setFavoritesOnly} />
-        {favoritesOnly && !catalogBooks.some((book) => favorites.includes(book.catalogI)) && <CatalogFavoritesEmpty lang={lang} />}
         <div className="cat-grid">
-          {catalogBooks.filter((book) => !favoritesOnly || favorites.includes(book.catalogI)).map((c) => (
+          {catalogBooks.map((c) => (
             <CatalogBookCard
               key={c.t}
               book={c}
