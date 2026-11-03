@@ -125,7 +125,7 @@ describe("Studio — dados da criança", () => {
     const name = screen.getByLabelText(/nome do protagonista/i);
     await user.type(name, "lila");
     expect(name).toHaveValue("Lila");
-    expect(screen.getByLabelText(/roupa na história/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/roupa na história/i)).toHaveAccessibleName(/opcional/i);
     expect(screen.getByText(/é a roupa do livro, não a da foto/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/jeito da criança/i)).toBeInTheDocument();
     expect(screen.getByText(/como ela é no começo da história/i)).toBeInTheDocument();

@@ -40,9 +40,9 @@ describe("Studio approval stages", () => {
     render(<MasterBookFlow project={named} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} setAssets={vi.fn()} />);
     expect(screen.getByRole("heading", { name: "A Criança Nesta História" })).toBeInTheDocument();
     expect(screen.getByLabelText("Nome da criança")).toHaveValue("Lila");
-    expect(screen.getByLabelText("Roupa na história")).toHaveValue("roupa de aventura azul");
+    expect(screen.getByLabelText(/roupa na história/i)).toHaveValue("roupa de aventura azul");
     expect(screen.queryByText("lila · 5")).not.toBeInTheDocument();
-    const outfit = screen.getByLabelText("Roupa na história");
+    const outfit = screen.getByLabelText(/roupa na história/i);
     await userEvent.clear(outfit);
     await userEvent.type(outfit, "vestido de estrelas");
     await userEvent.click(screen.getByRole("button", { name: "Salvar dados da criança" }));
