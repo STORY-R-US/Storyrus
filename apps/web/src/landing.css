@@ -705,11 +705,6 @@ a.kcat-group-name.is-chip:focus-visible {
   filter: none;
   transition: inset .18s ease;
 }
-#catalogo .cat-book[data-size="P"] {
-  inset: 12.5%;
-  width: auto;
-  height: auto;
-}
 #catalogo .cat-body { padding-left: 0; padding-right: 0; }
 #catalogo .cat-book img {
   position: absolute;
@@ -723,7 +718,7 @@ a.kcat-group-name.is-chip:focus-visible {
   border-radius: 8px;
 }
 
-/* A foto muda de tamanho; o título e os botões ficam no mesmo lugar. */
+/* Capa no mesmo tamanho em todo o catálogo; o título e os botões ficam no mesmo lugar. */
 #catalogo .cat-card:not(.book-sheet) .cat-display {
   aspect-ratio: 1 / 1;
   height: auto;
@@ -748,10 +743,6 @@ a.kcat-group-name.is-chip:focus-visible {
   max-height: none;
   object-fit: contain;
   object-position: center;
-}
-#catalogo .cat-card:not(.book-sheet) .cat-book[data-size="P"] img {
-  width: 75%;
-  height: 75%;
 }
 .cat-book-link {
   position: absolute;
@@ -1845,11 +1836,6 @@ img.ex-tab-cover {
   inset: 0;
   width: 100%;
   height: 100%;
-}
-#catalogo.book-page .book-series-shot .cat-book[data-size="P"] {
-  inset: 12.5%;
-  width: auto;
-  height: auto;
 }
 #catalogo.book-page .book-series-shot figcaption {
   margin: 0;
