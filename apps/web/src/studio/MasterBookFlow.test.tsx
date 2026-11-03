@@ -198,7 +198,7 @@ describe("Studio approval stages", () => {
     vi.spyOn(api, "getProject").mockResolvedValue(cleared);
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     function Harness() {
-      const [current, setCurrent] = useState(ready);
+      const [current, setCurrent] = useState<Project>(ready);
       return (
         <MasterBookFlow
           project={current}
