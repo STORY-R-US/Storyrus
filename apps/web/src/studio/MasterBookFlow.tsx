@@ -693,33 +693,6 @@ export function MasterBookFlow({
             />
           </label>
         </div>
-        <label className="studio-field">
-          {t.costume}
-          <input
-            value={childDraft.costume}
-            maxLength={160}
-            placeholder={t.costumePh}
-            onChange={(event) => setChildDraft((current) => ({ ...current, costume: event.target.value }))}
-          />
-        </label>
-        <label className="studio-field">
-          {t.trait}
-          <input
-            value={childDraft.trait}
-            maxLength={300}
-            placeholder={t.traitPh}
-            onChange={(event) => setChildDraft((current) => ({ ...current, trait: event.target.value }))}
-          />
-        </label>
-        <label className="studio-field">
-          {t.interest}
-          <input
-            value={childDraft.interest}
-            maxLength={300}
-            placeholder={t.interestPh}
-            onChange={(event) => setChildDraft((current) => ({ ...current, interest: event.target.value }))}
-          />
-        </label>
         <button type="submit" className="kbtn kbtn-soft" disabled={active}>{t.childSave}</button>
       </form>
       )}

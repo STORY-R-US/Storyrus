@@ -1512,47 +1512,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {fieldAlert("age", t.errAge)}
             </label>
           </div>
-          <div className="studio-grid">
-            <label className="studio-field">
-              {t.storyOutfit}
-              <input
-                disabled={fieldsLocked}
-                value={storyOutfit}
-                onChange={(e) => setStoryOutfit(e.target.value)}
-                placeholder={t.storyOutfitPh}
-                maxLength={160}
-                data-testid="studio-story-outfit"
-                aria-describedby="studio-story-outfit-hint"
-              />
-            </label>
-            <p id="studio-story-outfit-hint" className="muted field-hint">{t.storyOutfitHint}</p>
-            <label className="studio-field">
-              {t.childWay}
-              <input
-                disabled={fieldsLocked}
-                value={childWay}
-                onChange={(e) => setChildWay(e.target.value)}
-                placeholder={t.childWayPh}
-                maxLength={300}
-                data-testid="studio-child-way"
-                aria-describedby="studio-child-way-hint"
-              />
-            </label>
-            <p id="studio-child-way-hint" className="muted field-hint">{t.childWayHint}</p>
-            <label className="studio-field">
-              {t.childLikes}
-              <input
-                disabled={fieldsLocked}
-                value={childLikes}
-                onChange={(e) => setChildLikes(e.target.value)}
-                placeholder={t.childLikesPh}
-                maxLength={300}
-                data-testid="studio-child-likes"
-                aria-describedby="studio-child-likes-hint"
-              />
-            </label>
-            <p id="studio-child-likes-hint" className="muted field-hint">{t.childLikesHint}</p>
-          </div>
           {askGender ? genderButtons(gender, setGender, t.gender, "gender") : null}
           {companionCopy ? (
             <>
