@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "assets/editorial/2026-11-04.1"
@@ -31,9 +32,43 @@ def prompt(project, language, role):
         raise ValueError("Perfil editorial deste trabalho indisponível; preserve a versão original")
     master = (ROOT / "prompts/PROMPT_MESTRE.txt").read_text(encoding="utf-8")
     scene = (ROOT / f"prompts/{role}.txt").read_text(encoding="utf-8")
+    # In these preview stages the image model supplies artwork only. Exact
+    # typography is composed once by book_render after generation.
+    sections = {
+        "TIPOGRAFIA FIXADA": "CONTINUIDADE E VALIDAÇÃO",
+        "TÍTULOS E TEXTOS": "CAPA",
+        "CAPA": "LIVRO ABERTO",
+        "LIVRO ABERTO": "LEITURA",
+    }
+    if role in {"01_CAPA", "02_LIVRO_ABERTO"}:
+        for start, end in sections.items():
+            master = re.sub(
+                rf"{re.escape(start)}\n.*?(?={re.escape(end)}\n)", "", master, flags=re.S
+            )
+        if role == "01_CAPA":
+            scene = (
+                "CAPA frontal quadrada 1:1, cantos arredondados. Gere somente a "
+                "ilustração da pessoa e da ação ligadas ao tema. NÃO desenhe texto, "
+                "letras, palavras, números, logo ou ornamentos. Preserve uma área "
+                "superior central livre e simples para o título ser composto depois. "
+                "Mantenha rosto e ação principal afastados dessa área; preserve a "
+                "identidade da foto e o estilo editorial escolhido."
+            )
+            texts = {k: v for k, v in profile["locales"][language].items() if k != "title"}
+        else:
+            scene = (
+                "Livro aberto frontal com duas páginas quadradas iguais e dobra "
+                "central natural. Gere somente ilustração, sem texto, letras, números "
+                "ou marcas. Deixe áreas superiores tranquilas em ambas as páginas "
+                "para a composição posterior dos versos. Preserve protagonista, "
+                "identidade da foto e estilo editorial escolhido."
+            )
+            texts = {}
+    else:
+        texts = profile["locales"][language]
     data = {
         "language": "en-US" if language == "en" else language,
-        "texts": profile["locales"][language],
+        "texts": texts,
         "name": project.child_name,
         "age": project.child_age,
         "theme": profile.get("theme_description") or project.theme,

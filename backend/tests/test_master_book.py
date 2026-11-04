@@ -1034,8 +1034,39 @@ def test_editorial_references_select_only_requested_finish():
         Image.open(io.BytesIO(data)).verify()
 
 
+def test_editorial_art_prompts_leave_exact_text_for_single_renderer(studio):
+    from app.services import editorial_profile
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        languages=["pt-BR"],
+        locales={
+            "pt-BR": {
+                "title": "Título único",
+                "left": "Verso esquerdo",
+                "right": "Verso direito",
+            }
+        },
+    )
+    cover = editorial_profile.prompt(project, "pt-BR", "01_CAPA")
+    spread = editorial_profile.prompt(project, "pt-BR", "02_LIVRO_ABERTO")
+    holding = editorial_profile.prompt(project, "pt-BR", "03_LEITURA")
+
+    assert "TIPOGRAFIA FIXADA" not in cover
+    assert "TÍTULOS E TEXTOS" not in cover
+    assert "Título único" not in cover
+    assert '"left": "Verso esquerdo"' not in spread
+    assert '"right": "Verso direito"' not in spread
+    assert "não desenhe texto" in cover.lower()
+    assert "sem texto" in spread.lower()
+    assert "Título único" in holding
+
+
 @pytest.mark.asyncio
-async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch):
+async def test_editorial_provider_references_resume(studio, monkeypatch):
     from app.services import editorial_profile
 
     client, db, pid, store = studio
