@@ -72,6 +72,7 @@ describe("catálogo no sitemap", () => {
     expect(xml).toContain("https://storyrus.ai/livro/10");
     expect(xml).not.toContain("https://storyrus.ai/livro/3</loc>");
     expect(xml).not.toContain("https://storyrus.ai/livro/4</loc>");
+    expect(xml).not.toContain("https://storyrus.ai/livro/50</loc>");
     expect(xml).not.toContain("https://storyrus.ai/livro/13");
     expect(xml).not.toContain("https://storyrus.ai/livro/16");
     expect(xml).not.toContain("https://storyrus.ai/livro/17");

@@ -24,7 +24,7 @@ test("ordem da vitrine", async ({ page }) => {
   await page.goto("/");
   const catalog = page.locator("#catalogo");
   const links = catalog.locator(".cat-book-link");
-  await expect(links).toHaveCount(49);
+  await expect(links).toHaveCount(48);
   expect((await links.evaluateAll((items) => items.map((item) => item.getAttribute("href")))).slice(0, 12)).toEqual([25, 26, 27, 21, 30, 22, 20, 38, 47, 0, 36, 53].map((id) => `/livro/${id}`));
 });
 

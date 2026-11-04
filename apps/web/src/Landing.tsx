@@ -610,7 +610,7 @@ const CATALOG_THEMES = [
   "adventure",
   "superhero",
   "superhero",
-  "superhero",
+  "pets",
   "family_love",
   "grandfather_love",
   "easter",
@@ -648,7 +648,7 @@ const CATALOG_THEMES = [
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48]);
+const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
@@ -663,17 +663,17 @@ const HOME_CATALOG_ORDER = [
   11, 12, 23,
   29, 46, 31,
   39, 40, 37,
-  43, 49, 55,
+  43, 49, 9,
   6, 44, 5,
   8, 7, 19,
   54, 56, 52,
   24, 41, 42,
-  51, 50, 35,
-  9, 45, 58,
+  51, 55, 35,
+  45, 58,
   10, 59, 60,
   61,
 ];
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 50, 52, 53, 54, 56, 57, 58];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -705,7 +705,7 @@ const RELATED_CATALOG_THEMES: Record<number, readonly string[]> = {
   11: ["animais_sons"], 12: ["animais_sons"],
   14: ["adventure", "family_love"], 19: ["tio_tia"],
   21: ["family_love"], 23: ["animais_sons"],
-  28: ["animais_sons", "pets"], 29: ["tio_tia"], 30: ["family_love"],
+  28: ["animais_sons"], 29: ["tio_tia"], 30: ["family_love"],
   33: ["pets"], 34: ["adventure"],
   37: ["family_love", "grandfather_love"], 38: ["family_love"],
   39: ["tio_tia"], 40: ["tio_tia"], 42: ["consciencia_corporal"],
@@ -817,7 +817,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   underwater: [43],
   space: [49],
   princess: [53, 1],
-  superhero: [15, 26, 27, 28],
+  superhero: [15, 26, 27],
   sport: [0, 4, 36],
   mothers_day: [5, 6, 44],
   fathers_day: [21, 14, 61],
@@ -831,7 +831,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29, 39, 40],
   christmas: [9, 45, 59],
-  birthday: [41, 50, 51, 55],
+  birthday: [41, 55, 51],
   easter: [31],
   animais_sons: [34],
   economia: [35],
@@ -1409,7 +1409,7 @@ const I18N = {
       { t: "Pequeno Construtor, Grande Empreendedor", p: "Capacete, blocos e um plano no papel: construir, tentar de novo e ver a ideia ficar de pé.", cover: "Hard", size: "M", tag: "Construir e criar", quote: "Pequenas mãos, grandes ideias." },
       { t: "Meu Herói Favorito, O Bombeiro", p: "Sirene, coragem e um herói de verdade: o bombeiro que cuida da cidade e da família.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói protege todo mundo." },
       { t: "Meu Herói Favorito, O Policial", p: "Farda, cuidado e um herói da cidade: o policial que protege quem a gente ama.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói cuida da gente todos os dias." },
-      { t: "Meu Herói Favorito, A Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Até o menor amigo pode ser um herói." },
+      { t: "Meu Herói Favorito, A Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Pets", quote: "Até o menor amigo pode ser um herói." },
       { t: "Tia Especial, Não Existe Igual", p: "Passeio, colo e risada: a tia que transforma qualquer dia numa memória para guardar.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Com a tia, todo dia vira passeio." },
       { t: "Amor De Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
       { t: "Feliz Páscoa", p: "Ovos, flores e um coelhinho no jardim: a Páscoa da criança vira uma história para guardar.", cover: "Hard", size: "M", tag: "Páscoa", quote: "Páscoa é alegria para compartilhar." },
@@ -1662,7 +1662,7 @@ const I18N = {
       { t: "Little Builder, Big Entrepreneur", p: "A hard hat, blocks and a plan on paper: build, try again and watch the idea stand up.", cover: "Hard", size: "M", tag: "Build and create", quote: "Small hands, big ideas." },
       { t: "My Favorite Hero, The Firefighter", p: "A siren, courage and a real hero: the firefighter who looks after the city and the family.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero protects everyone." },
       { t: "My Favorite Hero, The Police Officer", p: "A uniform, care and a hero of the city: the officer who protects the people we love.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero looks after us every day." },
-      { t: "My Favorite Hero, The Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Real heroes", quote: "Even the smallest friend can be a hero." },
+      { t: "My Favorite Hero, The Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Pets", quote: "Even the smallest friend can be a hero." },
       { t: "A Special Aunt, One Of A Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
       { t: "Grandpa's Love, My Safe Harbor", p: "Grandpa's arms, the lake and a hug that never ends: a safe harbor just for the family.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "In grandpa's arms, I find my safe harbor." },
       { t: "Happy Easter", p: "Eggs, flowers and a little bunny in the garden: Easter becomes a story to keep.", cover: "Hard", size: "M", tag: "Easter", quote: "Easter is joy to share." },
@@ -1915,7 +1915,7 @@ const I18N = {
       { t: "Pequeño Constructor, Gran Emprendedor", p: "Casco, bloques y un plano en el papel: construir, intentar de nuevo y ver la idea de pie.", cover: "Hard", size: "M", tag: "Construir y crear", quote: "Manos pequeñas, grandes ideas." },
       { t: "Mi Héroe Favorito, El Bombero", p: "Sirena, coraje y un héroe de verdad: el bombero que cuida la ciudad y la familia.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe protege a todo el mundo." },
       { t: "Mi Héroe Favorito, El Policía", p: "Uniforme, cuidado y un héroe de la ciudad: el policía que protege a quienes amamos.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe cuida de nosotros todos los días." },
-      { t: "Mi Héroe Favorito, La Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
+      { t: "Mi Héroe Favorito, La Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Mascotas", quote: "Hasta el amigo más pequeño puede ser un héroe." },
       { t: "Una Tía Especial, No Hay Otra Igual", p: "Paseo, abrazo y risa: la tía que convierte cualquier día en un recuerdo para guardar.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "Con la tía, todo día se vuelve paseo." },
       { t: "El Amor Del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
       { t: "Feliz Pascua", p: "Huevos, flores y un conejito en el jardín: la Pascua del niño se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Pascua", quote: "Pascua es alegría para compartir." },
