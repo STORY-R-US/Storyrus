@@ -177,6 +177,17 @@ def _fill_visual_ficha(
 def _preview_scene_prompts(project, language: str, role: str, *, include_text: bool = True):
     """Return the customer-facing editorial contract for generation or inspection."""
     prompt = editorial_profile.prompt(project, language, role, include_text=include_text)
+    if role in {"01_CAPA", "02_LIVRO_ABERTO"}:
+        prompt += (
+            "\nTRAVA DE ARTE-BASE: gere somente ilustração, sem qualquer letra, palavra, "
+            "título ou tipografia. A regra genérica de identidade sobre revisar título "
+            "não autoriza texto nesta imagem; o backend aplicará o texto depois."
+        )
+    else:
+        prompt += (
+            "\nUse somente o texto que já está impresso na capa de referência; não invente "
+            "título alternativo nem escreva qualquer outro texto."
+        )
     if role == "03_LEITURA":
         prompt += (
             "\nINSTRUÇÃO DE GERAÇÃO: produza uma cena editorial fotográfica natural de "
@@ -459,14 +470,18 @@ async def preview(db, job, project):
                 )
             if payload.get("adjustment"):
                 prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
-            if editorial and editorial_profile.uses_backend_typography(profile, role):
+            if editorial:
                 prompt = _preview_scene_prompts(project, language, role, include_text=False)
                 if payload.get("adjustment"):
                     prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
-            elif editorial:
-                prompt = _preview_scene_prompts(project, language, role)
-            reference = cover if role != "01_CAPA" else photos[0]
+            reference = cover if role == "03_LEITURA" and cover else photos[0]
             extra_refs = photos[1:]
+            if role == "02_LIVRO_ABERTO":
+                prompt += (
+                    " Baseie a continuidade nas fotos originais e na ficha visual; a capa "
+                    "não é referência desta cena. A saída deve mostrar um único livro aberto "
+                    "de frente, sem mãos segurando-o ou cenas adicionais."
+                )
             # Later locales edit the first language cover instead of inventing a new design.
             if language != profile["languages"][0]:
                 first = _assets(
@@ -485,7 +500,7 @@ async def preview(db, job, project):
                 extra_refs = extra_refs + [
                     data
                     for _, data in editorial_profile.references(
-                        project.style, editorial.get("version")
+                        project.style, editorial.get("version"), art_only=True
                     )
                 ]
             if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
@@ -507,9 +522,7 @@ async def preview(db, job, project):
                     )
                     if editorial
                     else contract.art_direction(project.style),
-                    reference_role="cover"
-                    if role != "01_CAPA" or reference != photos[0]
-                    else "character",
+                    reference_role="cover" if role == "03_LEITURA" and cover else "character",
                     landscape=role == "02_LIVRO_ABERTO",
                 )
             data = book_render.png(
@@ -548,7 +561,7 @@ async def preview(db, job, project):
                         style_refs=[
                             data
                             for _, data in editorial_profile.references(
-                                project.style, editorial.get("version")
+                                project.style, editorial.get("version"), art_only=True
                             )
                         ],
                     )

@@ -1037,9 +1037,12 @@ def test_editorial_references_select_only_requested_finish():
 
     realistic = editorial_profile.references("realistic")
     cartoon = editorial_profile.references("cartoon")
+    realistic_art = editorial_profile.references("realistic", art_only=True)
     assert any("acabamento-amor" in path for path, _ in realistic)
     assert not any("acabamento-amor" in path for path, _ in cartoon)
     assert sum("cartoon-style" in path for path, _ in cartoon) == 2
+    assert len(realistic_art) == 1
+    assert not any("texto-" in path or "titulo-" in path for path, _ in realistic_art)
     for _, data in realistic + cartoon:
         Image.open(io.BytesIO(data)).verify()
 
@@ -1071,6 +1074,14 @@ def test_current_editorial_art_prompt_reserves_text_for_exact_composition(studio
     assert "Uma descoberta a cada dia." not in spread_art
     assert "SEM TIPOGRAFIA" in cover_art
     assert "SEM TIPOGRAFIA" in spread_art
+    assert "LEITURA" not in spread_art
+    assert "ENTREGA" not in spread_art
+    assert "três imagens" not in spread_art
+    assert "segurando o livro" not in spread_art
+    assert "texto-meu-pai" not in spread_art
+    assert "titulo-amor-de-bisavo" not in spread_art
+    assert "LIVRO ABERTO" not in cover_art
+    assert "segurando o livro" not in cover_art
     assert "ANdré no Computador" in cover_validation
     assert "André aprende com alegria." in spread_validation
     assert "Uma descoberta a cada dia." in spread_validation
@@ -1158,6 +1169,7 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
     )
     db.commit()
     calls = []
+    generated = []
 
     class Images:
         async def generate_scene(self, **kwargs):
@@ -1166,7 +1178,9 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
                 raise ProviderError("provider unavailable", transient=False)
             out = io.BytesIO()
             Image.new("RGB", (1024, 1024), (len(calls) * 15, 120, 160)).save(out, "PNG")
-            return ImageResult(out.getvalue(), cost_usd=0)
+            image = out.getvalue()
+            generated.append(image)
+            return ImageResult(image, cost_usd=0)
 
     class Text:
         async def validate_editorial_preview(self, **kwargs):
@@ -1183,9 +1197,20 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
     await runner.process_job(db, failed)
     assert failed.status == "FAILED"
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 2
+    assert calls[0]["reference_role"] == "character"
+    assert "LEITURA" not in calls[0]["prompt"]
+    assert calls[1]["character_ref"] == _png()
+    assert calls[1]["reference_role"] == "character"
+    assert generated[0] not in calls[1]["extra_refs"]  # capa não induz letras no miolo
+    assert "LEITURA" not in calls[1]["prompt"]
+    assert "segurando o livro" not in calls[1]["prompt"]
+    assert "a capa não é referência desta cena" in calls[1]["prompt"]
+    assert "sem qualquer letra, palavra" in calls[1]["prompt"]
+    assert calls[2]["reference_role"] == "cover"
+    assert "CENA ÚNICA" in calls[2]["prompt"]
     await _run(studio, "preview", key="resume-editorial")
     assert len(calls) == 4  # three outputs plus exactly one failed call
-    assert all(c["photo"] == _png() and len(c["extra_refs"]) >= 4 for c in calls)
+    assert all(c["photo"] == _png() and len(c["extra_refs"]) >= 2 for c in calls)
     final_assets = db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid))).all()
     editorial_assets = [
         asset

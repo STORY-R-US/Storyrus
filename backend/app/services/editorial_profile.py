@@ -6,8 +6,10 @@ import re
 from pathlib import Path
 
 ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets/editorial"
-CURRENT_VERSION = "2026-11-04.2"
-PROFILE_ROOTS = {version: ASSET_ROOT / version for version in ("2026-11-04.1", CURRENT_VERSION)}
+CURRENT_VERSION = "2026-11-04.3"
+PROFILE_ROOTS = {
+    version: ASSET_ROOT / version for version in ("2026-11-04.1", "2026-11-04.2", CURRENT_VERSION)
+}
 ROLES = ("01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA")
 
 
@@ -30,12 +32,13 @@ def snapshot(version: str | None = None):
     return {"version": version, "sha256": digest.hexdigest()}
 
 
-def references(style, version: str | None = None):
+def references(style, version: str | None = None, *, art_only: bool = False):
     root = _root(version)
     config = json.loads((root / "config/storyrus-profile.json").read_text(encoding="utf-8"))
     mode = "cartoon_premium" if style == "cartoon" else "realista_premium"
     paths = config["style"]["modes"][mode]["finish_references"]
-    paths += [item["path"] for item in config["style"]["common_references"]]
+    if not art_only:
+        paths += [item["path"] for item in config["style"]["common_references"]]
     return [(path, (root / path).read_bytes()) for path in paths]
 
 
@@ -46,8 +49,29 @@ def uses_backend_typography(profile, role):
     }
 
 
-def _remove_section(prompt: str, start: str, end: str) -> str:
-    return re.sub(rf"(?ms)^{re.escape(start)}\n.*?(?=^{re.escape(end)}\n)", "", prompt)
+def _remove_section(prompt: str, start: str, end: str | None) -> str:
+    boundary = rf"(?=^{re.escape(end)}\n)" if end else r"\Z"
+    return re.sub(rf"(?ms)^{re.escape(start)}\n.*?{boundary}", "", prompt)
+
+
+def _art_master_prompt(master: str) -> str:
+    """Keep only shared visual rules; a generation must see exactly one scene."""
+    for start, end in (
+        ("OBJETIVO E ESCOPO", "FONTES DE REFERÊNCIA"),
+        ("TIPOGRAFIA FIXADA", "TÍTULOS E TEXTOS"),
+        ("TÍTULOS E TEXTOS", "CAPA"),
+        ("CAPA", "CONTINUIDADE E VALIDAÇÃO"),
+        ("CONTINUIDADE E VALIDAÇÃO", "ENTREGA"),
+        ("ENTREGA", None),
+    ):
+        master = _remove_section(master, start, end)
+    master = re.sub(r"(?m)^Na LEITURA,.*(?:\n|$)", "", master)
+    master = re.sub(
+        r"(?m)^\s*[23]\. (?:texto-meu-pai-meu-heroi|titulo-amor-de-bisavo)\.png.*(?:\n|$)",
+        "",
+        master,
+    )
+    return master
 
 
 def prompt(project, language, role, *, include_text: bool = True):
@@ -60,16 +84,12 @@ def prompt(project, language, role, *, include_text: bool = True):
     master = (root / "prompts/PROMPT_MESTRE.txt").read_text(encoding="utf-8")
     scene = (root / f"prompts/{role}.txt").read_text(encoding="utf-8")
     texts = profile["locales"][language]
-    if uses_backend_typography(profile, role) and not include_text:
-        master = _remove_section(master, "TIPOGRAFIA FIXADA", "TÍTULOS E TEXTOS")
-        master = _remove_section(master, "TÍTULOS E TEXTOS", "CAPA")
-        master = _remove_section(
-            master,
-            "CAPA" if role == "01_CAPA" else "LIVRO ABERTO",
-            "LIVRO ABERTO" if role == "01_CAPA" else "LEITURA",
+    if not include_text:
+        master = _art_master_prompt(master)
+        art_path = root / f"prompts/{role}_ARTE.txt"
+        scene = (art_path if art_path.is_file() else root / f"prompts/{role}.txt").read_text(
+            encoding="utf-8"
         )
-        master = _remove_section(master, "CONTINUIDADE E VALIDAÇÃO", "ENTREGA")
-        scene = (root / f"prompts/{role}_ARTE.txt").read_text(encoding="utf-8")
         texts = {}
     data = {
         "language": "en-US" if language == "en" else language,
@@ -80,6 +100,8 @@ def prompt(project, language, role, *, include_text: bool = True):
         "characters": profile.get("characters"),
         "continuity": {k: profile.get(k) for k in ("visual_identity", "costume", "palette")},
         "style": project.style,
-        "style_reference_roles": [p for p, _ in references(project.style, version)],
+        "style_reference_roles": [
+            p for p, _ in references(project.style, version, art_only=not include_text)
+        ],
     }
     return master + "\n" + scene + "\nDADOS DO LIVRO:\n" + json.dumps(data, ensure_ascii=False)

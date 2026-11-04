@@ -1,6 +1,6 @@
-# Perfil editorial do Estúdio — 2026-11-04.2
+# Perfil editorial do Estúdio — 2026-11-04.3
 
-Revisão 2026-11-04.2 do perfil editorial já integrado ao fluxo oficial do
+Revisão 2026-11-04.3 do perfil editorial já integrado ao fluxo oficial do
 Estúdio. A revisão anterior permanece disponível para leitura de projetos
 existentes; um pedido de nova prévia migra o projeto às regras atuais.
 
@@ -30,6 +30,10 @@ versionados em `backend/app/assets/editorial/`.
   #172A3A, título superior centralizado, versos à esquerda e entrelinha 1,2.
   O encaixe falha de modo fechado se o texto não couber. A cena final é validada
   contra texto duplicado, extra, ausente, cortado ou sobreposto.
+- Cada chamada de geração recebe somente as regras da cena correspondente.
+  Para o livro aberto, a capa não é enviada como imagem de referência, evitando
+  que o título seja copiado para as páginas; a identidade vem das fotos originais.
+  A cena de leitura usa a capa aprovada como referência do livro físico.
 - A leitura depende da capa validada daquele idioma, enviada como imagem. Uma
   correção de capa remove a leitura anterior e gera a substituta. A aplicação
   não possui composição em perspectiva da capa: sua fidelidade depende de
@@ -54,12 +58,12 @@ versionados em `backend/app/assets/editorial/`.
 
 Verificações concluídas nesta revisão:
 
-- Backend focado (`test_master_book.py` e `test_text_openai.py`): 56 passaram.
+- Backend focado (`test_master_book.py` e `test_text_openai.py`): 57 passaram.
 - Ruff (`check` e `format --check`) nos arquivos Python alterados: passou.
 - Web: 241 testes passaram; lint e build passaram.
 - Navegador: 17 testes passaram, incluindo Estúdio, Catálogo nos três idiomas, capas desktop/celular e fluxo de pedido.
 - A suíte completa do backend não foi repetida nesta revisão; em execução anterior, todos os testes exceto um teste de observabilidade passaram. O teste restante falhou por fixture de banco sem `scalar`, fora desta alteração.
-- A geração real com OpenAI não foi executada: o ambiente local não tem chave configurada e a API de produção mantém `SKIP_OPENAI=true`. Assim, a inspeção visual real destas cenas ainda não foi comprovada.
+- A suíte usa provedores simulados. Não fiz uma geração real de aceitação nesta revisão; os logs recentes de produção mostram geração pela OpenAI, mas as cenas foram reprovadas pela validação automática.
 - O diff passou em `git diff --check` e contém somente os arquivos editoriais, backend relacionado, testes e este registro.
 
 ## Ativação
@@ -69,7 +73,7 @@ os diretórios da versão editorial para permitir a retomada de trabalhos antigo
 uma mudança de conteúdo exige nova versão. Não altere os arquivos de uma versão
 em uso: a impressão digital divergente interrompe a geração.
 
-O perfil 2026-11-04.1 permanece imutável. Em um pedido de prévia para um projeto
+Os perfis 2026-11-04.1 e 2026-11-04.2 permanecem imutáveis. Em um pedido de prévia para um projeto
 com a versão anterior, o worker atualiza o perfil e regenera as cenas que não
 correspondem à nova versão. Isso impede misturar imagens com regras diferentes.
 Não há migração de banco. Antes de publicar, executar a CI e conferir Estúdio,

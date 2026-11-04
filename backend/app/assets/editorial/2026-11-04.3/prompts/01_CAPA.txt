@@ -1,0 +1,22 @@
+COMPLEMENTO DE CENA — CAPA
+
+Aplicar PROMPT_MESTRE.txt e os valores definidos para este trabalho.
+
+DADOS A INSERIR PELO BACKEND:
+- Idioma da cena.
+- Título literal definido para esse idioma.
+- Protagonista e outros personagens realmente incluídos.
+- Tema, ação planejada, paleta e figurino da ficha de continuidade.
+- Estilo escolhido.
+
+REFERÊNCIAS EFETIVAS:
+- Fotografias originais de todos os personagens presentes.
+- Referência de acabamento do modo escolhido.
+- Referência visual das letras de Amor de Bisavó, com a instrução explícita de manter o título no alto e centralizado.
+- Composição correspondente já validada em outro idioma, se disponível, somente para continuidade.
+
+GERAÇÃO:
+Gerar uma imagem independente da capa frontal, quadrada, com livro de proporção 1:1 e cantos suavemente arredondados. Título completo, exato, na parte superior e centralizado, em bloco compacto e legível. Personagens reconhecíveis e ação coerente com o tema. Decoração discreta. Nenhum subtítulo não solicitado, interface, marca-d'água, colagem ou painel de outras cenas.
+
+VALIDAÇÃO DA CENA:
+Conferir rosto/idade contra as fotos; proporção quadrada; título exato; espaço equilibrado; acabamento; ausência de elementos de interface. Guardar o arquivo validado, seu idioma e sua versão para uso na LEITURA.

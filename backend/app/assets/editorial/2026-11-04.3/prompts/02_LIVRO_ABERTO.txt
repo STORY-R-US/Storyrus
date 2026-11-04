@@ -1,0 +1,22 @@
+COMPLEMENTO DE CENA — LIVRO_ABERTO
+
+Aplicar PROMPT_MESTRE.txt e os valores definidos para este trabalho.
+
+DADOS A INSERIR PELO BACKEND:
+- Idioma da cena.
+- Texto literal da página esquerda e texto literal da página direita.
+- Ação de cada página, personagens, paleta, figurino e estilo.
+
+REFERÊNCIAS EFETIVAS:
+- Fotografias originais dos personagens presentes.
+- Referência de acabamento do modo escolhido.
+- Referência Meu pai, meu herói para delicadeza dos versos e experiência afetiva, com corpo predominantemente à esquerda segundo o perfil atualizado.
+- Capa validada para continuidade de paleta, rostos e design; ela não substitui as fotografias originais.
+
+GERAÇÃO:
+Gerar uma imagem independente de um livro físico aberto. Duas páginas quadradas equivalentes a 20 × 20 cm, de mesmo tamanho, unidas por dobra natural; conjunto físico próximo de 2:1. O enquadramento pode incluir ambiente sem deformar as páginas.
+
+Imprimir somente o texto literal definido para cada lado. Corpo em Medium ou SemiBold moderado, uma mesma família arredondada, cor #172A3A, alinhamento predominantemente à esquerda, entrelinha confortável, margens amplas e distância da dobra. Integrar as áreas de leitura à composição. Não transformar versos em manchetes nem cobrir rosto, corpo, gestos ou objetos importantes. As ilustrações devem mostrar a experiência narrada.
+
+VALIDAÇÃO DA CENA:
+Conferir as duas páginas quadradas, ambos os textos, acentos, pontuação, quebras de linha, legibilidade, alinhamento, continuidade dos personagens e correspondência entre ações e versos. O livro aberto é uma cena, não uma montagem das três cenas de prévia.
