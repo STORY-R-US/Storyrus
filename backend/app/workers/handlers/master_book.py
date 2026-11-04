@@ -386,6 +386,10 @@ async def preview(db, job, project):
                 )
             if payload.get("adjustment"):
                 prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
+            if editorial and role == "01_CAPA":
+                prompt += " Composição determinística: NÃO desenhe letras. Reserve o topo central livre para o título. Sem estrelas automáticas."
+            if editorial and role == "02_LIVRO_ABERTO":
+                prompt += " Composição determinística: NÃO desenhe letras. Livro frontal ocupando todo quadro 2:1. Reserve os 35% superiores de cada página livres de pessoas e objetos para os versos."
             reference = cover if role != "01_CAPA" else photos[0]
             extra_refs = photos[1:]
             # Later locales edit the first language cover instead of inventing a new design.

@@ -662,6 +662,14 @@ export const api = {
       body: JSON.stringify(body),
     }).then((result) => { releaseStepIdempotencyKey(id, "page"); return result; });
   },
+  async downloadPreviewPackage(id: string) {
+    await resolveToken();
+    const headers = new Headers();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const resp = await backendFetch(`${BASE}/v1/projects/${id}/preview/package`, { headers });
+    if (!resp.ok) throw new Error("Pacote de prévia indisponível.");
+    return resp.blob();
+  },
   /** Three separate previews, then explicit approval in the Studio. */
   startPreview(id: string, body: { brief?: string; image?: string; language?: string; adjustment?: string } = {}): Promise<JobAccepted> {
     const step = "preview";
