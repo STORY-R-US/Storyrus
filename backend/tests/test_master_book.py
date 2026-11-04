@@ -1083,6 +1083,18 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
     await _run(studio, "preview", key="resume-editorial")
     assert len(calls) == 4  # three outputs plus exactly one failed call
     assert all(c["photo"] == _png() and len(c["extra_refs"]) >= 4 for c in calls)
+    final_assets = db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid))).all()
+    editorial_assets = [
+        asset
+        for asset in final_assets
+        if (asset.meta or {}).get("workflow") == 1
+        and (asset.meta or {}).get("language") == "pt-BR"
+        and (asset.meta or {}).get("role") in editorial_profile.ROLES
+    ]
+    assert len(editorial_assets) == 3
+    for asset in editorial_assets:
+        image = Image.open(io.BytesIO(store[asset.storage_key]))
+        assert len(image.getcolors(maxcolors=2_000_000)) == 1
     response = client.get(f"/v1/projects/{pid}/preview/package")
     assert response.status_code == 200
     import zipfile

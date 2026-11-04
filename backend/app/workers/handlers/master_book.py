@@ -386,10 +386,6 @@ async def preview(db, job, project):
                 )
             if payload.get("adjustment"):
                 prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
-            if editorial and role == "01_CAPA":
-                prompt += " Composição determinística: NÃO desenhe letras. Reserve o topo central livre para o título. Sem estrelas automáticas."
-            if editorial and role == "02_LIVRO_ABERTO":
-                prompt += " Composição determinística: NÃO desenhe letras. Livro frontal ocupando todo quadro 2:1. Reserve os 35% superiores de cada página livres de pessoas e objetos para os versos."
             reference = cover if role != "01_CAPA" else photos[0]
             extra_refs = photos[1:]
             # Later locales edit the first language cover instead of inventing a new design.
@@ -436,18 +432,8 @@ async def preview(db, job, project):
                 )
             data = book_render.png(result.image_bytes, spread=role == "02_LIVRO_ABERTO")
             title = profile["locales"][language]["title"]
-            if role == "01_CAPA":
-                data = (
-                    book_render.editorial_text(data, title=title)
-                    if editorial
-                    else book_render.front_cover(data, title)
-                )
-            if editorial and role == "02_LIVRO_ABERTO":
-                data = book_render.editorial_text(
-                    data,
-                    left=profile["locales"][language]["left"],
-                    right=profile["locales"][language]["right"],
-                )
+            if not editorial and role == "01_CAPA":
+                data = book_render.front_cover(data, title)
             _account(db, job, result, f"Previa — {language} — {role}")
             db.commit()
             validation = (
