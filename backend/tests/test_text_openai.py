@@ -143,6 +143,10 @@ async def test_prepare_book_profile_sends_photo(client):
     await oai.OpenAITextProvider().prepare_book_profile(ficha={"name": "Luna"}, photos=[photo])
     payload = client.calls[0]["json"]
     assert payload["response_format"] == {"type": "json_object"}
+    guidance = payload["messages"][0]["content"]
+    assert "maiúsculas, acentos e pontuação" in guidance
+    assert "2 a 4 linhas curtas" in guidance
+    assert "Evite moralismo" in guidance
     parts = payload["messages"][1]["content"]
     assert parts[0]["type"] == "image_url"
     assert parts[0]["image_url"]["url"].startswith("data:image/jpeg;base64,")

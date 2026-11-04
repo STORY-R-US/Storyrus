@@ -295,6 +295,7 @@ def project_assets(
                 }
             )
 
+    current_editorial = (project.book_profile or {}).get("editorial")
     preview_assets = [
         a
         for a in db.scalars(
@@ -302,6 +303,7 @@ def project_assets(
         ).all()
         if (a.meta or {}).get("workflow") == 1
         and (a.meta or {}).get("role") in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+        and (not current_editorial or (a.meta or {}).get("editorial") == current_editorial)
     ]
     language = project.language or "pt-BR"
     clean_cover = next(

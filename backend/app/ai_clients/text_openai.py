@@ -475,8 +475,15 @@ class OpenAITextProvider:
             "e es neutro somente para idiomas pedidos. Mesmo conceito/design em todos. "
             "Retorne JSON sem markdown: visual_identity (descricao objetiva das fotos), "
             "costume (pecas e cores), palette, animal, trait, interest, locales: {codigo: "
-            "{title, left, right}}. left e right: cada um 2 a 5 linhas curtas separadas "
-            "por \\n, afetivas e relacionadas ao tema, uma cena por lado. Rima leve natural e aprendizado concreto vivido na ação. "
+            "{title, left, right}}. Mantenha o título recebido literalmente, incluindo "
+            "maiúsculas, acentos e pontuação; se estiver ausente, crie um título curto, "
+            "natural e ligado à aventura. left e right: cada um com 2 a 4 linhas curtas "
+            "separadas por \\n, claras para leitura em voz alta e relacionadas a uma ação "
+            "específica do tema. Use voz narrativa consistente, afeto, um aprendizado "
+            "concreto vivido pelos personagens e rima leve somente quando soar natural. "
+            "Evite moralismo, frases genéricas, repetição do mesmo acontecimento e palavras "
+            "escolhidas apenas para rimar. O texto de cada lado precisa corresponder à "
+            "cena ilustrada e avançar a experiência do protagonista. "
             "visual_identity, costume, palette, trait e interest sao obrigatorios e "
             "nunca vazios. animal pode ser string vazia. Cada idioma pedido precisa de "
             "title, left e right preenchidos."
@@ -504,7 +511,20 @@ class OpenAITextProvider:
                 ]
             )
         return await self._complete(
-            system="Inspect OUTPUT against the supplied editorial specification and actual references. Read every visible title and verse literally, including case/accents. Check identity, age, anatomy, geometry, style, layout, exact localized cover on reading scene, and language/rhyme. Never approve based on prompt alone. Return JSON {valid: boolean, issues: [strings], limitations: [strings]}. If uncertain about any required criterion return valid false. This is automated visual inspection, not human approval.",
+            system=(
+                "Inspect OUTPUT against the supplied editorial specification and actual references. "
+                "Read every visible title and verse literally, including case, accents and punctuation. "
+                "For CAPA, require exactly one complete title, compact and centered at the top; reject "
+                "duplicate, stray, clipped, oversized or misspelled lettering, and reject text over "
+                "the face or main action. For LIVRO_ABERTO, require exactly the two expected verses, "
+                "left-aligned, legible, away from the gutter and important subjects; reject any extra "
+                "or duplicated lettering. For LEITURA, compare the visible printed cover with EXACT_COVER "
+                "and reject any changed title, design, palette or character. Check identity, age, anatomy, "
+                "geometry, style, layout and language/rhyme. Never approve based on prompt alone. "
+                "Return JSON {valid: boolean, issues: [strings], limitations: [strings]}. "
+                "If uncertain about any required criterion return valid false. "
+                "This is automated visual inspection, not human approval."
+            ),
             user=content,
             max_tokens=1200,
             json_mode=True,

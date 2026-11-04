@@ -174,6 +174,19 @@ def _fill_visual_ficha(
     return prepared
 
 
+def _preview_scene_prompts(project, language: str, role: str, *, include_text: bool = True):
+    """Return the customer-facing editorial contract for generation or inspection."""
+    prompt = editorial_profile.prompt(project, language, role, include_text=include_text)
+    if role == "03_LEITURA":
+        prompt += (
+            "\nINSTRUÇÃO DE GERAÇÃO: produza uma cena editorial fotográfica natural de "
+            "uma pessoa segurando a capa do livro. Use a foto original como referência "
+            "de identidade e a capa validada como referência visual da capa impressa. "
+            "Preserve fielmente o desenho e o título da capa."
+        )
+    return prompt
+
+
 async def _prepare(db, job, project, photos):
     profile = project.book_profile
     if profile.get("locales"):
@@ -239,6 +252,16 @@ async def _prepare(db, job, project, photos):
                 raise ProviderError(
                     "Textos localizados incompletos; tente novamente", transient=True
                 )
+            supplied = profile.get("supplied_locales", {}).get(lang, {})
+            for key in ("left", "right"):
+                if key in supplied:
+                    continue
+                line_count = sum(bool(line.strip()) for line in locale[key].splitlines())
+                if not 2 <= line_count <= 4:
+                    raise ProviderError(
+                        "Cada verso gerado precisa ter de 2 a 4 linhas; tente novamente",
+                        transient=True,
+                    )
         # Existing supplied texts always win; only absent fields may be composed.
         for lang, locale in profile.get("supplied_locales", {}).items():
             for key, value in locale.items():
@@ -306,6 +329,12 @@ async def preview(db, job, project):
     editorial = (project.book_profile or {}).get("editorial")
     payload = _payload(job)
     selected = payload.get("image")
+    if editorial and editorial.get("version") != editorial_profile.CURRENT_VERSION:
+        # An explicit preview retry adopts the current profile and regenerates
+        # all three scenes; assets created under older rules are not reusable.
+        editorial = editorial_profile.snapshot()
+        contract.update(project, editorial=editorial)
+        selected = None
     languages = (
         [payload["language"]] if payload.get("language") else project.book_profile["languages"]
     )
@@ -339,9 +368,22 @@ async def preview(db, job, project):
         ):
             existing = _assets(db, project, workflow=1, language=language, role=role)
             regenerate_hand = editorial and selected == "01_CAPA" and role == "03_LEITURA"
-            if (selected and selected != role and not regenerate_hand) or (
-                not selected and existing
-            ):
+            existing_is_current = bool(
+                editorial
+                and existing
+                and existing[-1].meta.get("editorial") == editorial
+                and existing[-1].meta.get("validation", {}).get("status") in {"valid", "demo"}
+            )
+            skip_unselected_role = bool(
+                selected
+                and selected != role
+                and not regenerate_hand
+                and (not editorial or existing_is_current)
+            )
+            skip_existing = bool(
+                not selected and (existing if not editorial else existing_is_current)
+            )
+            if skip_unselected_role or skip_existing:
                 if editorial and existing:
                     asset = existing[-1]
                     job.result = {
@@ -386,6 +428,12 @@ async def preview(db, job, project):
                 )
             if payload.get("adjustment"):
                 prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
+            if editorial and editorial_profile.uses_backend_typography(profile, role):
+                prompt = _preview_scene_prompts(project, language, role, include_text=False)
+                if payload.get("adjustment"):
+                    prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
+            elif editorial:
+                prompt = _preview_scene_prompts(project, language, role)
             reference = cover if role != "01_CAPA" else photos[0]
             extra_refs = photos[1:]
             # Later locales edit the first language cover instead of inventing a new design.
@@ -404,7 +452,10 @@ async def preview(db, job, project):
                     )
             if editorial:
                 extra_refs = extra_refs + [
-                    data for _, data in editorial_profile.references(project.style)
+                    data
+                    for _, data in editorial_profile.references(
+                        project.style, editorial.get("version")
+                    )
                 ]
             if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
                 result = ImageResult(
@@ -430,9 +481,22 @@ async def preview(db, job, project):
                     else "character",
                     landscape=role == "02_LIVRO_ABERTO",
                 )
-            data = book_render.png(result.image_bytes, spread=role == "02_LIVRO_ABERTO")
+            data = book_render.png(
+                result.image_bytes,
+                spread=role == "02_LIVRO_ABERTO",
+                square=role in {"01_CAPA", "03_LEITURA"},
+            )
             title = profile["locales"][language]["title"]
-            if not editorial and role == "01_CAPA":
+            if editorial_profile.uses_backend_typography(profile, role):
+                if role == "01_CAPA":
+                    data = book_render.editorial_text(data, title=title)
+                else:
+                    data = book_render.editorial_text(
+                        data,
+                        left=profile["locales"][language]["left"],
+                        right=profile["locales"][language]["right"],
+                    )
+            elif not editorial and role == "01_CAPA":
                 data = book_render.front_cover(data, title)
             _account(db, job, result, f"Previa — {language} — {role}")
             db.commit()
@@ -449,9 +513,12 @@ async def preview(db, job, project):
                         data=data,
                         photos=photos,
                         cover=cover if role == "03_LEITURA" else None,
-                        prompt=contract.preview_prompt(project, language, role),
+                        prompt=_preview_scene_prompts(project, language, role),
                         style_refs=[
-                            data for _, data in editorial_profile.references(project.style)
+                            data
+                            for _, data in editorial_profile.references(
+                                project.style, editorial.get("version")
+                            )
                         ],
                     )
                 )
@@ -460,7 +527,18 @@ async def preview(db, job, project):
                     validation = json.loads(checked.text)
                 except (ValueError, TypeError) as exc:
                     raise ProviderError("Validação visual inválida", transient=True) from exc
-                if validation.get("valid") is not True:
+                validation_issues = (
+                    validation.get("issues", [])
+                    if isinstance(validation, dict)
+                    else ["Resposta de validação inválida"]
+                )
+                if (
+                    not isinstance(validation, dict)
+                    or validation.get("valid") is not True
+                    or not isinstance(validation.get("issues"), list)
+                    or bool(validation["issues"])
+                    or not isinstance(validation.get("limitations"), list)
+                ):
                     candidate_key = storage.new_key(project.id, "editorial-rejected", "png")
                     storage.put_bytes(candidate_key, data, "image/png")
                     job.result = {
@@ -476,8 +554,7 @@ async def preview(db, job, project):
                     }
                     db.commit()
                     raise ProviderError(
-                        "Prévia reprovada na validação visual: "
-                        + str(validation.get("issues", [])),
+                        "Prévia reprovada na validação visual: " + str(validation_issues),
                         transient=False,
                     )
                 validation["status"] = "valid"

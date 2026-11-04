@@ -13,7 +13,7 @@ from app.ai_clients.base import ImageResult, ProviderError, TextResult
 from app.config import settings
 from app.database import get_db
 from app.main import app
-from app.models import Asset, Job, Project
+from app.models import Asset, AssetKind, Job, Project
 from app.services import book_profile
 from app.workers import book_render, handlers, runner
 
@@ -26,6 +26,15 @@ def test_preview_watermark_crosses_the_picture():
     assert image.size == original.size
     changed = sum(1 for a, b in zip(original.getdata(), image.getdata(), strict=False) if a != b)
     assert changed > original.size[0] * original.size[1] // 12
+
+
+def test_editorial_preview_png_dimensions_are_normalized_without_stretching():
+    wide = io.BytesIO()
+    Image.new("RGB", (1200, 800), (20, 30, 40)).save(wide, "PNG")
+    cover = Image.open(io.BytesIO(book_render.png(wide.getvalue(), square=True)))
+    spread = Image.open(io.BytesIO(book_render.png(wide.getvalue(), spread=True)))
+    assert cover.width == cover.height == 1200
+    assert spread.width == spread.height * 2
 
 
 def _png():
@@ -997,7 +1006,7 @@ async def test_editorial_preview_three_independent_scenes_and_cover_retry(studio
     project = db.get(Project, uuid.UUID(pid))
     book_profile.update(
         project,
-        editorial=editorial_profile.snapshot(),
+        editorial=editorial_profile.snapshot("2026-11-04.1"),
         languages=["pt-BR"],
         title="ANdré no Computador",
     )
@@ -1006,6 +1015,7 @@ async def test_editorial_preview_three_independent_scenes_and_cover_retry(studio
     assert job.result["preview_complete"] is True
     assets = client.get(f"/v1/projects/{pid}/assets").json()["previews"]
     assert len(assets) == 3
+    assert project.book_profile["editorial"] == editorial_profile.snapshot()
     assert project.book_profile["locales"]["pt-BR"]["title"] == "ANdré no Computador"
     assert len(job.result["scenes"]) == 3
     assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
@@ -1032,6 +1042,68 @@ def test_editorial_references_select_only_requested_finish():
     assert sum("cartoon-style" in path for path, _ in cartoon) == 2
     for _, data in realistic + cartoon:
         Image.open(io.BytesIO(data)).verify()
+
+
+def test_current_editorial_art_prompt_reserves_text_for_exact_composition(studio):
+    from app.services import editorial_profile
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        locales={
+            "pt-BR": {
+                "title": "ANdré no Computador",
+                "left": "André aprende com alegria.",
+                "right": "Uma descoberta a cada dia.",
+            }
+        },
+    )
+
+    cover_art = editorial_profile.prompt(project, "pt-BR", "01_CAPA", include_text=False)
+    spread_art = editorial_profile.prompt(project, "pt-BR", "02_LIVRO_ABERTO", include_text=False)
+    cover_validation = editorial_profile.prompt(project, "pt-BR", "01_CAPA")
+    spread_validation = editorial_profile.prompt(project, "pt-BR", "02_LIVRO_ABERTO")
+
+    assert "ANdré no Computador" not in cover_art
+    assert "André aprende com alegria." not in spread_art
+    assert "Uma descoberta a cada dia." not in spread_art
+    assert "SEM TIPOGRAFIA" in cover_art
+    assert "SEM TIPOGRAFIA" in spread_art
+    assert "ANdré no Computador" in cover_validation
+    assert "André aprende com alegria." in spread_validation
+    assert "Uma descoberta a cada dia." in spread_validation
+
+
+def test_assets_api_hides_previews_from_an_older_editorial_profile(studio):
+    from app.services import editorial_profile
+
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    old_profile = editorial_profile.snapshot("2026-11-04.1")
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        languages=["pt-BR"],
+    )
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.COVER.value,
+            storage_key="old-profile-cover.png",
+            meta={
+                "workflow": 1,
+                "language": "pt-BR",
+                "role": "01_CAPA",
+                "editorial": old_profile,
+                "validation": {"status": "valid"},
+            },
+        )
+    )
+    db.commit()
+
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
 
 
 @pytest.mark.asyncio
@@ -1094,7 +1166,11 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
     assert len(editorial_assets) == 3
     for asset in editorial_assets:
         image = Image.open(io.BytesIO(store[asset.storage_key]))
-        assert len(image.getcolors(maxcolors=2_000_000)) == 1
+        colors = len(image.getcolors(maxcolors=2_000_000))
+        if asset.meta["role"] == "03_LEITURA":
+            assert colors == 1
+        else:
+            assert colors > 1
     response = client.get(f"/v1/projects/{pid}/preview/package")
     assert response.status_code == 200
     import zipfile
@@ -1109,3 +1185,50 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
     )
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_editorial_preview_fails_closed_when_validation_reports_any_issue(
+    studio, monkeypatch
+):
+    from app.services import editorial_profile
+
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        languages=["pt-BR"],
+        locales={
+            "pt-BR": {
+                "title": "Lia e as estrelas",
+                "left": "Lia olha o céu.",
+                "right": "Juntas brilham as estrelas.",
+            }
+        },
+    )
+    db.commit()
+
+    class Images:
+        async def generate_scene(self, **kwargs):
+            return ImageResult(_png(), cost_usd=0)
+
+    class Text:
+        async def validate_editorial_preview(self, **kwargs):
+            return TextResult(
+                text='{"valid": true, "issues": ["título duplicado"], "limitations": []}',
+                cost_usd=0,
+            )
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda: Images())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    response = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+
+    assert job.status == "FAILED"
+    assert "título duplicado" in job.error
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 0
+    db.refresh(project)
+    assert (project.purchase_flow or {}).get("preview_ready_at") is None

@@ -86,14 +86,17 @@ def preview_watermark(data: bytes) -> bytes:
     return out.getvalue()
 
 
-def png(data: bytes, *, spread: bool = False) -> bytes:
+def png(data: bytes, *, spread: bool = False, square: bool = False) -> bytes:
     with Image.open(io.BytesIO(data)) as source:
         image = ImageOps.exif_transpose(source).convert("RGB")
-        # Crop, never deform square pages. The spread prompt reserves its centre.
+        # Normalize physical scene geometry without stretching the book.
         if spread:
             width, height = image.size
             target = (width, width // 2) if width < height * 2 else (height * 2, height)
             image = ImageOps.fit(image, target)
+        elif square:
+            side = max(image.size)
+            image = ImageOps.fit(image, (side, side))
         out = io.BytesIO()
         image.save(out, "PNG")
         return out.getvalue()

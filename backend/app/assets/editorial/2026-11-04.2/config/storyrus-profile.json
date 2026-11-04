@@ -1,0 +1,184 @@
+{
+  "document_type": "editorial_integration_specification",
+  "integration_note": "Especificação declarativa para o Codex adaptar ao repositório existente. Estes campos não são parâmetros comprovados de uma API do Estúdio e não devem ser enviados diretamente a um fornecedor.",
+  "profile_id": "story-r-us-studio-premium",
+  "profile_version": "2026-11-04.2",
+  "source_plugin": {
+    "name": "story-r-us",
+    "version": "1.0.20"
+  },
+  "request_contract": "contracts/book-request.schema.json",
+  "editorial_precedence": [
+    "As regras editoriais deste perfil incorporam o AGENTS.md mais recente e prevalecem sobre as instruções divergentes do plugin 1.0.20.",
+    "Título e textos fornecidos pelo usuário são preservados exatamente, incluindo caixa, nomes, acentos e pontuação.",
+    "Fotografias originais definem a identidade; referências de estilo definem somente os aspectos declarados."
+  ],
+  "official_preview": {
+    "language_order": [],
+    "scene_order": [
+      "CAPA",
+      "LIVRO_ABERTO",
+      "LEITURA"
+    ],
+    "png_count": 3,
+    "independent_scene_files": true,
+    "filename_prefixes": {
+      "pt-BR": "PORTUGUES",
+      "en-US": "INGLES",
+      "es": "ESPANHOL"
+    },
+    "filename_templates": {
+      "CAPA": "[IDIOMA]_01_CAPA_[TITULO].png",
+      "LIVRO_ABERTO": "[IDIOMA]_02_LIVRO_ABERTO_[TITULO].png",
+      "LEITURA": "[IDIOMA]_03_LEITURA_[TITULO].png"
+    },
+    "delivery_rules": [
+      "A prévia contém exatamente três PNGs no idioma escolhido: CAPA, LIVRO_ABERTO e LEITURA (pessoa segurando o livro).",
+      "Cada cena exige geração e arquivo independentes, sem montagem para recortar.",
+      "Não gerar automaticamente outros idiomas, avatar ou história completa.",
+      "Preservar literalmente os títulos e textos recebidos."
+    ],
+    "language_selection": "selected_project_language_only"
+  },
+  "identity": {
+    "original_photos_required": true,
+    "scope": "Fotos e fichas de identidade pertencem ao livro do cliente; não se tornam referências globais de outros livros.",
+    "rules": [
+      "Analisar todas as fotografias originais e mapear cada personagem à pessoa ou ao animal correto.",
+      "Resolver os arquivos e enviá-los efetivamente ao gerador; citar um caminho textual no prompt não transmite a imagem.",
+      "Incluir as fotos originais pertinentes em cada geração que mostre o personagem. Se o limite do mecanismo impedir as referências necessárias, adaptar o fluxo sem omiti-las silenciosamente.",
+      "Preservar rosto, olhos, cabelo, idade aparente, tom de pele, proporções, assimetrias naturais e características do animal.",
+      "Imagens geradas servem somente para continuidade; nunca substituem a foto original como fonte de identidade.",
+      "Não transformar adulto em criança nem acrescentar pessoa, animal ou relação familiar ausente da entrada.",
+      "Fixar a continuidade do figurino; não impor troca automática de roupa. Preservar a roupa da cena correspondente no idioma escolhido.",
+      "Resolver identidade ambígua ou idade visual indefinida antes de gerar, sem inventar quem é quem."
+    ]
+  },
+  "style": {
+    "default_mode": "realista_premium",
+    "common_references": [
+      {
+        "path": "assets/styles/texto-meu-pai-meu-heroi.png",
+        "role": "Voz afetiva, aprendizado em uma experiência, rima leve e apresentação delicada dos versos. O alinhamento é à esquerda conforme este perfil."
+      },
+      {
+        "path": "assets/styles/titulo-amor-de-bisavo.png",
+        "role": "Letras arredondadas, bloco compacto e hierarquia equilibrada. A posição é no topo, centralizada, conforme este perfil."
+      }
+    ],
+    "modes": {
+      "realista_premium": {
+        "selection": "default_or_explicit",
+        "finish_references": [
+          "assets/styles/acabamento-amor-de-mae.png"
+        ],
+        "printed_art": "Ilustração editorial infantil premium, suavemente realista, com pessoas reconhecíveis, luz difusa, texturas naturais e fundo ilustrado delicado.",
+        "reading_scene_exterior": "Pessoas e ambiente externos fotográficos, naturais e proporcionais; a arte impressa preserva o acabamento da capa validada."
+      },
+      "cartoon_premium": {
+        "selection": "explicit_only",
+        "finish_references": [
+          "assets/styles/cartoon-style-reference-01.png",
+          "assets/styles/cartoon-style-reference-02.png"
+        ],
+        "printed_art": "Cartoon 3D premium conforme as duas referências próprias, preservando a identidade e a idade. Não substituir pelo acabamento da referência da mãe.",
+        "reading_scene_exterior": "Pessoas e ambiente externos fotográficos; somente a capa impressa permanece no cartoon exato do idioma."
+      }
+    },
+    "reference_rules": [
+      "Não copiar personagens, nomes, títulos, subtítulos, parentescos ou objetos das referências editoriais.",
+      "Excluir botões, setas, pontos de carrossel, molduras de interface e rótulos presentes nas capturas.",
+      "O asset legado realista-premium-meu-pai-meu-heroi.png não define o acabamento atual.",
+      "Manter uma paleta coordenada, luz suave, cenários acolhedores e poucos objetos pertinentes ao tema.",
+      "Evitar rostos genéricos, anatomia deformada, pele plástica, saturação excessiva e decoração automática."
+    ]
+  },
+  "typography": {
+    "font_candidate": {
+      "family": "Nunito",
+      "availability": "verified_in_backend"
+    },
+    "alternative_candidates": [
+      "Avenir Next Rounded",
+      "Sofia Pro Soft"
+    ],
+    "family_rule": "Use the bundled Nunito SemiBold for exact cover and open-book preview text, applied by the backend. Keep the same rounded sans-serif family and hierarchy in every locale.",
+    "color": "#172A3A",
+    "line_height_ratio": 1.2,
+    "title": {
+      "weight": "SemiBold",
+      "alignment": "center",
+      "position": "top",
+      "shape": "Bloco compacto, quebras equilibradas e título integralmente legível."
+    },
+    "body": {
+      "weight": "Medium_or_moderate_SemiBold",
+      "alignment": "left",
+      "lines_per_page_guideline": [
+        2,
+        4
+      ]
+    },
+    "emphasis": {
+      "weight": "SemiBold_or_Bold",
+      "same_family": true
+    },
+    "consistency_rule": "Fixar os estilos por função antes da geração. A família, a cor e as proporções são comuns; peso e alinhamento permanecem consistentes dentro de cada função no idioma escolhido.",
+    "composition_rules": [
+      "Reservar espaço para texto ao planejar a cena, com margens amplas e distância da dobra.",
+      "Não sobrepor texto a rostos, corpos, gestos, ações ou objetos importantes.",
+      "Não acrescentar cursiva, serifada, manuscrita, fonte de quadrinhos ou fonte decorativa.",
+      "Não transformar versos em manchetes nem criar caixas opacas ou faixas sobre a cena.",
+      "A orientação de duas a quatro linhas é para texto criado. Texto fornecido não pode ser cortado ou reescrito para caber."
+    ]
+  },
+  "book_geometry": {
+    "closed_width_cm": 20,
+    "closed_height_cm": 20,
+    "closed_aspect_ratio": "1:1",
+    "page_width_cm": 20,
+    "page_height_cm": 20,
+    "open_book_physical_aspect_ratio": "approximately_2:1",
+    "rounded_corners": true,
+    "rules": [
+      "A capa mostra o livro inteiro, frontal e centralizado, com cantos suavemente arredondados.",
+      "O livro aberto contém duas páginas quadradas iguais, lado a lado, com dobra central natural.",
+      "Separar a geometria física do livro do enquadramento externo; não deformar páginas para preencher o arquivo.",
+      "O formato de 20 × 20 cm é uma especificação do produto. Não afirmar resolução de impressão ou dimensões de arquivo que ainda não foram verificadas."
+    ]
+  },
+  "narrative": {
+    "tone": "Afetivo, educativo, acolhedor e adequado à idade real do protagonista.",
+    "rules": [
+      "Criar somente os trechos necessários à prévia quando estiverem ausentes.",
+      "Contar uma experiência concreta e mostrar na imagem a ação descrita nos versos.",
+      "Usar rima leve e natural, que pode conectar linhas ou as duas páginas; evitar inversões artificiais e moralismo.",
+      "Preservar integralmente título e textos fornecidos.",
+      "Criar ou localizar campos ausentes uma vez, registrar sua origem e congelar os valores antes de renderizar.",
+      "Tradução criada pelo sistema é texto localizado congelado, não texto já aprovado pelo usuário.",
+      "Adaptar com fluidez para português brasileiro, inglês americano e espanhol neutro, preservando nomes, significado, aprendizado e emoção.",
+      "Não adicionar subtítulo ou frases extras."
+    ]
+  },
+  "continuity_and_validation": {
+    "cover_rule": "Guardar uma capa validada por idioma e reutilizar exatamente essa capa na leitura correspondente; nunca tratar uma capa de outro idioma como equivalente.",
+    "required_checks": [
+      "Existem exatamente três resultados distintos no idioma escolhido: capa, livro aberto e pessoa segurando o livro.",
+      "Cada arquivo é um PNG real, legível e disponível no destino de entrega.",
+      "Os personagens correspondem às fotos originais e mantêm a mesma idade.",
+      "Não há personagens, animais ou parentescos inventados.",
+      "Anatomia, mãos, braços, ombros e troncos têm proporções naturais.",
+      "Capa quadrada e páginas internas quadradas, iguais e sem deformação.",
+      "Título exato no alto e centralizado; textos internos exatos e predominantemente à esquerda.",
+      "Família tipográfica, cor e estilos por função estão consistentes.",
+      "A imagem corresponde à experiência narrada e não contém elementos da interface das referências.",
+      "A leitura utiliza a capa validada do respectivo idioma."
+    ],
+    "implementation_notes": [
+      "Este perfil orienta a implementação; não comprova que o Estúdio já executa essas verificações.",
+      "Se o repositório tiver composição tipográfica ou aplicação de capa ao objeto, reutilizar os mesmos arquivos de fonte, estilos e capa.",
+      "Se a geração produzir texto ou capa diretamente, inspecionar o resultado e corrigir diferenças antes de aceitar.",
+      "Corrigir somente a cena reprovada, voltando às fotos originais. Não declarar conclusão quando houver falhas ou arquivos ausentes."
+    ]
+  }
+}
