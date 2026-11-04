@@ -21,7 +21,7 @@ const COPY = {
     waiting: "Gerando…",
     cover: "Capa",
     open: "Livro Aberto",
-    reading: "Leitura",
+    reading: "Segurando o livro",
     noText: "Sem texto",
     withText: "Com texto",
     page: "Página",
@@ -104,7 +104,7 @@ const COPY = {
     waiting: "Generating…",
     cover: "Cover",
     open: "Open Book",
-    reading: "Reading",
+    reading: "Holding the book",
     noText: "Without text",
     withText: "With text",
     page: "Page",
@@ -187,7 +187,7 @@ const COPY = {
     waiting: "Generando…",
     cover: "Portada",
     open: "Libro Abierto",
-    reading: "Lectura",
+    reading: "Sosteniendo el libro",
     noText: "Sin texto",
     withText: "Con texto",
     page: "Página",
@@ -728,6 +728,13 @@ export function MasterBookFlow({
               <figcaption>
                 <span>{severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label}</span>
                 <span className="master-shot-actions">
+                  {previews.length === 3 && shot === previews[0] && <button type="button" disabled={active} onClick={() => void run(async () => {
+                    const blob = await api.downloadPreviewPackage(project.id);
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url; link.download = "Storyrus-previa.zip"; link.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                  })}>{lang === "en" ? "Download 3 PNGs" : lang === "es" ? "Descargar 3 PNGs" : "Baixar 3 PNGs"}</button>}
                   {stage === "preview_ready" ? (
                     <button
                       type="button"

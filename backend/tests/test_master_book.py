@@ -68,6 +68,13 @@ def studio(auth_client, monkeypatch):
     store[photo.json()["storage_key"]] = _png()
     generator = app.dependency_overrides[get_db]()
     db = next(generator)
+    # This suite exercises the pre-existing contract, including paid-book gates.
+    legacy = db.get(Project, uuid.UUID(pid))
+    profile = dict(legacy.book_profile)
+    profile.pop("editorial", None)
+    profile["languages"] = ["pt-BR"]
+    legacy.book_profile = profile
+    db.commit()
     yield auth_client, db, pid, store
     generator.close()
 
@@ -980,3 +987,113 @@ async def test_global_pause_blocks_paid_video_and_voice_providers(monkeypatch):
         await clone_voice("Teste", b"fake", "voice.mp3")
     with pytest.raises(ProviderError):
         await KlingVideoProvider().create_video(image=b"fake", prompt="test", duration_s=5)
+
+
+@pytest.mark.asyncio
+async def test_editorial_preview_three_independent_scenes_and_cover_retry(studio):
+    from app.services import editorial_profile
+
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        languages=["pt-BR"],
+        title="ANdré no Computador",
+    )
+    db.commit()
+    job = await _run(studio, "preview")
+    assert job.result["preview_complete"] is True
+    assets = client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+    assert len(assets) == 3
+    assert project.book_profile["locales"]["pt-BR"]["title"] == "ANdré no Computador"
+    assert len(job.result["scenes"]) == 3
+    assert not db.scalar(select(Job).where(Job.project_id == project.id, Job.type == "STORY"))
+    # Demo images are never downloadable as validated personalized output.
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+    before = {a["role"]: a["url"] for a in assets if a["language"] == "pt-BR"}
+    await _run(studio, "preview", {"image": "01_CAPA", "language": "pt-BR"})
+    after = {
+        a["role"]: a["url"]
+        for a in client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+        if a["language"] == "pt-BR"
+    }
+    assert before["02_LIVRO_ABERTO"] == after["02_LIVRO_ABERTO"]
+    assert before["03_LEITURA"] != after["03_LEITURA"]
+
+
+def test_editorial_references_select_only_requested_finish():
+    from app.services import editorial_profile
+
+    realistic = editorial_profile.references("realistic")
+    cartoon = editorial_profile.references("cartoon")
+    assert any("acabamento-amor" in path for path, _ in realistic)
+    assert not any("acabamento-amor" in path for path, _ in cartoon)
+    assert sum("cartoon-style" in path for path, _ in cartoon) == 2
+    for _, data in realistic + cartoon:
+        Image.open(io.BytesIO(data)).verify()
+
+
+@pytest.mark.asyncio
+async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch):
+    from app.services import editorial_profile
+
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        languages=["pt-BR"],
+        locales={
+            lang: {
+                "title": "ANdré no Computador",
+                "left": "André aprende com alegria.",
+                "right": "Uma descoberta a cada dia.",
+            }
+            for lang in ["pt-BR"]
+        },
+    )
+    db.commit()
+    calls = []
+
+    class Images:
+        async def generate_scene(self, **kwargs):
+            calls.append(kwargs)
+            if len(calls) == 3:
+                raise ProviderError("provider unavailable", transient=False)
+            out = io.BytesIO()
+            Image.new("RGB", (1024, 1024), (len(calls) * 15, 120, 160)).save(out, "PNG")
+            return ImageResult(out.getvalue(), cost_usd=0)
+
+    class Text:
+        async def validate_editorial_preview(self, **kwargs):
+            assert kwargs["photos"][0] == _png()
+            return TextResult(
+                text='{"valid": true, "issues": [], "limitations": ["mock inspection"]}', cost_usd=0
+            )
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda: Images())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    response = client.post(f"/v1/projects/{pid}/preview")
+    failed = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, failed)
+    assert failed.status == "FAILED"
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 2
+    await _run(studio, "preview", key="resume-editorial")
+    assert len(calls) == 4  # three outputs plus exactly one failed call
+    assert all(c["photo"] == _png() and len(c["extra_refs"]) >= 4 for c in calls)
+    response = client.get(f"/v1/projects/{pid}/preview/package")
+    assert response.status_code == 200
+    import zipfile
+
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        assert len(archive.namelist()) == 3
+        for name in archive.namelist():
+            Image.open(io.BytesIO(archive.read(name))).verify()
+
+    await _run(
+        studio, "preview", {"image": "01_CAPA", "language": "pt-BR"}, key="refresh-cover-editorial"
+    )
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200

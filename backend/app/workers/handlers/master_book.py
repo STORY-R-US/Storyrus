@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
@@ -13,7 +14,7 @@ from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, ProjectStatus
 from app.services import book_profile as contract
-from app.services import purchase_flow
+from app.services import editorial_profile, purchase_flow
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.workers import book_render
@@ -62,7 +63,8 @@ def _store(db, project, kind, data: bytes, *, language: str, role: str, name: st
     mime = "application/pdf" if role == "ebook" else "image/png"
     storage.put_bytes(key, data, mime)
     # Replace just this shot/locale/page, preserving all other approved assets.
-    for old in _assets(db, project, workflow=1, language=language, role=role, **metadata):
+    identity = {"page": metadata["page"]} if "page" in metadata else {}
+    for old in _assets(db, project, workflow=1, language=language, role=role, **identity):
         db.delete(old)
     asset = Asset(
         project_id=project.id,
@@ -227,6 +229,21 @@ async def _prepare(db, job, project, photos):
             raise ProviderError("Ficha visual invalida; tente novamente", transient=True) from exc
     if not isinstance(prepared, dict):
         raise ProviderError("Ficha visual invalida", transient=True)
+    if profile.get("editorial") and not (contract.test_mode(project) or settings.offline_fallback):
+        for lang in profile["languages"]:
+            locale = prepared.get("locales", {}).get(lang, {})
+            if not all(
+                isinstance(locale.get(k), str) and locale[k].strip()
+                for k in ("title", "left", "right")
+            ):
+                raise ProviderError(
+                    "Textos localizados incompletos; tente novamente", transient=True
+                )
+        # Existing supplied texts always win; only absent fields may be composed.
+        for lang, locale in profile.get("supplied_locales", {}).items():
+            for key, value in locale.items():
+                if isinstance(value, str) and value:
+                    prepared["locales"][lang][key] = value
     prepared = _fill_visual_ficha(
         prepared,
         name=project.child_name or "",
@@ -249,6 +266,26 @@ async def _prepare(db, job, project, photos):
     )
     project.child_trait = project.child_trait or prepared["trait"]
     project.child_interest = project.child_interest or prepared["interest"]
+    if profile.get("editorial"):
+        contract.update(
+            project,
+            text_record={
+                lang: {
+                    key: {
+                        "value": value,
+                        "locked": True,
+                        "origin": "user_supplied"
+                        if (key == "title" and lang == project.language and profile.get("title"))
+                        or key in profile.get("supplied_locales", {}).get(lang, {})
+                        else "generated"
+                        if lang == project.language
+                        else "localized",
+                    }
+                    for key, value in locale.items()
+                }
+                for lang, locale in prepared["locales"].items()
+            },
+        )
     db.commit()
 
 
@@ -262,17 +299,34 @@ def _publish_progress(db, job, *, stage: str, done: int, total: int, language: s
 
 
 async def preview(db, job, project):
+    from app.services.privacy import require_photo_authorization
+
+    require_photo_authorization(db, project.id)
     photos = _photos(db, project)
+    editorial = (project.book_profile or {}).get("editorial")
     payload = _payload(job)
     selected = payload.get("image")
     languages = (
         [payload["language"]] if payload.get("language") else project.book_profile["languages"]
     )
-    total = 1 if selected else 3 * len(languages)
+    total = (2 if editorial and selected == "01_CAPA" else 1) if selected else 3 * len(languages)
     if not (project.book_profile or {}).get("locales"):
         _publish_progress(db, job, stage="ficha", done=0, total=total)
     await _prepare(db, job, project, photos)
     profile = project.book_profile
+    if editorial:
+        purchase_flow.update(project, preview_ready_at=None, preview_approved_at=None)
+        previous_scenes = (job.result or {}).get("scenes", {})
+        job.result = {
+            **(job.result or {}),
+            "editorial": editorial,
+            "scenes": {
+                f"{lang}:{role}": previous_scenes.get(f"{lang}:{role}", {"state": "pending"})
+                for lang in profile["languages"]
+                for role in editorial_profile.ROLES
+            },
+        }
+        db.commit()
     provider = _pkg().get_image_provider()
     done = 0
     for language in languages:
@@ -284,10 +338,46 @@ async def preview(db, job, project):
             ("03_LEITURA", "in_hand"),
         ):
             existing = _assets(db, project, workflow=1, language=language, role=role)
-            if (selected and selected != role) or (not selected and existing):
+            regenerate_hand = editorial and selected == "01_CAPA" and role == "03_LEITURA"
+            if (selected and selected != role and not regenerate_hand) or (
+                not selected and existing
+            ):
+                if editorial and existing:
+                    asset = existing[-1]
+                    job.result = {
+                        **(job.result or {}),
+                        "scenes": {
+                            **(job.result or {}).get("scenes", {}),
+                            f"{language}:{role}": {
+                                "state": asset.meta.get("validation", {}).get(
+                                    "status", "pending_visual_review"
+                                ),
+                                "storage_key": asset.storage_key,
+                                "validation": asset.meta.get("validation", {}),
+                            },
+                        },
+                    }
                 continue
+            if (
+                editorial
+                and role == "03_LEITURA"
+                and cover_assets
+                and not (contract.test_mode(project) or settings.offline_fallback)
+                and cover_assets[-1].meta.get("validation", {}).get("status") != "valid"
+            ):
+                raise ProviderError("Valide a capa deste idioma antes da leitura", transient=False)
             if role != "01_CAPA" and not cover:
                 raise ProviderError("Gere a capa antes das outras previas", transient=False)
+            if editorial:
+                scene_key = f"{language}:{role}"
+                job.result = {
+                    **(job.result or {}),
+                    "editorial": editorial,
+                    "scenes": {
+                        **(job.result or {}).get("scenes", {}),
+                        scene_key: {"state": "processing"},
+                    },
+                }
             _publish_progress(db, job, stage=role, done=done, total=total, language=language)
             prompt = contract.preview_prompt(project, language, role)
             if role == "02_LIVRO_ABERTO":
@@ -296,6 +386,10 @@ async def preview(db, job, project):
                 )
             if payload.get("adjustment"):
                 prompt += f" Ajuste solicitado somente nesta imagem, preservando as travas: {payload['adjustment']}"
+            if editorial and role == "01_CAPA":
+                prompt += " Composição determinística: NÃO desenhe letras. Reserve o topo central livre para o título. Sem estrelas automáticas."
+            if editorial and role == "02_LIVRO_ABERTO":
+                prompt += " Composição determinística: NÃO desenhe letras. Livro frontal ocupando todo quadro 2:1. Reserve os 35% superiores de cada página livres de pessoas e objetos para os versos."
             reference = cover if role != "01_CAPA" else photos[0]
             extra_refs = photos[1:]
             # Later locales edit the first language cover instead of inventing a new design.
@@ -312,6 +406,10 @@ async def preview(db, job, project):
                         "Preserve exatamente rosto, pose, cenario, enquadramento e composicao; "
                         "SO os textos mudam. Use a capa localizada adicional no livro fisico."
                     )
+            if editorial:
+                extra_refs = extra_refs + [
+                    data for _, data in editorial_profile.references(project.style)
+                ]
             if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
                 result = ImageResult(
                     _offline_png(role, palette=((235, 243, 250), (255, 250, 242))), cost_usd=0
@@ -322,7 +420,15 @@ async def preview(db, job, project):
                     character_ref=reference,
                     photo=photos[0],
                     extra_refs=extra_refs,
-                    style=contract.art_direction(project.style),
+                    style=(
+                        "fotografia editorial natural; capa preserva acabamento original"
+                        if role == "03_LEITURA"
+                        else "Cartoon 3D premium"
+                        if project.style == "cartoon"
+                        else "ilustração editorial suavemente realista, luz difusa e fundo ilustrado delicado"
+                    )
+                    if editorial
+                    else contract.art_direction(project.style),
                     reference_role="cover"
                     if role != "01_CAPA" or reference != photos[0]
                     else "character",
@@ -331,8 +437,65 @@ async def preview(db, job, project):
             data = book_render.png(result.image_bytes, spread=role == "02_LIVRO_ABERTO")
             title = profile["locales"][language]["title"]
             if role == "01_CAPA":
-                data = book_render.front_cover(data, title)
-            _store(
+                data = (
+                    book_render.editorial_text(data, title=title)
+                    if editorial
+                    else book_render.front_cover(data, title)
+                )
+            if editorial and role == "02_LIVRO_ABERTO":
+                data = book_render.editorial_text(
+                    data,
+                    left=profile["locales"][language]["left"],
+                    right=profile["locales"][language]["right"],
+                )
+            _account(db, job, result, f"Previa — {language} — {role}")
+            db.commit()
+            validation = (
+                {"status": "demo"}
+                if contract.test_mode(project) or settings.offline_fallback
+                else {"status": "pending_visual_review"}
+            )
+            if editorial and validation["status"] != "demo":
+                checked = (
+                    await _pkg()
+                    .get_text_provider()
+                    .validate_editorial_preview(
+                        data=data,
+                        photos=photos,
+                        cover=cover if role == "03_LEITURA" else None,
+                        prompt=contract.preview_prompt(project, language, role),
+                        style_refs=[
+                            data for _, data in editorial_profile.references(project.style)
+                        ],
+                    )
+                )
+                job.cost_usd = add_usd(job.cost_usd, checked.cost_usd)
+                try:
+                    validation = json.loads(checked.text)
+                except (ValueError, TypeError) as exc:
+                    raise ProviderError("Validação visual inválida", transient=True) from exc
+                if validation.get("valid") is not True:
+                    candidate_key = storage.new_key(project.id, "editorial-rejected", "png")
+                    storage.put_bytes(candidate_key, data, "image/png")
+                    job.result = {
+                        **(job.result or {}),
+                        "scenes": {
+                            **(job.result or {}).get("scenes", {}),
+                            scene_key: {
+                                "state": "failed_validation",
+                                "candidate_key": candidate_key,
+                                "validation": validation,
+                            },
+                        },
+                    }
+                    db.commit()
+                    raise ProviderError(
+                        "Prévia reprovada na validação visual: "
+                        + str(validation.get("issues", [])),
+                        transient=False,
+                    )
+                validation["status"] = "valid"
+            stored_key = _store(
                 db,
                 project,
                 kind,
@@ -340,13 +503,43 @@ async def preview(db, job, project):
                 language=language,
                 role=role,
                 name=contract.filename(language, role, title),
+                **(
+                    {
+                        "editorial": editorial,
+                        "validation": validation,
+                        "texts": profile["locales"][language],
+                        "cover_sha256": hashlib.sha256(cover).hexdigest()
+                        if cover and role != "01_CAPA"
+                        else None,
+                        "references": [hashlib.sha256(p).hexdigest() for p in photos + extra_refs],
+                    }
+                    if editorial
+                    else {}
+                ),
             )
-            _account(db, job, result, f"Previa — {language} — {role}")
+            if editorial and role == "01_CAPA":
+                for dependent in _assets(
+                    db, project, workflow=1, language=language, role="03_LEITURA"
+                ):
+                    db.delete(dependent)
+            if editorial:
+                job.result = {
+                    **(job.result or {}),
+                    "scenes": {
+                        **(job.result or {}).get("scenes", {}),
+                        scene_key: {
+                            "state": validation["status"],
+                            "storage_key": stored_key,
+                            "validation": validation,
+                        },
+                    },
+                }
             if role == "01_CAPA":
                 cover = data
+                cover_assets = _assets(db, project, workflow=1, language=language, role="01_CAPA")
             done += 1
             _publish_progress(db, job, stage=role, done=done, total=total, language=language)
-    if payload.get("title_refresh"):
+    if payload.get("title_refresh") and not editorial:
         job.result = {**(job.result or {}), "preview_complete": True}
         _set_status(db, project, ProjectStatus.EBOOK_READY)
         return
@@ -368,7 +561,8 @@ async def preview(db, job, project):
     )
     job.result = {**(job.result or {}), "preview_complete": True}
     _set_status(db, project, ProjectStatus.EBOOK_READY)
-    _queue_story_after_preview(db, job, project)
+    if not editorial:
+        _queue_story_after_preview(db, job, project)
     # A ready preview is never book approval or a print order.
 
 

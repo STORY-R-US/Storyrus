@@ -1,0 +1,24 @@
+COMPLEMENTO DE CENA — LEITURA
+
+Aplicar PROMPT_MESTRE.txt e os valores definidos para este trabalho.
+
+PRÉ-CONDIÇÃO:
+A capa deste idioma existe e foi validada. Se ela estiver ausente ou reprovada, não gerar a leitura com uma capa improvisada.
+
+DADOS A INSERIR PELO BACKEND:
+- Idioma e título literal da capa.
+- Lista exata dos personagens da leitura.
+- Ambiente, ação, paleta e figurino registrados.
+- Referência do arquivo da capa validada do mesmo idioma.
+
+REFERÊNCIAS EFETIVAS:
+- Fotografias originais de todos os personagens presentes.
+- Arquivo da capa validada do idioma, como referência do objeto impresso.
+
+GERAÇÃO:
+Gerar uma imagem independente, com aparência fotográfica editorial de a pessoa segurando o livro com a frente da capa visível em ambiente acolhedor e discreto. Incluir somente os personagens indicados. Se houver apenas o protagonista, mostrá-lo sozinho. Preservar rosto, idade e proporções naturais.
+
+Mostrar o livro quadrado de 20 × 20 cm em primeiro plano, escala natural, cantos suavemente arredondados. A frente da capa deve ficar visível e legível em uma posição fisicamente plausível. Usar exatamente o mesmo título e design da capa validada. A impressão mantém seu estilo editorial ou cartoon, enquanto pessoas e ambiente externos são fotográficos. Não inventar outra capa para combinar com o ambiente.
+
+VALIDAÇÃO DA CENA:
+Comparar a capa visível com o arquivo validado do mesmo idioma; conferir título, personagens, desenho, paleta, proporções, mãos e o modo de segurar o livro. Se o gerador alterar a capa, corrigir a etapa ou usar a composição exata do asset conforme os recursos reais da aplicação.

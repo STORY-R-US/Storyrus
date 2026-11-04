@@ -22,6 +22,40 @@ BLEED_MM = 5
 TARGET_PX = 1316
 
 
+def editorial_text(data: bytes, *, title=None, left=None, right=None) -> bytes:
+    """Exact preview text in the bundled Nunito SemiBold, on reserved art areas."""
+    image = Image.open(io.BytesIO(data)).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    width, height = image.size
+    blocks = (
+        [(title, width * 0.1, width * 0.8, True)]
+        if title is not None
+        else [
+            (left, width * 0.03, width * 0.42, False),
+            (right, width * 0.53, width * 0.42, False),
+        ]
+    )
+    for text, x, column, centered in blocks:
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("Texto congelado ausente")
+        for size in range(max(16, int(height / (14 if centered else 25))), 7, -1):
+            font = ImageFont.truetype(str(FONT), size)
+            lines = _wrap(draw, text, font, int(column))
+            step = int(size * 1.2)
+            if len(lines) * step <= height * 0.28 and all(
+                draw.textlength(line, font=font) <= column for line in lines
+            ):
+                break
+        else:
+            raise ValueError("Texto não cabe integralmente na área reservada")
+        for index, line in enumerate(lines):
+            offset = (column - draw.textlength(line, font=font)) / 2 if centered else 0
+            draw.text((x + offset, height * 0.06 + index * step), line, font=font, fill=INK)
+    out = io.BytesIO()
+    image.save(out, "PNG")
+    return out.getvalue()
+
+
 def preview_watermark(data: bytes) -> bytes:
     """Repete a marca na imagem da prévia. O original do livro não passa por aqui."""
     base = Image.open(io.BytesIO(data)).convert("RGBA")

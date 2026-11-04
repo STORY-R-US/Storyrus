@@ -148,6 +148,8 @@ def undo_page_change(project, page_no: int) -> None:
 
 
 def initial_profile(body) -> dict:
+    from app.services import editorial_profile
+
     languages = [
         lang for lang in LANGUAGES if lang in (body.languages or [body.language or "pt-BR"])
     ]
@@ -156,9 +158,10 @@ def initial_profile(body) -> dict:
     profile = {
         "version": VERSION,
         "stage": "ficha",
-        "title": (body.title or "").strip(),
+        "title": body.title or "",
         "gender": body.gender,
-        "languages": languages,
+        "languages": [body.language or "pt-BR"],
+        "editorial": editorial_profile.snapshot(),
         "current_page": 0,
         "theme_description": (body.theme_description or body.theme or "").strip(),
         "characters": (body.characters or "").strip(),
@@ -239,6 +242,10 @@ def continuity(project) -> str:
 
 
 def preview_prompt(project, language: str, kind: str) -> str:
+    if (project.book_profile or {}).get("editorial"):
+        from app.services import editorial_profile
+
+        return editorial_profile.prompt(project, language, kind)
     p = project.book_profile
     locale = p["locales"][language]
     title = locale["title"]

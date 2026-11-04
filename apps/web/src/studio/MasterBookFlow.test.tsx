@@ -258,7 +258,7 @@ describe("Studio approval stages", () => {
     const labels = screen.getAllByRole("figure").map((el) => el.textContent);
     expect(labels[0]).toContain("Capa");
     expect(labels[1]).toContain("Livro Aberto");
-    expect(labels[2]).toContain("Leitura");
+    expect(labels[2]).toContain("Segurando o livro");
     await userEvent.click(screen.getByRole("button", { name: "Gostei, continuar com meu livro" }));
     await waitFor(() => expect(approve).toHaveBeenCalledWith("master"));
     expect(story).not.toHaveBeenCalled();
