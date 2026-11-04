@@ -1076,6 +1076,37 @@ def test_current_editorial_art_prompt_reserves_text_for_exact_composition(studio
     assert "Uma descoberta a cada dia." in spread_validation
 
 
+def test_editorial_validation_prompt_contains_only_the_current_scene_contract(studio):
+    from app.services import editorial_profile
+    from app.workers.handlers.master_book import _preview_validation_prompt
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        locales={
+            "pt-BR": {
+                "title": "Lia e as estrelas",
+                "left": "Lia olha o céu.\nUma estrela a chamar.",
+                "right": "Lia aprende a esperar.\nE o céu volta a brilhar.",
+            }
+        },
+    )
+
+    spread = _preview_validation_prompt(project, "pt-BR", "02_LIVRO_ABERTO")
+    cover = _preview_validation_prompt(project, "pt-BR", "01_CAPA")
+
+    assert "VALIDATION ROLE: 02_LIVRO_ABERTO" in spread
+    assert "Lia olha o céu." in spread
+    assert "Lia aprende a esperar." in spread
+    assert "title must not appear" in spread
+    assert "Lia e as estrelas" not in spread
+    assert "VALIDATION ROLE: 01_CAPA" in cover
+    assert "Lia e as estrelas" in cover
+    assert "Lia olha o céu." not in cover
+
+
 def test_assets_api_hides_previews_from_an_older_editorial_profile(studio):
     from app.services import editorial_profile
 

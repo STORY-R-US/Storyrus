@@ -187,6 +187,37 @@ def _preview_scene_prompts(project, language: str, role: str, *, include_text: b
     return prompt
 
 
+def _preview_validation_prompt(project, language: str, role: str) -> str:
+    """Give the vision checker only the contract for the scene it is judging."""
+    locale = project.book_profile["locales"][language]
+    if role == "01_CAPA":
+        expected = (
+            f"Exactly one backend-composed title: {locale['title']!r}, "
+            "centered near the top. No other lettering."
+        )
+    elif role == "02_LIVRO_ABERTO":
+        expected = (
+            f"Left page text exactly: {locale['left']!r}. "
+            f"Right page text exactly: {locale['right']!r}. "
+            "These are the only printed texts; the title must not appear in this scene."
+        )
+    elif role == "03_LEITURA":
+        expected = (
+            "No backend text overlay is applied to this image. The physical book cover "
+            "must visually match the supplied validated cover reference."
+        )
+    else:
+        raise ValueError(f"Cena editorial desconhecida: {role}")
+    return (
+        "VALIDATION ROLE: "
+        + role
+        + "\nThe OUTPUT is the final image after any deterministic Nunito text composition. "
+        "Treat the following expected printed text as intentional, not as extra text.\n"
+        + expected
+        + "\nCheck only this role's geometry, identity, style, composition and expected text."
+    )
+
+
 async def _prepare(db, job, project, photos):
     profile = project.book_profile
     if profile.get("locales"):
@@ -513,7 +544,7 @@ async def preview(db, job, project):
                         data=data,
                         photos=photos,
                         cover=cover if role == "03_LEITURA" else None,
-                        prompt=_preview_scene_prompts(project, language, role),
+                        prompt=_preview_validation_prompt(project, language, role),
                         style_refs=[
                             data
                             for _, data in editorial_profile.references(
