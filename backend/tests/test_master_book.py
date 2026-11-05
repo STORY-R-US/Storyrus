@@ -197,6 +197,9 @@ def composed_studio(studio, monkeypatch):
             )
 
         async def validate_editorial_preview(self, **kwargs):
+            reading_failure = control.get("reject_reading") and kwargs["prompt"].startswith(
+                "LEITURA"
+            )
             body_overlap = (
                 control.get("reject_body_region_once")
                 and kwargs["prompt"].startswith("ARTE_BASE")
@@ -213,11 +216,15 @@ def composed_studio(studio, monkeypatch):
             return TextResult(
                 text=json.dumps(
                     {
-                        "valid": not (control["reject"] or overlap or body_overlap),
+                        "valid": not (
+                            control["reject"] or overlap or body_overlap or reading_failure
+                        ),
                         "issues": ["texto sobre o cabelo"]
                         if overlap
                         else ["texto invade a mão"]
                         if body_overlap
+                        else ["anatomia das mãos incorreta"]
+                        if reading_failure
                         else ["identidade incorreta"]
                         if control["reject"]
                         else [],
@@ -302,17 +309,19 @@ async def test_composed_three_scenes_resume_exact_sources_and_purchase_gates(com
 
     studio, calls, control = composed_studio
     client, db, pid, store = studio
-    control["fail_reading"] = True
+    control["reject_reading"] = True
     response = client.post(f"/v1/projects/{pid}/preview")
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     assert job.status == "FAILED"
-    assert len(calls) == 5  # three flat arts + spread + failed reading
+    assert len(calls) == 7  # three flat arts + spread + three rejected holding scenes
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 2
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 409
-    control["fail_reading"] = False
+    control["reject_reading"] = False
     await _run(studio, "preview", key="resume-composed")
-    assert len(calls) == 6  # reuse every completed source and scene
+    assert (
+        len(calls) == 8
+    )  # reuse approved scenes; rejected templates must not freeze later retries
     assets = [
         a
         for a in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid)))

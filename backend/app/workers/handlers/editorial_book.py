@@ -762,6 +762,7 @@ class Pipeline:
                     name + ":template",
                     {
                         "attempt": attempt,
+                        "generation_job": str(self.job.id),
                         "template_contract": 3 if reading else 2,
                         "revision": self.profile.get("editorial_revisions", {}).get(
                             "03_LEITURA" if reading else "02_LIVRO_ABERTO"

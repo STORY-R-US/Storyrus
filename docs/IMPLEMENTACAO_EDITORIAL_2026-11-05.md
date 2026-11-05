@@ -153,7 +153,9 @@ já publicadas permanecem intactas. Fotos, resultados reais e credenciais da
 homologação são privados e não integram esta publicação.
 
 O compositor registra também o modelo de cena sem a arte aplicada para permitir
-retomada de ajustes geométricos sem pagar por uma nova fotografia. Cores suaves
+retomada de etapas interrompidas dentro do mesmo trabalho. Uma nova tentativa
+de cena reprovada solicita uma nova geração; as cenas aprovadas são preservadas.
+Cores suaves
 nas bordas das páginas são cobertas; perto de mãos, a seleção é mais restrita
 para não confundir reflexos da marcação com dedos ou roupas.
 
