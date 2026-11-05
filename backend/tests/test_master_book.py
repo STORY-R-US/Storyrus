@@ -565,7 +565,8 @@ async def test_composed_paid_page_uses_same_policy_and_keeps_text_layer(composed
     assert rendered["layout"]["text"] == "André observa o céu.\nÉ tempo de aprender!"
     assert rendered["layout"]["weight"] == 500
     assert rendered["validation"]["status"] == "valid"
-    assert "sem livro físico" in calls[-1]["prompt"].lower()
+    assert "sem simulação de livro" in calls[-1]["prompt"].lower()
+    assert "o mobiliário da história é permitido" in calls[-1]["prompt"].lower()
 
 
 @pytest.mark.asyncio
