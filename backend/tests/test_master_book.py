@@ -18,6 +18,427 @@ from app.services import book_profile
 from app.workers import book_render, handlers, runner
 
 
+def test_perspective_compositor_preserves_art_orientation_and_foreground():
+    from app.workers import editorial_render as render
+
+    base = Image.new("RGB", (200, 200), "white")
+    base.putpixel((100, 160), (7, 19, 33))
+    cover = Image.new("RGB", (100, 100), "blue")
+    from PIL import ImageDraw
+
+    ImageDraw.Draw(cover).rectangle((0, 0, 45, 45), fill="red")
+    geometry = {
+        "valid": True,
+        "issues": [],
+        "surfaces": [[[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]],
+        "occlusions": [[[0.45, 0.75], [0.55, 0.75], [0.55, 0.85], [0.45, 0.85]]],
+    }
+    data, meta = render.mockup(render.encode(base), [render.encode(cover)], geometry)
+    image = Image.open(io.BytesIO(data))
+    assert image.getpixel((40, 40))[0] > 200  # red stays upper left, never mirrored
+    assert image.getpixel((160, 40))[2] > 200
+    assert image.getpixel((100, 160)) == (7, 19, 33)  # foreground restored exactly
+    assert meta["surfaces"][0]["source_sha256"] == render.digest(render.encode(cover))
+    geometry["surfaces"][0] = [[0.9, 0.1], [0.1, 0.1], [0.1, 0.9], [0.9, 0.9]]
+    with pytest.raises(ValueError):
+        render.mockup(render.encode(base), [render.encode(cover)], geometry)
+
+
+def test_keyed_geometry_uses_visible_surface_pixels_and_preserves_hands():
+    from PIL import ImageDraw
+
+    from app.workers import editorial_render as render
+
+    template = Image.new("RGB", (200, 200), "#fff7ec")
+    draw = ImageDraw.Draw(template)
+    draw.rectangle((30, 30, 170, 170), fill="#ff00ff")
+    draw.rectangle((80, 27, 120, 35), fill="#ff00ff")  # subtly curved edge beyond fitted quad
+    draw.rectangle((90, 150, 110, 180), fill=(7, 19, 33))
+    raw = render.encode(template)
+    geometry, masks = render.keyed_surfaces(raw, 1)
+    output, provenance = render.mockup(raw, [_png()], geometry, visible_masks=masks)
+    image = Image.open(io.BytesIO(output))
+    assert image.getpixel((100, 160)) == (7, 19, 33)
+    assert image.getpixel((40, 40)) != (255, 0, 255)
+    assert image.getpixel((100, 28)) != (255, 0, 255)
+    assert provenance["method"] == "keyed_perspective_composition"
+    assert geometry["surfaces"][0][0] == pytest.approx([30 / 199, 30 / 199])
+    with pytest.raises(ValueError, match="não identificada"):
+        render.keyed_surfaces(_png(), 1)
+
+    spread = Image.new("RGB", (200, 200), "#fff7ec")
+    draw = ImageDraw.Draw(spread)
+    draw.rectangle((10, 50, 90, 150), fill="#ff00ff")
+    draw.rectangle((110, 50, 190, 150), fill="#00ffff")
+    draw.line((11, 55, 11, 145), fill="#ffe6ff", width=2)
+    raw = render.encode(spread)
+    geometry, masks = render.keyed_surfaces(raw, 2)
+    output, _ = render.mockup(raw, [_png(), _png()], geometry, visible_masks=masks)
+    assert Image.open(io.BytesIO(output)).getpixel((11, 70)) != (255, 230, 255)
+
+
+def test_editorial_literal_text_accents_and_overflow_fail_without_shrinking():
+    from app.services import editorial_profile
+    from app.workers import editorial_render as render
+
+    profile = {"editorial": editorial_profile.snapshot()}
+    literal = "ANdré vê o céu.\nÉ tempo de aprender!"
+    _, layout = render.text(_png(), literal, profile)
+    assert layout["text"] == literal
+    assert layout["weight"] == 500
+    assert layout["line_height"] == 1.2
+    x0, y0, x1, y1 = layout["ink_region_with_margin"]
+    assert 0 < x0 < x1 < 1 and 0 < y0 < y1 < 1
+    assert y1 < layout["region"][3]  # reserve actual lettering, not the whole wrap box
+    with pytest.raises(ValueError, match="não cabe"):
+        render.text(_png(), "Texto aprovado extenso. " * 300, profile)
+    wide = Image.new("RGB", (200, 100), "white")
+    with pytest.raises(ValueError, match="quadrada"):
+        render.text(render.encode(wide), literal, profile)
+
+
+@pytest.fixture
+def composed_studio(studio, monkeypatch):
+    from app.services import editorial_profile
+
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        costume="Camisa azul",
+        locales={
+            "pt-BR": {
+                "title": "ANdré no Computador",
+                "left": "André aprende com alegria.",
+                "right": "Uma descoberta a cada dia.",
+            }
+        },
+    )
+    db.commit()
+    calls = []
+    control = {"fail_reading": False, "reject": False}
+
+    class Images:
+        async def reframe_editorial_art(self, **kwargs):
+            calls.append({**kwargs, "operation": "outpaint_reframed_art"})
+            assert kwargs["photos"] == [_png()]
+            return ImageResult(_png(), cost_usd=0)
+
+        async def generate_scene(self, **kwargs):
+            calls.append(kwargs)
+            assert kwargs["photo"] == (None if kwargs.get("landscape") else _png())
+            if control["fail_reading"] and "Protagonista original segura" in kwargs["prompt"]:
+                raise ProviderError("interrupção controlada", transient=False)
+            image = Image.new("RGB", (1024, 1024), (min(len(calls) * 20, 240), 120, 160))
+            if "#ff00ff" in kwargs["prompt"]:
+                from PIL import ImageDraw
+
+                image.paste("#fff7ec", (0, 0, 1024, 1024))
+                draw = ImageDraw.Draw(image)
+                if kwargs.get("landscape"):
+                    draw.rectangle((51, 256, 502, 768), fill="#ff00ff")
+                    draw.rectangle((522, 256, 973, 768), fill="#00ffff")
+                else:
+                    draw.rectangle((205, 205, 819, 819), fill="#ff00ff")
+            from app.workers.editorial_render import encode
+
+            return ImageResult(encode(image), cost_usd=0)
+
+    class Text:
+        async def generate_editorial_story(self, **kwargs):
+            return TextResult(
+                text="Título: "
+                + kwargs["brief"]["title"]
+                + "\n\n"
+                + "\n\n".join(
+                    f"Página {i}:\nAndré observa o céu.\nÉ tempo de aprender!" for i in range(1, 17)
+                ),
+                cost_usd=0,
+            )
+
+        async def plan_editorial_page(self, **kwargs):
+            observed_too_small = False
+            if kwargs.get("scene_image"):
+                control["observed_layout_calls"] = control.get("observed_layout_calls", 0) + 1
+                observed_too_small = control.pop("observed_too_small_once", False)
+            return TextResult(
+                text=json.dumps(
+                    {
+                        "action": kwargs["action"],
+                        "text_region": [0.07, 0.07, 0.09, 0.09]
+                        if observed_too_small
+                        else control.get("body_initial_region", [0.09, 0.06, 0.91, 0.29])
+                        if not kwargs["title"] and not kwargs.get("scene_image")
+                        else [0.09, 0.06, 0.91, 0.29],
+                        "alignment": "center" if kwargs["title"] else "left",
+                        "protected_content": ["rosto", "mãos"],
+                    }
+                ),
+                cost_usd=0,
+            )
+
+        async def locate_book_surfaces(self, **kwargs):
+            surfaces = (
+                [[[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]]]
+                if kwargs["count"] == 1
+                else [
+                    [[0.05, 0.25], [0.49, 0.25], [0.49, 0.75], [0.05, 0.75]],
+                    [[0.51, 0.25], [0.95, 0.25], [0.95, 0.75], [0.51, 0.75]],
+                ]
+            )
+            return TextResult(
+                text=json.dumps(
+                    {"valid": True, "issues": [], "surfaces": surfaces, "occlusions": []}
+                ),
+                cost_usd=0,
+            )
+
+        async def validate_editorial_preview(self, **kwargs):
+            body_overlap = (
+                control.get("reject_body_region_once")
+                and kwargs["prompt"].startswith("ARTE_BASE")
+                and '"alignment": "left"' in kwargs["prompt"]
+            )
+            if body_overlap:
+                control["reject_body_region_once"] = False
+            overlap = control.get("reject_cover_text_once") and kwargs["prompt"].startswith(
+                "CAPA_PLANA"
+            )
+            if overlap:
+                control["reject_cover_text_once"] = False
+                assert '"font_sha256"' in kwargs["prompt"]
+            return TextResult(
+                text=json.dumps(
+                    {
+                        "valid": not (control["reject"] or overlap or body_overlap),
+                        "issues": ["texto sobre o cabelo"]
+                        if overlap
+                        else ["texto invade a mão"]
+                        if body_overlap
+                        else ["identidade incorreta"]
+                        if control["reject"]
+                        else [],
+                        "limitations": [],
+                    }
+                ),
+                cost_usd=0,
+            )
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda: Images())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    yield studio, calls, control
+
+
+@pytest.mark.asyncio
+async def test_body_layout_adapts_to_observed_art_without_regenerating_scene(composed_studio):
+    studio, calls, control = composed_studio
+    control["body_initial_region"] = [0.08, 0.62, 0.62, 0.9]
+    control["observed_too_small_once"] = True
+    control["reject_body_region_once"] = True
+    job = await _run(studio, "preview", key="observed-body-layout")
+    assert job.status == "DONE"
+    assert len(calls) == 5
+    assert control["observed_layout_calls"] == 3
+    _, db, pid, _ = studio
+    sources = db.scalars(
+        select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
+    ).all()
+    pages = [a for a in sources if a.meta["stage"] in {"preview:left:text", "preview:right:text"}]
+    assert len(pages) == 2
+    layouts = {a.meta["stage"]: a.meta["layout"]["region"] for a in pages}
+    assert layouts["preview:left:text"] == [0.07, 0.07, 0.50, 0.40]
+    assert layouts["preview:right:text"] == [0.09, 0.06, 0.91, 0.29]
+
+
+@pytest.mark.asyncio
+async def test_composed_provider_failure_does_not_consume_visual_retries(composed_studio):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, _, _ = composed_studio
+    client, db, pid, _ = studio
+    response = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    pipe = Pipeline(db, job, db.get(Project, uuid.UUID(pid)), [_png()])
+
+    async def unavailable(attempt):
+        raise ProviderError("temporary outage", transient=True, status_code=503)
+
+    with pytest.raises(ProviderError, match="temporary outage"):
+        await pipe.stage("cover:art", {}, unavailable)
+    task = job.result["editorial_tasks"]["cover:art"]
+    assert task["state"] == "provider_failed"
+    assert task["provider_status"] == 503
+    assert task["attempts"] == 0
+
+    async def restored(attempt):
+        assert attempt == 1
+        return _png(), {}
+
+    data, _ = await pipe.stage("cover:art", {}, restored)
+    assert data == _png()
+    assert job.result["editorial_tasks"]["cover:art"]["state"] == "passed"
+
+
+@pytest.mark.asyncio
+async def test_composed_text_overlap_regenerates_art_with_feedback(composed_studio):
+    studio, calls, control = composed_studio
+    control["reject_cover_text_once"] = True
+    job = await _run(studio, "preview", key="repair-text-overlap")
+    assert job.status == "DONE"
+    assert len(calls) == 6  # cover twice, two pages, open book, holding book
+    assert "texto sobre o cabelo" in calls[1]["prompt"]
+    assert "text_region" in calls[1]["prompt"]
+    assert calls[1]["operation"] == "outpaint_reframed_art"
+
+
+@pytest.mark.asyncio
+async def test_composed_three_scenes_resume_exact_sources_and_purchase_gates(composed_studio):
+    from app.services import editorial_profile
+    from app.workers.editorial_render import digest
+
+    studio, calls, control = composed_studio
+    client, db, pid, store = studio
+    control["fail_reading"] = True
+    response = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert len(calls) == 5  # three flat arts + spread + failed reading
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 2
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 409
+    control["fail_reading"] = False
+    await _run(studio, "preview", key="resume-composed")
+    assert len(calls) == 6  # reuse every completed source and scene
+    assets = [
+        a
+        for a in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid)))
+        if (a.meta or {}).get("workflow") == 1
+        and (a.meta or {}).get("role") in editorial_profile.ROLES
+    ]
+    assert len(assets) == 3
+    cover = next(a for a in assets if a.meta["role"] == "01_CAPA")
+    reading = next(a for a in assets if a.meta["role"] == "03_LEITURA")
+    assert reading.meta["composition"]["surfaces"][0]["source_sha256"] == digest(
+        store[cover.meta["flat_cover_key"]]
+    )
+    assert store[cover.meta["flat_cover_key"]] != store[cover.storage_key]
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+    from app.printkit.service import _approved_cover
+
+    assert (
+        _approved_cover(db, db.get(Project, uuid.UUID(pid))) == store[cover.meta["flat_cover_key"]]
+    )
+
+
+@pytest.mark.asyncio
+async def test_composed_rejects_identity_with_bounded_retries(composed_studio):
+    studio, calls, control = composed_studio
+    control["reject"] = True
+    client, db, pid, _ = studio
+    response = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert len(calls) == 3
+    assert not db.get(Project, uuid.UUID(pid)).purchase_flow.get("preview_ready_at")
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_composed_text_edit_reuses_art_and_preserves_locked_text(composed_studio):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, calls, _ = composed_studio
+    client, db, pid, _ = studio
+    accepted = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(accepted.json()["job_id"]))
+    project = db.get(Project, uuid.UUID(pid))
+    pipe = Pipeline(db, job, project, [_png()])
+    _, first = await pipe.art("page:1", "A pessoa observa o céu.", value="A pessoa observa o céu.")
+    _, second = await pipe.art(
+        "page:1", "A pessoa observa o céu.", value="André olha o céu.\nÉ tempo de aprender!"
+    )
+    assert len(calls) == 1
+    assert first["art_key"] == second["art_key"]
+    assert second["layout"]["text"] == "André olha o céu.\nÉ tempo de aprender!"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("language,prefix", [("en", "INGLES"), ("es", "ESPANHOL")])
+async def test_composed_selected_language_delivers_only_three_pngs(
+    composed_studio, language, prefix
+):
+    import zipfile
+
+    studio, _, _ = composed_studio
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    locale = project.book_profile["locales"]["pt-BR"]
+    project.language = language
+    book_profile.update(project, languages=[language], locales={language: locale})
+    db.commit()
+    await _run(studio, "preview")
+    response = client.get(f"/v1/projects/{pid}/preview/package")
+    assert response.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        assert len(archive.namelist()) == 3
+        assert all(name.startswith(prefix) for name in archive.namelist())
+
+
+@pytest.mark.asyncio
+async def test_composed_paid_page_uses_same_policy_and_keeps_text_layer(composed_studio):
+    from app.printkit.service import get_print_order
+
+    studio, calls, _ = composed_studio
+    client, db, pid, store = studio
+    await _run(studio, "preview")
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    project = db.get(Project, uuid.UUID(pid))
+    order = get_print_order(db, project.id)
+    order.payment_status = "paid"
+    db.commit()
+    await _run(studio, "story")
+    assert client.post(f"/v1/projects/{pid}/story/approve").status_code == 200
+    project.character_ref = {"storage_key": "test-avatar"}
+    store["test-avatar"] = _png()
+    project.character_approved_at = project.created_at
+    story = "Título: ANdré no Computador\n\n" + "\n\n".join(
+        f"Página {i}:\nAndré observa o céu.\nÉ tempo de aprender!" for i in range(1, 17)
+    )
+    book_profile.update(project, stage="avatar_approved", stories={"pt-BR": story})
+    db.commit()
+    before = len(calls)
+    await _run(studio, "pages/next", {"page": 1})
+    assert len(calls) == before + 1
+    pages = client.get(f"/v1/projects/{pid}/assets").json()["page_versions"]
+    assert len(pages) == 2
+    rendered = next(p for p in pages if p["role"] == "com_texto")
+    assert rendered["layout"]["text"] == "André observa o céu.\nÉ tempo de aprender!"
+    assert rendered["layout"]["weight"] == 500
+    assert rendered["validation"]["status"] == "valid"
+    assert "sem livro físico" in calls[-1]["prompt"].lower()
+
+
+@pytest.mark.asyncio
+async def test_composed_title_edit_reuses_cover_art_and_refreshes_reading(composed_studio):
+    studio, calls, _ = composed_studio
+    client, db, pid, _ = studio
+    await _run(studio, "preview")
+    before = len(calls)
+    response = client.put(f"/v1/projects/{pid}/preview/title", json={"title": "Um Novo Título"})
+    assert response.status_code == 202
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "DONE", job.error
+    assert len(calls) == before + 1  # only the dependent reading scene needs generation
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+
+
 def test_preview_watermark_crosses_the_picture():
     raw = _png()
     marked = book_render.preview_watermark(raw)
@@ -204,7 +625,7 @@ def test_cover_title_and_back_brand_sit_in_the_sky():
     assert len(covers.pages[0].images) == 1
 
 
-def test_print_interior_mirrors_odd_pages_and_closes_with_dedication():
+def test_print_interior_preserves_page_orientation_and_closes_with_dedication():
     art = Image.new("RGB", (80, 80), (20, 40, 80))
     for x in range(60, 80):
         for y in range(0, 20):
@@ -227,7 +648,7 @@ def test_print_interior_mirrors_odd_pages_and_closes_with_dedication():
         box = image.crop((0, 0, image.width // 4, image.height // 4))
         return sum(pixel[0] for pixel in box.getdata())
 
-    assert red_on_left(doc[0]) > red_on_left(doc[1])
+    assert red_on_left(doc[0]) == red_on_left(doc[1])
     assert doc[2].get_images()
     doc.close()
 
@@ -333,13 +754,101 @@ def test_partial_visual_ficha_is_completed_instead_of_failing():
         trait="curiosidade",
         interest="",
     )
-    assert prepared["costume"].startswith("Roupa de aventura")
+    assert "figurino definido" in prepared["costume"]
     assert prepared["palette"]
     assert prepared["trait"] == "curiosidade"
     assert prepared["interest"] == "estrelas"
     assert prepared["locales"]["pt-BR"]["title"] == "Lia e as estrelas"
     assert "Lia" in prepared["locales"]["en"]["left"]
     assert prepared["animal"] == ""
+
+
+@pytest.mark.asyncio
+async def test_editorial_profile_accepts_structured_identity_without_inventing_personality(
+    studio, monkeypatch
+):
+    from app.services import editorial_profile
+    from app.workers.handlers.master_book import _prepare
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, editorial=editorial_profile.snapshot())
+    job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+    db.add(job)
+    db.commit()
+
+    class Text:
+        async def prepare_book_profile(self, **kwargs):
+            return TextResult(
+                text=json.dumps(
+                    {
+                        "visual_identity": {"eyes": "castanhos", "hair": "curto"},
+                        "costume": {"shirt": "azul"},
+                        "palette": ["azul", "creme"],
+                        "trait": "",
+                        "interest": "",
+                        "animal": {},
+                        "locales": {
+                            "pt-BR": {
+                                "title": "Lia e as estrelas",
+                                "left": "Lia olha o céu.\nUma estrela apareceu.",
+                                "right": "Ela aprende a observar.\nE começa a imaginar.",
+                            }
+                        },
+                    }
+                ),
+                cost_usd=0,
+            )
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    await _prepare(db, job, project, [_png()])
+    assert json.loads(project.book_profile["visual_identity"])["eyes"] == "castanhos"
+    assert json.loads(project.book_profile["costume"])["shirt"] == "azul"
+    assert project.book_profile["trait"] == project.book_profile["interest"] == ""
+    assert project.book_profile["locales"]["pt-BR"]["title"] == "Lia e as estrelas"
+
+
+@pytest.mark.parametrize("identity", [None, "", {}, {"notes": ""}, []])
+def test_editorial_profile_still_rejects_missing_identity(identity):
+    from app.workers.handlers.master_book import _normalize_editorial_ficha
+
+    with pytest.raises(ProviderError, match="visual_identity"):
+        _normalize_editorial_ficha(
+            {"visual_identity": identity, "costume": "Camisa azul", "palette": "Azul"}
+        )
+
+
+@pytest.mark.asyncio
+async def test_editorial_review_records_general_limitations_without_rejecting_approved_image(
+    composed_studio, monkeypatch
+):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, _, _ = composed_studio
+    client, db, pid, _ = studio
+    accepted = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(accepted.json()["job_id"]))
+    project = db.get(Project, uuid.UUID(pid))
+
+    class Text:
+        async def validate_editorial_preview(self, **kwargs):
+            return TextResult(
+                text=json.dumps(
+                    {
+                        "valid": True,
+                        "issues": [],
+                        "limitations": ["Visual identity review is probabilistic."],
+                    }
+                ),
+                cost_usd=0,
+            )
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    report = await Pipeline(db, job, project, [_png()]).review(_png(), "CAPA_PLANA: título literal")
+    assert report["status"] == "valid"
+    assert report["limitations"] == ["Visual identity review is probabilistic."]
 
 
 @pytest.mark.asyncio
@@ -1054,7 +1563,7 @@ def test_current_editorial_art_prompt_reserves_text_for_exact_composition(studio
     project = db.get(Project, uuid.UUID(pid))
     book_profile.update(
         project,
-        editorial=editorial_profile.snapshot(),
+        editorial=editorial_profile.snapshot("2026-11-04.4"),
         locales={
             "pt-BR": {
                 "title": "ANdré no Computador",
@@ -1070,8 +1579,12 @@ def test_current_editorial_art_prompt_reserves_text_for_exact_composition(studio
     spread_validation = editorial_profile.prompt(project, "pt-BR", "02_LIVRO_ABERTO")
 
     assert "ANdré no Computador" not in cover_art
-    assert "André aprende com alegria." not in spread_art
-    assert "Uma descoberta a cada dia." not in spread_art
+    assert "ANdré no Computador" not in spread_art
+    spread_data = json.loads(spread_art.split("DADOS DO LIVRO:\n", 1)[1])
+    assert spread_data["texts"] == {}
+    assert spread_data["illustration_guidance"]["left_page_action"] == "André aprende com alegria."
+    assert spread_data["illustration_guidance"]["right_page_action"] == "Uma descoberta a cada dia."
+    assert "do not render" in spread_data["illustration_guidance"]["instruction"]
     assert "SEM TIPOGRAFIA" in cover_art
     assert "SEM TIPOGRAFIA" in spread_art
     assert "LEITURA" not in spread_art
@@ -1095,7 +1608,7 @@ def test_editorial_validation_prompt_contains_only_the_current_scene_contract(st
     project = db.get(Project, uuid.UUID(pid))
     book_profile.update(
         project,
-        editorial=editorial_profile.snapshot(),
+        editorial=editorial_profile.snapshot("2026-11-04.4"),
         locales={
             "pt-BR": {
                 "title": "Lia e as estrelas",
@@ -1152,6 +1665,8 @@ def test_assets_api_hides_previews_from_an_older_editorial_profile(studio):
 async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch):
     from app.services import editorial_profile
 
+    monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-04.4")
+
     client, db, pid, store = studio
     project = db.get(Project, uuid.UUID(pid))
     book_profile.update(
@@ -1206,6 +1721,7 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
     assert "segurando o livro" not in calls[1]["prompt"]
     assert "a capa não é referência desta cena" in calls[1]["prompt"]
     assert "sem qualquer letra, palavra" in calls[1]["prompt"]
+    assert "Uma descoberta a cada dia." in calls[1]["prompt"]
     assert calls[2]["reference_role"] == "cover"
     assert "CENA ÚNICA" in calls[2]["prompt"]
     await _run(studio, "preview", key="resume-editorial")
@@ -1248,6 +1764,8 @@ async def test_editorial_preview_fails_closed_when_validation_reports_any_issue(
     studio, monkeypatch
 ):
     from app.services import editorial_profile
+
+    monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-04.4")
 
     client, db, pid, _ = studio
     project = db.get(Project, uuid.UUID(pid))

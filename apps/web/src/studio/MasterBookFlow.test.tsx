@@ -19,6 +19,18 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
+  it("aprova o trio editorial antes da cotação e não oferece história gratuita", async () => {
+    const current = { ...project, book_profile: { ...project.book_profile!, editorial: { version: "2026-11-05.1", sha256: "policy" } },
+      purchase_flow: { preview_ready_at: "2026-11-05", stage: "preview_ready" } };
+    const approve = vi.spyOn(api, "approvePreview").mockResolvedValue(current);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    vi.spyOn(api, "getProject").mockResolvedValue(current);
+    render(<MasterBookFlow project={current} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    expect(screen.queryByTestId("studio-write-story")).not.toBeInTheDocument();
+    const button = screen.getByRole("button", { name: /Gostei, continuar com meu livro/i });
+    await userEvent.click(button);
+    await waitFor(() => expect(approve).toHaveBeenCalledWith("master"));
+  });
   it("explica os dados da criança e salva o que o adulto escreve", async () => {
     const named = {
       ...project,

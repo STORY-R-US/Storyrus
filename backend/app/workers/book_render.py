@@ -219,7 +219,7 @@ def shop_pdfs(
     size_cm: int,
     title: str = "",
 ) -> tuple[bytes, bytes]:
-    """Capa/contracapa separadas e miolo com ímpares espelhadas, dedicatória e sangria."""
+    """Capa/contracapa separadas e miolo sem espelhamento, dedicatória e sangria."""
     covers = covers_pdf(back, front, size_cm=size_cm, title=title)
     interior = interior_pdf(pages, dedication=dedication, size_cm=size_cm, title=title)
     return covers, interior
@@ -228,21 +228,15 @@ def shop_pdfs(
 def interior_pdf(
     pages: list[bytes], *, dedication: str | None, size_cm: int, title: str = ""
 ) -> bytes:
-    """Miolo em 210 mm. Página ímpar é espelhada. A dedicatória fecha o arquivo."""
-    frames = [
-        _print_page(raw, number, mirror=number % 2 == 1)
-        for number, raw in enumerate(pages, start=1)
-    ]
+    """Preserve page orientation and literal text; dedication closes the file."""
+    frames = [_print_page(raw) for raw in pages]
     frames.append(dedication_page(dedication or ""))
     return _pages_pdf(frames, size_cm=size_cm, title=title)
 
 
-def _print_page(raw: bytes, number: int, *, mirror: bool) -> bytes:
+def _print_page(raw: bytes) -> bytes:
     image = Image.open(io.BytesIO(raw)).convert("RGB")
     image = image.resize((TARGET_PX, TARGET_PX), Image.Resampling.LANCZOS)
-    _page_badge(image, number)
-    if mirror:
-        image = ImageOps.mirror(image)
     out = io.BytesIO()
     image.save(out, "PNG")
     return out.getvalue()

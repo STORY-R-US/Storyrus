@@ -116,7 +116,12 @@ def start_story(
     project = get_owned_project(db, user, project_id)
     if book_profile.enabled(project):
         stage = (project.book_profile or {}).get("stage")
-        if stage not in {"preview_ready", "story_ready"}:
+        from app.services import editorial_profile
+
+        if editorial_profile.composed(project.book_profile) or stage not in {
+            "preview_ready",
+            "story_ready",
+        }:
             purchase_flow.require_paid(db, project)
     else:
         purchase_flow.require_unpaid(db, project)

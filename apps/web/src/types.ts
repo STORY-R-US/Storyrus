@@ -67,6 +67,7 @@ export interface Project {
     gender: string;
     languages: string[];
     current_page: number;
+    editorial?: { version: string; sha256: string };
     costume?: string;
     palette?: string;
     trait?: string;

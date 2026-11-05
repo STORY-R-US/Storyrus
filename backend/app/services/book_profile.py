@@ -48,6 +48,18 @@ def update(project, **values) -> dict:
     return profile
 
 
+def photo_manifest(project, photos):
+    extras = [ec for ec in project.extra_characters or [] if ec.get("storage_key")]
+    main_count = len(photos) - len(extras)
+    return [
+        {"index": i, "name": project.child_name, "role": "original_photo"}
+        for i in range(main_count)
+    ] + [
+        {"index": main_count + i, "name": ec.get("name"), "role": "original_photo"}
+        for i, ec in enumerate(extras)
+    ]
+
+
 _TITLE_LINE = re.compile(r"(?im)^(?:t[íi]tulo|title)\s*:[^\n]*")
 
 
@@ -211,7 +223,7 @@ def art_direction(style: str | None) -> str:
             "Mais desenho que o realista; rosto reconhecivel derivado da foto, olhos naturais."
         )
     return (
-        "Realista premium: fotografia editorial infantil, pele e cabelo naturais, luz suave, "
+        "Realista premium: fotografia editorial suavemente ilustrada, pele e cabelo naturais, luz suave, "
         "profundidade fotografica, composicao comercial elegante. Sem plastico, CGI ou filtro."
     )
 
@@ -288,7 +300,7 @@ def back_cover_prompt(project, language: str) -> str:
     return (
         "CONTRACAPA quadrada, fotografia real em sangria total, corte reto. "
         f"As mesmas pessoas da capa, {project.child_name}, vistas de costas, olhando a paisagem. "
-        "Roupa da fotografia original. Ceu limpo no terco de cima, sem rosto, sem objeto, "
+        "Preservar figurino definido na ficha. Ceu limpo no terco de cima, sem rosto, sem objeto, "
         f"sem letras, sem logo e sem QR. Idioma {language}; a marca entra depois. "
         f"Tema: {p.get('theme_description') or project.theme}. "
         + format_directive(project)
@@ -300,9 +312,9 @@ def back_cover_prompt(project, language: str) -> str:
 def avatar_prompt(project) -> str:
     return (
         f"Retrato-base de {project.child_name}, {project.child_age} anos. Desenhe ESTA "
-        "crianca da foto, reconhecivel na hora. Rosto com qualidade de camera; no realista, "
+        "pessoa da foto, adulto continua adulto. Rosto reconhecivel; no realista, "
         "corpo ilustrado; no cartoon, corpo desenhado e rosto ainda derivado da foto. "
         "Meio corpo, cabeca natural, sem aumentar olhos. Fundo creme, sem texto, sem moldura. "
-        "Nao copie a roupa da foto. Trave rosto, cabelo, franja, testa, pele e idade. "
+        "Preserve o figurino definido para a série. Trave rosto, cabelo, franja, testa, pele e idade. "
         "Proibido embelezar, envelhecer, chibi ou crianca generica. " + IDENTITY
     )

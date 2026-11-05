@@ -354,7 +354,16 @@ def approve_preview(
     master = book_profile.enabled(project)
     book_profile.require_real_preview(project)
     if master:
-        book_profile.require_stage(project, "story_approved", "preview_approved")
+        from app.services import editorial_profile
+
+        if editorial_profile.composed(project.book_profile):
+            from .book_flow import preview_package
+
+            book_profile.require_stage(project, "preview_ready", "preview_approved")
+            # Same server-side integrity, text, cover dependency and real-output gates as download.
+            preview_package(project_id, user, db)
+        else:
+            book_profile.require_stage(project, "story_approved", "preview_approved")
     if not master and (not project.story_text or not project.ebook_url):
         raise HTTPException(409, "Aguarde a prévia ficar pronta antes de aprovar.")
     if not master and not (project.purchase_flow or {}).get("preview_ready_at"):

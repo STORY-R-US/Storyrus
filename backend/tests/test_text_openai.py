@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import base64
+import io
 import json
 
 import pytest
+from PIL import Image
 
 from app.ai_clients import text_openai as oai
 from app.ai_clients.base import ProviderError
@@ -16,6 +19,29 @@ def _ok(text: str = "Título: Luna\nPágina 1: Era uma vez.") -> dict:
         "choices": [{"message": {"content": text}}],
         "usage": {"prompt_tokens": 1000, "completion_tokens": 500},
     }
+
+
+@pytest.mark.asyncio
+async def test_editorial_review_separates_output_from_references_and_crops_measured_region(client):
+    client.script = [(200, _ok('{"valid":true,"issues":[],"limitations":[]}'))]
+    raw = io.BytesIO()
+    Image.new("RGB", (100, 100), "blue").save(raw, "PNG")
+    await oai.OpenAITextProvider().validate_editorial_preview(
+        data=raw.getvalue(),
+        photos=[b"original"],
+        cover=None,
+        prompt="ARTE_BASE",
+        style_refs=[b"style"],
+        inspection_region=[0.25, 0.05, 0.75, 0.25],
+    )
+    content = client.calls[0]["json"]["messages"][1]["content"]
+    images = [part["image_url"] for part in content if part["type"] == "image_url"]
+    decoded = [base64.b64decode(part["url"].split(",")[1]) for part in images]
+    assert decoded[:2] == [b"original", b"style"]
+    assert Image.open(io.BytesIO(decoded[2])).size == (50, 20)
+    assert decoded[-1] == raw.getvalue()
+    assert all(part["detail"] == "high" for part in images)
+    assert "Judge the LAST full image" in content[-1]["text"]
 
 
 @pytest.mark.asyncio

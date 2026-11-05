@@ -575,7 +575,7 @@ def _shop_pdfs(db, project, order) -> list[tuple[str, bytes]] | None:
         if asset is None:
             return None
         pages.append(storage.get_bytes(asset.storage_key))
-    front_bytes = storage.get_bytes(cover.storage_key)
+    front_bytes = storage.get_bytes(cover.meta.get("flat_cover_key") or cover.storage_key)
     back_bytes = (
         storage.get_bytes(back.storage_key)
         if back is not None
@@ -593,7 +593,7 @@ def _shop_pdfs(db, project, order) -> list[tuple[str, bytes]] | None:
     code = order.code
     return [
         (f"{code}_01_Capa_e_Contracapa_Separadas_Sangria_5mm.pdf", covers),
-        (f"{code}_02_Miolo_Impares_Espelhadas_Dedicatoria_Sangria_5mm.pdf", interior),
+        (f"{code}_02_Miolo_Dedicatoria_Sangria_5mm.pdf", interior),
     ]
 
 

@@ -1,6 +1,6 @@
-# Perfil editorial do Estúdio — 2026-11-04.3
+# Perfil editorial do Estúdio — 2026-11-04.4
 
-Revisão 2026-11-04.3 do perfil editorial já integrado ao fluxo oficial do
+Revisão 2026-11-04.4 do perfil editorial já integrado ao fluxo oficial do
 Estúdio. A revisão anterior permanece disponível para leitura de projetos
 existentes; um pedido de nova prévia migra o projeto às regras atuais.
 
@@ -33,7 +33,7 @@ versionados em `backend/app/assets/editorial/`.
 - Cada chamada de geração recebe somente as regras da cena correspondente.
   Para o livro aberto, a capa não é enviada como imagem de referência, evitando
   que o título seja copiado para as páginas; a identidade vem das fotos originais.
-  A cena de leitura usa a capa aprovada como referência do livro físico.
+  A cena de leitura usa a capa aprovada como referência do livro físico. No livro aberto, os versos também chegam ao gerador como guias semânticos da ação de cada página, mas ficam excluídos do campo de texto visível da arte-base.
 - A leitura depende da capa validada daquele idioma, enviada como imagem. Uma
   correção de capa remove a leitura anterior e gera a substituta. A aplicação
   não possui composição em perspectiva da capa: sua fidelidade depende de
@@ -73,7 +73,7 @@ os diretórios da versão editorial para permitir a retomada de trabalhos antigo
 uma mudança de conteúdo exige nova versão. Não altere os arquivos de uma versão
 em uso: a impressão digital divergente interrompe a geração.
 
-Os perfis 2026-11-04.1 e 2026-11-04.2 permanecem imutáveis. Em um pedido de prévia para um projeto
+Os perfis 2026-11-04.1, 2026-11-04.2 e 2026-11-04.3 permanecem imutáveis. Em um pedido de prévia para um projeto
 com a versão anterior, o worker atualiza o perfil e regenera as cenas que não
 correspondem à nova versão. Isso impede misturar imagens com regras diferentes.
 Não há migração de banco. Antes de publicar, executar a CI e conferir Estúdio,

@@ -230,6 +230,7 @@ def project_assets(
             Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value
         )
     ).all()
+    pages = [a for a in pages if not (a.meta or {}).get("archived")]
     pages = sorted(pages, key=lambda a: ((a.meta or {}).get("page") or 0, str(a.created_at)))
     page_images = [shown(a) for a in pages]
 

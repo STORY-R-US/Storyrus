@@ -846,7 +846,7 @@ export function MasterBookFlow({
             selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
       )}
-      {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
+      {p.editorial?.version !== "2026-11-05.1" && stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <section className="master-preview-next" aria-labelledby="master-preview-next-heading">
           <div>
             <h3 id="master-preview-next-heading">{t.previewNextHeading}</h3>
@@ -908,12 +908,12 @@ export function MasterBookFlow({
           </div>
         </section>
       )}
-      {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
+      {((p.editorial?.version === "2026-11-05.1" && stage === "preview_ready") || ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage)) && (
         <PostPreviewFlow
           project={project}
           jobs={jobs}
           assets={assets}
-          isDemo={false}
+          isDemo={testMode}
           dirty={editing}
           onProject={setProject}
           onJobs={setJobs}

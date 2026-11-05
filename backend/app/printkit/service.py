@@ -187,8 +187,12 @@ def _approved_cover(db: Session, project: Project) -> bytes | None:
         select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
     ).all()
     for row in rows:
-        if (row.meta or {}).get("language") == project.language:
-            return storage.get_bytes(row.storage_key)
+        if (
+            (row.meta or {}).get("language") == project.language
+            and row.meta.get("workflow") == 1
+            and row.meta.get("role") == "01_CAPA"
+        ):
+            return storage.get_bytes(row.meta.get("flat_cover_key") or row.storage_key)
     return None
 
 

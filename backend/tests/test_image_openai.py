@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import base64
+import io
 
 import pytest
+from PIL import Image
 
 from app.ai_clients import image_openai as oai
 from app.ai_clients.base import ProviderError
@@ -71,6 +73,31 @@ def _reset(monkeypatch):
 
     monkeypatch.setattr(oai.asyncio, "sleep", _noop_sleep)
     yield
+
+
+@pytest.mark.asyncio
+async def test_editorial_reframe_masks_only_added_top_and_attaches_original_photos():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"reframed"))]
+    raw = io.BytesIO()
+    original = Image.new("RGB", (100, 100), "blue")
+    original.putpixel((20, 30), (17, 45, 91))
+    original.save(raw, "PNG")
+    provider = oai.OpenAIImageProvider()
+    result = await provider.reframe_editorial_art(
+        art=raw.getvalue(), photos=[raw.getvalue()], top_fraction=0.2, prompt="keep identity"
+    )
+    assert result.image_bytes == b"reframed"
+    request = _FakeAsyncClient.calls[0]
+    assert request["data"]["input_fidelity"] == "high"
+    files = request["files"]
+    assert [part[0] for part in files] == ["image[]", "mask", "image[]"]
+    canvas = Image.open(io.BytesIO(files[0][1][1]))
+    mask = Image.open(io.BytesIO(files[1][1][1]))
+    assert canvas.size == mask.size == original.size
+    assert canvas.getpixel((20, 50))[:3] == (17, 45, 91)  # moved; never scaled
+    assert canvas.getpixel((20, 10))[3] == mask.getpixel((20, 10))[3] == 0
+    assert mask.getpixel((20, 50))[3] == 255
+    assert Image.open(io.BytesIO(files[2][1][1])).getpixel((20, 30)) == (17, 45, 91)
 
 
 @pytest.mark.asyncio

@@ -65,7 +65,7 @@ def _store(db, project, kind, data: bytes, *, language: str, role: str, name: st
     # Replace just this shot/locale/page, preserving all other approved assets.
     identity = {"page": metadata["page"]} if "page" in metadata else {}
     for old in _assets(db, project, workflow=1, language=language, role=role, **identity):
-        db.delete(old)
+        old.meta = {**(old.meta or {}), "workflow": 0, "archived": True}
     asset = Asset(
         project_id=project.id,
         kind=kind,
@@ -138,7 +138,7 @@ def _fill_visual_ficha(
     subject = theme.strip() or "uma aventura"
     defaults = {
         "visual_identity": f"{child}, com o rosto, a idade e as cores das fotos enviadas.",
-        "costume": f"Roupa de aventura ligada a {subject}, diferente da roupa da foto.",
+        "costume": "Preservar o figurino definido a partir das fotos e do pedido.",
         "palette": "azul, creme e dourado",
         "trait": trait.strip() or "curiosidade",
         "interest": interest.strip() or subject,
@@ -172,6 +172,36 @@ def _fill_visual_ficha(
     if filled:
         logger.info("ficha visual completada campos=%s", ",".join(filled))
     return prepared
+
+
+def _normalize_editorial_ficha(prepared, *, trait=None, interest=None):
+    """Keep grounded structured observations; optional personality must not be invented."""
+
+    def description(value):
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, (dict, list)) and value:
+            children = value.values() if isinstance(value, dict) else value
+            if any(description(child) for child in children):
+                return json.dumps(value, ensure_ascii=False, sort_keys=True)
+        return ""
+
+    normalized = dict(prepared)
+    for key in ("visual_identity", "costume", "palette", "animal", "trait", "interest"):
+        normalized[key] = description(prepared.get(key))
+    if trait:
+        normalized["trait"] = trait
+    if interest:
+        normalized["interest"] = interest
+    missing = [key for key in ("visual_identity", "costume", "palette") if not normalized[key]]
+    if missing:
+        raise ProviderError(
+            "A IA não descreveu os dados visuais necessários ("
+            + ", ".join(missing)
+            + "). Tente novamente; nenhuma identidade ou roupa foi inventada.",
+            transient=True,
+        )
+    return normalized
 
 
 def _preview_scene_prompts(project, language: str, role: str, *, include_text: bool = True):
@@ -266,6 +296,11 @@ async def _prepare(db, job, project, photos):
                     "title": profile.get("title"),
                     "theme": profile.get("theme_description") or project.theme,
                     "style": project.style,
+                    "costume": profile.get("costume"),
+                    "editorial_policy": editorial_profile.policy(profile)
+                    if editorial_profile.composed(profile)
+                    else None,
+                    "reference_manifest": contract.photo_manifest(project, photos),
                     "languages": profile["languages"],
                     "characters": {
                         "names": profile.get("characters", ""),
@@ -309,15 +344,24 @@ async def _prepare(db, job, project, photos):
             for key, value in locale.items():
                 if isinstance(value, str) and value:
                     prepared["locales"][lang][key] = value
-    prepared = _fill_visual_ficha(
-        prepared,
-        name=project.child_name or "",
-        theme=profile.get("theme_description") or project.theme or "",
-        title=title,
-        languages=list(profile["languages"]),
-        trait=project.child_trait or "",
-        interest=project.child_interest or "",
-    )
+    if profile.get("costume"):
+        prepared["costume"] = profile["costume"]
+    if editorial_profile.composed(profile) and not (
+        contract.test_mode(project) or settings.offline_fallback
+    ):
+        prepared = _normalize_editorial_ficha(
+            prepared, trait=project.child_trait, interest=project.child_interest
+        )
+    else:
+        prepared = _fill_visual_ficha(
+            prepared,
+            name=project.child_name or "",
+            theme=profile.get("theme_description") or project.theme or "",
+            title=title,
+            languages=list(profile["languages"]),
+            trait=project.child_trait or "",
+            interest=project.child_interest or "",
+        )
     # A supplied title is immutable in the main language.
     if profile.get("title"):
         prepared["locales"][project.language]["title"] = profile["title"]
@@ -364,6 +408,10 @@ def _publish_progress(db, job, *, stage: str, done: int, total: int, language: s
 
 
 async def preview(db, job, project):
+    if editorial_profile.composed(project.book_profile or {}):
+        from .editorial_book import preview as composed_preview
+
+        return await composed_preview(db, job, project)
     from app.services.privacy import require_photo_authorization
 
     require_photo_authorization(db, project.id)
@@ -374,8 +422,13 @@ async def preview(db, job, project):
     if editorial and editorial.get("version") != editorial_profile.CURRENT_VERSION:
         # An explicit preview retry adopts the current profile and regenerates
         # all three scenes; assets created under older rules are not reusable.
+        # An explicit retry may adopt the new contract; reading existing books never does.
         editorial = editorial_profile.snapshot()
         contract.update(project, editorial=editorial)
+        if editorial_profile.composed(project.book_profile):
+            from .editorial_book import preview as composed_preview
+
+            return await composed_preview(db, job, project)
         selected = None
     languages = (
         [payload["language"]] if payload.get("language") else project.book_profile["languages"]
@@ -808,6 +861,8 @@ async def _correct_story_languages(
 
 
 async def story(db, job, project):
+    if editorial_profile.composed(project.book_profile or {}):
+        purchase_flow.require_paid(db, project)
     contract.require_stage(project, "preview_ready", "preview_approved", "story_ready")
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
     page_no, page_note = _page_request(job)
@@ -843,17 +898,39 @@ async def story(db, job, project):
         if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
             text = _free_story(project, title)
         else:
-            result = (
-                await _pkg()
-                .get_text_provider()
-                .generate_story(
-                    brief=brief,
-                    style=contract.art_direction(project.style),
-                    pages=16,
-                    language=language,
-                    age=project.child_age,
+            if editorial_profile.composed(project.book_profile):
+                editorial_brief = {
+                    "title": title,
+                    "protagonist": project.child_name,
+                    "age": project.child_age,
+                    "theme": project.book_profile.get("theme_description") or project.theme,
+                    "characters": project.book_profile.get("characters"),
+                    "costume": project.book_profile.get("costume"),
+                    "adjustment": adjustment,
+                    "dedication": project.dedication,
+                }
+                result = (
+                    await _pkg()
+                    .get_text_provider()
+                    .generate_editorial_story(
+                        brief=editorial_brief,
+                        pages=16,
+                        language=language,
+                        policy=editorial_profile.policy(project.book_profile),
+                    )
                 )
-            )
+            else:
+                result = (
+                    await _pkg()
+                    .get_text_provider()
+                    .generate_story(
+                        brief=brief,
+                        style=contract.art_direction(project.style),
+                        pages=16,
+                        language=language,
+                        age=project.child_age,
+                    )
+                )
             job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
             text = result.text
         pages = _parse_pages(text)
@@ -886,7 +963,7 @@ async def avatar(db, job, project):
             .get_image_provider()
             .generate_character(
                 prompt=contract.avatar_prompt(project),
-                reference_images=[photos[0]],
+                reference_images=photos,
                 style=contract.art_direction(project.style),
             )
         )
@@ -940,48 +1017,73 @@ async def page(db, job, project):
         stanza = _parse_pages(profile["stories"][language])[number - 1]
         cover = _assets(db, project, workflow=1, language=language, role="01_CAPA")[-1]
         cover_bytes = storage.get_bytes(cover.storage_key)
-        sky = "canto superior direito" if number % 2 else "canto superior esquerdo"
-        prompt = (
-            f"Pagina {number}. Fotografia real em sangria total, igual a um album impresso. "
-            f"{project.child_name} e a mesma pessoa da foto: rosto, idade, cabelo, pele e "
-            "a roupa da fotografia, luz natural de dia, lugar real. "
-            f"Cena: {stanza}. "
-            f"Deixe o {sky} com ceu limpo ou fundo liso, sem rosto, sem maos e sem objeto, "
-            "porque o verso entra ali depois. Sem faixa, sem moldura, sem letras, sem numeros. "
-            + contract.format_directive(project)
-            + " "
-            + contract.continuity(project)
-            + " A roupa desta pagina e a da foto original."
-        )
-        if _payload(job).get("adjustment"):
-            prompt += (
-                f" Ajuste da cena, mantendo identidade e figurino: {_payload(job)['adjustment']}"
+        page_metadata = {}
+        if editorial_profile.composed(profile):
+            from .editorial_book import Pipeline
+
+            pipe = Pipeline(db, job, project, photos)
+            plans = dict(profile.get("page_plans", {}))
+            plan_key = str(number)
+            action = plans.get(plan_key) or stanza
+            adjustment = _payload(job).get("adjustment")
+            if adjustment and not (
+                isinstance(action, dict) and action.get("request_id") == str(job.id)
+            ):
+                action = {
+                    "previous_scene": action,
+                    "requested_adjustment": adjustment,
+                    "request_id": str(job.id),
+                }
+            plans[plan_key] = action
+            contract.update(project, page_plans=plans)
+            rendered, page_metadata = await pipe.art(f"page:{number}", action, value=stanza)
+            art = page_metadata.pop("art_bytes")
+            page_metadata = {
+                k: v
+                for k, v in page_metadata.items()
+                if k in {"layout", "validation", "art_key", "art_sha256", "editorial"}
+            }
+        else:
+            sky = "canto superior direito" if number % 2 else "canto superior esquerdo"
+            prompt = (
+                f"Pagina {number}. Fotografia real em sangria total, igual a um album impresso. "
+                f"{project.child_name} e a mesma pessoa da foto: rosto, idade, cabelo, pele e "
+                "a roupa da fotografia, luz natural de dia, lugar real. "
+                f"Cena: {stanza}. "
+                f"Deixe o {sky} com ceu limpo ou fundo liso, sem rosto, sem maos e sem objeto, "
+                "porque o verso entra ali depois. Sem faixa, sem moldura, sem letras, sem numeros. "
+                + contract.format_directive(project)
+                + " "
+                + contract.continuity(project)
+                + " A roupa desta pagina e a da foto original."
             )
-        if shared_art is None:
-            if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
-                result = ImageResult(
-                    _offline_png(
-                        f"Pagina {number} DEMO", palette=((235, 243, 250), (255, 250, 242))
-                    ),
-                    cost_usd=0,
-                )
-            else:
-                result = await provider.generate_scene(
-                    prompt=prompt,
-                    character_ref=avatar_bytes,
-                    photo=photos[0],
-                    extra_refs=photos[1:] + [cover_bytes],
-                    style=contract.art_direction(project.style),
-                )
-            shared_art = book_render.png(result.image_bytes)
-            _account(db, job, result, f"Pagina {number} — arte compartilhada entre idiomas")
-        art = shared_art
-        rendered = book_render.with_text(
-            art,
-            stanza,
-            size_cm=15 if project.book_size == "P" else 20,
-            page=number,
-        )
+            if _payload(job).get("adjustment"):
+                prompt += f" Ajuste da cena, mantendo identidade e figurino: {_payload(job)['adjustment']}"
+            if shared_art is None:
+                if contract.test_mode(project) or settings.offline_fallback or settings.skip_openai:
+                    result = ImageResult(
+                        _offline_png(
+                            f"Pagina {number} DEMO", palette=((235, 243, 250), (255, 250, 242))
+                        ),
+                        cost_usd=0,
+                    )
+                else:
+                    result = await provider.generate_scene(
+                        prompt=prompt,
+                        character_ref=avatar_bytes,
+                        photo=photos[0],
+                        extra_refs=photos[1:] + [cover_bytes],
+                        style=contract.art_direction(project.style),
+                    )
+                shared_art = book_render.png(result.image_bytes)
+                _account(db, job, result, f"Pagina {number} — arte compartilhada entre idiomas")
+            art = shared_art
+            rendered = book_render.with_text(
+                art,
+                stanza,
+                size_cm=15 if project.book_size == "P" else 20,
+                page=number,
+            )
         title = profile["locales"][language]["title"]
         for role, data in (("sem_texto", art), ("com_texto", rendered)):
             _store(
@@ -992,6 +1094,7 @@ async def page(db, job, project):
                 language=language,
                 role=role,
                 page=number,
+                **page_metadata,
                 name=contract.filename(language, f"PAGINA_{number:02d}_{role.upper()}", title),
             )
         db.commit()
@@ -1024,7 +1127,9 @@ async def page(db, job, project):
                 _assets(db, project, workflow=1, language=language, role="com_texto"),
                 key=lambda a: a.meta["page"],
             )
-            cover_bytes = storage.get_bytes(cover.storage_key)
+            cover_bytes = storage.get_bytes(
+                (cover.meta or {}).get("flat_cover_key") or cover.storage_key
+            )
             backs = _assets(db, project, workflow=1, language=language, role="04_CONTRACAPA")
             if backs:
                 back_bytes = storage.get_bytes(backs[-1].storage_key)

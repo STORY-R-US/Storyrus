@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import io
 import logging
 import random
 
 import httpx
+from PIL import Image
 
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
@@ -287,6 +289,46 @@ class OpenAIImageProvider:
             else f"Gere a partir do texto. Nao ha foto anexa. Estilo pedido: '{style}'. {prompt}"
         )
         return await self._generate_with_refs(text, refs, size=settings.openai_image_size_portrait)
+
+    async def reframe_editorial_art(self, *, art, photos, top_fraction, prompt):
+        """Outpaint a translated canvas; preserve subject scale instead of shrinking it."""
+        image = Image.open(io.BytesIO(art)).convert("RGBA")
+        if image.width != image.height or not 0.05 <= top_fraction <= 0.3:
+            raise ValueError("Enquadramento editorial inválido")
+        shift = round(image.height * top_fraction)
+        canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        canvas.paste(image, (0, shift))
+        mask = Image.new("RGBA", image.size, (255, 255, 255, 255))
+        mask.paste((0, 0, 0, 0), (0, 0, image.width, shift))
+
+        def png(value):
+            out = io.BytesIO()
+            value.save(out, "PNG")
+            return out.getvalue()
+
+        files = [
+            ("image[]", ("canvas.png", png(canvas), "image/png")),
+            ("mask", ("mask.png", png(mask), "image/png")),
+        ]
+        for i, photo in enumerate(photos):
+            original = Image.open(io.BytesIO(photo)).convert("RGB")
+            files.append(("image[]", (f"identity-{i}.png", png(original), "image/png")))
+        data = {
+            "model": self._model,
+            "size": settings.openai_image_size_square,
+            "quality": settings.openai_image_quality,
+            "prompt": (
+                "FIRST image is the scene canvas already reframed at its original scale. "
+                "Fill ONLY the transparent TOP strip with a seamless continuation of its natural "
+                "background. Preserve the opaque lower image: same person, head position, hands, "
+                "clothes, action and scale. Do NOT move the head upwards or add people, lettering, "
+                "objects, panels or gradients. Other images are ORIGINAL identity references. "
+                "Do not restore their framing. Return one flat square artwork.\n" + prompt
+            ),
+        }
+        if self._model in {"gpt-image-1", "gpt-image-1.5"}:
+            data["input_fidelity"] = "high"
+        return await self._post_multipart("/images/edits", data=data, files=files)
 
     async def generate_scene(
         self,

@@ -6,9 +6,16 @@ import re
 from pathlib import Path
 
 ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets/editorial"
-CURRENT_VERSION = "2026-11-04.3"
+CURRENT_VERSION = "2026-11-05.1"
 PROFILE_ROOTS = {
-    version: ASSET_ROOT / version for version in ("2026-11-04.1", "2026-11-04.2", CURRENT_VERSION)
+    version: ASSET_ROOT / version
+    for version in (
+        "2026-11-04.1",
+        "2026-11-04.2",
+        "2026-11-04.3",
+        "2026-11-04.4",
+        CURRENT_VERSION,
+    )
 }
 ROLES = ("01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA")
 
@@ -43,10 +50,26 @@ def references(style, version: str | None = None, *, art_only: bool = False):
 
 
 def uses_backend_typography(profile, role):
-    return profile.get("editorial", {}).get("version") == CURRENT_VERSION and role in {
+    return profile.get("editorial", {}).get("version") in {
+        "2026-11-04.4",
+        CURRENT_VERSION,
+    } and role in {
         "01_CAPA",
         "02_LIVRO_ABERTO",
     }
+
+
+def composed(profile):
+    return profile.get("editorial", {}).get("version") == "2026-11-05.1"
+
+
+def policy(profile):
+    editorial = profile["editorial"]
+    if editorial != snapshot(editorial["version"]):
+        raise ValueError("Perfil editorial alterado; preserve o pacote original")
+    return json.loads(
+        (_root(editorial["version"]) / "config/editorial-policy.json").read_text(encoding="utf-8")
+    )
 
 
 def _remove_section(prompt: str, start: str, end: str | None) -> str:
@@ -81,6 +104,23 @@ def prompt(project, language, role, *, include_text: bool = True):
     root = _root(version)
     if editorial != snapshot(version):
         raise ValueError("Perfil editorial deste trabalho indisponível; preserve a versão original")
+    if composed(profile):
+        if role not in ROLES:
+            raise ValueError("Cena editorial desconhecida")
+        return json.dumps(
+            {
+                "policy": policy(profile),
+                "scene": role,
+                "language": language,
+                "texts": profile["locales"][language] if include_text else {},
+                "workflow": "flat art and deterministic composition; three scenes only",
+                "characters": profile.get("characters"),
+                "continuity": {
+                    k: profile.get(k) for k in ("visual_identity", "costume", "palette")
+                },
+            },
+            ensure_ascii=False,
+        )
     master = (root / "prompts/PROMPT_MESTRE.txt").read_text(encoding="utf-8")
     scene = (root / f"prompts/{role}.txt").read_text(encoding="utf-8")
     texts = profile["locales"][language]
@@ -104,4 +144,16 @@ def prompt(project, language, role, *, include_text: bool = True):
             p for p, _ in references(project.style, version, art_only=not include_text)
         ],
     }
+    if not include_text and role == "02_LIVRO_ABERTO":
+        locale = profile["locales"][language]
+        data["illustration_guidance"] = {
+            "left_page_action": locale["left"],
+            "right_page_action": locale["right"],
+            "instruction": (
+                "These verses describe the story actions for illustration only. Depict each "
+                "action on its matching page, but do not render, quote, spell, or place this "
+                "guidance as visible text. Use only the characters and animals present in "
+                "the project; the original photo defines identity, not scene action."
+            ),
+        }
     return master + "\n" + scene + "\nDADOS DO LIVRO:\n" + json.dumps(data, ensure_ascii=False)

@@ -1,0 +1,5 @@
+# Editorial snapshots are hashed as bytes; preserve them across Windows/Linux.
+/backend/app/assets/editorial/2026-11-04.4/** -text whitespace=cr-at-eol
+/backend/app/assets/editorial/2026-11-05.1/** -text whitespace=cr-at-eol
+# Preserve the original imported prompt endings as part of the snapshot.
+/backend/app/assets/editorial/2026-11-05.1/prompts/*.txt whitespace=cr-at-eol,-blank-at-eof

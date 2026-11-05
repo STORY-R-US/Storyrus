@@ -116,6 +116,8 @@ async def test_worker_process_binds_request_id(monkeypatch):
     from app.workers import runner
 
     seen: dict[str, str | None] = {}
+    # This unit test isolates log correlation; privacy has its own database-backed suite.
+    monkeypatch.setattr("app.services.privacy.photos_authorized", lambda db, pid: True)
 
     async def fake_handler(db, job):
         seen["request_id"] = get_request_id()

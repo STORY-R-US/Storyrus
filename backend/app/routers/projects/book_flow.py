@@ -129,6 +129,10 @@ def preview_package(
                     and a.meta.get("language") == lang
                     and a.meta.get("role") == role
                     and a.meta.get("validation", {}).get("status") == "valid"
+                    and (
+                        not project.book_profile.get("editorial")
+                        or a.meta.get("editorial") == project.book_profile["editorial"]
+                    )
                 ]
                 if len(matches) != 1:
                     raise HTTPException(
@@ -144,6 +148,7 @@ def preview_package(
                         for a in assets
                         if (a.meta or {}).get("language") == lang
                         and a.meta.get("role") == "01_CAPA"
+                        and a.meta.get("workflow") == 1
                     ]
                     if (
                         len(covers) != 1
