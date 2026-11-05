@@ -29,6 +29,7 @@ class Pipeline:
         self.db, self.job, self.project, self.photos = db, job, project, photos
         self.profile = project.book_profile
         self.policy = editorial_profile.policy(self.profile)
+        self.designed = bool(self.policy.get("referenceComposition"))
         self.demo = contract.test_mode(project) or settings.offline_fallback
         self.language = project.language or "pt-BR"
         self.last_review_issues = []
@@ -51,6 +52,30 @@ class Pipeline:
             "language": self.language,
             "reference_manifest": contract.photo_manifest(project, photos),
         }
+        if self.designed:
+            self.base["continuity"]["scene_world"] = self.profile.get("scene_world")
+
+    def alignment(self, title=False):
+        return self.policy["typography"]["coverAlignment" if title else "bodyAlignment"]
+
+    def text_region(self, title=False):
+        return self.policy.get("referenceComposition", {}).get(
+            "coverRegion" if title else "bodyRegion",
+            [0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29],
+        )
+
+    def text_instruction(self, title=False):
+        if title:
+            return (
+                "Título centralizado dentro do bloco superior direito."
+                if self.designed
+                else "Título superior centralizado."
+            )
+        return (
+            "Versos centralizados no topo da página, conforme o layout."
+            if self.alignment() == "center"
+            else "Versos alinhados à esquerda."
+        )
 
     def cached(self, key):
         return self.db.scalar(
@@ -277,7 +302,7 @@ class Pipeline:
                 plan = {
                     "action": action,
                     "text_region": [0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29],
-                    "alignment": "center" if title else "left",
+                    "alignment": self.alignment(title),
                     "protected_content": [],
                 }
             else:
@@ -297,6 +322,12 @@ class Pipeline:
                 plan = json.loads(planned.text)
             if not isinstance(plan, dict):
                 raise ProviderError("Plano editorial inválido", transient=False)
+            if self.designed:
+                plan = {
+                    **plan,
+                    "text_region": self.text_region(title),
+                    "alignment": self.alignment(title),
+                }
             render.validate_region(plan.get("text_region"))
             if plan.get("alignment") not in {"left", "center"} or not plan.get("action"):
                 raise ProviderError("Planejamento editorial incompleto", transient=False)
@@ -323,9 +354,13 @@ class Pipeline:
                     # requesting another plan or paying for any image generation.
                     calibrated = False
                     for candidate_region in (
-                        [[0.09, 0.06, 0.91, 0.29]]
-                        if title
-                        else [[0.07, 0.07, 0.93, 0.37], [0.07, 0.07, 0.93, 0.47]]
+                        [self.text_region(title)]
+                        if self.designed
+                        else (
+                            [[0.09, 0.06, 0.91, 0.29]]
+                            if title
+                            else [[0.07, 0.07, 0.93, 0.37], [0.07, 0.07, 0.93, 0.47]]
+                        )
                     ):
                         try:
                             render.text(
@@ -336,12 +371,12 @@ class Pipeline:
                                 self.profile,
                                 title=title,
                                 region=candidate_region,
-                                alignment="center" if title else "left",
+                                alignment=self.alignment(title),
                             )
                             plan = {
                                 **plan,
                                 "text_region": candidate_region,
-                                "alignment": "center" if title else "left",
+                                "alignment": self.alignment(title),
                             }
                             calibrated = True
                             break
@@ -455,8 +490,9 @@ class Pipeline:
                 template
                 + "\n"
                 + (
-                    "Gere UMA arte PLANA quadrada, borda a borda. Sem livro físico, dobra, mesa, "
-                    "moldura, letras, números, logotipo ou marca-d'água. Fotos originais definem "
+                    "Gere UMA arte PLANA quadrada, borda a borda. Sem simulação de livro, "
+                    "dobras ou arte apoiada numa mesa de apresentação. O mobiliário da história "
+                    "é permitido. Sem moldura, letras, números, logotipo ou marca-d'água. Fotos originais definem "
                     "identidade e idade, incluindo adultos e animais; somente elenco solicitado. "
                     "Mantenha o figurino definido. Cenário editorial suave, sem pele plástica. "
                     "Reserve naturalmente a região normalizada de texto, sem faixas ou degradês, "
@@ -469,7 +505,7 @@ class Pipeline:
                         "ABAIXO de 25% da altura da imagem. Enquadre a ação abaixo desse espaço "
                         "editorial, com proporções naturais; não copie o enquadramento de retrato "
                         "da foto. A foto é referência de identidade, não de composição. "
-                        if title
+                        if title and not self.designed
                         else ""
                     )
                     + json.dumps(
@@ -486,7 +522,7 @@ class Pipeline:
                     )
                 )
             )
-            if title:
+            if title and not self.designed:
                 prompt += (
                     "\nFINAL FRAMING REQUIREMENT, overriding any reference-photo framing or "
                     "conflicting scene-plan pose: this is a square book cover with room for a "
@@ -503,12 +539,35 @@ class Pipeline:
                 "photo frames, white dividers, collages or before/after panels anywhere in the "
                 "output. All input photographs remain invisible references. No letters or text."
             )
+            if self.designed:
+                prompt += (
+                    "\nART DIRECTION: "
+                    + self.policy["visual"]["artDirection"]
+                    + f"\nThe FIRST {len(self.photos)} images are the original identity photographs; "
+                    f"the LAST {len(self.refs)} images show STYLE ONLY, not cast or text to copy. "
+                    + (
+                        "COVER DESIGN: compose the recognizable person prominently on the LEFT, "
+                        "head near the upper-left, and the meaningful activity and illustrated "
+                        "objects on the RIGHT and lower area. Reserve ONLY the measured upper-right "
+                        "title block. Do not create an empty strip across the whole top or move "
+                        "the entire person down. Use a rich, coherent illustrated environment, "
+                        "natural expression, soft light and inviting color."
+                        if title
+                        else "INTERIOR DESIGN: four short centered verses occupy the upper central "
+                        "reading space; illustrate the specific action below. Show the task and "
+                        "its changing result, not just a portrait beside a laptop. Keep the same "
+                        "illustrated setting, objects, outfit and palette across the two pages. "
+                        "For computer learning use a creative visual activity, flowers/colors and "
+                        "clear drawing/saving icons when appropriate; no coding unless requested."
+                    )
+                )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
                 provider = self.master._pkg().get_image_provider()
                 if (
                     title
+                    and not self.designed
                     and attempt > 1
                     and self.last_art
                     and any(
@@ -538,13 +597,17 @@ class Pipeline:
                         character_ref=self.photos[0],
                         photo=self.photos[0],
                         extra_refs=self.photos[1:] + self.refs,
-                        style=contract.art_direction(self.project.style),
+                        style=(
+                            self.policy["visual"]["artDirection"]
+                            if self.designed and self.project.style != "cartoon"
+                            else contract.art_direction(self.project.style)
+                        ),
                     )
                 self.account(result, name)
                 raw = result.image_bytes
             self.last_art = raw
             render.square(raw)
-            if not title and not self.demo:
+            if not title and not self.demo and not self.designed:
                 correction = None
                 for layout_attempt in range(3):
                     self.guard()
@@ -588,7 +651,9 @@ class Pipeline:
                             region = plan["text_region"]
                             break
             regions = (
-                [region] if title else [region, [0.07, 0.07, 0.50, 0.40], [0.07, 0.07, 0.93, 0.29]]
+                [region]
+                if title or self.designed
+                else [region, [0.07, 0.07, 0.50, 0.40], [0.07, 0.07, 0.93, 0.29]]
             )
             for region_attempt, region in enumerate(regions):
                 try:
@@ -598,7 +663,7 @@ class Pipeline:
                         self.profile,
                         title=title,
                         region=region,
-                        alignment="center" if title else "left",
+                        alignment=self.alignment(title),
                     )
                     qa = await self.review(
                         raw,
@@ -613,7 +678,11 @@ class Pipeline:
                         "maior usada para quebra de linhas. Reprove qualquer invasão da reserva. "
                         + json.dumps({"ink_region_with_margin": layout["ink_region_with_margin"]})
                         + json.dumps(
-                            {"identity": self.base["continuity"], "style": self.project.style}
+                            {
+                                "identity": self.base["continuity"],
+                                "style": self.project.style,
+                                **({"expected_action": action} if self.designed else {}),
+                            }
                         ),
                         technical={"typography": layout},
                     )
@@ -624,11 +693,7 @@ class Pipeline:
                         + ": texto literal "
                         + json.dumps(value, ensure_ascii=False)
                         + ". Sem texto sobre cabelo, rosto, mãos ou ação importante. "
-                        + (
-                            "Título superior centralizado."
-                            if title
-                            else "Versos alinhados à esquerda."
-                        ),
+                        + self.text_instruction(title),
                         technical={"typography": layout},
                     )
                     break
@@ -643,7 +708,7 @@ class Pipeline:
                 "operation": operation,
                 "source_sha256": source_sha256,
                 "references": self.base["photos"],
-                "plan": {**plan, "text_region": region, "alignment": "center" if title else "left"},
+                "plan": {**plan, "text_region": region, "alignment": self.alignment(title)},
             }
 
         raw, meta = await self.stage(
@@ -675,9 +740,9 @@ class Pipeline:
                     data,
                     f"{'CAPA_PLANA' if title else 'PAGINA_INTERNA'}: texto literal "
                     + json.dumps(value, ensure_ascii=False)
-                    + ". Somente esse texto. Nunito 500, #172A3A, entrelinha 1,2. Sem obstruir pessoas ou ação, sem tarjas; identidade e anatomia corretas. "
+                    + ". Somente esse texto. Tipografia conforme os dados técnicos verificados, sem obstruir pessoas ou ação, sem tarjas; identidade e anatomia corretas. "
                     + (
-                        "Título superior centralizado."
+                        self.text_instruction(True)
                         if title
                         else "Sem títulos internos ou simulação de livro físico."
                     ),
@@ -726,6 +791,21 @@ class Pipeline:
                     ensure_ascii=False,
                 )
             )
+            if reading and self.designed:
+                prompt += (
+                    "\nENQUADRAMENTO OBRIGATÓRIO: fotografia de produto em plano médio ABERTO, "
+                    "pessoa sentada, cabeça inteira, cadeira, cintura e colo visíveis. Livro "
+                    "físico de 20x20 cm, capa dura com lombada, espessura e cantos arredondados. "
+                    "O livro deve ocupar APENAS cerca de um terço da largura total da imagem "
+                    "(28–36%), junto ao peito inferior/colo, nunca uma placa que cobre o tronco. "
+                    "Mãos proporcionais apoiam as laterais, sem dedos esticados. "
+                    "O figurino da personagem impressa pertence ao livro; a roupa da pessoa "
+                    "externa pode ser casual e natural, sem obrigação de copiar o figurino impresso. "
+                    "Fundo acolhedor luminoso e coerente, sem outras pessoas. A marcação magenta "
+                    "fica somente na superfície frontal imprimível; bordas, lombada e mãos são "
+                    "neutras, sem reflexos coloridos. Região aproximada da capa: "
+                    + json.dumps(self.policy["referenceComposition"]["holdingSurfaceRegion"])
+                )
             if self.demo:
                 visible_masks = None
                 raw = self.master._offline_png(name, palette=((248, 240, 220), (230, 240, 250)))
@@ -771,6 +851,14 @@ class Pipeline:
                     generate_template,
                 )
                 geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
+                if reading and self.designed:
+                    corners = geometry["surfaces"][0]
+                    width = max(p[0] for p in corners) - min(p[0] for p in corners)
+                    low, high = self.policy["referenceComposition"]["holdingBookWidthRatio"]
+                    if not low <= width <= high:
+                        raise ValueError(
+                            "Livro fora da escala definida para a pessoa e o enquadramento"
+                        )
             data, provenance = render.mockup(raw, artworks, geometry, visible_masks=visible_masks)
             expected = {
                 key: self.profile["locales"][self.language][key]
@@ -836,7 +924,7 @@ async def preview(db, job, project):
     flat, flat_meta = await pipe.art(
         "cover", project.book_profile.get("theme_description"), title=True, value=locale["title"]
     )
-    cover = render.front(flat)
+    cover = render.front(flat, profile=project.book_profile)
     role = "01_CAPA"
     all_meta = {}
     selected = master._payload(job).get("image")
@@ -868,8 +956,13 @@ async def preview(db, job, project):
                     db, job, stage=role, done=2, total=3, language=pipe.language
                 )
                 continue
-            left, _ = await pipe.art("preview:left", locale["left"], value=locale["left"])
-            right, _ = await pipe.art("preview:right", locale["right"], value=locale["right"])
+            actions = project.book_profile.get("preview_actions", {}).get(pipe.language, {})
+            left, _ = await pipe.art(
+                "preview:left", actions.get("left") or locale["left"], value=locale["left"]
+            )
+            right, _ = await pipe.art(
+                "preview:right", actions.get("right") or locale["right"], value=locale["right"]
+            )
             data, meta = await pipe.mockup("spread", [left, right])
         else:
             data, meta = await pipe.mockup("reading", [flat], cover=flat)

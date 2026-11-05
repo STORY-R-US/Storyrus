@@ -48,6 +48,37 @@ def update(project, **values) -> dict:
     return profile
 
 
+def adopt_current_editorial_draft(project):
+    """An explicit unpaid preview retry may refresh generated drafts, never supplied text."""
+    from app.services import editorial_profile
+
+    profile = project.book_profile or {}
+    if (
+        profile.get("editorial", {}).get("version") != "2026-11-05.1"
+        or editorial_profile.CURRENT_VERSION != "2026-11-05.2"
+        or (project.purchase_flow or {}).get("preview_approved_at")
+    ):
+        return False
+    supplied = {lang: dict(values) for lang, values in profile.get("supplied_locales", {}).items()}
+    for lang, locale in profile.get("locales", {}).items():
+        records = profile.get("text_record", {}).get(lang, {})
+        for key in ("title", "left", "right"):
+            record = records.get(key)
+            if key in locale and (not record or record.get("origin") == "user_supplied"):
+                supplied.setdefault(lang, {})[key] = locale[key]
+    update(
+        project,
+        editorial=editorial_profile.snapshot(),
+        locales={},
+        scene_plans={},
+        preview_actions={},
+        scene_world=None,
+        supplied_locales=supplied,
+        text_record={},
+    )
+    return True
+
+
 def photo_manifest(project, photos):
     extras = [ec for ec in project.extra_characters or [] if ec.get("storage_key")]
     main_count = len(photos) - len(extras)

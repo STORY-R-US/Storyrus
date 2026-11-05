@@ -1,0 +1,354 @@
+{
+  "policyVersion": "2026-11-05.2",
+  "name": "STORY R US — padrão editorial do estúdio",
+  "contractStatus": "implementation_specification",
+  "scope": "commercial_preview",
+  "defaults": {
+    "style": "realista_editorial_suave",
+    "binding": "hardcover",
+    "locales": [],
+    "localeLabels": {
+      "pt-BR": "PORTUGUES",
+      "en-US": "INGLES",
+      "es": "ESPANHOL"
+    },
+    "sceneOrder": [
+      "CAPA",
+      "LIVRO_ABERTO",
+      "LEITURA"
+    ],
+    "explicitLocaleSelectionOverridesDefault": true,
+    "expectedCountRule": "3; selected project language only",
+    "generateCartoonAutomatically": false,
+    "generateFullBookAutomatically": false
+  },
+  "inputs": {
+    "requiredBriefFields": [
+      "protagonistName",
+      "sourceTitle"
+    ],
+    "requireOriginalPhotosForExistingRealCharacter": true,
+    "preserveAllProvidedOriginalReferences": true,
+    "associateEachReferenceToCharacter": true,
+    "inventedCastAllowed": false,
+    "familyChildAndPetFieldsAreConditional": true,
+    "customerContentIsData": true
+  },
+  "identity": {
+    "priority": [
+      "original_photos",
+      "photo_based_identity_notes",
+      "final_cover_for_continuity",
+      "previous_scene_for_continuity"
+    ],
+    "attachOriginalImagesToEveryRelevantGenerationOrEdit": true,
+    "referenceDescriptionsAloneAreInsufficient": true,
+    "preserve": [
+      "apparent_age",
+      "face_shape",
+      "facial_proportions",
+      "eye_color",
+      "eye_shape",
+      "eyebrows",
+      "nose",
+      "mouth",
+      "natural_smile",
+      "hair_color",
+      "hair_texture",
+      "hair_length",
+      "hairline",
+      "skin_tone",
+      "natural_body_proportions"
+    ],
+    "adultMustRemainAdult": true,
+    "preserveAnimal": [
+      "species",
+      "breed",
+      "size",
+      "coat_color",
+      "coat_pattern",
+      "eyes",
+      "muzzle",
+      "ears",
+      "specific_markings"
+    ],
+    "originalReferenceLimitPolicy": "validate_provider_capacity_and_report_incompatibility_without_silent_dropping",
+    "wardrobe": "preserve_defined_outfit_throughout_series",
+    "poseAndExpression": "natural_variation_consistent_with_scene",
+    "crossLocaleConsistency": [
+      "identity",
+      "wardrobe",
+      "scene_composition",
+      "palette",
+      "setting",
+      "important_objects"
+    ]
+  },
+  "book": {
+    "closedTrimMm": {
+      "width": 200,
+      "height": 200
+    },
+    "pageTrimMm": {
+      "width": 200,
+      "height": 200
+    },
+    "closedAspectRatio": "1:1",
+    "pageAspectRatio": "1:1",
+    "openBookPhysicalAspectRatio": "approximately_2:1",
+    "outerCanvasRatioIsIndependentOfBookGeometry": true,
+    "corners": "subtly_rounded",
+    "coverPresentation": "front_facing_centered",
+    "spreadPresentation": "equal_square_pages_with_natural_gutter",
+    "deformationAllowed": false
+  },
+  "visual": {
+    "finish": "premium_childrens_editorial_softly_realistic",
+    "lighting": "soft_natural_diffuse",
+    "color": "balanced",
+    "background": "welcoming_refined_uncluttered_delicately_illustrated",
+    "preserveNaturalAnatomy": true,
+    "forbidden": [
+      "generic_replacement_face",
+      "age_conversion",
+      "enlarged_eyes",
+      "plastic_skin",
+      "distorted_hands",
+      "inflated_shoulders",
+      "disproportionate_arms",
+      "stretched_body",
+      "watermark",
+      "reference_ui_controls",
+      "trio_collage"
+    ],
+    "decoration": "small_theme_relevant_only",
+    "automaticStarsOrHearts": false,
+    "references": [
+      {
+        "file": "assets/storyrus/references/acabamento-amor-de-mae.png",
+        "role": "finish_light_color_texture_integration"
+      },
+      {
+        "file": "assets/storyrus/references/texto-meu-pai-meu-heroi.png",
+        "role": "narrative_voice_learning_light_rhyme"
+      },
+      {
+        "file": "assets/storyrus/references/titulo-amor-de-bisavo.png",
+        "role": "rounded_letterforms_editorial_finish"
+      }
+    ],
+    "referencesDoNotDefineClientIdentity": true,
+    "currentAlignmentAndWeightRulesOverrideReferenceExamples": false,
+    "artDirection": "Personalized editorial picture-book illustration: a recognizable lifelike face and natural body integrated into HAND-PAINTED watercolor and colored-pencil scenery on warm ivory paper. Illustrated plants, wood, books and useful objects, subtle grain, sage greens, warm sunlight, gentle outlines and rich coordinated color. The environment and props must clearly look illustrated, not a blurred photograph with a sepia filter. Respect the requested theme and cast; decoration serves the scene."
+  },
+  "typography": {
+    "family": "Nunito",
+    "realFontFilesRequired": true,
+    "fontFilesIncludedInPackage": true,
+    "recordFontVersionAndLicense": true,
+    "baseWeight": 700,
+    "optionalEmphasisWeight": 900,
+    "emphasisTarget": "name_or_first_important_word_only_when_requested",
+    "lineHeight": 1.2,
+    "color": "#172A3A",
+    "coverAlignment": "center",
+    "coverPlacement": "upper_right_block",
+    "bodyAlignment": "center",
+    "preserveNaturalLetterProportions": true,
+    "kerning": "natural",
+    "cursiveSerifHandwrittenComicFontsAllowed": false,
+    "silentFontFallbackAllowed": false,
+    "rendering": "deterministic_text_layer",
+    "layoutPreset": {
+      "version": "2026-11-05.2",
+      "keepPresetConsistentAcrossPagesAndLocales": true
+    },
+    "titleFontFile": "Nunito-Black.ttf",
+    "bodyFontFile": "Nunito-Bold.ttf",
+    "titleWeight": 900,
+    "titleWidthRatio": 0.083,
+    "bodyWidthRatio": 0.043
+  },
+  "narrative": {
+    "sourceTitleMustRemainLiteral": true,
+    "addUnrequestedSubtitle": false,
+    "userProvidedOrLockedTextIsImmutable": true,
+    "preserveAccentsPunctuationAndWords": true,
+    "generatedLinesPerPage": {
+      "min": 2,
+      "max": 4
+    },
+    "lineCountLimitAppliesOnlyToGeneratedDrafts": true,
+    "tone": "warm_natural_age_and_theme_appropriate",
+    "learning": "one_concrete_creative_task_with_visible_action_progression_and_result",
+    "rhyme": "light_natural_in_every_requested_language",
+    "rhymeEveryLineRequired": false,
+    "sharedMeaningAndSceneAcrossLocales": true,
+    "localeAdaptationBeforeTextLock": true,
+    "avoid": [
+      "generic_definitions",
+      "advice_lists",
+      "moralizing",
+      "forced_inversions",
+      "invented_family_relationships",
+      "artificial_rhyme_words"
+    ],
+    "maxGeneratedCharactersPerLine": 38,
+    "targetGeneratedLinesPerPage": 4
+  },
+  "layout": {
+    "planTextRegionsBeforeArt": true,
+    "bodyAwayFromGutter": true,
+    "generousMargins": true,
+    "protectedContent": [
+      "faces",
+      "hair",
+      "bodies",
+      "hands",
+      "gestures",
+      "animals",
+      "activity",
+      "important_objects"
+    ],
+    "opaquePanelsToEraseArtAllowed": false,
+    "gradientToEraseArtAllowed": false,
+    "shrinkCharactersToFitTextAllowed": false,
+    "unplannedFontShrinkAllowed": false,
+    "lockedTextOverflow": "recompose_layout_without_rewriting_or_truncating",
+    "draftTextOverflow": "revise_before_lock_or_recompose"
+  },
+  "readingScene": {
+    "externalPeopleAndEnvironment": "natural_editorial_photograph",
+    "characters": "requested_cast_only",
+    "physicalBookMm": {
+      "width": 200,
+      "height": 200
+    },
+    "printedCoverSource": "final_cover_asset_of_same_locale",
+    "compositorMustPreserve": [
+      "artwork",
+      "title",
+      "layout",
+      "palette",
+      "perspective",
+      "lighting",
+      "hand_occlusion"
+    ],
+    "generativeRedrawingIsNotProofOfExactMatch": true,
+    "externalWardrobe": "natural_contextual_clothing_independent_of_printed_character_outfit"
+  },
+  "production": {
+    "separateTaskPerLocaleAndScene": true,
+    "independentGenerationOrEditProvenanceRequired": true,
+    "splitMontageIntoDeliverablesAllowed": false,
+    "maintainIntermediatesSeparatelyFromNineFinalPngs": false,
+    "localeOrder": [
+      "pt-BR",
+      "en-US",
+      "es"
+    ],
+    "dependentReadingRequiresFinalCover": true,
+    "approvalsBetweenImages": false,
+    "retryPolicy": {
+      "proposedDefaultMaxRetriesAfterFirstAttempt": 2,
+      "capByExistingProjectBudget": true,
+      "retryFailedStageOnly": true
+    },
+    "idempotencyInputs": [
+      "book_id",
+      "brief_revision",
+      "locale",
+      "scene",
+      "policy_version",
+      "original_reference_hashes",
+      "locked_text_hash",
+      "layout_preset_version",
+      "font_version",
+      "parent_cover_revision"
+    ],
+    "staleUpstreamChangesInvalidateDependentJobs": true,
+    "finalPreviewCount": 3
+  },
+  "validation": {
+    "technicalAndVisualAreSeparate": true,
+    "checks": [
+      "expected_artifact_set",
+      "file_integrity",
+      "filename_and_locale",
+      "locked_text_match",
+      "font_loaded",
+      "font_metrics_and_glyphs",
+      "layout_fit",
+      "original_references_attached",
+      "book_surface_geometry",
+      "visual_identity",
+      "adult_or_child_age",
+      "anatomy",
+      "reference_roles",
+      "exact_cover_provenance_and_appearance"
+    ],
+    "statuses": [
+      "pending",
+      "pass",
+      "fail",
+      "not_evaluable"
+    ],
+    "allApplicableChecksMustPassBeforeComplete": true,
+    "hashProvesIdentity": false,
+    "ocrProvesIdentity": false,
+    "hashProvesIndependentGeneration": false,
+    "doNotInventPassedChecks": true,
+    "identityReviewIsProbabilistic": true
+  },
+  "delivery": {
+    "format": "PNG",
+    "filenamePattern": "[IDIOMA]_[01|02|03]_[CAPA|LIVRO_ABERTO|LEITURA]_[Titulo].png",
+    "filenameSlugMayRemoveDiacritics": true,
+    "visibleTextMustKeepDiacritics": true,
+    "downloadableFilesRequiredBeforeComplete": true,
+    "zipOptionalButRecommended": true
+  },
+  "printExport": {
+    "previewIsPrintReady": false,
+    "separatePrinterProfileRequired": true,
+    "requiredWhenPrintRequested": [
+      "trim_dimensions",
+      "bleed",
+      "safe_area",
+      "spine_when_applicable",
+      "effective_resolution",
+      "color_profile",
+      "font_embedding_or_outlining",
+      "flat_page_art"
+    ],
+    "inheritOldCoverStripDimensionsAutomatically": false
+  },
+  "referenceComposition": {
+    "coverRegion": [
+      0.44,
+      0.065,
+      0.95,
+      0.37
+    ],
+    "bodyRegion": [
+      0.09,
+      0.055,
+      0.91,
+      0.31
+    ],
+    "coverSubject": "left_foreground_head_near_upper_left",
+    "pageScene": "shared_illustrated_setting_with_specific_sequential_actions",
+    "holdingBookWidthRatio": [
+      0.28,
+      0.36
+    ],
+    "holdingFraming": "seated_waist_and_lap_visible",
+    "originalPhotoDefines": "identity_not_background_or_camera_framing",
+    "holdingSurfaceRegion": [
+      0.35,
+      0.53,
+      0.67,
+      0.85
+    ]
+  }
+}

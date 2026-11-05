@@ -339,6 +339,24 @@ async def _prepare(db, job, project, photos):
                         "Cada verso gerado precisa ter de 2 a 4 linhas; tente novamente",
                         transient=True,
                     )
+                if editorial_profile.composed(profile) and editorial_profile.policy(profile).get(
+                    "referenceComposition"
+                ):
+                    from app.workers import editorial_render
+
+                    try:
+                        _, layout = editorial_render.text(
+                            _offline_png("text fit", palette=((255, 255, 255), (255, 255, 255))),
+                            locale[key],
+                            profile,
+                        )
+                        if len(layout["lines"]) > 4:
+                            raise ValueError("Versos longos")
+                    except ValueError as exc:
+                        raise ProviderError(
+                            "Os versos gerados precisam ser mais curtos para manter a leitura confortável",
+                            transient=True,
+                        ) from exc
         # Existing supplied texts always win; only absent fields may be composed.
         for lang, locale in profile.get("supplied_locales", {}).items():
             for key, value in locale.items():
@@ -372,6 +390,22 @@ async def _prepare(db, job, project, photos):
             for k in ("visual_identity", "costume", "palette", "trait", "interest", "locales")
         },
         animal=prepared.get("animal", ""),
+        preview_actions={
+            lang: {
+                "left": locale.get("leftPageAction") or locale.get("left"),
+                "right": locale.get("rightPageAction") or locale.get("right"),
+                "learning": locale.get("learningObjective"),
+            }
+            for lang, locale in prepared.get("locales", {}).items()
+        },
+        scene_world=next(
+            (
+                locale.get("sceneWorld")
+                for locale in prepared.get("locales", {}).values()
+                if locale.get("sceneWorld")
+            ),
+            None,
+        ),
     )
     project.child_trait = project.child_trait or prepared["trait"]
     project.child_interest = project.child_interest or prepared["interest"]
@@ -408,6 +442,8 @@ def _publish_progress(db, job, *, stage: str, done: int, total: int, language: s
 
 
 async def preview(db, job, project):
+    if contract.adopt_current_editorial_draft(project):
+        db.commit()
     if editorial_profile.composed(project.book_profile or {}):
         from .editorial_book import preview as composed_preview
 
@@ -908,6 +944,9 @@ async def story(db, job, project):
                     "costume": project.book_profile.get("costume"),
                     "adjustment": adjustment,
                     "dedication": project.dedication,
+                    "preview": project.book_profile.get("locales", {}).get(language),
+                    "learning_plan": project.book_profile.get("preview_actions", {}).get(language),
+                    "scene_world": project.book_profile.get("scene_world"),
                 }
                 result = (
                     await _pkg()

@@ -7,7 +7,7 @@ import math
 
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from app.services import editorial_profile
 
@@ -35,16 +35,31 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
     if not isinstance(value, str) or not value.strip():
         raise ValueError("Texto aprovado ausente")
     policy = editorial_profile.policy(profile)
-    font_path = editorial_profile._root(profile["editorial"]["version"]) / "fonts/Nunito-Medium.ttf"
+    typography = policy["typography"]
+    filename = typography.get("titleFontFile" if title else "bodyFontFile", "Nunito-Medium.ttf")
+    font_path = editorial_profile._root(profile["editorial"]["version"]) / "fonts" / filename
     manifest = json.loads((font_path.parent / "manifest.json").read_text(encoding="utf-8"))
-    if digest(font_path.read_bytes()) != manifest["sha256"]:
+    face = manifest.get("faces", {}).get(filename, manifest)
+    if digest(font_path.read_bytes()) != face["sha256"]:
         raise ValueError("Fonte editorial alterada")
-    if any(ord(char) not in manifest["codepoints"] for char in value if not char.isspace()):
+    if any(ord(char) not in face["codepoints"] for char in value if not char.isspace()):
         raise ValueError("Fonte não contém todos os caracteres do texto aprovado")
     font = ImageFont.truetype(
-        str(font_path), max(1, round(image.width * (0.055 if title else 0.032)))
+        str(font_path),
+        max(
+            1,
+            round(
+                image.width
+                * typography.get(
+                    "titleWidthRatio" if title else "bodyWidthRatio", 0.055 if title else 0.032
+                )
+            ),
+        ),
     )
-    bounds = region or ([0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29])
+    bounds = region or policy.get("referenceComposition", {}).get(
+        "coverRegion" if title else "bodyRegion",
+        [0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29],
+    )
     x0, y0, x1, y1 = validate_region(bounds)
     box = [round(v * image.width) for v in (x0, y0, x1, y1)]
     draw = ImageDraw.Draw(image)
@@ -65,7 +80,7 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
     ink_height = font.getbbox("ÁgjÇ")[3] - font.getbbox("ÁgjÇ")[1]
     if (len(lines) - 1) * step + ink_height > box[3] - box[1]:
         raise ValueError("Texto não cabe; recomponha a cena sem reduzir a fonte")
-    alignment = alignment or ("center" if title else "left")
+    alignment = alignment or typography["coverAlignment" if title else "bodyAlignment"]
     if alignment not in {"left", "center"}:
         raise ValueError("Alinhamento editorial inválido")
     ink_boxes = []
@@ -97,11 +112,11 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
         "ink_region_with_margin": ink_region,
         "alignment": alignment,
         "font_sha256": digest(font_path.read_bytes()),
-        "weight": 500,
+        "weight": face["weight"],
         "font_size": font.size,
         "line_height": 1.2,
         "color": "#172A3A",
-        "layout_version": "2026-11-05.1",
+        "layout_version": profile["editorial"]["version"],
     }
 
 
@@ -116,10 +131,42 @@ def validate_region(region):
     return region
 
 
-def front(data):
+def front(data, *, profile=None):
     """Front-facing physical presentation; retain the separate flat cover for the PDF."""
     art = square(data)
     side = art.width
+    if profile and editorial_profile.policy(profile).get("referenceComposition"):
+        # A square printed face stays square; the separate spine sits beside it.
+        face_size = side - round(side * 0.032)
+        spine = max(8, round(side * 0.022))
+        x, y = (side - face_size - spine) // 2, (side - face_size) // 2
+        image = Image.new("RGB", (side, side), "#fff9ed")
+        shadow = Image.new("RGBA", image.size)
+        ImageDraw.Draw(shadow).rounded_rectangle(
+            (x + 2, y + 4, x + spine + face_size + 2, y + face_size + 4),
+            radius=side // 45,
+            fill=(48, 35, 18, 65),
+        )
+        shadow = shadow.filter(ImageFilter.GaussianBlur(max(2, side // 170)))
+        image.paste(shadow, (0, 0), shadow)
+        draw = ImageDraw.Draw(image)
+        draw.rounded_rectangle(
+            (x, y, x + spine + face_size, y + face_size), radius=side // 45, fill="#dfd1b8"
+        )
+        for i in range(spine):
+            light = round(205 + 35 * math.sin(math.pi * i / spine))
+            draw.line(
+                (x + i, y + 12, x + i, y + face_size - 12),
+                fill=(light, max(0, light - 10), max(0, light - 25)),
+            )
+        mask = Image.new("L", (face_size, face_size))
+        ImageDraw.Draw(mask).rounded_rectangle(
+            (0, 0, face_size - 1, face_size - 1), radius=side // 55, fill=255
+        )
+        image.paste(
+            art.resize((face_size, face_size), Image.Resampling.LANCZOS), (x + spine, y), mask
+        )
+        return encode(image)
     image = Image.new("RGB", (side, side), "#fff7ec")
     inset = max(6, side // 35)
     art = art.resize((side - inset * 2, side - inset * 2), Image.Resampling.LANCZOS)

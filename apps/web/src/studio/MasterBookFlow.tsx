@@ -846,7 +846,7 @@ export function MasterBookFlow({
             selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
       )}
-      {p.editorial?.version !== "2026-11-05.1" && stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
+      {!(["2026-11-05.1", "2026-11-05.2"].includes(p.editorial?.version || "")) && stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <section className="master-preview-next" aria-labelledby="master-preview-next-heading">
           <div>
             <h3 id="master-preview-next-heading">{t.previewNextHeading}</h3>
@@ -908,7 +908,7 @@ export function MasterBookFlow({
           </div>
         </section>
       )}
-      {((p.editorial?.version === "2026-11-05.1" && stage === "preview_ready") || ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage)) && (
+      {((["2026-11-05.1", "2026-11-05.2"].includes(p.editorial?.version || "") && stage === "preview_ready") || ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage)) && (
         <PostPreviewFlow
           project={project}
           jobs={jobs}

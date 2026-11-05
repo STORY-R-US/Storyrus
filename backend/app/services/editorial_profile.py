@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 ASSET_ROOT = Path(__file__).resolve().parents[1] / "assets/editorial"
-CURRENT_VERSION = "2026-11-05.1"
+CURRENT_VERSION = "2026-11-05.2"
 PROFILE_ROOTS = {
     version: ASSET_ROOT / version
     for version in (
@@ -14,6 +14,7 @@ PROFILE_ROOTS = {
         "2026-11-04.2",
         "2026-11-04.3",
         "2026-11-04.4",
+        "2026-11-05.1",
         CURRENT_VERSION,
     )
 }
@@ -52,6 +53,7 @@ def references(style, version: str | None = None, *, art_only: bool = False):
 def uses_backend_typography(profile, role):
     return profile.get("editorial", {}).get("version") in {
         "2026-11-04.4",
+        "2026-11-05.1",
         CURRENT_VERSION,
     } and role in {
         "01_CAPA",
@@ -60,7 +62,7 @@ def uses_backend_typography(profile, role):
 
 
 def composed(profile):
-    return profile.get("editorial", {}).get("version") == "2026-11-05.1"
+    return profile.get("editorial", {}).get("version") in {"2026-11-05.1", "2026-11-05.2"}
 
 
 def policy(profile):

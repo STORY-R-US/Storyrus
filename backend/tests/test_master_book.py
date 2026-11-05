@@ -18,6 +18,24 @@ from app.services import book_profile
 from app.workers import book_render, handlers, runner
 
 
+def test_reference_layout_keeps_literal_copy_with_real_heavy_fonts_and_separate_title_block():
+    from app.services import editorial_profile
+    from app.workers import editorial_render as render
+
+    profile = {"editorial": editorial_profile.snapshot("2026-11-05.2")}
+    title = "ANdré no Computador"
+    verses = "Lia desenha uma flor\ne, com o mouse, escolhe a cor.\nNa tela, seu jardim floresce,\ne um sorriso logo aparece."
+    _, heading = render.text(_png(), title, profile, title=True)
+    _, body = render.text(_png(), verses, profile)
+    assert heading["text"] == title and body["text"] == verses
+    assert heading["weight"] == 900 and body["weight"] == 700
+    assert heading["font_sha256"] != body["font_sha256"]
+    assert heading["region"][0] >= 0.4
+    assert len(heading["lines"]) == 2 and len(body["lines"]) == 4
+    assert body["alignment"] == "center"
+    assert body["font_size"] > 40
+
+
 def test_perspective_compositor_preserves_art_orientation_and_foreground():
     from app.workers import editorial_render as render
 
@@ -81,7 +99,7 @@ def test_editorial_literal_text_accents_and_overflow_fail_without_shrinking():
     from app.services import editorial_profile
     from app.workers import editorial_render as render
 
-    profile = {"editorial": editorial_profile.snapshot()}
+    profile = {"editorial": editorial_profile.snapshot("2026-11-05.1")}
     literal = "ANdré vê o céu.\nÉ tempo de aprender!"
     _, layout = render.text(_png(), literal, profile)
     assert layout["text"] == literal
@@ -101,6 +119,7 @@ def test_editorial_literal_text_accents_and_overflow_fail_without_shrinking():
 def composed_studio(studio, monkeypatch):
     from app.services import editorial_profile
 
+    monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-05.1")
     client, db, pid, store = studio
     project = db.get(Project, uuid.UUID(pid))
     book_profile.update(
@@ -140,7 +159,12 @@ def composed_studio(studio, monkeypatch):
                     draw.rectangle((51, 256, 502, 768), fill="#ff00ff")
                     draw.rectangle((522, 256, 973, 768), fill="#00ffff")
                 else:
-                    draw.rectangle((205, 205, 819, 819), fill="#ff00ff")
+                    if "ENQUADRAMENTO OBRIGATÓRIO" in kwargs["prompt"] and not control.get(
+                        "large_book"
+                    ):
+                        draw.rectangle((359, 543, 687, 871), fill="#ff00ff")
+                    else:
+                        draw.rectangle((205, 205, 819, 819), fill="#ff00ff")
             from app.workers.editorial_render import encode
 
             return ImageResult(encode(image), cost_usd=0)
@@ -238,6 +262,115 @@ def composed_studio(studio, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda: Images())
     monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
     yield studio, calls, control
+
+
+@pytest.fixture
+def reference_studio(composed_studio):
+    from app.services import editorial_profile
+
+    studio, calls, control = composed_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    project.style = "realistic"
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot("2026-11-05.2"),
+        scene_world="Ateliê ilustrado com luz suave, mesa de madeira e plantas",
+        preview_actions={
+            "pt-BR": {
+                "left": "Lia desenha uma flor e escolhe a cor no computador",
+                "right": "Lia nomeia e salva o desenho em uma pasta",
+            }
+        },
+        locales={
+            "pt-BR": {
+                "title": "Lia no computador",
+                "left": "Lia desenha uma flor\ne escolhe a sua cor.\nSeu jardim vai florescer,\nhá tanto para aprender.",
+                "right": "Dá um nome à criação\ne salva com atenção.\nDepois sabe encontrar\nseu jardim para admirar.",
+            }
+        },
+    )
+    db.commit()
+    return studio, calls, control
+
+
+@pytest.mark.asyncio
+async def test_reference_pipeline_uses_actions_illustrated_setting_and_new_typography(
+    reference_studio,
+):
+    studio, calls, _ = reference_studio
+    job = await _run(studio, "preview", key="reference-style")
+    assert job.status == "DONE"
+    assert len(calls) == 5
+    assert "TOP QUARTER" not in calls[0]["prompt"]
+    assert "ABAIXO de 25%" not in calls[0]["prompt"]
+    assert "COVER DESIGN" in calls[0]["prompt"]
+    assert "HAND-PAINTED" in calls[0]["style"]
+    assert "desenha uma flor" in calls[1]["prompt"]
+    assert "salva o desenho" in calls[2]["prompt"]
+    assert "28–36%" in calls[-1]["prompt"]
+    client, db, pid, _ = studio
+    sources = db.scalars(
+        select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
+    ).all()
+    layouts = {a.meta["stage"]: a.meta["layout"] for a in sources if a.meta.get("layout")}
+    assert layouts["cover:text"]["weight"] == 900
+    assert layouts["preview:left:text"]["weight"] == 700
+    assert layouts["preview:right:text"]["alignment"] == "center"
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
+    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_reference_pipeline_rejects_oversized_book_in_holding_scene(reference_studio):
+    studio, _, control = reference_studio
+    control["large_book"] = True
+    client, db, pid, _ = studio
+    response = client.post(
+        f"/v1/projects/{pid}/preview", headers={"Idempotency-Key": "oversized-book"}
+    )
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert job.result["editorial_tasks"]["reading"]["attempts"] == 3
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+
+
+def test_new_preview_version_refreshes_only_generated_drafts_and_preserves_literal_text(studio):
+    from app.services import editorial_profile
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot("2026-11-05.1"),
+        locales={
+            "pt-BR": {
+                "title": "tÍTULO literal",
+                "left": "Texto meu.\nNão alterar.",
+                "right": "Verso automático.",
+            }
+        },
+        text_record={
+            "pt-BR": {
+                "title": {"origin": "user_supplied"},
+                "left": {"origin": "user_supplied"},
+                "right": {"origin": "generated"},
+            }
+        },
+    )
+    previous = project.book_profile
+    assert book_profile.adopt_current_editorial_draft(project)
+    assert project.book_profile["editorial"]["version"] == "2026-11-05.2"
+    assert project.book_profile["supplied_locales"]["pt-BR"] == {
+        "title": "tÍTULO literal",
+        "left": "Texto meu.\nNão alterar.",
+    }
+    assert project.book_profile["locales"] == {}
+    project.book_profile = previous
+    project.purchase_flow = {"preview_approved_at": "2026-11-05"}
+    assert not book_profile.adopt_current_editorial_draft(project)
+    assert project.book_profile == previous
 
 
 @pytest.mark.asyncio
