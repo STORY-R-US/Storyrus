@@ -172,3 +172,8 @@ para não confundir reflexos da marcação com dedos ou roupas.
 - A publicação exclui o servidor de homologação, banco, fotos, resultados
   pessoais e credenciais. A aprovação do cliente e as regras de pagamento
   continuam sendo aplicadas no servidor.
+- A CI identificou a dependência de teste PyMuPDF ausente; ela foi declarada
+  em `dev`, mantendo a verificação visual da orientação do PDF.
+- O job mobile já falhava em `6f91c9a`: Expo 51 conflita com a exigência de
+  Expo 53–54 do Clerk instalado. A mesma falha foi confirmada no job anterior
+  `126893967714`. Nenhum arquivo mobile foi alterado nesta publicação.
