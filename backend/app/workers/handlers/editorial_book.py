@@ -318,6 +318,37 @@ class Pipeline:
                     )
                     break
                 except ValueError as exc:
+                    # Vision can propose a box too small even for a short stanza.
+                    # Calibrate a larger safe box using the actual font before
+                    # requesting another plan or paying for any image generation.
+                    calibrated = False
+                    for candidate_region in (
+                        [[0.09, 0.06, 0.91, 0.29]]
+                        if title
+                        else [[0.07, 0.07, 0.93, 0.37], [0.07, 0.07, 0.93, 0.47]]
+                    ):
+                        try:
+                            render.text(
+                                self.master._offline_png(
+                                    "layout", palette=((255, 255, 255), (255, 255, 255))
+                                ),
+                                value,
+                                self.profile,
+                                title=title,
+                                region=candidate_region,
+                                alignment="center" if title else "left",
+                            )
+                            plan = {
+                                **plan,
+                                "text_region": candidate_region,
+                                "alignment": "center" if title else "left",
+                            }
+                            calibrated = True
+                            break
+                        except ValueError:
+                            continue
+                    if calibrated:
+                        break
                     if self.demo or layout_attempt == 2:
                         raise ProviderError(
                             "Texto aprovado não cabe no layout; composição bloqueada",
@@ -739,7 +770,10 @@ class Pipeline:
                 )
                 geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
             data, provenance = render.mockup(raw, artworks, geometry, visible_masks=visible_masks)
-            expected = self.profile["locales"][self.language]
+            expected = {
+                key: self.profile["locales"][self.language][key]
+                for key in ("title", "left", "right")
+            }
             qa = await self.review(
                 data,
                 (

@@ -177,3 +177,6 @@ para não confundir reflexos da marcação com dedos ou roupas.
 - O job mobile já falhava em `6f91c9a`: Expo 51 conflita com a exigência de
   Expo 53–54 do Clerk instalado. A mesma falha foi confirmada no job anterior
   `126893967714`. Nenhum arquivo mobile foi alterado nesta publicação.
+- O caso reportado também revelou uma região inicial pequena demais para
+  versos curtos. A calibração mede alternativas maiores com a fonte real antes
+  de gerar a arte, preservando integralmente as palavras e o tamanho da fonte.

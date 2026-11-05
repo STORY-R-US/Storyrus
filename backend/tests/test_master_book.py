@@ -234,7 +234,7 @@ def composed_studio(studio, monkeypatch):
 @pytest.mark.asyncio
 async def test_body_layout_adapts_to_observed_art_without_regenerating_scene(composed_studio):
     studio, calls, control = composed_studio
-    control["body_initial_region"] = [0.08, 0.62, 0.62, 0.9]
+    control["body_initial_region"] = [0.07, 0.07, 0.09, 0.09]
     control["observed_too_small_once"] = True
     control["reject_body_region_once"] = True
     job = await _run(studio, "preview", key="observed-body-layout")
