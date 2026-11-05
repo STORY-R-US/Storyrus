@@ -161,7 +161,9 @@ def composed_studio(studio, monkeypatch):
             observed_too_small = False
             if kwargs.get("scene_image"):
                 control["observed_layout_calls"] = control.get("observed_layout_calls", 0) + 1
-                observed_too_small = control.pop("observed_too_small_once", False)
+                observed_too_small = control.pop("observed_too_small_once", False) or control.get(
+                    "observed_always_too_small", False
+                )
             return TextResult(
                 text=json.dumps(
                     {
@@ -235,12 +237,12 @@ def composed_studio(studio, monkeypatch):
 async def test_body_layout_adapts_to_observed_art_without_regenerating_scene(composed_studio):
     studio, calls, control = composed_studio
     control["body_initial_region"] = [0.07, 0.07, 0.09, 0.09]
-    control["observed_too_small_once"] = True
+    control["observed_always_too_small"] = True
     control["reject_body_region_once"] = True
     job = await _run(studio, "preview", key="observed-body-layout")
     assert job.status == "DONE"
     assert len(calls) == 5
-    assert control["observed_layout_calls"] == 3
+    assert control["observed_layout_calls"] == 6
     _, db, pid, _ = studio
     sources = db.scalars(
         select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
@@ -249,7 +251,7 @@ async def test_body_layout_adapts_to_observed_art_without_regenerating_scene(com
     assert len(pages) == 2
     layouts = {a.meta["stage"]: a.meta["layout"]["region"] for a in pages}
     assert layouts["preview:left:text"] == [0.07, 0.07, 0.50, 0.40]
-    assert layouts["preview:right:text"] == [0.09, 0.06, 0.91, 0.29]
+    assert layouts["preview:right:text"] == [0.07, 0.07, 0.93, 0.37]
 
 
 @pytest.mark.asyncio

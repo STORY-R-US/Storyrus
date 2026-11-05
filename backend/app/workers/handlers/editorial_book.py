@@ -574,7 +574,7 @@ class Pipeline:
                             raise ValueError("Texto interno precisa de alinhamento à esquerda")
                         render.text(raw, value, self.profile, region=region, alignment="left")
                         break
-                    except ValueError as exc:
+                    except ValueError:
                         correction = {
                             "previous_region": region,
                             "failure": "The exact text did not fit the proposed region or layout was invalid. Reserve a larger natural quiet area, left aligned, without changing text or reducing font size.",
@@ -582,10 +582,11 @@ class Pipeline:
                             "line_height": 1.2,
                         }
                         if layout_attempt == 2:
-                            raise ProviderError(
-                                "Texto aprovado não cabe na área livre da cena; recomponha o layout",
-                                transient=False,
-                            ) from exc
+                            # The model's proposed boxes can be invalid. Keep the
+                            # preflight-fitted plan and test the measured candidate
+                            # regions below against the actual image before rejecting it.
+                            region = plan["text_region"]
+                            break
             regions = (
                 [region] if title else [region, [0.07, 0.07, 0.50, 0.40], [0.07, 0.07, 0.93, 0.29]]
             )
