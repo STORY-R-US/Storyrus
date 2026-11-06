@@ -328,7 +328,27 @@ class OpenAIImageProvider:
         }
         if self._model in {"gpt-image-1", "gpt-image-1.5"}:
             data["input_fidelity"] = "high"
-        return await self._post_multipart("/images/edits", data=data, files=files)
+        result = await self._post_multipart("/images/edits", data=data, files=files)
+        try:
+            generated = Image.open(io.BytesIO(result.image_bytes)).convert("RGBA")
+            if generated.size != canvas.size:
+                raise ProviderError("Unexpected reframed artwork dimensions", transient=False)
+            # An edit mask guides the model, but is not a pixel-preservation guarantee.
+            # Use generated pixels only in the newly exposed strip. Restoring the
+            # opaque canvas prevents the model from moving the head back upwards.
+            generated.paste(canvas.crop((0, shift, image.width, image.height)), (0, shift))
+            result.image_bytes = png(generated.convert("RGB"))
+            result.mime_type = "image/png"
+            result.meta = {
+                **result.meta,
+                "protected_source_pixels": True,
+                "generated_top_fraction": shift / image.height,
+            }
+        except (OSError, ValueError) as exc:
+            raise ProviderError(
+                "Invalid reframed artwork returned by provider", transient=False
+            ) from exc
+        return result
 
     async def generate_scene(
         self,

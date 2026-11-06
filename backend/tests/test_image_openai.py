@@ -77,7 +77,10 @@ def _reset(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_editorial_reframe_masks_only_added_top_and_attaches_original_photos():
-    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"reframed"))]
+    edited = io.BytesIO()
+    # Simulate an editor that changes EVERY pixel, ignoring its protected mask.
+    Image.new("RGB", (100, 100), "red").save(edited, "PNG")
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(edited.getvalue()))]
     raw = io.BytesIO()
     original = Image.new("RGB", (100, 100), "blue")
     original.putpixel((20, 30), (17, 45, 91))
@@ -86,7 +89,11 @@ async def test_editorial_reframe_masks_only_added_top_and_attaches_original_phot
     result = await provider.reframe_editorial_art(
         art=raw.getvalue(), photos=[raw.getvalue()], top_fraction=0.2, prompt="keep identity"
     )
-    assert result.image_bytes == b"reframed"
+    output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
+    assert output.getpixel((20, 10)) == (255, 0, 0)  # generated background retained
+    assert output.getpixel((20, 50)) == (17, 45, 91)  # shifted subject preserved
+    assert output.crop((0, 20, 100, 100)).tobytes() == original.crop((0, 0, 100, 80)).tobytes()
+    assert result.meta["protected_source_pixels"] is True
     request = _FakeAsyncClient.calls[0]
     assert request["data"]["input_fidelity"] == "high"
     files = request["files"]
@@ -98,6 +105,21 @@ async def test_editorial_reframe_masks_only_added_top_and_attaches_original_phot
     assert canvas.getpixel((20, 10))[3] == mask.getpixel((20, 10))[3] == 0
     assert mask.getpixel((20, 50))[3] == 255
     assert Image.open(io.BytesIO(files[2][1][1])).getpixel((20, 30)) == (17, 45, 91)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("invalid_image", [True, False])
+async def test_editorial_reframe_rejects_invalid_or_wrong_size_response(invalid_image):
+    original = io.BytesIO()
+    Image.new("RGB", (100, 100), "blue").save(original, "PNG")
+    edited = io.BytesIO()
+    Image.new("RGB", (50, 50), "red").save(edited, "PNG")
+    payload = b"invalid" if invalid_image else edited.getvalue()
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(payload))]
+    with pytest.raises(ProviderError):
+        await oai.OpenAIImageProvider().reframe_editorial_art(
+            art=original.getvalue(), photos=[], top_fraction=0.2, prompt="preserve identity"
+        )
 
 
 @pytest.mark.asyncio
