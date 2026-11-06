@@ -136,6 +136,9 @@ class Pipeline:
                 raise ProviderError("Arte editorial armazenada inválida", transient=False)
             self.record(name, "passed", storage_key=key, resumed=True)
             return data, cached.meta
+        # Feedback and source art belong only to this task, never the previous scene.
+        self.last_review_issues = []
+        self.last_art = None
         previous = (self.job.result or {}).get("editorial_tasks", {}).get(name, {})
         attempts = previous.get("attempts", 0) if previous.get("input_key") == key else 0
         maximum = 1 + min(
@@ -218,13 +221,34 @@ class Pipeline:
             editorial_profile._root(self.profile["editorial"]["version"])
             / "prompts/03_REVISAO_VISUAL.txt"
         ).read_text(encoding="utf-8")
+        if prompt.startswith(("ARTE_BASE:", "CAPA_PLANA:", "PAGINA_INTERNA:")):
+            # Flat intermediates are not physical-book mockups. The generic final
+            # scene rubric asks for book geometry and lettering absent at this stage.
+            template = (
+                "Revise somente OUTPUT conforme a tarefa declarada no início. "
+                "Compare identidade, idade, anatomia e figurino com as fotos originais; "
+                "confira acabamento, ação solicitada e continuidade. "
+                "ARTE_BASE deve ser uma ilustração contínua sem letras; a ausência de "
+                "texto é obrigatória. Avalie a reserva de leitura medida. "
+                "CAPA_PLANA e PAGINA_INTERNA devem conter somente o texto literal "
+                "solicitado, legível e sem sobreposição. "
+                "São imagens planas: não exigir livro físico, lombada, mãos segurando "
+                "um livro ou perspectiva. Não exigir título na página interna. "
+                "Use os resultados técnicos para geometria e tipografia: "
+                "{{TECHNICAL_VALIDATION_JSON}}. Política pertinente: {{EDITORIAL_POLICY_JSON}}. "
+                "Reprove defeitos concretos ou critérios obrigatórios inconclusivos."
+            )
         for marker, value in {
             "RESULT_IMAGE": "OUTPUT",
             "ORIGINAL_REFERENCE_IMAGES": self.base["reference_manifest"],
             "FINAL_COVER_IMAGE": "EXACT_COVER" if cover else None,
             "SCENE_PLAN_JSON": prompt,
             "LOCKED_TEXT_JSON": prompt,
-            "EDITORIAL_POLICY_JSON": self.policy,
+            "EDITORIAL_POLICY_JSON": (
+                {key: self.policy[key] for key in ("identity", "visual", "layout", "typography")}
+                if prompt.startswith(("ARTE_BASE:", "CAPA_PLANA:", "PAGINA_INTERNA:"))
+                else self.policy
+            ),
             "TECHNICAL_VALIDATION_JSON": {
                 "method": "deterministic typography and source projection; inspect visual result separately",
                 **(technical or {}),
@@ -522,6 +546,16 @@ class Pipeline:
                     )
                 )
             )
+            if not title:
+                prompt += (
+                    "\nFINAL INTERIOR FRAMING: reserve the measured reading rectangle "
+                    + json.dumps(safe_region)
+                    + " in normalized [left, top, right, bottom] coordinates as natural quiet "
+                    "background. Place ALL heads, hair, faces, hands and the important action "
+                    f"below y={safe_region[3] + 0.04:.3f}. Reframe the camera and pose to fit "
+                    "the scene below that boundary; preserve identity and natural proportions. "
+                    "Do not draw text, blank panels, banners or artificial strips."
+                )
             if title and not self.designed:
                 prompt += (
                     "\nFINAL FRAMING REQUIREMENT, overriding any reference-photo framing or "
@@ -726,7 +760,7 @@ class Pipeline:
                 "action": action,
                 "title": title,
                 "plan": plan,
-                **({"art_contract": 6} if not title else {}),
+                **({"art_contract": 7} if not title else {}),
             },
             build,
         )
