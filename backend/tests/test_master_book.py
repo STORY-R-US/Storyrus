@@ -332,7 +332,7 @@ async def test_reference_pipeline_rejects_oversized_book_in_holding_scene(refere
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     assert job.status == "FAILED"
-    assert job.result["editorial_tasks"]["reading"]["attempts"] == 3
+    assert job.result["editorial_tasks"]["reading"]["attempts"] == 1
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
 
 
@@ -1989,19 +1989,24 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
     original_review = text_class.validate_editorial_preview
 
     async def reject_each_reserve_once(self, **kwargs):
-        # Pipeline passes measured geometry via its rendered review prompt.
         if kwargs["prompt"].startswith("ARTE_BASE"):
             for passage in list(remaining):
-                # The original prompt carries the exact literal typography JSON.
                 if json.dumps(passage, ensure_ascii=False) in kwargs["prompt"]:
                     remaining.remove(passage)
-                    return TextResult(
-                        text=json.dumps(
-                            {"valid": False, "issues": ["Visible hair"], "limitations": []}
-                        ),
-                        cost_usd=0,
-                        meta={"review_scope": "text_reserve"},
-                    )
+            # The real current compositor must keep every measured crop free of
+            # artwork before ANY visual-provider call, not recover by generating.
+            assert "Intentional ivory paper-page layout" in kwargs["full_image_prompt"]
+            image = Image.open(io.BytesIO(kwargs["data"]))
+            x0, y0, x1, y1 = kwargs["inspection_region"]
+            crop = image.crop(
+                (
+                    round(x0 * image.width),
+                    round(y0 * image.height),
+                    round(x1 * image.width),
+                    round(y1 * image.height),
+                )
+            )
+            assert crop.getextrema() == ((255, 255), (249, 249), (237, 237))
         return await original_review(self, **kwargs)
 
     monkeypatch.setattr(text_class, "validate_editorial_preview", reject_each_reserve_once)
@@ -2009,10 +2014,47 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
     assert job.status == "DONE", job.error
     assert not remaining
     repairs = [call for call in calls if call.get("operation") == "outpaint_reframed_art"]
-    assert len(repairs) == 3
+    assert len(repairs) == 0
+    assert len(calls) == 5
     generated = [call for call in calls if "prompt" in call and not call.get("operation")]
     assert all("COMPOSITION EXAMPLES GUIDE" in call["prompt"] for call in generated[:3])
     assert job.cost_credits == 0 and not job.cost_usd
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
     db.refresh(project)
     assert not (project.purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+async def test_current_quality_failure_stops_after_one_image(reference_studio):
+    studio, calls, control = reference_studio
+    control["reject"] = True
+    _, db, pid, _ = studio
+    response = studio[0].post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert len(calls) == 1
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+
+
+def test_whole_art_composition_preserves_borders_and_measured_text_gap():
+    from PIL import ImageDraw
+
+    from app.workers import editorial_render as render
+
+    original = Image.new("RGB", (1000, 1000), "blue")
+    draw = ImageDraw.Draw(original)
+    draw.rectangle((0, 0, 999, 999), outline="red", width=25)
+    source = render.encode(original)
+    page_bytes, proof = render.fit_art_below_text(source, [0.1, 0.04, 0.9, 0.27])
+    page = Image.open(io.BytesIO(page_bytes))
+    x0, y0, x1, y1 = proof["art_box_px"]
+    assert y0 >= 300
+    assert proof["cropped"] is False
+    assert (
+        page.crop((x0, y0, x1, y1)).tobytes()
+        == original.resize((x1 - x0, y1 - y0), Image.Resampling.LANCZOS).tobytes()
+    )
+    assert page.crop((100, 40, 900, 270)).getextrema() == ((255, 255), (249, 249), (237, 237))
+    with pytest.raises(ValueError):
+        render.fit_art_below_text(source, [0.1, 0.04, 0.9, 0.8])

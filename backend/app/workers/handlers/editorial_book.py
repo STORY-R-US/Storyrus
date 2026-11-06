@@ -184,6 +184,10 @@ class Pipeline:
                 ],
             ),
         )
+        # Current layouts solve placement locally. A genuine quality rejection
+        # must not buy another image automatically.
+        if self.designed:
+            maximum = 1
         for attempt in range(attempts + 1, maximum + 1):
             self.record(name, "running", attempts=attempt, input_key=key)
             try:
@@ -506,6 +510,12 @@ class Pipeline:
                 alignment=plan["alignment"],
             )
             safe_region = planned_layout["ink_region_with_margin"]
+            if self.designed:
+                # Verify room for the complete scene BEFORE any paid image request.
+                render.fit_art_below_text(
+                    self.master._offline_png("layout", palette=((255, 255, 255), (255, 255, 255))),
+                    safe_region,
+                )
             template = (
                 editorial_profile._root(self.profile["editorial"]["version"])
                 / "prompts/02_ARTE_E_CENAS.txt"
@@ -662,6 +672,13 @@ class Pipeline:
                     ensure_ascii=False,
                 )
             )
+            if self.designed:
+                prompt += (
+                    "\nFINAL PAGE CONTRACT: the server will place this WHOLE image below "
+                    "a separate ivory reading area. Fill the square with the requested scene "
+                    "and prominent naturally proportioned people. No empty text strip is "
+                    "needed INSIDE the artwork. Never draw letters, borders or a physical book."
+                )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
@@ -706,6 +723,11 @@ class Pipeline:
                 raw = result.image_bytes
             self.last_art = raw
             render.square(raw)
+            page_composition = None
+            if self.designed:
+                source_sha256 = render.digest(raw)
+                raw, page_composition = render.fit_art_below_text(raw, safe_region)
+                operation = "local_whole_art_composition"
             if not title and not self.demo and not self.designed:
                 correction = None
                 for layout_attempt in range(3):
@@ -784,7 +806,13 @@ class Pipeline:
                             }
                         ),
                         technical={"typography": layout},
-                        full_image_prompt="ARTE_BASE: One flat continuous illustration, without "
+                        full_image_prompt=(
+                            "Intentional ivory paper-page layout: one complete illustration below "
+                            "a separate reading area. Its paper margins are design, not collage. "
+                            if page_composition
+                            else ""
+                        )
+                        + "ARTE_BASE: One flat continuous illustration, without "
                         "letters, insets, photographs, collages or physical-book mockups. "
                         "Check identity, age, anatomy, outfit, style and the specific requested action. "
                         + json.dumps(
@@ -801,6 +829,11 @@ class Pipeline:
                         candidate,
                         ("CAPA_PLANA" if title else "PAGINA_INTERNA")
                         + ": texto literal "
+                        + (
+                            "Layout editorial em papel marfim, ilustração inteira abaixo do texto; margens intencionais não são colagem. "
+                            if page_composition
+                            else ""
+                        )
                         + json.dumps(value, ensure_ascii=False)
                         + ". Sem texto sobre cabelo, rosto, mãos ou ação importante. "
                         + self.text_instruction(title),
@@ -817,6 +850,7 @@ class Pipeline:
                 "text_region": region,
                 "operation": operation,
                 "source_sha256": source_sha256,
+                "page_composition": page_composition,
                 "composition_guide_sha256": composition_examples.signature(),
                 "references": self.base["photos"],
                 "plan": {**plan, "text_region": region, "alignment": self.alignment(title)},

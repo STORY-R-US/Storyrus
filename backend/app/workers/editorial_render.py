@@ -123,6 +123,38 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
     }
 
 
+def fit_art_below_text(data, ink_region, *, gap=0.03):
+    """Place the WHOLE original scene below measured typography, without cropping.
+
+    This is an intentional paper-page layout, not replacement imagery or AI
+    outpainting. All source borders survive; only uniform proportional scaling
+    is permitted. Text size and literal copy remain unchanged.
+    """
+    source = square(data)
+    if len(ink_region) != 4 or any(not math.isfinite(v) for v in ink_region):
+        raise ValueError("Invalid measured typography bounds")
+    side = source.width
+    top = math.ceil((ink_region[3] + gap) * side)
+    bottom = round(side * 0.96)
+    if top < 0 or top >= bottom or bottom - top < side * 0.5:
+        raise ValueError("Text leaves insufficient room for the whole illustration")
+    size = min(bottom - top, round(side * 0.92))
+    left = (side - size) // 2
+    page = Image.new("RGB", source.size, "#fff9ed")
+    page.paste(source.resize((size, size), Image.Resampling.LANCZOS), (left, top))
+    return encode(page), {
+        "method": "whole_art_below_text",
+        "source_sha256": digest(data),
+        "source_size": list(source.size),
+        "canvas_size": list(page.size),
+        "art_box_px": [left, top, left + size, top + size],
+        "ink_region": list(ink_region),
+        "cropped": False,
+        "background": "#fff9ed",
+        "scale": size / side,
+    }
+
+
 def validate_region(region):
     if not isinstance(region, list) or len(region) != 4:
         raise ValueError("Região de texto ausente")
