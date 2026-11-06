@@ -1,6 +1,7 @@
 """Entrypoint da API."""
 
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -42,6 +43,31 @@ jobs_svc.enqueue_fn = queue.notify
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    # Recover bounded diagnostic summaries after a deploy; never log images or prompts.
+    if settings.app_env == "prod":
+        try:
+            from sqlalchemy import select
+
+            from app.database import SessionLocal
+            from app.models import Job
+
+            with SessionLocal() as db:
+                failed = db.scalars(
+                    select(Job)
+                    .where(Job.status == "FAILED")
+                    .order_by(Job.created_at.desc())
+                    .limit(3)
+                )
+                for job in failed:
+                    reports = (job.result or {}).get("rejected_candidates", [])[-3:]
+                    for candidate in reports:
+                        logging.getLogger(__name__).warning(
+                            "editorial_diagnostic job=%s report=%s",
+                            job.id,
+                            str(candidate.get("report", {}))[:1800],
+                        )
+        except Exception:
+            logging.getLogger(__name__).exception("Editorial diagnostics unavailable")
     task: asyncio.Task[None] | None = None
     privacy_task = None
     if settings.app_env == "prod" and settings.privacy_retention_enabled:
