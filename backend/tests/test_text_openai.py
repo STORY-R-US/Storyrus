@@ -240,3 +240,4 @@ async def test_failed_reserve_never_advances_to_full_review(client, report):
     )
     assert len(client.calls) == 1
     assert json.loads(result.text) == report
+    assert result.meta["review_scope"] == "text_reserve"

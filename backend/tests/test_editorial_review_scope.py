@@ -56,3 +56,22 @@ def test_interior_overlap_uses_one_reframe_before_regenerating(designed):
     pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
     pipe.last_art = None
     assert not pipe.should_reframe_art(title=False, attempt=2)
+
+
+@pytest.mark.parametrize(
+    "issues",
+    [
+        ["Visible hair", "Visible part of a face", "Visible ear"],
+        ["Unspecified crop defect"],
+        [],
+    ],
+)
+def test_text_reserve_scope_triggers_reframe_without_keyword_matching(issues):
+    pipe = object.__new__(Pipeline)
+    pipe.designed = True
+    pipe.last_art = b"rejected scene"
+    pipe.last_review_scope = "text_reserve"
+    pipe.last_review_issues = issues
+    assert pipe.should_reframe_art(title=False, attempt=2)
+    assert not pipe.should_reframe_art(title=False, attempt=1)
+    assert not pipe.should_reframe_art(title=False, attempt=3)

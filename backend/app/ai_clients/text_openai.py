@@ -669,6 +669,7 @@ class OpenAITextProvider:
                     or not isinstance(reserve_report.get("limitations"), list)
                     or any(not isinstance(item, str) for item in reserve_report["limitations"])
                 ):
+                    reserve_result.meta = {**reserve_result.meta, "review_scope": "text_reserve"}
                     return reserve_result
             else:
                 crops.append(("TEXT_RESERVE_CROP: auxiliary crop of OUTPUT only", crop.getvalue()))

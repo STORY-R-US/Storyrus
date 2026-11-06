@@ -33,6 +33,7 @@ class Pipeline:
         self.designed = bool(self.policy.get("referenceComposition"))
         self.demo = contract.test_mode(project) or settings.offline_fallback
         self.language = project.language or "pt-BR"
+        self.last_review_scope = None
         self.last_review_issues = []
         self.last_art = None
         self.refs = [
@@ -89,17 +90,23 @@ class Pipeline:
             and attempt > 1
             and (title or attempt == 2)
             and self.last_art
-            and any(
-                token in " ".join(self.last_review_issues).lower()
-                for token in (
-                    "text",
-                    "regi",
-                    "sobrepo",
-                    "reserve",
-                    "ink_region",
-                    "tít",
-                    "cabelo",
-                    "cabeça",
+            and (
+                getattr(self, "last_review_scope", None) == "text_reserve"
+                or any(
+                    token in " ".join(self.last_review_issues).lower()
+                    for token in (
+                        "text",
+                        "regi",
+                        "sobrepo",
+                        "reserve",
+                        "ink_region",
+                        "tít",
+                        "cabelo",
+                        "cabeça",
+                        "hair",
+                        "head",
+                        "overlap",
+                    )
                 )
             )
         )
@@ -164,6 +171,7 @@ class Pipeline:
             self.record(name, "passed", storage_key=key, resumed=True)
             return data, cached.meta
         # Feedback and source art belong only to this task, never the previous scene.
+        self.last_review_scope = None
         self.last_review_issues = []
         self.last_art = None
         previous = (self.job.result or {}).get("editorial_tasks", {}).get(name, {})
@@ -349,6 +357,7 @@ class Pipeline:
                 ],
             }
             self.db.commit()
+            self.last_review_scope = result.meta.get("review_scope")
             self.last_review_issues = report.get("issues", []) if isinstance(report, dict) else []
             raise ValueError("Revisão visual reprovada ou inconclusiva")
         return {**report, "status": "valid"}
