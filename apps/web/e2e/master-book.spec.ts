@@ -55,8 +55,27 @@ test("Studio requires preview, story and face approvals in the browser", async (
   await expect(page.getByText("Aprovo A História?", { exact: true })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("button", { name: "Gostei, continuar com meu livro" })).toHaveCount(0);
   expect(calls).toHaveLength(0);
+  for (const label of ["Capa", "Livro Aberto", "Segurando o livro"]) {
+    const trigger = page.getByRole("button", { name: `Ampliar ${label}`, exact: true });
+    await trigger.click();
+    const viewer = page.getByRole("dialog", { name: label, exact: true });
+    await expect(viewer).toBeVisible();
+    await expect(viewer.getByRole("img", { name: label, exact: true })).toBeVisible();
+    await viewer.getByRole("button", { name: "Ver detalhes", exact: true }).click();
+    await expect(viewer.getByRole("button", { name: "Ajustar à tela", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press("Escape");
+    await expect(viewer).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  }
+  expect(calls).toHaveLength(0); // Enlarging never requests generation or approval.
   await page.screenshot({ path: testInfo.outputPath("studio-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Ampliar Livro Aberto", exact: true }).click();
+  const mobileViewer = page.getByRole("dialog", { name: "Livro Aberto", exact: true });
+  await expect(mobileViewer).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("preview-expanded-mobile.png") });
+  await mobileViewer.getByRole("button", { name: "Fechar", exact: true }).click();
+  await expect(mobileViewer).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath("studio-mobile.png"), fullPage: true });
   await page.getByRole("button", { name: "Sim, aprovo", exact: true }).click();
   await expect(page.getByRole("button", { name: "Gostei, continuar com meu livro" })).toBeVisible();

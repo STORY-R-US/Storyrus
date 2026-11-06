@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { PreviewImageViewer } from "./PreviewImageViewer";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { TitleSuggestions } from "./TitleSuggestions";
 import { StudioStageHeading } from "./StudioStageHeading";
@@ -369,6 +370,8 @@ export function MasterBookFlow({
 }: Props) {
   const { lang } = useStudioI18n();
   const t = COPY[lang];
+  const [expandedImage, setExpandedImage] = useState<{ url: string; label: string } | null>(null);
+  const expandLabel = lang === "en" ? "Enlarge" : lang === "es" ? "Ampliar" : "Ampliar";
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [adjustment, setAdjustment] = useState("");
@@ -612,6 +615,8 @@ export function MasterBookFlow({
   }
   return (
     <div className={`studio-master-flow${isPreviewReview ? " is-preview-review" : ""}`} data-testid="studio-master-flow">
+      {expandedImage && <PreviewImageViewer src={expandedImage.url} title={expandedImage.label}
+        lang={lang} onClose={() => setExpandedImage(null)} />}
       {testMode && <section className="master-adjustment-panel" data-testid="studio-test-mode">
         <h3>{t.testTitle}</h3><p className="master-title-hint">{t.testHint}</p>
         {!project.ai_generation_paused && <button type="button" className="kbtn kbtn-soft" disabled={active}
@@ -652,7 +657,8 @@ export function MasterBookFlow({
                 return (
                   <figure key={`${shot.language}-${shot.role}`}>
                     <img src={shot.url} alt={label} />
-                    <figcaption>{label}</figcaption>
+                    <figcaption>{label} <button type="button" className="master-image-expand"
+                      aria-label={`${expandLabel} ${label}`} onClick={() => setExpandedImage({ url: shot.url, label })}>{expandLabel}</button></figcaption>
                   </figure>
                 );
               })}
@@ -728,6 +734,8 @@ export function MasterBookFlow({
               <figcaption>
                 <span>{severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label}</span>
                 <span className="master-shot-actions">
+                  <button type="button" aria-label={`${expandLabel} ${label}`}
+                    onClick={() => setExpandedImage({ url: shot.url, label })}>{expandLabel}</button>
                   {previews.length === 3 && shot === previews[0] && <button type="button" disabled={active} onClick={() => void run(async () => {
                     const blob = await api.downloadPreviewPackage(project.id);
                     const url = URL.createObjectURL(blob);
