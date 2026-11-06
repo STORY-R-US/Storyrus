@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 
 from sqlalchemy import select
 
@@ -75,6 +76,32 @@ class Pipeline:
             "Versos centralizados no topo da página, conforme o layout."
             if self.alignment() == "center"
             else "Versos alinhados à esquerda."
+        )
+
+    def should_reframe_art(self, *, title, attempt):
+        """Repair the first reserve collision instead of repeating the same framing.
+
+        Repeatedly translating an interior would crop too much of the action, so
+        its final attempt returns to generation if the repair did not pass review.
+        """
+        return bool(
+            (not title or not self.designed)
+            and attempt > 1
+            and (title or attempt == 2)
+            and self.last_art
+            and any(
+                token in " ".join(self.last_review_issues).lower()
+                for token in (
+                    "text",
+                    "regi",
+                    "sobrepo",
+                    "reserve",
+                    "ink_region",
+                    "tít",
+                    "cabelo",
+                    "cabeça",
+                )
+            )
         )
 
     def cached(self, key):
@@ -288,6 +315,14 @@ class Pipeline:
             or not isinstance(report.get("limitations"), list)
             or any(not isinstance(item, str) for item in report["limitations"])
         ):
+            logging.getLogger(__name__).warning(
+                "editorial_review_rejected job=%s role=%s issues=%s",
+                self.job.id,
+                prompt.split(":", 1)[0],
+                str(report.get("issues", []) if isinstance(report, dict) else "invalid report")[
+                    :1800
+                ],
+            )
             require_photo_authorization(self.db, self.project.id)
             key = storage.new_key(self.project.id, "editorial-rejected", "png")
             storage.put_bytes(key, data, "image/png")
@@ -608,16 +643,8 @@ class Pipeline:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
                 provider = self.master._pkg().get_image_provider()
-                if (
-                    title
-                    and not self.designed
-                    and attempt > 1
-                    and self.last_art
-                    and any(
-                        token in " ".join(self.last_review_issues).lower()
-                        for token in ("text", "regi", "sobrepo", "reserve", "ink_region", "tít")
-                    )
-                    and hasattr(provider, "reframe_editorial_art")
+                if self.should_reframe_art(title=title, attempt=attempt) and hasattr(
+                    provider, "reframe_editorial_art"
                 ):
                     operation = "outpaint_reframed_art"
                     source_sha256 = render.digest(self.last_art)
@@ -760,7 +787,7 @@ class Pipeline:
                 "action": action,
                 "title": title,
                 "plan": plan,
-                **({"art_contract": 7} if not title else {}),
+                **({"art_contract": 8} if not title else {}),
             },
             build,
         )

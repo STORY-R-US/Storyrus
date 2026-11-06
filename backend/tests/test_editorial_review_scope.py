@@ -40,3 +40,19 @@ async def test_flat_review_contract(role):
     assert "Verifique capa quadrada e cada" not in captured[0]
     assert "ARTE_BASE deve ser" in captured[0]
     assert "CAPA_PLANA e PAGINA_INTERNA" in captured[0]
+
+
+@pytest.mark.parametrize("designed", [False, True])
+def test_interior_overlap_uses_one_reframe_before_regenerating(designed):
+    pipe = object.__new__(Pipeline)
+    pipe.designed = designed
+    pipe.last_art = b"existing candidate"
+    pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
+    assert not pipe.should_reframe_art(title=False, attempt=1)
+    assert pipe.should_reframe_art(title=False, attempt=2)
+    assert not pipe.should_reframe_art(title=False, attempt=3)
+    pipe.last_review_issues = ["Identity differs from the reference photograph"]
+    assert not pipe.should_reframe_art(title=False, attempt=2)
+    pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
+    pipe.last_art = None
+    assert not pipe.should_reframe_art(title=False, attempt=2)
