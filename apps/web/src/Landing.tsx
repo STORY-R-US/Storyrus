@@ -1479,7 +1479,7 @@ const I18N = {
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
     band_cta: "Criar Minha Conta",
     tagline: "Feito com amor. Criado para encantar.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
+    foot_copy: "© 2026 Story R Us — Where Memories Become Eternity.",
   },
   en: {
     nav: ["How It Works", "Books", "Videos", "FAQ"],
@@ -1732,7 +1732,7 @@ const I18N = {
     band_sub: "Send your photo and get a unique story, made just for you.",
     band_cta: "Create My Account",
     tagline: "Made with love. Created to enchant.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
+    foot_copy: "© 2026 Story R Us — Where Memories Become Eternity.",
   },
   es: {
     nav: ["Cómo Funciona", "Libros", "Videos", "FAQ"],
@@ -1985,7 +1985,7 @@ const I18N = {
     band_sub: "Envía tu foto y recibe una historia única, creada solo para ti.",
     band_cta: "Crear Mi Cuenta",
     tagline: "Hecho con amor. Creado para encantar.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
+    foot_copy: "© 2026 Story R Us — Where Memories Become Eternity.",
   },
 } as const;
 
