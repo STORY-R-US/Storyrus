@@ -1969,3 +1969,48 @@ def test_vibrant_cover_title_fits_full_width_without_changing_literal_copy(title
     assert heading["alignment"] == "center"
     assert heading["region"] == [0.06, 0.045, 0.94, 0.29]
     assert editorial_profile.policy(profile)["visual"]["color"] == "vibrant_balanced_natural_skin"
+
+
+@pytest.mark.asyncio
+async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
+    reference_studio, monkeypatch
+):
+    from app.services import editorial_profile
+
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-05.3")
+    book_profile.update(project, editorial=editorial_profile.snapshot())
+    db.commit()
+    passages = project.book_profile["locales"]["pt-BR"]
+    remaining = {passages[key] for key in ("title", "left", "right")}
+    text_class = type(handlers.get_text_provider())
+    original_review = text_class.validate_editorial_preview
+
+    async def reject_each_reserve_once(self, **kwargs):
+        # Pipeline passes measured geometry via its rendered review prompt.
+        if kwargs["prompt"].startswith("ARTE_BASE"):
+            for passage in list(remaining):
+                # The original prompt carries the exact literal typography JSON.
+                if json.dumps(passage, ensure_ascii=False) in kwargs["prompt"]:
+                    remaining.remove(passage)
+                    return TextResult(
+                        text=json.dumps(
+                            {"valid": False, "issues": ["Visible hair"], "limitations": []}
+                        ),
+                        cost_usd=0,
+                        meta={"review_scope": "text_reserve"},
+                    )
+        return await original_review(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", reject_each_reserve_once)
+    job = await _run(studio, "preview", key="current-layout-all-reserve-repairs")
+    assert job.status == "DONE", job.error
+    assert not remaining
+    repairs = [call for call in calls if call.get("operation") == "outpaint_reframed_art"]
+    assert len(repairs) == 3
+    assert job.cost_credits == 0 and not job.cost_usd
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
+    db.refresh(project)
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
