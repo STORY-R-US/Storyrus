@@ -43,19 +43,20 @@ async def test_flat_review_contract(role):
 
 
 @pytest.mark.parametrize("designed", [False, True])
-def test_interior_overlap_uses_one_reframe_before_regenerating(designed):
+@pytest.mark.parametrize("title", [False, True])
+def test_cover_and_interior_overlap_use_one_reframe_before_regenerating(designed, title):
     pipe = object.__new__(Pipeline)
     pipe.designed = designed
     pipe.last_art = b"existing candidate"
     pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
-    assert not pipe.should_reframe_art(title=False, attempt=1)
-    assert pipe.should_reframe_art(title=False, attempt=2)
-    assert not pipe.should_reframe_art(title=False, attempt=3)
+    assert not pipe.should_reframe_art(title=title, attempt=1)
+    assert pipe.should_reframe_art(title=title, attempt=2)
+    assert not pipe.should_reframe_art(title=title, attempt=3)
     pipe.last_review_issues = ["Identity differs from the reference photograph"]
-    assert not pipe.should_reframe_art(title=False, attempt=2)
+    assert not pipe.should_reframe_art(title=title, attempt=2)
     pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
     pipe.last_art = None
-    assert not pipe.should_reframe_art(title=False, attempt=2)
+    assert not pipe.should_reframe_art(title=title, attempt=2)
 
 
 @pytest.mark.parametrize(
@@ -75,3 +76,14 @@ def test_text_reserve_scope_triggers_reframe_without_keyword_matching(issues):
     assert pipe.should_reframe_art(title=False, attempt=2)
     assert not pipe.should_reframe_art(title=False, attempt=1)
     assert not pipe.should_reframe_art(title=False, attempt=3)
+
+
+@pytest.mark.parametrize("title", [False, True])
+def test_structured_reserve_failure_repairs_current_layout_cover_and_pages(title):
+    pipe = object.__new__(Pipeline)
+    pipe.designed = True
+    pipe.last_art = b"rejected candidate"
+    pipe.last_review_scope = "text_reserve"
+    pipe.last_review_issues = ["Portion of a human head is visible"]
+    assert pipe.should_reframe_art(title=title, attempt=2)
+    assert not pipe.should_reframe_art(title=title, attempt=3)

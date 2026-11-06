@@ -82,13 +82,12 @@ class Pipeline:
     def should_reframe_art(self, *, title, attempt):
         """Repair the first reserve collision instead of repeating the same framing.
 
-        Repeatedly translating an interior would crop too much of the action, so
-        its final attempt returns to generation if the repair did not pass review.
+        This applies to covers and interior pages with either layout. Repeated
+        translation would crop too much of the action, so the final attempt
+        returns to generation if the repair did not pass review.
         """
         return bool(
-            (not title or not self.designed)
-            and attempt > 1
-            and (title or attempt == 2)
+            attempt == 2
             and self.last_art
             and (
                 getattr(self, "last_review_scope", None) == "text_reserve"
@@ -656,6 +655,12 @@ class Pipeline:
                     provider, "reframe_editorial_art"
                 ):
                     operation = "outpaint_reframed_art"
+                    logging.getLogger(__name__).info(
+                        "editorial_reframe stage=%s attempt=%s reserve=%s",
+                        name,
+                        attempt,
+                        safe_region,
+                    )
                     source_sha256 = render.digest(self.last_art)
                     result = await provider.reframe_editorial_art(
                         art=self.last_art,
