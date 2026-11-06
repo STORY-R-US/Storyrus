@@ -1088,7 +1088,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         )}
         {orderSent ? (
           <section
-            className="studio-card studio-order studio-review"
+            className={`studio-card studio-order studio-review${showPreviewLoading ? " is-preview-building" : ""}`}
             role="status"
             data-testid="studio-order-sent"
             aria-busy={showPreviewLoading || undefined}
@@ -1172,7 +1172,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
                 <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
-                {project?.book_profile && <MasterBookFlow project={project} jobs={jobs} assets={assets} setProject={setProject} setJobs={setJobs} setAssets={setAssets} canConfirmPayment={isOwner} />}
               </div>
             ) : showPreviewRetry ? null : project?.book_profile ? (
               <>
