@@ -322,7 +322,7 @@ async def test_reference_pipeline_uses_actions_illustrated_setting_and_new_typog
 
 
 @pytest.mark.asyncio
-async def test_reference_pipeline_rejects_oversized_book_in_holding_scene(reference_studio):
+async def test_reference_pipeline_leaves_book_scale_judgement_to_user(reference_studio):
     studio, _, control = reference_studio
     control["large_book"] = True
     client, db, pid, _ = studio
@@ -331,9 +331,11 @@ async def test_reference_pipeline_rejects_oversized_book_in_holding_scene(refere
     )
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
-    assert job.status == "FAILED"
-    assert job.result["editorial_tasks"]["reading"]["attempts"] == 1
-    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+    assert job.status == "DONE", job.error
+    assert job.result["scenes"]["pt-BR:03_LEITURA"]["state"] == "awaiting_user_review"
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
 
 
 def test_new_preview_version_refreshes_only_generated_drafts_and_preserves_literal_text(studio):
@@ -2060,3 +2062,59 @@ def test_whole_art_composition_preserves_borders_and_measured_text_gap():
     assert page.crop((100, 40, 900, 270)).getextrema() == ((255, 255), (249, 249), (237, 237))
     with pytest.raises(ValueError):
         render.fit_art_below_text(source, [0.1, 0.04, 0.9, 0.8])
+
+
+@pytest.mark.asyncio
+async def test_technical_render_failure_is_not_reported_as_visual_rejection(reference_studio):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, _, _ = reference_studio
+    client, db, pid, _ = studio
+    response = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    pipe = Pipeline(db, job, db.get(Project, uuid.UUID(pid)), [_png()])
+    calls = []
+
+    async def missing_surface(attempt):
+        calls.append(attempt)
+        raise ValueError("Book surface not identified")
+
+    with pytest.raises(ProviderError, match="Book surface not identified") as failed:
+        await pipe.stage("reading", {}, missing_surface)
+    assert failed.value.transient is False
+    assert "reprovada" not in str(failed.value)
+    assert "Falha técnica" in str(failed.value)
+    assert calls == [1]
+    assert job.result["editorial_tasks"]["reading"]["detail"] == "Book surface not identified"
+
+
+@pytest.mark.asyncio
+async def test_retry_reuses_matching_generated_template_without_new_image_charge(
+    reference_studio, monkeypatch
+):
+    from app.workers import editorial_render
+
+    studio, calls, _ = reference_studio
+    original = editorial_render.mockup
+    fail_once = [True]
+
+    def interrupted(data, artworks, geometry, **kwargs):
+        if len(artworks) == 1 and fail_once[0]:
+            fail_once[0] = False
+            raise ValueError("Local composition interrupted")
+        return original(data, artworks, geometry, **kwargs)
+
+    monkeypatch.setattr(editorial_render, "mockup", interrupted)
+    client, db, pid, _ = studio
+    first = client.post(
+        f"/v1/projects/{pid}/preview", headers={"Idempotency-Key": "interrupt-local"}
+    )
+    job = db.get(Job, uuid.UUID(first.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    before = len(calls)
+    assert before == 5
+    recovered = await _run(studio, "preview", key="resume-local-no-new-image")
+    assert recovered.status == "DONE", recovered.error
+    assert len(calls) == before
+    assert recovered.result["editorial_tasks"]["reading:template"]["resumed"] is True

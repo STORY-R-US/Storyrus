@@ -9,7 +9,7 @@ from sqlalchemy import select
 from app import storage
 from app.ai_clients.base import ProviderError
 from app.config import settings
-from app.models import Asset, ProjectStatus
+from app.models import Asset, Job, ProjectStatus
 from app.services import book_profile as contract
 from app.services import composition_examples, editorial_profile, purchase_flow, spend_guard
 from app.services.privacy import require_photo_authorization
@@ -163,6 +163,27 @@ class Pipeline:
                 }
         key = f"editorial/{self.project.id}/{signature([self.base, name, inputs])}.png"
         cached = self.cached(key)
+        if (
+            not cached
+            and self.designed
+            and name.endswith(":template")
+            and "generation_job" in inputs
+        ):
+            # A failed composition must not purchase the same blank product scene
+            # again. Reconstruct prior keys using identical photos/profile/revision
+            # and inputs; only the bookkeeping job ID may differ.
+            previous_ids = self.db.scalars(
+                select(Job.id)
+                .where(Job.project_id == self.project.id, Job.id != self.job.id)
+                .order_by(Job.created_at.desc())
+                .limit(20)
+            ).all()
+            for previous_id in previous_ids:
+                previous_key = f"editorial/{self.project.id}/{signature([self.base, name, {**inputs, 'generation_job': str(previous_id)}])}.png"
+                cached = self.cached(previous_key)
+                if cached:
+                    key = previous_key
+                    break
         if cached:
             data = storage.get_bytes(key)
             if render.digest(data) != cached.meta["sha256"]:
@@ -226,12 +247,19 @@ class Pipeline:
                         transient=exc.transient,
                     )
                     raise
+                logging.getLogger(__name__).warning(
+                    "editorial_technical_failure stage=%s attempt=%s reason=%s",
+                    name,
+                    attempt,
+                    str(exc)[:300],
+                )
                 self.record(
                     name,
                     "failed",
                     attempts=attempt,
                     input_key=key,
                     reason=type(exc).__name__,
+                    detail=str(exc)[:300],
                     failure_category=(
                         "visual_review"
                         if "Revisão visual" in str(exc)
@@ -245,6 +273,11 @@ class Pipeline:
                     ),
                 )
                 if attempt == maximum:
+                    if self.designed:
+                        raise ProviderError(
+                            f"Falha técnica na montagem de {name}: {str(exc)[:240]}",
+                            transient=False,
+                        ) from exc
                     raise ProviderError(
                         f"Etapa {name} reprovada após {maximum} tentativas; revise a composição",
                         transient=False,
@@ -1016,14 +1049,6 @@ class Pipeline:
                     generate_template,
                 )
                 geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
-                if reading and self.designed:
-                    corners = geometry["surfaces"][0]
-                    width = max(p[0] for p in corners) - min(p[0] for p in corners)
-                    low, high = self.policy["referenceComposition"]["holdingBookWidthRatio"]
-                    if not low <= width <= high:
-                        raise ValueError(
-                            "Livro fora da escala definida para a pessoa e o enquadramento"
-                        )
             data, provenance = render.mockup(raw, artworks, geometry, visible_masks=visible_masks)
             expected = {
                 key: self.profile["locales"][self.language][key]
