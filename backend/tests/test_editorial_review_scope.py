@@ -87,3 +87,14 @@ def test_structured_reserve_failure_repairs_current_layout_cover_and_pages(title
     pipe.last_review_issues = ["Portion of a human head is visible"]
     assert pipe.should_reframe_art(title=title, attempt=2)
     assert not pipe.should_reframe_art(title=title, attempt=3)
+
+
+@pytest.mark.asyncio
+async def test_user_visual_review_does_not_accept_corrupt_image():
+    from PIL import UnidentifiedImageError
+
+    pipe = object.__new__(Pipeline)
+    pipe.demo = False
+    pipe.designed = True
+    with pytest.raises(UnidentifiedImageError):
+        await pipe.review(b"not a PNG", "CAPA_PLANA: title")

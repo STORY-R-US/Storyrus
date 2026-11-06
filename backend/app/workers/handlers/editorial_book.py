@@ -254,6 +254,22 @@ class Pipeline:
     async def review(self, data, prompt, *, cover=None, technical=None, full_image_prompt=None):
         if self.demo:
             return {"status": "demo"}
+        if getattr(self, "designed", False):
+            # A render-ready file is not a visual approval. Only the user decides
+            # whether likeness, finish and composition satisfy their expectations.
+            import io
+
+            from PIL import Image
+
+            with Image.open(io.BytesIO(data)) as image:
+                if image.format != "PNG":
+                    raise ValueError("Preview must be a valid PNG")
+                image.verify()
+            return {
+                "status": "awaiting_user_review",
+                "reviewer": "user",
+                "method": "technical_integrity_only",
+            }
         self.guard()
         template = (
             editorial_profile._root(self.profile["editorial"]["version"])

@@ -1983,36 +1983,14 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
     monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-05.3")
     book_profile.update(project, editorial=editorial_profile.snapshot())
     db.commit()
-    passages = project.book_profile["locales"]["pt-BR"]
-    remaining = {passages[key] for key in ("title", "left", "right")}
     text_class = type(handlers.get_text_provider())
-    original_review = text_class.validate_editorial_preview
 
-    async def reject_each_reserve_once(self, **kwargs):
-        if kwargs["prompt"].startswith("ARTE_BASE"):
-            for passage in list(remaining):
-                if json.dumps(passage, ensure_ascii=False) in kwargs["prompt"]:
-                    remaining.remove(passage)
-            # The real current compositor must keep every measured crop free of
-            # artwork before ANY visual-provider call, not recover by generating.
-            assert "Intentional ivory paper-page layout" in kwargs["full_image_prompt"]
-            image = Image.open(io.BytesIO(kwargs["data"]))
-            x0, y0, x1, y1 = kwargs["inspection_region"]
-            crop = image.crop(
-                (
-                    round(x0 * image.width),
-                    round(y0 * image.height),
-                    round(x1 * image.width),
-                    round(y1 * image.height),
-                )
-            )
-            assert crop.getextrema() == ((255, 255), (249, 249), (237, 237))
-        return await original_review(self, **kwargs)
+    async def no_automatic_visual_judge(self, **kwargs):
+        raise AssertionError("The visual-review API must not be called")
 
-    monkeypatch.setattr(text_class, "validate_editorial_preview", reject_each_reserve_once)
+    monkeypatch.setattr(text_class, "validate_editorial_preview", no_automatic_visual_judge)
     job = await _run(studio, "preview", key="current-layout-all-reserve-repairs")
     assert job.status == "DONE", job.error
-    assert not remaining
     repairs = [call for call in calls if call.get("operation") == "outpaint_reframed_art"]
     assert len(repairs) == 0
     assert len(calls) == 5
@@ -2025,16 +2003,40 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
 
 
 @pytest.mark.asyncio
-async def test_current_quality_failure_stops_after_one_image(reference_studio):
+async def test_current_preview_is_delivered_for_explicit_user_approval(reference_studio):
     studio, calls, control = reference_studio
-    control["reject"] = True
-    _, db, pid, _ = studio
-    response = studio[0].post(f"/v1/projects/{pid}/preview")
+    control["reject"] = True  # Automated aesthetic judgement must not veto output.
+    client, db, pid, _ = studio
+    response = client.post(f"/v1/projects/{pid}/preview")
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
-    assert job.status == "FAILED"
-    assert len(calls) == 1
-    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+    assert job.status == "DONE", job.error
+    assert len(calls) == 5
+    project = db.get(Project, uuid.UUID(pid))
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
+    scenes = db.scalars(
+        select(Asset).where(
+            Asset.project_id == uuid.UUID(pid), Asset.kind.in_(["cover", "page_image", "in_hand"])
+        )
+    ).all()
+    assert len(scenes) == 3
+    for scene in scenes:
+        assert scene.meta["validation"] == {
+            "status": "awaiting_user_review",
+            "reviewer": "user",
+            "method": "technical_integrity_only",
+        }
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+    # Merely claiming a pending review is insufficient without server provenance.
+    original_meta = scenes[0].meta
+    scenes[0].meta = {**original_meta, "validation": {"status": "awaiting_user_review"}}
+    db.commit()
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+    scenes[0].meta = original_meta
+    db.commit()
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    db.refresh(project)
+    assert project.purchase_flow["preview_approved_at"]
 
 
 def test_whole_art_composition_preserves_borders_and_measured_text_gap():

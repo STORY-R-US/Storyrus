@@ -19,7 +19,7 @@ const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK",
 afterEach(() => vi.restoreAllMocks());
 
 describe("Studio approval stages", () => {
-  it.each(["2026-11-05.1", "2026-11-05.2"])("aprova o trio editorial %s antes da cotação e não oferece história gratuita", async (version) => {
+  it.each(["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"])("aprova o trio editorial %s antes da cotação e não oferece história gratuita", async (version) => {
     const current = { ...project, book_profile: { ...project.book_profile!, editorial: { version, sha256: "policy" } },
       purchase_flow: { preview_ready_at: "2026-11-05", stage: "preview_ready" } };
     const approve = vi.spyOn(api, "approvePreview").mockResolvedValue(current);

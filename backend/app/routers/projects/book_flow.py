@@ -128,7 +128,15 @@ def preview_package(
                     if (a.meta or {}).get("workflow") == 1
                     and a.meta.get("language") == lang
                     and a.meta.get("role") == role
-                    and a.meta.get("validation", {}).get("status") == "valid"
+                    and (
+                        a.meta.get("validation", {}).get("status") == "valid"
+                        or (
+                            a.meta.get("validation", {}).get("status") == "awaiting_user_review"
+                            and a.meta.get("validation", {}).get("reviewer") == "user"
+                            and a.meta.get("validation", {}).get("method")
+                            == "technical_integrity_only"
+                        )
+                    )
                     and (
                         not project.book_profile.get("editorial")
                         or a.meta.get("editorial") == project.book_profile["editorial"]
