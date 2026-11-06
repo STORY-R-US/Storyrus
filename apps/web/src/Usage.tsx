@@ -70,7 +70,7 @@ export function Usage() {
     setError(null);
     setLastStatus(undefined);
     try {
-      const report = await api.usage(apiOwnerPassword(secret), "2026-09-01", "2026-09-30");
+      const report = await api.usage(apiOwnerPassword(secret));
       setData(report);
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
       persistOwnerSecret(next);
@@ -161,7 +161,7 @@ export function Usage() {
         <img className="hdr-logo" src={logo} alt="Story R Us" />
         <div>
           <h1>Gastos da plataforma</h1>
-          <p className="muted">Atualiza a cada 20s · fuso de Brasília · extrato de setembro/2026</p>
+          <p className="muted">Atualiza a cada 20s · fuso de Brasília · extrato do mês atual</p>
         </div>
         <OwnerNav current="gastos" />
         <button
