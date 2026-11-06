@@ -11,7 +11,7 @@ from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.models import Asset, ProjectStatus
 from app.services import book_profile as contract
-from app.services import editorial_profile, purchase_flow, spend_guard
+from app.services import composition_examples, editorial_profile, purchase_flow, spend_guard
 from app.services.privacy import require_photo_authorization
 from app.workers import editorial_render as render
 
@@ -381,7 +381,12 @@ class Pipeline:
                     .plan_editorial_page(
                         action=action,
                         text=value,
-                        policy=self.policy,
+                        policy={
+                            **self.policy,
+                            "composition_guidance": composition_examples.context(
+                                "cover" if title else "page", self.alignment(title)
+                            ),
+                        },
                         continuity=self.base["continuity"],
                         title=title,
                     )
@@ -648,6 +653,15 @@ class Pipeline:
                         "clear drawing/saving icons when appropriate; no coding unless requested."
                     )
                 )
+            prompt += (
+                "\nCOMPOSITION EXAMPLES GUIDE (layout only, not identity or story content): "
+                + json.dumps(
+                    composition_examples.context(
+                        "cover" if title else "page", self.alignment(title)
+                    ),
+                    ensure_ascii=False,
+                )
+            )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
@@ -803,6 +817,7 @@ class Pipeline:
                 "text_region": region,
                 "operation": operation,
                 "source_sha256": source_sha256,
+                "composition_guide_sha256": composition_examples.signature(),
                 "references": self.base["photos"],
                 "plan": {**plan, "text_region": region, "alignment": self.alignment(title)},
             }
@@ -887,6 +902,10 @@ class Pipeline:
                     ensure_ascii=False,
                 )
             )
+            if not reading:
+                prompt += "\nCOMPOSITION EXAMPLES GUIDE: " + json.dumps(
+                    composition_examples.context("open_book"), ensure_ascii=False
+                )
             if reading and self.designed:
                 prompt += (
                     "\nENQUADRAMENTO OBRIGATÓRIO: fotografia de produto em plano médio ABERTO, "

@@ -556,3 +556,6 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/foto-pai-e-filha.png
 !apps/web/public/exemplos/foto-pai-e-filha-en.png
 !apps/web/public/exemplos/foto-pai-e-filha-es.png
+
+# User-supplied visual examples stay local; publish only derived composition rules.
+/backend/app/assets/composition_examples/originals/

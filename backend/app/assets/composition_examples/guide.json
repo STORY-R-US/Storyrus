@@ -1,0 +1,33 @@
+{
+  "version": "2026-11-06.1",
+  "layouts": {
+    "single_page_centered": {
+      "source": "flat individual square page",
+      "text": "centered upper reading area, balanced short lines, natural quiet background",
+      "scene": "prominent people and narrative action below the measured text, with natural proportions"
+    },
+    "open_book_centered": {
+      "source": "two finished square pages placed side by side",
+      "text": "each page owns its own centered verses; keep inner margins clear of the gutter",
+      "scene": "coherent setting, palette, wardrobe and cast, with different sequential actions"
+    },
+    "open_book_headed": {
+      "source": "two finished square pages placed side by side",
+      "text": "optional page heading above left-aligned body; use only when explicitly selected",
+      "scene": "the same scene-world and cast, with meaningful changes in gesture and action"
+    }
+  },
+  "principles": [
+    "Use these examples for composition only. Original project photos alone define identity and age.",
+    "Never copy example names, faces, verses, religion, beach, furniture or props into an unrelated project.",
+    "Use the layout selected by the current project. Do not combine centered verses and a headed left-aligned layout in the same page.",
+    "Fit the exact approved copy and measure its ink bounds before composing artwork; keep a visible gap to heads and important gestures.",
+    "Keep people prominent and proportional. Do not crop feet, hands or narrative action merely to open space for text.",
+    "Continue the setting naturally behind the text; do not add opaque bands or artificial gradients.",
+    "Discreet foliage, sky, clouds or other theme-appropriate background details may surround text if legibility and subject separation remain intact.",
+    "Keep wardrobe, cast and the chosen scene-world consistent; vary actions and expressions according to each passage.",
+    "Only explicitly requested narrative actions and essential objects are mandatory. Do not reject an image for missing incidental objects from an example or identity photograph.",
+    "Flat source art must have no lettering or physical-book borders. Apply approved text deterministically, then compose the physical open-book presentation separately.",
+    "Examples inform layout, not a requirement to change the selected realistic/cartoon style."
+  ]
+}

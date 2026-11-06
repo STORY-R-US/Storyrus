@@ -1,0 +1,278 @@
+{
+  "version": "2026-11-06.1",
+  "source_count": 36,
+  "unique_count": 26,
+  "usage": "Private composition examples; never identity references, customer output or automatic approval.",
+  "examples": [
+    {
+      "sha256": "5535f7224825b711fbeec28563e7abf3594fc0c395599f3c8f48a8f887219df0",
+      "path": "originals/5535f7224825b711fbeec28563e7abf3594fc0c395599f3c8f48a8f887219df0.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_06-1.png"
+      ]
+    },
+    {
+      "sha256": "9c7fef8f362c737cad3902dceb9cfcbddeb7f30b1e57402a4c76b6c07a3e3545",
+      "path": "originals/9c7fef8f362c737cad3902dceb9cfcbddeb7f30b1e57402a4c76b6c07a3e3545.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_07-2.png"
+      ]
+    },
+    {
+      "sha256": "4e7cd6ea05175fdbd472dd32e1298e1d915ee585dce005045421b31b20f678d1",
+      "path": "originals/4e7cd6ea05175fdbd472dd32e1298e1d915ee585dce005045421b31b20f678d1.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_08-3.png"
+      ]
+    },
+    {
+      "sha256": "1b8daf087b56783243ab29cd60265e5b39ef05acfa6def7b9409055a5598655a",
+      "path": "originals/1b8daf087b56783243ab29cd60265e5b39ef05acfa6def7b9409055a5598655a.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_08-4.png"
+      ]
+    },
+    {
+      "sha256": "4c3874f71d5694e915f400ef2d388d4a823783911b72ff118fb9d9ed058a2d47",
+      "path": "originals/4c3874f71d5694e915f400ef2d388d4a823783911b72ff118fb9d9ed058a2d47.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_09-5.png"
+      ]
+    },
+    {
+      "sha256": "580aa6045518ca33b4b5cd48e05177ee007149946e74dce28f6a895ca122bb31",
+      "path": "originals/580aa6045518ca33b4b5cd48e05177ee007149946e74dce28f6a895ca122bb31.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_10-6.png"
+      ]
+    },
+    {
+      "sha256": "0f86d2f1d2a161a1b6fb60228a98e9fb0aa6e4e4a49affc3cec4154c729c4786",
+      "path": "originals/0f86d2f1d2a161a1b6fb60228a98e9fb0aa6e4e4a49affc3cec4154c729c4786.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_11-7.png"
+      ]
+    },
+    {
+      "sha256": "828ca7a1d78fcfc33af50c766954b26a5ba36e6e5683ef90bc96f195faf8f7be",
+      "path": "originals/828ca7a1d78fcfc33af50c766954b26a5ba36e6e5683ef90bc96f195faf8f7be.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_headed",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_23_12-8.png"
+      ]
+    },
+    {
+      "sha256": "6f873dd48bf7d79c5c8906574ce84f1c33c924cb073b2981f68705bba4c2383d",
+      "path": "originals/6f873dd48bf7d79c5c8906574ce84f1c33c924cb073b2981f68705bba4c2383d.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_25-1.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_39-1.png"
+      ]
+    },
+    {
+      "sha256": "9c3b4a3ff77e74d8db8d678d8bcfb0998b11b1b7921a1f82032331f3e89af20c",
+      "path": "originals/9c3b4a3ff77e74d8db8d678d8bcfb0998b11b1b7921a1f82032331f3e89af20c.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_26-2.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_40-2.png"
+      ]
+    },
+    {
+      "sha256": "8e778afc89511f254faaf5a4e55c4475cfb6dfaad208467472be3337028b646f",
+      "path": "originals/8e778afc89511f254faaf5a4e55c4475cfb6dfaad208467472be3337028b646f.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_27-3.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_41-3.png"
+      ]
+    },
+    {
+      "sha256": "33be455d0d61b8d4fb46b98cab1d0d62ffe1d6f8f145ee9a00b09e95de514080",
+      "path": "originals/33be455d0d61b8d4fb46b98cab1d0d62ffe1d6f8f145ee9a00b09e95de514080.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_28-4.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_42-4.png"
+      ]
+    },
+    {
+      "sha256": "65652b5cac45e106f45798e40b1c1724188662683c95ca57898eeef69db4a11c",
+      "path": "originals/65652b5cac45e106f45798e40b1c1724188662683c95ca57898eeef69db4a11c.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_29-5.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_43-5.png"
+      ]
+    },
+    {
+      "sha256": "c64958d460ccd45fe95dbb56e00a81a3d4acffe0393993ccfcce43cd7f2ade49",
+      "path": "originals/c64958d460ccd45fe95dbb56e00a81a3d4acffe0393993ccfcce43cd7f2ade49.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_35-6.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_44-6.png"
+      ]
+    },
+    {
+      "sha256": "16aec7a24c50d1c9332d0be511e2d3727996cfcc1fd09aefaad365852e355ca3",
+      "path": "originals/16aec7a24c50d1c9332d0be511e2d3727996cfcc1fd09aefaad365852e355ca3.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_36-7.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_45-7.png"
+      ]
+    },
+    {
+      "sha256": "191305bd142777f1453ba0dd651e36b2ad1a6c51574625d5e7c16eab4333873c",
+      "path": "originals/191305bd142777f1453ba0dd651e36b2ad1a6c51574625d5e7c16eab4333873c.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_37-8.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_46-8.png"
+      ]
+    },
+    {
+      "sha256": "bcd424055582e6e365f8532fcb9a6a88e61d64ecf627f304a2aa386321e89bca",
+      "path": "originals/bcd424055582e6e365f8532fcb9a6a88e61d64ecf627f304a2aa386321e89bca.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_38-9.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_46-9.png"
+      ]
+    },
+    {
+      "sha256": "21db3da6fc26d0a61575d30518e8d1f666a406aaeaa1acee6b84a3b1542d8525",
+      "path": "originals/21db3da6fc26d0a61575d30518e8d1f666a406aaeaa1acee6b84a3b1542d8525.png",
+      "width": 1254,
+      "height": 1254,
+      "layout": "single_page_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_56_39-10.png",
+        "Imagem do ChatGPT 4 de nov. de 2026, 10_57_47-10.png"
+      ]
+    },
+    {
+      "sha256": "8fb4694dea5c29dad2c1c7db352b03cd569f984ae54b3ba688cde75471cd0d2c",
+      "path": "originals/8fb4694dea5c29dad2c1c7db352b03cd569f984ae54b3ba688cde75471cd0d2c.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_18-1.png"
+      ]
+    },
+    {
+      "sha256": "60881a67cf07c86f39b065b9fb08589b4b3c7ba8c834c94a45f0b3abaaf6ed9e",
+      "path": "originals/60881a67cf07c86f39b065b9fb08589b4b3c7ba8c834c94a45f0b3abaaf6ed9e.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_19-2.png"
+      ]
+    },
+    {
+      "sha256": "0248ab47dd2eb5b4e936cd9383ee2b3abfba0d05f7f3f8e11eca3d0a63f54ff0",
+      "path": "originals/0248ab47dd2eb5b4e936cd9383ee2b3abfba0d05f7f3f8e11eca3d0a63f54ff0.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_20-3.png"
+      ]
+    },
+    {
+      "sha256": "aec392ff3f78ca725e7499b33785d1e2238e19d927097ae4c8582e95d96a17c7",
+      "path": "originals/aec392ff3f78ca725e7499b33785d1e2238e19d927097ae4c8582e95d96a17c7.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_20-4.png"
+      ]
+    },
+    {
+      "sha256": "ca9a510fe00b6377c150567400177abd3e9f214d863a37c6406bb14f6ce552e6",
+      "path": "originals/ca9a510fe00b6377c150567400177abd3e9f214d863a37c6406bb14f6ce552e6.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_21-5.png"
+      ]
+    },
+    {
+      "sha256": "f2d15f69c86505ba487992721f4c282bf29d876f9aa0c7a8c94ed0c5829de978",
+      "path": "originals/f2d15f69c86505ba487992721f4c282bf29d876f9aa0c7a8c94ed0c5829de978.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_22-6.png"
+      ]
+    },
+    {
+      "sha256": "90c98b9339759496bf88ceeae5bb54ded4b3ec7ba4587dbc04595a73eac0d725",
+      "path": "originals/90c98b9339759496bf88ceeae5bb54ded4b3ec7ba4587dbc04595a73eac0d725.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_23-7.png"
+      ]
+    },
+    {
+      "sha256": "ae5dbc2077e92d5d3ff92346243769183de49c4bd7b5d61176a675454722f78b",
+      "path": "originals/ae5dbc2077e92d5d3ff92346243769183de49c4bd7b5d61176a675454722f78b.png",
+      "width": 1774,
+      "height": 887,
+      "layout": "open_book_centered",
+      "sources": [
+        "Imagem do ChatGPT 4 de nov. de 2026, 16_39_24-8.png"
+      ]
+    }
+  ]
+}

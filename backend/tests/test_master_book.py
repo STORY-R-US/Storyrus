@@ -2010,6 +2010,8 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
     assert not remaining
     repairs = [call for call in calls if call.get("operation") == "outpaint_reframed_art"]
     assert len(repairs) == 3
+    generated = [call for call in calls if "prompt" in call and not call.get("operation")]
+    assert all("COMPOSITION EXAMPLES GUIDE" in call["prompt"] for call in generated[:3])
     assert job.cost_credits == 0 and not job.cost_usd
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
     db.refresh(project)

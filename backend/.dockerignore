@@ -7,3 +7,5 @@ __pycache__
 *.pyc
 .env
 .env.*
+
+app/assets/composition_examples/originals
