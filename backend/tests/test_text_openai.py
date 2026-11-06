@@ -23,7 +23,7 @@ def _ok(text: str = "Título: Luna\nPágina 1: Era uma vez.") -> dict:
 
 @pytest.mark.asyncio
 async def test_editorial_review_separates_output_from_references_and_crops_measured_region(client):
-    client.script = [(200, _ok('{"valid":true,"issues":[],"limitations":[]}'))]
+    client.script = [(200, _ok('{"valid":true,"issues":[],"limitations":[]}'))] * 2
     raw = io.BytesIO()
     Image.new("RGB", (100, 100), "blue").save(raw, "PNG")
     await oai.OpenAITextProvider().validate_editorial_preview(
@@ -34,11 +34,16 @@ async def test_editorial_review_separates_output_from_references_and_crops_measu
         style_refs=[b"style"],
         inspection_region=[0.25, 0.05, 0.75, 0.25],
     )
-    content = client.calls[0]["json"]["messages"][1]["content"]
+    crop_content = client.calls[0]["json"]["messages"][1]["content"]
+    crop_images = [part["image_url"] for part in crop_content if part["type"] == "image_url"]
+    assert len(crop_images) == 1
+    crop_bytes = base64.b64decode(crop_images[0]["url"].split(",")[1])
+    assert Image.open(io.BytesIO(crop_bytes)).size == (50, 20)
+    content = client.calls[1]["json"]["messages"][1]["content"]
     images = [part["image_url"] for part in content if part["type"] == "image_url"]
     decoded = [base64.b64decode(part["url"].split(",")[1]) for part in images]
     assert decoded[:2] == [b"original", b"style"]
-    assert Image.open(io.BytesIO(decoded[2])).size == (50, 20)
+    assert len(images) == 3
     assert decoded[-1] == raw.getvalue()
     assert all(part["detail"] == "high" for part in images)
     assert "Judge the LAST full image" in content[-1]["text"]
@@ -210,3 +215,28 @@ async def test_rehearsal_text_skips_openai(monkeypatch):
     assert result.meta["provider"] == "demo"
     assert result.cost_usd == 0
     assert "Página 1" in result.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "report",
+    [
+        {"valid": False, "issues": ["hair in reserve"], "limitations": []},
+        {"valid": True, "issues": ["hand in reserve"], "limitations": []},
+        {"valid": False, "issues": [], "limitations": ["inconclusive"]},
+    ],
+)
+async def test_failed_reserve_never_advances_to_full_review(client, report):
+    client.script = [(200, _ok(json.dumps(report)))]
+    raw = io.BytesIO()
+    Image.new("RGB", (100, 100), "blue").save(raw, "PNG")
+    result = await oai.OpenAITextProvider().validate_editorial_preview(
+        data=raw.getvalue(),
+        photos=[b"identity"],
+        cover=None,
+        prompt="ARTE_BASE: scene",
+        style_refs=[],
+        inspection_region=[0.1, 0.1, 0.9, 0.3],
+    )
+    assert len(client.calls) == 1
+    assert json.loads(result.text) == report

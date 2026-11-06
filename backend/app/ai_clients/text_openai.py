@@ -620,6 +620,7 @@ class OpenAITextProvider:
     ):
         content = [{"type": "text", "text": prompt}]
         crops = []
+        reserve_result = None
         if inspection_region is not None:
             image = Image.open(io.BytesIO(data))
             box = [
@@ -628,7 +629,49 @@ class OpenAITextProvider:
             ]
             crop = io.BytesIO()
             image.crop(box).save(crop, "PNG")
-            crops.append(("TEXT_RESERVE_CROP: auxiliary crop of OUTPUT only", crop.getvalue()))
+            if prompt.startswith("ARTE_BASE"):
+                reserve_result = await self._complete(
+                    system=(
+                        "Inspect ONLY the supplied crop, which is the exact reserved text area "
+                        "including its safety margin. No identity or style references are supplied. "
+                        "Reject visible hair, head, face, hands, important objects/action or lettering "
+                        "ANYWHERE inside this crop. A quiet natural background is valid; do not "
+                        "require people, facial identity, book geometry or text in this empty area. "
+                        "Do not infer subjects outside the crop. Return JSON "
+                        "{valid:boolean, issues:[strings], limitations:[strings]}. "
+                        "Concrete defects or uncertainty about this area require valid:false."
+                    ),
+                    user=[
+                        {
+                            "type": "text",
+                            "text": "EXACT_TEXT_RESERVE: judge every pixel of this crop only.",
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": "data:image/png;base64,"
+                                + base64.b64encode(crop.getvalue()).decode(),
+                                "detail": "high",
+                            },
+                        },
+                    ],
+                    max_tokens=600,
+                    json_mode=True,
+                )
+                try:
+                    reserve_report = json.loads(reserve_result.text)
+                except (ValueError, TypeError):
+                    raise ProviderError("Invalid text reserve review response", transient=False)
+                if (
+                    not isinstance(reserve_report, dict)
+                    or reserve_report.get("valid") is not True
+                    or reserve_report.get("issues") != []
+                    or not isinstance(reserve_report.get("limitations"), list)
+                    or any(not isinstance(item, str) for item in reserve_report["limitations"])
+                ):
+                    return reserve_result
+            else:
+                crops.append(("TEXT_RESERVE_CROP: auxiliary crop of OUTPUT only", crop.getvalue()))
         for label, image in [
             *[("IDENTITY", p) for p in photos],
             *[("STYLE_ONLY", p) for p in style_refs],
@@ -659,7 +702,7 @@ class OpenAITextProvider:
                 "Do not infer overlap merely from a portrait in the reference images.",
             }
         )
-        return await self._complete(
+        result = await self._complete(
             system=(
                 "Inspect OUTPUT against the role-specific validation contract in the text. "
                 "OUTPUT is the LAST full image. IDENTITY photos define likeness only; their "
@@ -704,11 +747,25 @@ class OpenAITextProvider:
                 "issues must contain defects only, never positive observations. "
                 "If uncertain about any required criterion return valid false. "
                 "This is automated visual inspection, not human approval."
+                + (
+                    " SEPARATE SPATIAL CHECK: the exact text-reserve crop was independently "
+                    "reviewed and passed with zero issues. In this full-image pass, inspect "
+                    "identity, age, anatomy, requested action, style, stray lettering and overall "
+                    "composition only. Do not reassess normalized rectangle overlap from this "
+                    "full image or the reference photos: that criterion belongs to the separate "
+                    "crop pass. All remaining required criteria must still pass."
+                    if reserve_result is not None
+                    else ""
+                )
             ),
             user=content,
             max_tokens=1200,
             json_mode=True,
         )
+        if reserve_result is not None:
+            result.cost_usd = (result.cost_usd or 0) + (reserve_result.cost_usd or 0)
+            result.meta = {**result.meta, "text_reserve_review": reserve_report}
+        return result
 
     async def generate_storyboard(
         self, *, story: str, theme: str, title: str = "", language: str = "pt-BR"
