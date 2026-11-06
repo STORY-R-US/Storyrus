@@ -202,7 +202,7 @@ def start_preview(
         )
 
     if book_profile.enabled(project):
-        book_profile.require_stage(project, "ficha", "preview_ready")
+        book_profile.require_stage(project, "ficha", "preview_ready", "cover_ready")
         photos = db.scalars(
             select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
         ).all()
@@ -210,6 +210,20 @@ def start_preview(
         payload = {preview_chain.PREVIEW_FLAG: True, "master_preview": True}
         if body:
             payload.update(body.model_dump(exclude_none=True, exclude={"brief"}))
+        calibration = project.book_profile.get("cover_calibration") or {}
+        approval = payload.get("approved_cover_sha256")
+        if approval:
+            if (
+                project.book_profile.get("stage") != "cover_ready"
+                or approval != calibration.get("sha256")
+                or payload.get("cover_only")
+                or payload.get("image")
+            ):
+                raise HTTPException(409, "Revise e aprove a capa atual antes de continuar")
+        elif calibration:
+            # A normal retry/adjustment must never purchase the remaining scenes
+            # before the user explicitly approves the current cover.
+            payload["cover_only"] = True
         if payload.get("language") and payload["language"] not in project.book_profile["languages"]:
             raise HTTPException(400, "Idioma nao pertence a ficha deste livro")
         project.book_approved_at = None

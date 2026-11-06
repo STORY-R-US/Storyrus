@@ -11,7 +11,13 @@ from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.models import Asset, Job, ProjectStatus
 from app.services import book_profile as contract
-from app.services import composition_examples, editorial_profile, purchase_flow, spend_guard
+from app.services import (
+    composition_examples,
+    editorial_profile,
+    purchase_flow,
+    spend_guard,
+    visual_reference,
+)
 from app.services.privacy import require_photo_authorization
 from app.workers import editorial_render as render
 
@@ -36,6 +42,7 @@ class Pipeline:
         self.last_review_scope = None
         self.last_review_issues = []
         self.last_art = None
+        self.cover_continuity = None
         self.refs = [
             data
             for _, data in editorial_profile.references(
@@ -44,6 +51,8 @@ class Pipeline:
         ]
         self.base = {
             "renderer_revision": "2026-11-06.full-bleed.1",
+            "visual_masters": visual_reference.fingerprint(project.style) if self.designed else {},
+            "visual_master_preset": self.profile.get("visual_master_preset"),
             "editorial": self.profile["editorial"],
             "photos": [render.digest(p) for p in photos],
             "style": project.style,
@@ -728,6 +737,24 @@ class Pipeline:
                     "Reserve ONLY the measured text rectangle, not an additional empty strip. "
                     "Never draw letters, borders or a physical book."
                 )
+            visual_master = (
+                visual_reference.load("cover" if title else "page", self.project.style)
+                if self.designed
+                else None
+            )
+            if visual_master:
+                prompt += (
+                    "\nLAST ATTACHED IMAGE = VISUAL MASTER, for composition, finish and visual identity "
+                    "of the book series ONLY. Match its lifelike faces integrated in softly illustrated "
+                    "surroundings, rich coordinated color and full-page scene. It is NOT a cast photo. "
+                    "Do NOT copy its face, person, name, words, computer, flowers or props unless "
+                    "requested in the current story. ORIGINAL project photos alone define people. "
+                    "The master may show a physical book/spread: generate only ONE flat page, "
+                    "without its spine, fold, border or existing lettering. Respect this page's "
+                    "measured text region and current action. Any preceding approved cover "
+                    "reference defines this project's wardrobe, palette and illustrated setting; "
+                    "keep that continuity while illustrating the new action."
+                )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
@@ -761,7 +788,10 @@ class Pipeline:
                         prompt=prompt,
                         character_ref=self.photos[0],
                         photo=self.photos[0],
-                        extra_refs=self.photos[1:] + self.refs,
+                        extra_refs=self.photos[1:]
+                        + self.refs
+                        + ([self.cover_continuity] if not title and self.cover_continuity else [])
+                        + ([visual_master] if visual_master else []),
                         style=(
                             self.policy["visual"]["artDirection"]
                             if self.designed and self.project.style != "cartoon"
@@ -917,7 +947,16 @@ class Pipeline:
                 "action": action,
                 "title": title,
                 "plan": plan,
-                **({"art_contract": 8} if not title else {}),
+                **(
+                    {
+                        "art_contract": 8,
+                        "cover_continuity_sha256": render.digest(self.cover_continuity)
+                        if self.cover_continuity
+                        else None,
+                    }
+                    if not title
+                    else {}
+                ),
             },
             build,
         )
@@ -1092,6 +1131,10 @@ async def preview(db, job, project):
 
     require_photo_authorization(db, project.id)
     photos = master._photos(db, project)
+    if visual_reference.load("cover", project.style):
+        contract.update(project, visual_master_preset="andre-editorial-v1")
+    elif project.style == "cartoon":
+        contract.update(project, visual_master_preset=None)
     contract.update(project, languages=[project.language or "pt-BR"])
     await master._prepare(db, job, project, photos)
     payload = master._payload(job)
@@ -1117,14 +1160,38 @@ async def preview(db, job, project):
         project, preview_ready_at=None, preview_approved_at=None, stage="preview_generating"
     )
     locale = project.book_profile["locales"][pipe.language]
-    flat, flat_meta = await pipe.art(
-        "cover", project.book_profile.get("theme_description"), title=True, value=locale["title"]
+    calibration = project.book_profile.get("cover_calibration") or {}
+    approval = payload.get("approved_cover_sha256")
+    calibration_context = signature(
+        [pipe.base, locale["title"], project.book_profile.get("theme_description")]
     )
+    if approval:
+        if (
+            approval != calibration.get("sha256")
+            or calibration.get("context") != calibration_context
+        ):
+            raise ProviderError(
+                "A capa mudou; revise a capa atual antes de continuar", transient=False
+            )
+        flat = storage.get_bytes(calibration["flat_key"])
+        if render.digest(flat) != calibration["flat_sha256"]:
+            raise ProviderError("Arquivo da capa alterado; gere a capa novamente", transient=False)
+        flat_meta = calibration["flat_meta"]
+    else:
+        flat, flat_meta = await pipe.art(
+            "cover",
+            project.book_profile.get("theme_description"),
+            title=True,
+            value=locale["title"],
+        )
+    if pipe.designed and flat_meta.get("art_key"):
+        pipe.cover_continuity = storage.get_bytes(flat_meta["art_key"])
     cover = render.front(flat, profile=project.book_profile)
     role = "01_CAPA"
     all_meta = {}
     selected = master._payload(job).get("image")
-    roles = editorial_profile.ROLES
+    cover_only = payload.get("cover_only", False)
+    roles = ("01_CAPA",) if cover_only else editorial_profile.ROLES
     for role in roles:
         if role == "01_CAPA":
             data, meta = cover, {k: v for k, v in flat_meta.items() if k != "art_bytes"}
@@ -1186,6 +1253,29 @@ async def preview(db, job, project):
         master._publish_progress(
             db, job, stage=role, done=roles.index(role) + 1, total=3, language=pipe.language
         )
+    if cover_only:
+        contract.update(
+            project,
+            stage="cover_ready",
+            cover_calibration={
+                "sha256": render.digest(cover),
+                "flat_key": flat_meta["storage_key"],
+                "flat_sha256": render.digest(flat),
+                "flat_meta": {k: v for k, v in flat_meta.items() if k != "art_bytes"},
+                "context": calibration_context,
+            },
+        )
+        purchase_flow.update(
+            project, preview_ready_at=None, preview_approved_at=None, stage="preview_generating"
+        )
+        job.result = {
+            **(job.result or {}),
+            "scenes": all_meta,
+            "preview_complete": False,
+            "cover_only": True,
+        }
+        master._set_status(db, project, ProjectStatus.EBOOK_READY)
+        return
     contract.update(project, stage="preview_ready")
     purchase_flow.update(
         project,

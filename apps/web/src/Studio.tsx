@@ -693,7 +693,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       storyTouched.current = false;
       setPhotoNotes("");
       const brief = getStoryBrief().trim();
-      await api.startPreview(p.id, brief ? { brief: brief.slice(0, 2000) } : {});
+      await api.startPreview(p.id, { brief: brief.slice(0, 2000) || undefined, cover_only: p.book_profile?.version === 1 });
       try {
         setJobs(await api.listJobs(p.id));
       } catch {
@@ -786,7 +786,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const brief = getStoryBrief().trim();
-      await api.startPreview(project.id, brief ? { brief: brief.slice(0, 2000) } : {});
+      await api.startPreview(project.id, { brief: brief.slice(0, 2000) || undefined, cover_only: project.book_profile?.version === 1 });
       try {
         setJobs(await api.listJobs(project.id));
       } catch {

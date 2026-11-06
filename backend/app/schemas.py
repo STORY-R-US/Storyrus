@@ -346,6 +346,8 @@ class StoryPageUndoIn(BaseModel):
 
 
 class PreviewRequestIn(BaseModel):
+    cover_only: bool = False
+    approved_cover_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     image: Literal["01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"] | None = None
     language: Literal["pt-BR", "en", "es"] | None = None
     adjustment: str | None = Field(default=None, max_length=500)

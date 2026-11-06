@@ -375,7 +375,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
             stages = (
                 ("preview_ready", "story_ready", "story_approved", "preview_approved")
                 if payload.get("title_refresh")
-                else ("ficha", "preview_ready")
+                else ("ficha", "preview_ready", "cover_ready")
             )
             book_profile.require_stage(project, *stages)
             _set_status(db, project, ProjectStatus.EBOOK_RUNNING)

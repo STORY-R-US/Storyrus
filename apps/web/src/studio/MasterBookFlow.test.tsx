@@ -387,3 +387,18 @@ describe("Studio approval stages", () => {
     }));
   });
 });
+
+
+it("shows only the calibration cover and waits for explicit approval", async () => {
+  const current = { ...project, book_profile: { ...project.book_profile!, stage: "cover_ready",
+    editorial: { version: "2026-11-05.3", sha256: "policy" }, cover_calibration: { sha256: "abc123" } } };
+  const start = vi.spyOn(api, "startPreview").mockResolvedValue(accepted);
+  vi.spyOn(api, "listJobs").mockResolvedValue([]);
+  vi.spyOn(api, "getProject").mockResolvedValue(current);
+  render(<MasterBookFlow project={current} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+  expect(start).not.toHaveBeenCalled();
+  expect(screen.queryByRole("img", { name: /livro aberto/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /baixar 3/i })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Aprovar esta capa e gerar o restante da prévia" }));
+  await waitFor(() => expect(start).toHaveBeenCalledWith("master", { approved_cover_sha256: "abc123" }));
+});

@@ -2132,3 +2132,122 @@ async def test_retry_reuses_matching_generated_template_without_new_image_charge
     assert recovered.status == "DONE", recovered.error
     assert len(calls) == before
     assert recovered.result["editorial_tasks"]["reading:template"]["resumed"] is True
+
+
+@pytest.mark.asyncio
+async def test_cover_calibration_waits_for_user_and_reuses_exact_cover(reference_studio):
+    studio, calls, _ = reference_studio
+    client, db, pid, store = studio
+    job = await _run(studio, "preview", {"cover_only": True}, key="calibrate-cover")
+    assert len(calls) == 1
+    assert job.result["cover_only"] and job.result["preview_complete"] is False
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "cover_ready"
+    proof = project.book_profile["cover_calibration"]
+    original = store[proof["flat_key"]]
+    assert not project.purchase_flow.get("preview_ready_at")
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 409
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+    assert (
+        client.post(
+            f"/v1/projects/{pid}/preview", json={"approved_cover_sha256": "0" * 64}
+        ).status_code
+        == 409
+    )
+    assert len(calls) == 1
+    await _run(studio, "preview", {"approved_cover_sha256": proof["sha256"]}, key="approve-cover")
+    assert len(calls) == 5  # only two pages and two scenes added, never a second cover
+    assert store[proof["flat_key"]] == original
+    assert calls[1]["extra_refs"][-1] == store[proof["flat_meta"]["art_key"]]
+    assert calls[2]["extra_refs"][-1] == store[proof["flat_meta"]["art_key"]]
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "preview_ready"
+    assert not project.purchase_flow.get("preview_approved_at")
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_visual_master_is_attached_last_as_style_only(
+    reference_studio, monkeypatch, tmp_path
+):
+    from cryptography.fernet import Fernet
+
+    from app.services import visual_reference
+    from app.workers import editorial_render
+
+    key = Fernet.generate_key()
+    cipher = Fernet(key)
+    masters = {
+        role: editorial_render.encode(Image.new("RGB", (32, 32), color))
+        for role, color in (("cover", "green"), ("page", "blue"))
+    }
+    for role, data in masters.items():
+        (tmp_path / f"visual-master-{role}.enc").write_bytes(cipher.encrypt(data))
+    monkeypatch.setattr(visual_reference, "ROOT", tmp_path)
+    monkeypatch.setattr(settings, "editorial_visual_reference_key", key.decode())
+    studio, calls, _ = reference_studio
+    await _run(studio, "preview", {"cover_only": True}, key="master-style-only")
+    assert len(calls) == 1
+    assert calls[0]["photo"] == _png()
+    assert calls[0]["extra_refs"][-1] == masters["cover"]
+    assert "LAST ATTACHED IMAGE = VISUAL MASTER" in calls[0]["prompt"]
+    assert "NOT a cast photo" in calls[0]["prompt"]
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    from app.services import editorial_profile
+
+    policy = editorial_profile.policy(project.book_profile)
+    assert policy["typography"]["titleWidthRatio"] == 0.083
+    assert policy["referenceComposition"]["coverRegion"][0] == 0.44
+    assert visual_reference.load("cover", "cartoon") is None
+
+
+@pytest.mark.asyncio
+async def test_calibration_retry_does_not_generate_remaining_scenes(reference_studio):
+    studio, calls, _ = reference_studio
+    await _run(studio, "preview", {"cover_only": True}, key="first-cover")
+    await _run(
+        studio,
+        "preview",
+        {"image": "01_CAPA", "adjustment": "Mais parecido com a foto"},
+        key="adjust-cover",
+    )
+    assert len(calls) == 2
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "cover_ready"
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_changed_cover_cannot_continue_using_old_approval(reference_studio):
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    await _run(studio, "preview", {"cover_only": True}, key="before-change")
+    project = db.get(Project, uuid.UUID(pid))
+    proof = project.book_profile["cover_calibration"]
+    locale = {**project.book_profile["locales"]["pt-BR"], "title": "Outro título"}
+    book_profile.update(project, locales={"pt-BR": locale})
+    db.commit()
+    response = client.post(
+        f"/v1/projects/{pid}/preview", json={"approved_cover_sha256": proof["sha256"]}
+    )
+    assert response.status_code == 202
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    db.refresh(job)
+    assert job.status == "FAILED"
+    assert "capa mudou" in job.error
+    assert len(calls) == 1
+
+
+def test_unreadable_visual_master_fails_before_generation(monkeypatch, tmp_path):
+    from cryptography.fernet import Fernet
+
+    from app.services import visual_reference
+
+    monkeypatch.setattr(visual_reference, "ROOT", tmp_path)
+    monkeypatch.setattr(settings, "editorial_visual_reference_key", Fernet.generate_key().decode())
+    (tmp_path / "visual-master-cover.enc").write_bytes(b"invalid encrypted image")
+    with pytest.raises(ProviderError, match="Referência visual indisponível"):
+        visual_reference.load("cover", "realistic")

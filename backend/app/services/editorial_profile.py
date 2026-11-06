@@ -75,9 +75,19 @@ def policy(profile):
     editorial = profile["editorial"]
     if editorial != snapshot(editorial["version"]):
         raise ValueError("Perfil editorial alterado; preserve o pacote original")
-    return json.loads(
+    result = json.loads(
         (_root(editorial["version"]) / "config/editorial-policy.json").read_text(encoding="utf-8")
     )
+    if profile.get("visual_master_preset") == "andre-editorial-v1" and result.get(
+        "referenceComposition"
+    ):
+        # Server-owned preset matching the user's selected cover: prominent face
+        # on the left, compact title integrated into the upper-right scene.
+        result["typography"].update(
+            coverPlacement="upper_right_block", titleWidthRatio=0.083, longTitleWidthRatio=0.065
+        )
+        result["referenceComposition"]["coverRegion"] = [0.44, 0.065, 0.95, 0.37]
+    return result
 
 
 def _remove_section(prompt: str, start: str, end: str | None) -> str:

@@ -409,10 +409,10 @@ export function MasterBookFlow({
   const lastJob = jobs[jobs.length - 1];
   const failed = lastJob?.status === "FAILED" ? lastJob : null;
   const stage = p.stage;
-  const isPreviewReview = ["preview_ready", "story_ready"].includes(stage)
+  const isPreviewReview = ["preview_ready", "story_ready", "cover_ready"].includes(stage)
     && !project.purchase_flow?.preview_approved_at;
   const storyReview = stage === "story_approved" && !project.purchase_flow?.preview_approved_at;
-  const previews = [...(assets?.previews ?? [])].sort(
+  const previews = [...(assets?.previews ?? [])].filter((shot) => stage !== "cover_ready" || shot.role === "01_CAPA").sort(
     (a, b) =>
       p.languages.indexOf(a.language) - p.languages.indexOf(b.language) ||
       a.role.localeCompare(b.role),
@@ -714,7 +714,7 @@ export function MasterBookFlow({
             <h3 id="master-preview-images-heading" className="master-section">
               {isPreviewReview && <span className="master-preview-number" aria-hidden="true">01</span>}{t.images}
             </h3>
-            {isPreviewReview && <p className="master-title-hint">{t.previewImagesHint}</p>}
+            {isPreviewReview && stage !== "cover_ready" && <p className="master-title-hint">{t.previewImagesHint}</p>}
           </div>
       <div className="master-gallery">
         {gallery.map((shot) => {
@@ -735,7 +735,7 @@ export function MasterBookFlow({
                     link.href = url; link.download = "Storyrus-previa.zip"; link.click();
                     setTimeout(() => URL.revokeObjectURL(url), 1000);
                   })}>{lang === "en" ? "Download 3 PNGs" : lang === "es" ? "Descargar 3 PNGs" : "Baixar 3 PNGs"}</button>}
-                  {stage === "preview_ready" ? (
+                  {["preview_ready", "cover_ready"].includes(stage) ? (
                     <button
                       type="button"
                       aria-expanded={suggesting === `${shot.language}:${shot.role}`}
@@ -754,7 +754,7 @@ export function MasterBookFlow({
                   )}
                 </span>
               </figcaption>
-              {stage === "preview_ready" && suggesting === `${shot.language}:${shot.role}` && (
+              {["preview_ready", "cover_ready"].includes(stage) && suggesting === `${shot.language}:${shot.role}` && (
                 <div className="master-shot-suggestion">
                   <label className="studio-field">
                     {t.suggestField}
@@ -779,6 +779,7 @@ export function MasterBookFlow({
                         api.startPreview(project.id, {
                           language: shot.language,
                           image: shot.role,
+                          ...(stage === "cover_ready" ? { cover_only: true } : {}),
                           adjustment: (suggestionText[key] || "").trim(),
                         }),
                       );
@@ -794,9 +795,19 @@ export function MasterBookFlow({
       </div>
         </section>
       )}
+      {stage === "cover_ready" && (
+        <section className="master-preview-panel" data-testid="studio-cover-calibration">
+          <h3>{lang === "en" ? "Review the cover first" : lang === "es" ? "Revisa primero la portada" : "Avalie primeiro a capa"}</h3>
+          <p>{lang === "en" ? "Review the face, finish and layout. The other scenes will only be generated after your approval." : lang === "es" ? "Revisa el rostro, el acabado y la composición. Las otras escenas solo se generarán después de tu aprobación." : "Confira o rosto, o acabamento e a composição. As outras cenas só serão geradas depois da sua aprovação."}</p>
+          <button type="button" className="kbtn kbtn-primary" disabled={active || !p.cover_calibration?.sha256}
+            onClick={() => void run(() => api.startPreview(project.id, { approved_cover_sha256: p.cover_calibration!.sha256 }))}>
+            {lang === "en" ? "Approve this cover and generate the preview" : lang === "es" ? "Aprobar esta portada y generar la vista previa" : "Aprovar esta capa e gerar o restante da prévia"}
+          </button>
+        </section>
+      )}
       {!storyReview && canEditTitle && (
         <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
-          {isPreviewReview && (
+          {isPreviewReview && stage !== "cover_ready" && (
             <div className="master-preview-panel-heading">
               <h3 className="master-section"><span className="master-preview-number" aria-hidden="true">02</span>{t.previewTitleHeading}</h3>
             </div>
