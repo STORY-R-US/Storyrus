@@ -87,6 +87,16 @@ def policy(profile):
             coverPlacement="upper_right_block", titleWidthRatio=0.083, longTitleWidthRatio=0.065
         )
         result["referenceComposition"]["coverRegion"] = [0.44, 0.065, 0.95, 0.37]
+    if profile.get("visual_master_preset") == "catalog-adventure-v1" and result.get(
+        "referenceComposition"
+    ):
+        result["typography"].update(
+            coverPlacement="upper_center", titleWidthRatio=0.105, longTitleWidthRatio=0.078
+        )
+        result["referenceComposition"]["coverRegion"] = [0.06, 0.045, 0.94, 0.29]
+        result["visual"]["artDirection"] = (
+            "Premium personalized realistic picture-book imagery, matching the vivid catalog examples: lifelike recognizable people with natural skin texture, luminous clear colors, coherent detailed environments, rich blues and greens and warm sunlight where appropriate. Avoid generic watercolor or sepia filters on faces. Preserve the project's real cast, age and proportions."
+        )
     return result
 
 

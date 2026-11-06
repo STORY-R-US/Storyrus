@@ -27,7 +27,7 @@ dependencies = [
     "fal-client>=0.5",
     "insightface>=0.7",
     "onnxruntime>=1.18",
-    "opencv-python-headless>=4.8",
+    "opencv-python-headless>=4.8,<5",
     "numpy>=1.26",
     "stripe>=11.0",
 ]

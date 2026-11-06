@@ -39,6 +39,14 @@ class Pipeline:
         self.designed = bool(self.policy.get("referenceComposition"))
         self.demo = contract.test_mode(project) or settings.offline_fallback
         self.language = project.language or "pt-BR"
+        self.reference_theme = " ".join(
+            str(v or "")
+            for v in (
+                project.theme,
+                self.profile.get("theme_description"),
+                self.profile.get("locales", {}).get(self.language, {}).get("title"),
+            )
+        )
         self.last_review_scope = None
         self.last_review_issues = []
         self.last_art = None
@@ -51,7 +59,9 @@ class Pipeline:
         ]
         self.base = {
             "renderer_revision": "2026-11-06.full-bleed.1",
-            "visual_masters": visual_reference.fingerprint(project.style) if self.designed else {},
+            "visual_masters": visual_reference.fingerprint(project.style, self.reference_theme)
+            if self.designed
+            else {},
             "visual_master_preset": self.profile.get("visual_master_preset"),
             "editorial": self.profile["editorial"],
             "photos": [render.digest(p) for p in photos],
@@ -738,7 +748,9 @@ class Pipeline:
                     "Never draw letters, borders or a physical book."
                 )
             visual_master = (
-                visual_reference.load("cover" if title else "page", self.project.style)
+                visual_reference.load(
+                    "cover" if title else "page", self.project.style, self.reference_theme
+                )
                 if self.designed
                 else None
             )
@@ -856,6 +868,7 @@ class Pipeline:
                             # regions below against the actual image before rejecting it.
                             region = plan["text_region"]
                             break
+            local_layout = None
             regions = (
                 [region]
                 if title or self.designed
@@ -870,6 +883,7 @@ class Pipeline:
                         title=title,
                         region=region,
                         alignment=self.alignment(title),
+                        readable=self.designed and not title,
                     )
                     qa = await self.review(
                         raw,
@@ -936,6 +950,7 @@ class Pipeline:
                 "operation": operation,
                 "source_sha256": source_sha256,
                 "page_composition": page_composition,
+                "local_reading_layout": local_layout,
                 "composition_guide_sha256": composition_examples.signature(),
                 "references": self.base["photos"],
                 "plan": {**plan, "text_region": region, "alignment": self.alignment(title)},
@@ -961,6 +976,12 @@ class Pipeline:
             build,
         )
 
+        if self.designed and not title:
+            actual_region, local_layout = render.choose_reading_region(
+                raw, value, self.profile, meta["text_region"], alignment=self.alignment()
+            )
+            meta = {**meta, "text_region": actual_region, "local_reading_layout": local_layout}
+
         async def compose(attempt):
             data, layout = render.text(
                 raw,
@@ -969,6 +990,7 @@ class Pipeline:
                 title=title,
                 region=meta["text_region"],
                 alignment=meta["plan"]["alignment"],
+                readable=self.designed and not title,
             )
             if meta.get("composition_sha256") == render.digest(data):
                 # This exact text composition already passed inspection while its
@@ -992,10 +1014,21 @@ class Pipeline:
                 "art_key": meta["storage_key"],
                 "art_sha256": render.digest(raw),
                 "layout": layout,
+                "local_reading_layout": meta.get("local_reading_layout"),
             }
 
         data, composed_meta = await self.stage(
-            name + ":text", {"art": render.digest(raw), "text": value}, compose
+            name + ":text",
+            {
+                "art": render.digest(raw),
+                "text": value,
+                **(
+                    {"reading_layout_contract": 2, "region": meta["text_region"]}
+                    if self.designed and not title
+                    else {}
+                ),
+            },
+            compose,
         )
         return data, {**composed_meta, "art_bytes": raw}
 
@@ -1005,7 +1038,7 @@ class Pipeline:
             prompt = (
                 "Uma cena fotográfica natural, ambiente acolhedor. "
                 + (
-                    "Protagonista original segura um livro fechado quadrado em primeiro plano. Ambiente tranquilo de fundo desfocado, SEM outras pessoas. A foto define somente identidade, não copie seu cenário. Capa PLANA voltada para a câmera, vista quase frontal. Mãos naturais segurando somente as bordas, sem ocultar o centro da capa. "
+                    "Protagonista original segura um livro físico quadrado de capa dura, ligeiramente aberto, em primeiro plano. A capa dianteira fica legível para a câmera e a contracapa aparece num ângulo natural. Ambiente tranquilo de fundo desfocado, somente o elenco solicitado nas fotos e na ficha. A foto define somente identidade, não copie seu cenário. Capa PLANA voltada para a câmera, vista quase frontal. Mãos naturais segurando somente as bordas, sem ocultar o centro da capa. "
                     if reading
                     else "Foto de produto: um livro aberto A 180 GRAUS sobre uma mesa, visto de cima, com duas páginas quadradas PLANAS iguais. Sem páginas curvas, sem pessoas nem mãos. "
                 )
@@ -1015,8 +1048,18 @@ class Pipeline:
                     else "A página ESQUERDA deve ser inteiramente MAGENTA VIVO uniforme #ff00ff; a página DIREITA deve ser inteiramente CIANO VIVO uniforme #00ffff. "
                 )
                 + "Essas cores são marcações temporárias que o compositor substituirá pelas artes finais. Superfícies lisas e foscas, sem letras, imagens, textura ou reflexo forte. "
-                "Cantos e contornos inteiramente visíveis. O compositor aplicará as artes finais. "
-                "Não invente personagens. Fotos originais definem identidade. "
+                + (
+                    "Livro físico encadernado: capa dura com espessura, lombada lateral visível, "
+                    "vinco de abertura, bloco de páginas brancas na borda inferior e contracapa. "
+                    "Nunca uma folha avulsa, placa fina, cartaz ou cartão. Vista levemente em três "
+                    "quartos, mantendo o plano frontal retangular legível. Cantos arredondados e "
+                    "bordas limpas; mãos apoiam o peso do volume pelas laterais e por baixo. "
+                    "A marcação cobre somente a face impressa da capa, sem vazamentos na lombada, "
+                    "nas páginas, na roupa ou nos dedos. O compositor aplicará as artes finais. "
+                    if reading
+                    else "Cantos e contornos inteiramente visíveis. O compositor aplicará as artes finais. "
+                )
+                + "Não invente personagens. Fotos originais definem identidade. "
                 + json.dumps(
                     {
                         "continuity": self.base["continuity"] if reading else {},
@@ -1039,16 +1082,26 @@ class Pipeline:
                     "\nENQUADRAMENTO OBRIGATÓRIO: fotografia de produto em plano médio ABERTO, "
                     "pessoa sentada, cabeça inteira, cadeira, cintura e colo visíveis. Livro "
                     "físico de 20x20 cm, capa dura com lombada, espessura e cantos arredondados. "
-                    "O livro deve ocupar APENAS cerca de um terço da largura total da imagem "
-                    "(28–36%), junto ao peito inferior/colo, nunca uma placa que cobre o tronco. "
+                    "O livro tem escala natural em relação a quem o segura, bem visível entre as "
+                    "mãos e o colo, com presença de produto como na referência do Catálogo. "
+                    "Nunca uma placa que cobre o tronco ou os rostos. "
                     "Mãos proporcionais apoiam as laterais, sem dedos esticados. "
                     "O figurino da personagem impressa pertence ao livro; a roupa da pessoa "
                     "externa pode ser casual e natural, sem obrigação de copiar o figurino impresso. "
-                    "Fundo acolhedor luminoso e coerente, sem outras pessoas. A marcação magenta "
+                    "Fundo acolhedor luminoso e coerente, sem pessoas adicionadas ao elenco. A marcação magenta "
                     "fica somente na superfície frontal imprimível; bordas, lombada e mãos são "
                     "neutras, sem reflexos coloridos. Região aproximada da capa: "
                     + json.dumps(self.policy["referenceComposition"]["holdingSurfaceRegion"])
                 )
+            template_reference = (
+                visual_reference.load(
+                    "holding" if reading else "page", self.project.style, self.reference_theme
+                )
+                if self.designed
+                else None
+            )
+            if template_reference:
+                prompt += "\nÚLTIMA REFERÊNCIA: exemplo do CATÁLOGO, apenas acabamento e estrutura física do livro. Nunca copie as pessoas, palavras, capa ou cenário do exemplo. Fotos originais do projeto definem identidade e elenco. Mantenha a marcação temporária somente nas faces imprimíveis."
             if self.demo:
                 visible_masks = None
                 raw = self.master._offline_png(name, palette=((248, 240, 220), (230, 240, 250)))
@@ -1071,9 +1124,11 @@ class Pipeline:
                         .get_image_provider()
                         .generate_scene(
                             prompt=prompt,
-                            character_ref=self.photos[0] if reading else b"",
+                            character_ref=self.photos[0] if reading else template_reference or b"",
                             photo=self.photos[0] if reading else None,
-                            extra_refs=self.photos[1:] if reading else [],
+                            extra_refs=(self.photos[1:] if reading else [])
+                            + ([template_reference] if reading and template_reference else []),
+                            reference_role="character" if reading else "cover",
                             style="fotografia editorial natural",
                             landscape=not reading,
                         )
@@ -1086,7 +1141,10 @@ class Pipeline:
                     {
                         "attempt": attempt,
                         "generation_job": str(self.job.id),
-                        "template_contract": 3 if reading else 2,
+                        "template_contract": 4 if reading else 2,
+                        "catalog_reference_sha256": render.digest(template_reference)
+                        if template_reference
+                        else None,
                         "revision": self.profile.get("editorial_revisions", {}).get(
                             "03_LEITURA" if reading else "02_LIVRO_ABERTO"
                         ),
@@ -1094,7 +1152,13 @@ class Pipeline:
                     generate_template,
                 )
                 geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
-            data, provenance = render.mockup(raw, artworks, geometry, visible_masks=visible_masks)
+            data, provenance = render.mockup(
+                raw,
+                artworks,
+                geometry,
+                visible_masks=visible_masks,
+                physical_book=reading and self.designed,
+            )
             expected = {
                 key: self.profile["locales"][self.language][key]
                 for key in ("title", "left", "right")
@@ -1120,7 +1184,7 @@ class Pipeline:
             name,
             {
                 "sources": [render.digest(p) for p in artworks],
-                "surface_contract": 5 if name == "reading" else 4,
+                "surface_contract": 6 if name == "reading" else 5,
             },
             build,
         )
@@ -1131,10 +1195,26 @@ async def preview(db, job, project):
 
     require_photo_authorization(db, project.id)
     photos = master._photos(db, project)
-    if visual_reference.load("cover", project.style):
-        contract.update(project, visual_master_preset="andre-editorial-v1")
-    elif project.style == "cartoon":
-        contract.update(project, visual_master_preset=None)
+    reference_theme = " ".join(
+        str(v or "")
+        for v in (
+            project.theme,
+            project.book_profile.get("theme_description"),
+            project.book_profile.get("locales", {})
+            .get(project.language or "pt-BR", {})
+            .get("title"),
+        )
+    )
+    family = visual_reference.catalog_family(project.style, reference_theme)
+    if visual_reference.load("cover", project.style, reference_theme):
+        contract.update(
+            project,
+            visual_master_preset="catalog-adventure-v1"
+            if family == "adventure"
+            else "andre-editorial-v1"
+            if family in {"creative", "family"}
+            else None,
+        )
     contract.update(project, languages=[project.language or "pt-BR"])
     await master._prepare(db, job, project, photos)
     payload = master._payload(job)

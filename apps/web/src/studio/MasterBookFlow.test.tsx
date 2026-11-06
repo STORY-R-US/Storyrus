@@ -50,7 +50,7 @@ describe("Studio approval stages", () => {
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     vi.spyOn(api, "getAssets").mockResolvedValue(assets);
     render(<MasterBookFlow project={named} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} setAssets={vi.fn()} />);
-    expect(screen.getByRole("heading", { name: "A Criança Nesta História" })).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Quer alterar o nome ou a idade?", { exact: true }));
     expect(screen.getByLabelText("Nome da criança")).toHaveValue("Lila");
     expect(screen.queryByLabelText(/roupa na história/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/jeito da criança/i)).not.toBeInTheDocument();

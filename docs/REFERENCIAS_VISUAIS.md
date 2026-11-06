@@ -9,3 +9,9 @@ O site solicita `cover_only: true` ao iniciar ou repetir uma prévia do Studio. 
 O botão de aprovação envia `approved_cover_sha256` da capa atual. O servidor verifica o contexto e os bytes da capa e reutiliza a arte exata, sem gerar outra capa. Somente então gera o restante da prévia, que ainda exige aprovação explícita antes da compra. Alterações de identidade, título ou padrão visual invalidam a continuação antiga.
 
 Os testes substituem os provedores por respostas locais. Nenhuma imagem real é gerada por esses testes; qualidade visual e semelhança continuam dependendo da avaliação do usuário.
+
+## Padrões do Catálogo
+
+A ferramenta também utiliza nove imagens que já são públicas no Catálogo oficial, copiadas sem alteração de `apps/web/public/exemplos/`. Os conjuntos Amor de Bisavó, Meu Pai Meu Herói e Amor de Mãe cartoon fornecem exemplos de capa, miolo e apresentação segurando o livro. O tema e o estilo selecionam a família de referência; o exemplo de André permanece para histórias de computador. Nenhum rosto ou texto do exemplo deve substituir o material do cliente. Isso é orientação por referências, não treinamento do modelo.
+
+O posicionamento do texto interno usa detecção local de rostos com margem para cabelos e gorros e procura outra área quando há sobreposição. O detector é uma ajuda de composição: não garante localizar todas as pessoas ou animais, nem julga a qualidade artística. A decisão continua com o usuário. A renderização mantém o texto literal e o tamanho da fonte. O acabamento da lombada deriva das cores da capa; somente a apresentação recebe vinco e sombra, preservando a arte plana para impressão.

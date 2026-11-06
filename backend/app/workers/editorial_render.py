@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import math
+from functools import lru_cache
 
 import cv2
 import numpy as np
@@ -29,7 +30,17 @@ def square(data):
     return image
 
 
-def text(data, value, profile, *, title=False, region=None, alignment=None):
+def text(
+    data,
+    value,
+    profile,
+    *,
+    title=False,
+    region=None,
+    alignment=None,
+    readable=False,
+    measure_only=False,
+):
     """Fixed, versioned sizes. Overflow fails rather than shrinking or changing words."""
     image = square(data)
     if not isinstance(value, str) or not value.strip():
@@ -100,6 +111,8 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
             font=font,
             fill=color,
             anchor="lt",
+            stroke_width=max(1, round(image.width * 0.0012)) if readable else 0,
+            stroke_fill="#fff9ed" if readable else None,
         )
     padding = image.width * 0.012
     ink_region = [
@@ -108,7 +121,7 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
         min(image.width, max(b[2] for b in ink_boxes) + padding) / image.width,
         min(image.height, max(b[3] for b in ink_boxes) + padding) / image.height,
     ]
-    return encode(image), {
+    return (data if measure_only else encode(image)), {
         "text": value,
         "lines": lines,
         "region": bounds,
@@ -120,7 +133,125 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
         "line_height": line_height,
         "color": color,
         "layout_version": profile["editorial"]["version"],
+        "readability_outline": readable,
     }
+
+
+@lru_cache(maxsize=1)
+def _face_cascade():
+    from pathlib import Path
+
+    # OpenCV's filename loader mishandles accented Windows paths. Read the
+    # packaged XML through Python and pass it in memory on every platform.
+    xml = (Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml").read_text(
+        encoding="utf-8"
+    )
+    document = cv2.FileStorage(xml, cv2.FILE_STORAGE_READ | cv2.FILE_STORAGE_MEMORY)
+    detector = cv2.CascadeClassifier()
+    detector.read(document.getFirstTopLevelNode())
+    document.release()
+    if detector.empty():
+        raise ValueError("Detector local de áreas protegidas indisponível")
+    return detector
+
+
+def protected_heads(data):
+    """Local face locations with generous room for hair/hats; no identity judgement."""
+    image = square(data)
+    side = min(768, image.width)
+    small = np.array(image.resize((side, side)))
+    gray = cv2.cvtColor(small, cv2.COLOR_RGB2GRAY)
+    faces = _face_cascade().detectMultiScale(
+        gray, scaleFactor=1.1, minNeighbors=5, minSize=(max(24, side // 14),) * 2
+    )
+    return [
+        [
+            max(0, x - 0.25 * w) / side,
+            max(0, y - 0.8 * h) / side,
+            min(side, x + 1.25 * w) / side,
+            min(side, y + 1.2 * h) / side,
+        ]
+        for x, y, w, h in faces
+    ]
+
+
+def choose_reading_region(data, value, profile, preferred, *, alignment="center"):
+    """Move literal, fixed-size copy around detected heads instead of buying new art."""
+    heads = protected_heads(data)
+    if not heads:
+        return preferred, {
+            "method": "local_head_aware_layout",
+            "protected_heads": [],
+            "relocated": False,
+            "unresolved_head_overlap": False,
+        }
+    image = square(data)
+    gray = np.array(image.resize((256, 256)).convert("L"))
+    candidates = [preferred, [0.06, 0.04, 0.94, 0.32]]
+    for top in (0.05, 0.16, 0.35, 0.52):
+        for left, right in (
+            (0.05, 0.45),
+            (0.55, 0.95),
+            (0.05, 0.51),
+            (0.49, 0.95),
+            (0.05, 0.65),
+            (0.35, 0.95),
+        ):
+            candidates.append([left, top, right, min(0.95, top + 0.62)])
+    choices = []
+    for index, region in enumerate(candidates):
+        try:
+            _, layout = text(
+                data,
+                value,
+                profile,
+                region=region,
+                alignment=alignment,
+                readable=True,
+                measure_only=True,
+            )
+        except ValueError:
+            continue
+        x0, y0, x1, y1 = layout["ink_region_with_margin"]
+        overlap = sum(
+            max(0, min(x1, b[2]) - max(x0, b[0])) * max(0, min(y1, b[3]) - max(y0, b[1]))
+            for b in heads
+        )
+        crop = gray[
+            max(0, int(y0 * 256)) : max(1, int(y1 * 256)),
+            max(0, int(x0 * 256)) : max(1, int(x1 * 256)),
+        ]
+        busy = float(crop.std()) / 255 if crop.size else 1
+        score = overlap * 1000 + busy * 0.05 + y0 * 0.03 + (0 if index == 0 else 0.015)
+        choices.append((score, overlap, region))
+    if not choices:
+        raise ValueError("Texto não cabe nas áreas de leitura disponíveis")
+    _, overlap, region = min(choices, key=lambda item: item[0])
+    return region, {
+        "method": "local_head_aware_layout",
+        "protected_heads": heads,
+        "relocated": region != preferred,
+        "unresolved_head_overlap": bool(overlap),
+    }
+
+
+def bound_cover(data):
+    """Presentation-only hinge and board finish, derived from the actual cover colors."""
+    art = np.array(square(data)).astype(np.float32)
+    side = art.shape[1]
+    spine = max(2, round(side * 0.026))
+    x = np.linspace(0, 1, spine)
+    curve = 0.70 + 0.34 * np.sin(x * math.pi)
+    art[:, :spine] *= curve[None, :, None]
+    groove = max(1, round(side * 0.002))
+    art[:, spine : spine + groove] *= 0.64
+    art[:, spine + groove : spine + 2 * groove] = np.minimum(
+        255, art[:, spine + groove : spine + 2 * groove] * 1.08 + 6
+    )
+    # A fine board edge, rather than a large ivory band, leaves the art prominent.
+    edge = max(1, round(side * 0.003))
+    art[-edge:] *= 0.78
+    return encode(Image.fromarray(np.clip(art, 0, 255).astype(np.uint8)))
 
 
 def validate_region(region):
@@ -156,12 +287,13 @@ def front(data, *, profile=None):
         draw.rounded_rectangle(
             (x, y, x + spine + face_size, y + face_size), radius=side // 45, fill="#dfd1b8"
         )
-        for i in range(spine):
-            light = round(205 + 35 * math.sin(math.pi * i / spine))
-            draw.line(
-                (x + i, y + 12, x + i, y + face_size - 12),
-                fill=(light, max(0, light - 10), max(0, light - 25)),
-            )
+        spine_art = art.crop((0, 0, max(2, round(side * 0.035)), side)).resize(
+            (spine, face_size), Image.Resampling.LANCZOS
+        )
+        pixels = np.array(spine_art).astype(np.float32)
+        roll = 0.62 + 0.40 * np.sin(np.linspace(0, math.pi, spine))
+        pixels *= roll[None, :, None]
+        image.paste(Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8)), (x, y))
         mask = Image.new("L", (face_size, face_size))
         ImageDraw.Draw(mask).rounded_rectangle(
             (0, 0, face_size - 1, face_size - 1), radius=side // 55, fill=255
@@ -169,6 +301,14 @@ def front(data, *, profile=None):
         image.paste(
             art.resize((face_size, face_size), Image.Resampling.LANCZOS), (x + spine, y), mask
         )
+        groove = max(1, side // 500)
+        crease = Image.new("RGBA", image.size)
+        ImageDraw.Draw(crease).line(
+            (x + spine, y + side // 55, x + spine, y + face_size - side // 55),
+            fill=(15, 20, 25, 90),
+            width=groove,
+        )
+        image = Image.alpha_composite(image.convert("RGBA"), crease).convert("RGB")
         return encode(image)
     image = Image.new("RGB", (side, side), "#fff7ec")
     inset = max(6, side // 35)
@@ -242,6 +382,11 @@ def keyed_surfaces(data, count):
         component = np.zeros((h, w), np.uint8)
         cv2.drawContours(component, [contour], -1, 255, cv2.FILLED)
         visible = cv2.bitwise_and(mask, component)
+        radius = max(3, round(w * 0.004))
+        near_plane = cv2.dilate(plane, np.ones((radius * 2 + 1, radius * 2 + 1), np.uint8))
+        fringe = cv2.inRange(hsv, (low, 15, 35), (high, 255, 255))
+        fringe = cv2.bitwise_and(fringe, near_plane)
+        visible = cv2.bitwise_or(cv2.bitwise_and(visible, near_plane), fringe)
         coverage = np.count_nonzero(cv2.bitwise_and(visible, plane)) / max(
             1, np.count_nonzero(plane)
         )
@@ -254,7 +399,7 @@ def keyed_surfaces(data, count):
     return {"valid": True, "issues": [], "surfaces": surfaces, "occlusions": []}, masks
 
 
-def mockup(template, artworks, geometry, *, visible_masks=None):
+def mockup(template, artworks, geometry, *, visible_masks=None, physical_book=False):
     """Project the actual finished art; restore explicit foreground occlusions unchanged."""
     if geometry.get("valid") is not True or geometry.get("issues") != []:
         raise ValueError("Geometria do mockup não foi aprovada")
@@ -269,7 +414,7 @@ def mockup(template, artworks, geometry, *, visible_masks=None):
     cover_masks = np.zeros((h, w), dtype=np.uint8)
     provenance = []
     for index, (raw, surface) in enumerate(zip(artworks, surfaces, strict=True)):
-        art = np.array(square(raw))
+        art = np.array(square(bound_cover(raw) if physical_book and len(artworks) == 1 else raw))
         ah, aw = art.shape[:2]
         target = quad(surface) * np.array([w - 1, h - 1], dtype=np.float32)
         source = np.array([[0, 0], [aw - 1, 0], [aw - 1, ah - 1], [0, ah - 1]], dtype=np.float32)
@@ -320,4 +465,5 @@ def mockup(template, artworks, geometry, *, visible_masks=None):
         else "perspective_composition",
         "surfaces": provenance,
         "occlusions": geometry["occlusions"],
+        "binding_finish": "cover_derived_hinge" if physical_book and len(artworks) == 1 else None,
     }

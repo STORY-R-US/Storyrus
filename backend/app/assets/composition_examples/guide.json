@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-06.1",
+  "version": "2026-11-06.catalog.2",
   "layouts": {
     "single_page_centered": {
       "source": "flat individual square page",
@@ -28,6 +28,35 @@
     "Keep wardrobe, cast and the chosen scene-world consistent; vary actions and expressions according to each passage.",
     "Only explicitly requested narrative actions and essential objects are mandatory. Do not reject an image for missing incidental objects from an example or identity photograph.",
     "Flat source art must have no lettering or physical-book borders. Apply approved text deterministically, then compose the physical open-book presentation separately.",
-    "Examples inform layout, not a requirement to change the selected realistic/cartoon style."
-  ]
+    "Examples inform layout, not a requirement to change the selected realistic/cartoon style.",
+    "Catalog examples define visual standards, never the new story cast, names, words or props. Match the selected finish; do not force every theme into one watercolor or computer template.",
+    "A held book must have visible hardback boards, a hinge/spine, page-block thickness and natural hand contact; never resemble a loose sheet or pasted card.",
+    "Spine colors and texture continue the actual project cover. Do not add a generic beige side strip unrelated to the artwork."
+  ],
+  "catalog_patterns": {
+    "family_soft": {
+      "sources": [
+        "capa-amordebisavo.jpg",
+        "pagina-amordebisavo.jpg",
+        "foto-amordebisavo.jpg"
+      ],
+      "design": "Soft illustrated surroundings, lifelike recognizable people, generous natural quiet reading space; cover title integrated in the upper-right scene."
+    },
+    "adventure_vivid": {
+      "sources": [
+        "capa-meupai-heroi.png",
+        "pagina-meupai-heroi.png",
+        "foto-meupai-heroi.png"
+      ],
+      "design": "Luminous vivid realistic scenes, prominent meaningful action, title in upper-center natural space; separate short passages on each page."
+    },
+    "cartoon": {
+      "sources": [
+        "cartoon-capa-amordemae.jpg",
+        "cartoon-pagina-amordemae.jpg",
+        "cartoon-foto-amordemae.jpg"
+      ],
+      "design": "Premium soft cartoon finish with rounded, consistent characters. Quiet illustrated background supports legible text; keep all project identity cues."
+    }
+  }
 }

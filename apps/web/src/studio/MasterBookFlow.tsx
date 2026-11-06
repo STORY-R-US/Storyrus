@@ -64,8 +64,8 @@ const COPY = {
     titleOptionsHint: "Escolha uma opção e confirme em Atualizar título.",
     titleUse: "Usar este título",
     titleChosen: "Selecionado",
-    childHeading: "A Criança Nesta História",
-    childHint: "Estes dados entram na história e nas ilustrações. Escreva com as suas palavras. As imagens já geradas só mudam quando você pede uma nova.",
+    childHeading: "Quer alterar o nome ou a idade?",
+    childHint: "Se precisar corrigir o nome ou a idade, atualize os campos e salve. Isso não gera novas imagens automaticamente.",
     childName: "Nome da criança",
     childAge: "Idade",
     costume: "Roupa na história (opcional)",
@@ -147,8 +147,8 @@ const COPY = {
     titleOptionsHint: "Choose an option and confirm with Update title.",
     titleUse: "Use this title",
     titleChosen: "Selected",
-    childHeading: "The Child In This Story",
-    childHint: "These details go into the story and the pictures. Write them in your own words. Pictures already made change only when you ask for new ones.",
+    childHeading: "Want to change the name or age?",
+    childHint: "If you need to correct the name or age, update the fields and save. This does not generate new images automatically.",
     childName: "Child's name",
     childAge: "Age",
     costume: "Outfit in the story (optional)",
@@ -230,8 +230,8 @@ const COPY = {
     titleOptionsHint: "Elige una opción y confirma con Actualizar título.",
     titleUse: "Usar este título",
     titleChosen: "Seleccionado",
-    childHeading: "El Protagonista En Esta Historia",
-    childHint: "Estos datos entran en la historia y en las ilustraciones. Escríbelos con tus palabras. Las imágenes ya hechas solo cambian cuando pides unas nuevas.",
+    childHeading: "¿Quieres cambiar el nombre o la edad?",
+    childHint: "Si necesitas corregir el nombre o la edad, actualiza los campos y guarda. Esto no genera imágenes nuevas automáticamente.",
     childName: "Nombre del protagonista",
     childAge: "Edad",
     costume: "Ropa en la historia (opcional)",
@@ -673,8 +673,9 @@ export function MasterBookFlow({
         </section>
       )}
       {!storyReview && (
+      <details className="master-child-edit" open={!isPreviewReview}>
+      <summary>{t.childHeading}</summary>
       <form className="master-child-card" onSubmit={(event) => void saveChild(event)} data-testid="studio-child-profile">
-        <h3>{t.childHeading}</h3>
         <p className="master-title-hint">{t.childHint}</p>
         <div className="studio-grid two">
           <label className="studio-field">
@@ -701,6 +702,7 @@ export function MasterBookFlow({
         </div>
         <button type="submit" className="kbtn kbtn-soft" disabled={active}>{t.childSave}</button>
       </form>
+      </details>
       )}
       {!storyReview && ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
         <button
@@ -722,7 +724,7 @@ export function MasterBookFlow({
             </h3>
             {isPreviewReview && stage !== "cover_ready" && <p className="master-title-hint">{t.previewImagesHint}</p>}
           </div>
-      <div className="master-gallery">
+      <div className={`master-gallery${gallery.length === 1 ? " has-single-preview" : ""}`}>
         {gallery.map((shot) => {
           const label =
             shot.role === "01_CAPA" ? t.cover : shot.role === "02_LIVRO_ABERTO" ? t.open : t.reading;
@@ -804,7 +806,7 @@ export function MasterBookFlow({
         </section>
       )}
       {stage === "cover_ready" && (
-        <section className="master-preview-panel" data-testid="studio-cover-calibration">
+        <section className="master-preview-panel master-cover-decision" data-testid="studio-cover-calibration">
           <h3>{lang === "en" ? "Review the cover first" : lang === "es" ? "Revisa primero la portada" : "Avalie primeiro a capa"}</h3>
           <p>{lang === "en" ? "Review the face, finish and layout. The other scenes will only be generated after your approval." : lang === "es" ? "Revisa el rostro, el acabado y la composición. Las otras escenas solo se generarán después de tu aprobación." : "Confira o rosto, o acabamento e a composição. As outras cenas só serão geradas depois da sua aprovação."}</p>
           <button type="button" className="kbtn kbtn-primary" disabled={active || !p.cover_calibration?.sha256}
@@ -989,7 +991,7 @@ export function MasterBookFlow({
           }}>{t.cancelAdjust}</button>
         </div>
       )}
-      {!storyReview && p.stories && (
+      {!storyReview && stage !== "cover_ready" && p.stories && (
         <div data-testid="studio-master-story">
           {reviewing ? (
             <details>

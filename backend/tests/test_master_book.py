@@ -308,7 +308,7 @@ async def test_reference_pipeline_uses_actions_illustrated_setting_and_new_typog
     assert "HAND-PAINTED" in calls[0]["style"]
     assert "desenha uma flor" in calls[1]["prompt"]
     assert "salva o desenho" in calls[2]["prompt"]
-    assert "28–36%" in calls[-1]["prompt"]
+    assert "escala natural" in calls[-1]["prompt"]
     client, db, pid, _ = studio
     sources = db.scalars(
         select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
@@ -2251,3 +2251,33 @@ def test_unreadable_visual_master_fails_before_generation(monkeypatch, tmp_path)
     (tmp_path / "visual-master-cover.enc").write_bytes(b"invalid encrypted image")
     with pytest.raises(ProviderError, match="Referência visual indisponível"):
         visual_reference.load("cover", "realistic")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "style,title,family",
+    [
+        ("realistic", "João no parque", "adventure"),
+        ("realistic", "Amor de Bisavó", "family"),
+        ("cartoon", "Amor de Mãe", "cartoon"),
+    ],
+)
+async def test_new_cover_uses_catalog_finish_and_keeps_project_photo(
+    reference_studio, style, title, family
+):
+    from app.services import visual_reference
+
+    studio, calls, _ = reference_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    project.style = style
+    project.theme = title
+    locale = {**project.book_profile["locales"]["pt-BR"], "title": title}
+    book_profile.update(project, locales={"pt-BR": locale})
+    db.commit()
+    await _run(studio, "preview", {"cover_only": True}, key="catalog-first-cover")
+    assert len(calls) == 1
+    assert calls[0]["photo"] == _png()
+    assert calls[0]["extra_refs"][-1] == visual_reference.load("cover", style, title)
+    assert "NOT a cast photo" in calls[0]["prompt"]
+    assert visual_reference.catalog_family(style, title) == family

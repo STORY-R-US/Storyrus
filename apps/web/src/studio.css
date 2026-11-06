@@ -2201,3 +2201,41 @@
   .studio-image-viewer-toolbar { gap: 8px; padding: 10px; }
   .studio-image-viewer-toolbar h2 { flex-basis: 100%; }
 }
+
+/* Preview review stays compact; full-resolution inspection uses the viewer. */
+.studio-app .master-child-edit { border: 1px solid var(--studio-surface-border); border-radius: 12px; padding: 10px 14px; }
+.studio-app .master-child-edit > summary { cursor: pointer; color: var(--studio-link); font-weight: 700; font-size: .85rem; }
+.studio-app .master-child-edit .master-child-card { border: 0; padding: 10px 0 0; margin: 0; }
+.studio-app .is-preview-review .master-gallery.has-single-preview { grid-template-columns: minmax(0, 1fr); }
+.studio-app .is-preview-review .master-gallery.has-single-preview .master-shot { display: grid; grid-template-columns: minmax(150px, 260px) minmax(0, 1fr); }
+.studio-app .is-preview-review .master-gallery.has-single-preview .master-shot > img { height: 230px; aspect-ratio: auto; }
+.studio-app .is-preview-review .master-gallery.has-single-preview figcaption { justify-content: center; }
+.studio-app .is-preview-review .master-shot-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 900px) {
+  .studio-app .studio-review:has(.is-preview-review) { padding: 22px; }
+  .studio-app .studio-review:has(.is-preview-review) > h2 { margin: 0 0 10px; font-size: 1.6rem; }
+  .studio-app .studio-review:has(.is-preview-review) .project-journey { margin-bottom: 12px; }
+  .studio-app .studio-review:has(.is-preview-review) .project-journey-overview { padding-bottom: 8px; grid-template-columns: minmax(0, 1fr) 70px; gap: 12px; }
+  .studio-app .studio-review:has(.is-preview-review) .project-journey h3 { font-size: 1.15rem; margin: 4px 0; }
+  .studio-app .studio-review:has(.is-preview-review) .project-journey-lead { margin-top: 4px; line-height: 1.4; }
+  .studio-app .studio-review:has(.is-preview-review) .studio-step-art { max-height: 64px; }
+  .studio-app .studio-review:has(.is-preview-review) .project-journey-steps li { padding: 7px 10px; }
+  .studio-app .studio-master-flow.is-preview-review { gap: 10px; }
+  .studio-app .is-preview-review :is(.master-preview-panel, .master-title-card) { padding: 12px; border-radius: 12px; }
+  .studio-app .is-preview-review .master-preview-panel-heading .master-section { font-size: 1rem; }
+  .studio-app .is-preview-review .master-gallery { margin-top: 10px; gap: 10px; }
+  .studio-app .is-preview-review .master-shot > img { height: clamp(150px, 24vh, 215px); aspect-ratio: auto; padding: 8px; }
+  .studio-app .is-preview-review .master-shot figcaption { padding: 10px; gap: 8px; }
+  .studio-app .is-preview-review .master-shot-actions { padding-top: 8px; }
+  .studio-app .is-preview-review .master-title-row { margin-top: 8px; }
+  .studio-app .is-preview-review .master-preview-next { padding: 12px; gap: 12px; }
+  .studio-app .is-preview-review .master-preview-next p { margin: 4px 0; }
+}
+@media (max-width: 540px) {
+  .studio-app .is-preview-review .master-gallery.has-single-preview .master-shot { display: flex; }
+  .studio-app .is-preview-review .master-gallery.has-single-preview .master-shot > img { height: auto; max-height: 290px; }
+}
+
+.studio-app .master-cover-decision h3 { margin: 0 0 6px; font-size: 1rem; }
+.studio-app .master-cover-decision p { margin: 6px 0 10px; font-size: .85rem; line-height: 1.4; }
+.studio-app .master-cover-decision .kbtn { margin: 0; min-height: 40px; padding: 10px 14px; font-size: .85rem; }
