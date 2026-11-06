@@ -616,7 +616,15 @@ class OpenAITextProvider:
         )
 
     async def validate_editorial_preview(
-        self, *, data, photos, cover, prompt, style_refs, inspection_region=None
+        self,
+        *,
+        data,
+        photos,
+        cover,
+        prompt,
+        style_refs,
+        inspection_region=None,
+        full_image_prompt=None,
     ):
         content = [{"type": "text", "text": prompt}]
         crops = []
@@ -703,62 +711,83 @@ class OpenAITextProvider:
                 "Do not infer overlap merely from a portrait in the reference images.",
             }
         )
+        system_prompt = (
+            "Inspect OUTPUT against the role-specific validation contract in the text. "
+            "OUTPUT is the LAST full image. IDENTITY photos define likeness only; their "
+            "framing is irrelevant. STYLE_ONLY images define finish only. Never judge the "
+            "reference images as if they were generated outputs. "
+            "Inspect the ENTIRE OUTPUT, not only the text crop. Reject any embedded input "
+            "photograph, inset portrait, style-reference cover, reference sheet, collage, "
+            "white panel divider or stray lettering. A text crop only checks the reading "
+            "region; it never exempts the rest of the output from inspection. "
+            "The OUTPUT may contain backend-composed Nunito text; judge it against the exact "
+            "expected text listed for that role, and do not count expected text as an extra merely "
+            "because the art-generation specification reserved a text-free base image. Read all "
+            "visible expected text literally, including case, accents and punctuation. For CAPA, "
+            "require exactly the one listed title, centered inside its planned upper block "
+            "(which may be on the upper RIGHT); reject other, "
+            "duplicate, stray, clipped, oversized or misspelled lettering, and text over the face or "
+            "main action. For LIVRO_ABERTO, require only the two listed verses, aligned as "
+            "specified by the supplied typography contract, legible, "
+            "away from the gutter and important subjects; the title is forbidden there. "
+            "A coherent illustration on both pages is required; do not report the expected page "
+            "illustrations as an issue. Reject extra panels/collages or text that obscures the art. "
+            "For LEITURA, "
+            "compare the visible printed cover with EXACT_COVER and reject changed title, design, "
+            "palette or character. Check identity, age, anatomy, geometry, style and layout for the "
+            "current role only. Never judge another scene's rules against this OUTPUT. Never approve "
+            "based on prompt alone. "
+            "TECHNICAL_VALIDATION_JSON contains measured backend evidence, not a generative "
+            "claim. When typography includes font_sha256, weight, region, alignment and "
+            "line_height, accept these technically verified properties; do not require "
+            "inferring a font file or exact centering from pixels. Still reject visible overlap, "
+            "illegibility, clipped or incorrect text. For ARTE_BASE, the entire normalized "
+            "ink_region_with_margin rectangle must be clear of faces, hair, hands and main "
+            "action. The typography region is a larger wrapping container; do not reject hair "
+            "outside ink_region_with_margin merely because it enters that wrapping container. "
+            "Judge observable defects against required criteria. Natural occlusion of fingers "
+            "is allowed when anatomy is coherent; do not require every finger to be visible. "
+            "Do not require optional ornaments or reject a quiet background merely for being "
+            "simple. A general disclosure that visual identity review is probabilistic belongs "
+            "in limitations and does not itself make a conforming image invalid. Specific "
+            "unverifiable required features must still make valid false. "
+            "Return JSON {valid: boolean, issues: [strings], limitations: [strings]}. "
+            "issues must contain defects only, never positive observations. "
+            "If uncertain about any required criterion return valid false. "
+            "This is automated visual inspection, not human approval."
+        )
+        if reserve_result is not None:
+            # Do not carry the spatial rubric into the second, whole-image pass.
+            # An override appended to contradictory instructions was insufficient.
+            content[0] = {
+                "type": "text",
+                "text": full_image_prompt
+                or (
+                    "ARTE_BASE: One continuous flat illustration without lettering or collage. "
+                    "Inspect identity, age, anatomy, outfit, finish and overall composition."
+                ),
+            }
+            content[-1] = {
+                "type": "text",
+                "text": (
+                    "Judge the LAST full image only; IDENTITY and STYLE_ONLY are input references."
+                ),
+            }
+            system_prompt = (
+                "Inspect OUTPUT, the LAST full image, against the requested scene. "
+                "IDENTITY photographs define likeness and age only; STYLE_ONLY references "
+                "define finish only. Check identity, anatomy, natural proportions, outfit, "
+                "requested action, continuity, style and overall visual quality. Reject "
+                "embedded photographs, collages, stray lettering or unrelated subjects. "
+                "This is flat source art: no text or physical-book geometry is expected. "
+                "The reading-space crop has its own mandatory inspection, already passed; "
+                "this pass has no coordinate or reading-space criterion. "
+                "Reject concrete defects or inconclusive required features. "
+                "Return JSON {valid:boolean, issues:[strings], limitations:[strings]}. "
+                "Issues contain defects only. This does not replace user approval."
+            )
         result = await self._complete(
-            system=(
-                "Inspect OUTPUT against the role-specific validation contract in the text. "
-                "OUTPUT is the LAST full image. IDENTITY photos define likeness only; their "
-                "framing is irrelevant. STYLE_ONLY images define finish only. Never judge the "
-                "reference images as if they were generated outputs. "
-                "Inspect the ENTIRE OUTPUT, not only the text crop. Reject any embedded input "
-                "photograph, inset portrait, style-reference cover, reference sheet, collage, "
-                "white panel divider or stray lettering. A text crop only checks the reading "
-                "region; it never exempts the rest of the output from inspection. "
-                "The OUTPUT may contain backend-composed Nunito text; judge it against the exact "
-                "expected text listed for that role, and do not count expected text as an extra merely "
-                "because the art-generation specification reserved a text-free base image. Read all "
-                "visible expected text literally, including case, accents and punctuation. For CAPA, "
-                "require exactly the one listed title, centered inside its planned upper block "
-                "(which may be on the upper RIGHT); reject other, "
-                "duplicate, stray, clipped, oversized or misspelled lettering, and text over the face or "
-                "main action. For LIVRO_ABERTO, require only the two listed verses, aligned as "
-                "specified by the supplied typography contract, legible, "
-                "away from the gutter and important subjects; the title is forbidden there. "
-                "A coherent illustration on both pages is required; do not report the expected page "
-                "illustrations as an issue. Reject extra panels/collages or text that obscures the art. "
-                "For LEITURA, "
-                "compare the visible printed cover with EXACT_COVER and reject changed title, design, "
-                "palette or character. Check identity, age, anatomy, geometry, style and layout for the "
-                "current role only. Never judge another scene's rules against this OUTPUT. Never approve "
-                "based on prompt alone. "
-                "TECHNICAL_VALIDATION_JSON contains measured backend evidence, not a generative "
-                "claim. When typography includes font_sha256, weight, region, alignment and "
-                "line_height, accept these technically verified properties; do not require "
-                "inferring a font file or exact centering from pixels. Still reject visible overlap, "
-                "illegibility, clipped or incorrect text. For ARTE_BASE, the entire normalized "
-                "ink_region_with_margin rectangle must be clear of faces, hair, hands and main "
-                "action. The typography region is a larger wrapping container; do not reject hair "
-                "outside ink_region_with_margin merely because it enters that wrapping container. "
-                "Judge observable defects against required criteria. Natural occlusion of fingers "
-                "is allowed when anatomy is coherent; do not require every finger to be visible. "
-                "Do not require optional ornaments or reject a quiet background merely for being "
-                "simple. A general disclosure that visual identity review is probabilistic belongs "
-                "in limitations and does not itself make a conforming image invalid. Specific "
-                "unverifiable required features must still make valid false. "
-                "Return JSON {valid: boolean, issues: [strings], limitations: [strings]}. "
-                "issues must contain defects only, never positive observations. "
-                "If uncertain about any required criterion return valid false. "
-                "This is automated visual inspection, not human approval."
-                + (
-                    " SEPARATE SPATIAL CHECK: the exact text-reserve crop was independently "
-                    "reviewed and passed with zero issues. In this full-image pass, inspect "
-                    "identity, age, anatomy, requested action, style, stray lettering and overall "
-                    "composition only. Do not reassess normalized rectangle overlap from this "
-                    "full image or the reference photos: that criterion belongs to the separate "
-                    "crop pass. All remaining required criteria must still pass."
-                    if reserve_result is not None
-                    else ""
-                )
-            ),
+            system=system_prompt,
             user=content,
             max_tokens=1200,
             json_mode=True,

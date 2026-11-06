@@ -247,7 +247,7 @@ class Pipeline:
                     ) from exc
         raise ProviderError(f"Etapa {name} esgotou as tentativas deste trabalho", transient=False)
 
-    async def review(self, data, prompt, *, cover=None, technical=None):
+    async def review(self, data, prompt, *, cover=None, technical=None, full_image_prompt=None):
         if self.demo:
             return {"status": "demo"}
         self.guard()
@@ -308,6 +308,7 @@ class Pipeline:
                 cover=cover,
                 prompt=prompt,
                 style_refs=self.refs,
+                full_image_prompt=full_image_prompt,
                 inspection_region=(technical or {})
                 .get("typography", {})
                 .get("ink_region_with_margin"),
@@ -769,6 +770,17 @@ class Pipeline:
                             }
                         ),
                         technical={"typography": layout},
+                        full_image_prompt="ARTE_BASE: One flat continuous illustration, without "
+                        "letters, insets, photographs, collages or physical-book mockups. "
+                        "Check identity, age, anatomy, outfit, style and the specific requested action. "
+                        + json.dumps(
+                            {
+                                "identity": self.base["continuity"],
+                                "style": self.project.style,
+                                "expected_action": action,
+                            },
+                            ensure_ascii=False,
+                        ),
                     )
                     # A candidate region is usable only after both visual checks pass.
                     composition_review = await self.review(

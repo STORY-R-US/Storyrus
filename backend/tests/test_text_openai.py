@@ -47,6 +47,11 @@ async def test_editorial_review_separates_output_from_references_and_crops_measu
     assert decoded[-1] == raw.getvalue()
     assert all(part["detail"] == "high" for part in images)
     assert "Judge the LAST full image" in content[-1]["text"]
+    full_request = client.calls[1]["json"]["messages"]
+    assert "ink_region_with_margin" not in json.dumps(full_request)
+    assert "rectangle must be clear" not in full_request[0]["content"]
+    assert "anatomy" in full_request[0]["content"]
+    assert "identity" in full_request[0]["content"]
 
 
 @pytest.mark.asyncio
@@ -241,3 +246,26 @@ async def test_failed_reserve_never_advances_to_full_review(client, report):
     assert len(client.calls) == 1
     assert json.loads(result.text) == report
     assert result.meta["review_scope"] == "text_reserve"
+
+
+@pytest.mark.asyncio
+async def test_clear_crop_does_not_override_failed_identity_review(client):
+    good = {"valid": True, "issues": [], "limitations": []}
+    bad = {"valid": False, "issues": ["Identity differs"], "limitations": []}
+    client.script = [(200, _ok(json.dumps(good))), (200, _ok(json.dumps(bad)))]
+    raw = io.BytesIO()
+    Image.new("RGB", (100, 100), "blue").save(raw, "PNG")
+    result = await oai.OpenAITextProvider().validate_editorial_preview(
+        data=raw.getvalue(),
+        photos=[b"identity"],
+        cover=None,
+        prompt="ARTE_BASE: rectangle must be clear ink_region_with_margin",
+        style_refs=[],
+        inspection_region=[0.1, 0.1, 0.9, 0.3],
+        full_image_prompt="ARTE_BASE: requested scene and outfit",
+    )
+    assert len(client.calls) == 2
+    assert json.loads(result.text) == bad
+    full_prompt = json.dumps(client.calls[1]["json"]["messages"])
+    assert "ink_region_with_margin" not in full_prompt
+    assert "requested scene and outfit" in full_prompt
