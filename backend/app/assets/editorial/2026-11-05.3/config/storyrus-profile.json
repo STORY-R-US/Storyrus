@@ -1,0 +1,71 @@
+{
+  "profile_id": "story-r-us-studio-premium",
+  "profile_version": "2026-11-05.3",
+  "style": {
+    "default_mode": "realista_premium",
+    "common_references": [
+      {
+        "path": "assets/styles/texto-meu-pai-meu-heroi.png",
+        "role": "Versos de leitura natural, quatro linhas curtas, centralizados na região superior da página."
+      },
+      {
+        "path": "assets/styles/titulo-amor-de-bisavo.png",
+        "role": "Título arredondado e encorpado azul-marinho, grande e centralizado no alto; rosto e ação ficam abaixo, sem sobreposição."
+      }
+    ],
+    "modes": {
+      "realista_premium": {
+        "selection": "default_or_explicit",
+        "finish_references": [
+          "assets/styles/acabamento-amor-de-mae.png"
+        ],
+        "printed_art": "Ilustração editorial infantil premium, suavemente realista, com pessoas reconhecíveis, luz difusa, texturas naturais e fundo ilustrado delicado.",
+        "reading_scene_exterior": "Pessoas e ambiente externos fotográficos, naturais e proporcionais; a arte impressa preserva o acabamento da capa validada."
+      },
+      "cartoon_premium": {
+        "selection": "explicit_only",
+        "finish_references": [
+          "assets/styles/cartoon-style-reference-01.png",
+          "assets/styles/cartoon-style-reference-02.png"
+        ],
+        "printed_art": "Cartoon 3D premium conforme as duas referências próprias, preservando a identidade e a idade. Não substituir pelo acabamento da referência da mãe.",
+        "reading_scene_exterior": "Pessoas e ambiente externos fotográficos; somente a capa impressa permanece no cartoon exato do idioma."
+      }
+    },
+    "reference_rules": [
+      "Não copiar personagens, nomes, títulos, subtítulos, parentescos ou objetos das referências editoriais.",
+      "Excluir botões, setas, pontos de carrossel, molduras de interface e rótulos presentes nas capturas.",
+      "O asset legado realista-premium-meu-pai-meu-heroi.png não define o acabamento atual.",
+      "Manter uma paleta coordenada, luz suave, cenários acolhedores e poucos objetos pertinentes ao tema.",
+      "Usar cores vibrantes e luminosas, com pele natural. Evitar rostos genéricos, anatomia deformada, pele plástica, cores neon e decoração automática."
+    ]
+  },
+  "official_preview": {
+    "language_order": [],
+    "scene_order": [
+      "CAPA",
+      "LIVRO_ABERTO",
+      "LEITURA"
+    ],
+    "png_count": 3,
+    "independent_scene_files": true,
+    "filename_prefixes": {
+      "pt-BR": "PORTUGUES",
+      "en-US": "INGLES",
+      "es": "ESPANHOL"
+    },
+    "filename_templates": {
+      "CAPA": "[IDIOMA]_01_CAPA_[TITULO].png",
+      "LIVRO_ABERTO": "[IDIOMA]_02_LIVRO_ABERTO_[TITULO].png",
+      "LEITURA": "[IDIOMA]_03_LEITURA_[TITULO].png"
+    },
+    "delivery_rules": [
+      "A prévia contém exatamente três PNGs no idioma escolhido: CAPA, LIVRO_ABERTO e LEITURA (pessoa segurando o livro).",
+      "Cada cena exige geração e arquivo independentes, sem montagem para recortar.",
+      "Não gerar automaticamente outros idiomas, avatar ou história completa.",
+      "Preservar literalmente os títulos e textos recebidos."
+    ],
+    "language_selection": "selected_project_language_only"
+  },
+  "runtime_policy": "editorial-policy.json; all runtime typography, layout and generation settings live there"
+}

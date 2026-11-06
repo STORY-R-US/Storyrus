@@ -54,11 +54,15 @@ def adopt_current_editorial_draft(project):
 
     profile = project.book_profile or {}
     if (
-        profile.get("editorial", {}).get("version") != "2026-11-05.1"
-        or editorial_profile.CURRENT_VERSION != "2026-11-05.2"
+        profile.get("editorial", {}).get("version") not in {"2026-11-05.1", "2026-11-05.2"}
+        or editorial_profile.CURRENT_VERSION not in {"2026-11-05.2", "2026-11-05.3"}
+        or profile.get("editorial", {}).get("version") == editorial_profile.CURRENT_VERSION
         or (project.purchase_flow or {}).get("preview_approved_at")
     ):
         return False
+    if profile.get("editorial", {}).get("version") == "2026-11-05.2":
+        update(project, editorial=editorial_profile.snapshot())
+        return True
     supplied = {lang: dict(values) for lang, values in profile.get("supplied_locales", {}).items()}
     for lang, locale in profile.get("locales", {}).items():
         records = profile.get("text_record", {}).get(lang, {})

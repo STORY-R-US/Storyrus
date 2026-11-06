@@ -1,0 +1,48 @@
+PAPEL
+Produza a arte de uma única tarefa da prévia STORY R US, no idioma e na cena indicados. A aplicação cuidará da tipografia e da composição final do produto.
+
+ENTRADAS
+POLITICA: {{EDITORIAL_POLICY_JSON}}
+CENA: {{SCENE_PLAN_JSON}}
+IDIOMA: {{LOCALE}}
+TIPO_DE_ARTE: {{ART_STAGE}}
+MANIFESTO_DE_REFERENCIAS: {{REFERENCE_MANIFEST_JSON}}
+REGIOES_DE_TEXTO: {{TEXT_SAFE_REGIONS_JSON}}
+REGIOES_PROTEGIDAS: {{PROTECTED_REGIONS_JSON}}
+CAPA_FINAL_DO_IDIOMA, quando aplicável: {{FINAL_COVER_ASSET_ID}}
+
+As referências mencionadas no manifesto devem ser anexadas como imagens reais utilizáveis pela ferramenta. Os identificadores e caminhos escritos neste texto não substituem os anexos.
+
+PRIORIDADE DAS REFERENCIAS
+1. Fotografias originais das pessoas e animais previstos nesta cena: identidade definitiva.
+2. Ficha visual baseada nessas fotos: associação de nomes e características observadas.
+3. Capa ou cena concluída: composição, continuidade e design, nunca substituição do rosto.
+4. Referências de estilo: somente acabamento, voz visual e formas tipográficas.
+
+IDENTIDADE
+Preservar idade aparente, formato e proporções do rosto, olhos, nariz, boca, sorriso natural, cabelo, linha do cabelo, pele e proporções reais. Adulto continua adulto. Não copiar pessoas das referências de estilo. Animais mantêm raça, porte, padrão de pelagem, marcas, olhos, focinho e orelhas. Não inventar personagens.
+
+ACABAMENTO
+Editorial suavemente realista, acolhedor e refinado. Personagens naturais e reconhecíveis, luz difusa, cores equilibradas, textura humana delicada e integração com cenários de tratamento ilustrado suave. Evitar olhos ampliados, pele artificial, saturação excessiva, anatomia deformada, ombros aumentados, braços exagerados e corpos esticados. Preservar o corpo real; não aplicar emagrecimento ou remodelagem genérica.
+
+FIGURINO E CONTINUIDADE
+Preservar as roupas definidas no plano da série. Ação, pose e expressão podem variar conforme a narrativa. Entre idiomas, manter a composição da cena correspondente e todos os elementos visuais relevantes.
+
+COMPOSICAO
+Usar as áreas de texto planejadas como espaços naturalmente livres. Não escrever palavras inventadas, letras decorativas nem simulações de texto. Não colocar rosto, mãos, animais, gestos ou objetos importantes nessas regiões. Não usar faixas opacas, caixas ou degradês para apagar arte. Não reduzir os personagens a pequenas figuras para acomodar texto.
+
+TIPO DE ARTE
+- flat_cover: arte plana da capa quadrada. Reservar área natural superior CENTRAL, abrangendo a largura da capa, para o título centralizado dentro desse bloco. Protagonista e ação ocupam a área principal. O compositor aplicará o título e, se necessário, o acabamento de livro físico.
+- flat_left_page / flat_right_page: página individual quadrada, visualmente equivalente a 20 × 20 cm, com ação correspondente ao texto. Reservar espaço de narrativa centralizada no topo conforme o layout e manter segurança junto à futura dobra.
+- open_book_scene: um único livro físico aberto com duas páginas quadradas iguais lado a lado, dobra natural, sem deformação. O compositor usará as páginas finalizadas na superfície do livro; não inventar o texto.
+- reading_scene: pessoas e ambiente externos fotográficos, naturais e acolhedores; livro quadrado 20 × 20 cm em primeiro plano e em escala realista. Manter o plano da superfície da capa identificável e a posição das mãos coerente, para aplicar a capa final exata com perspectiva e oclusão corretas. Não gerar uma capa alternativa.
+
+A aplicação pode adaptar os estágios às capacidades reais do provedor e do renderizador; a tarefa deve manter sua procedência. Não criar uma grade de capa, livro aberto e leitura. Uma imagem da abertura do livro com duas páginas é uma única apresentação do produto.
+
+RESTRICOES
+Não incluir títulos, subtítulos, marcas-d'água, logotipos, botões, setas de carrossel ou bordas de interface não previstos. Pequenos ornamentos só quando discretos e coerentes com o tema. Não adicionar estrelas ou corações automaticamente a todos os livros.
+
+
+PADRÃO VISUAL DESTA VERSÃO
+Uma cena editorial ilustrada rica, acolhedora e legível: rosto real reconhecível integrado a cenário e objetos de aquarela/lápis de cor sobre papel marfim, verdes suaves, madeira e luz de janela quando pertinentes ao tema. O fundo precisa ter desenho e tratamento pictórico visíveis; não basta uma fotografia com filtro bege, granulação ou fundo desfocado. Mantenha expressões naturais e proporções reais.
+Na capa, título grande, arredondado e encorpado, azul-marinho, centralizado no alto em linhas equilibradas. Planejar personagens e atividade abaixo da região do título, sem cobrir rostos ou reduzir as pessoas. Usar cores vibrantes e luminosas: azuis ricos, verdes vivos e acentos dourados conforme o tema, mantendo tons de pele naturais. Evitar aparência lavada, bege ou sépia, cores neon e estouro de luz. Nas páginas, versos centralizados em espaço natural superior, personagens e ação abaixo. Ilustre ações diferentes e progressivas no mesmo universo visual. O monitor/objeto deve mostrar o resultado da ação, não código genérico ou uma tela sem relação com os versos.

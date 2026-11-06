@@ -361,7 +361,7 @@ def test_new_preview_version_refreshes_only_generated_drafts_and_preserves_liter
     )
     previous = project.book_profile
     assert book_profile.adopt_current_editorial_draft(project)
-    assert project.book_profile["editorial"]["version"] == "2026-11-05.2"
+    assert project.book_profile["editorial"]["version"] == "2026-11-05.3"
     assert project.book_profile["supplied_locales"]["pt-BR"] == {
         "title": "tÍTULO literal",
         "left": "Texto meu.\nNão alterar.",
@@ -1951,3 +1951,21 @@ async def test_editorial_preview_fails_closed_when_validation_reports_any_issue(
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 0
     db.refresh(project)
     assert (project.purchase_flow or {}).get("preview_ready_at") is None
+
+
+@pytest.mark.parametrize(
+    "title", ["MEU PAI, MEU HERÓI!", "Mako, Meu Amigo Fiel!", "AMOR DE AVÔ, MEU PORTO SEGURO"]
+)
+def test_vibrant_cover_title_fits_full_width_without_changing_literal_copy(title):
+    from app.services import editorial_profile
+    from app.workers import editorial_render as render
+
+    profile = {"editorial": editorial_profile.snapshot()}
+    _, heading = render.text(_png(), title, profile, title=True)
+    assert " ".join(heading["lines"]) == title
+    assert len(heading["lines"]) == 2
+    assert heading["color"] == "#00245D"
+    assert heading["weight"] == 900
+    assert heading["alignment"] == "center"
+    assert heading["region"] == [0.06, 0.045, 0.94, 0.29]
+    assert editorial_profile.policy(profile)["visual"]["color"] == "vibrant_balanced_natural_skin"

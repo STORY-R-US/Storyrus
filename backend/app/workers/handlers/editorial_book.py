@@ -68,7 +68,7 @@ class Pipeline:
         if title:
             return (
                 "Título centralizado dentro do bloco superior direito."
-                if self.designed
+                if self.designed and self.policy["typography"]["coverPlacement"] != "upper_center"
                 else "Título superior centralizado."
             )
         return (
@@ -546,12 +546,21 @@ class Pipeline:
                     + f"\nThe FIRST {len(self.photos)} images are the original identity photographs; "
                     f"the LAST {len(self.refs)} images show STYLE ONLY, not cast or text to copy. "
                     + (
-                        "COVER DESIGN: compose the recognizable person prominently on the LEFT, "
-                        "head near the upper-left, and the meaningful activity and illustrated "
-                        "objects on the RIGHT and lower area. Reserve ONLY the measured upper-right "
-                        "title block. Do not create an empty strip across the whole top or move "
-                        "the entire person down. Use a rich, coherent illustrated environment, "
-                        "natural expression, soft light and inviting color."
+                        (
+                            "COVER DESIGN: reserve the measured upper-center title region across "
+                            "the cover width. Compose prominent recognizable people and meaningful "
+                            "action below it, with natural proportions and no overlap with faces. "
+                            "Use vibrant luminous colors, natural skin and balanced contrast."
+                            if self.policy["typography"]["coverPlacement"] == "upper_center"
+                            else (
+                                "COVER DESIGN: compose the recognizable person prominently on the LEFT, "
+                                "head near the upper-left, and the meaningful activity and illustrated "
+                                "objects on the RIGHT and lower area. Reserve ONLY the measured upper-right "
+                                "title block. Do not create an empty strip across the whole top or move "
+                                "the entire person down. Use a rich, coherent illustrated environment, "
+                                "natural expression, soft light and inviting color."
+                            )
+                        )
                         if title
                         else "INTERIOR DESIGN: four short centered verses occupy the upper central "
                         "reading space; illustrate the specific action below. Show the task and "

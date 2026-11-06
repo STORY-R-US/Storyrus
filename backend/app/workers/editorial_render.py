@@ -44,17 +44,14 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
         raise ValueError("Fonte editorial alterada")
     if any(ord(char) not in face["codepoints"] for char in value if not char.isspace()):
         raise ValueError("Fonte não contém todos os caracteres do texto aprovado")
+    width_ratio = typography.get(
+        "titleWidthRatio" if title else "bodyWidthRatio", 0.055 if title else 0.032
+    )
+    if title and len(value) >= typography.get("longTitleMinCharacters", 100000):
+        width_ratio = typography["longTitleWidthRatio"]
     font = ImageFont.truetype(
         str(font_path),
-        max(
-            1,
-            round(
-                image.width
-                * typography.get(
-                    "titleWidthRatio" if title else "bodyWidthRatio", 0.055 if title else 0.032
-                )
-            ),
-        ),
+        max(1, round(image.width * width_ratio)),
     )
     bounds = region or policy.get("referenceComposition", {}).get(
         "coverRegion" if title else "bodyRegion",
@@ -76,7 +73,13 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
             else:
                 line = candidate
         lines.append(line)
-    step = round(font.size * policy["typography"]["lineHeight"])
+    line_height = (
+        typography.get("titleLineHeight", typography["lineHeight"])
+        if title
+        else typography["lineHeight"]
+    )
+    color = typography.get("titleColor", typography["color"]) if title else typography["color"]
+    step = round(font.size * line_height)
     ink_height = font.getbbox("ÁgjÇ")[3] - font.getbbox("ÁgjÇ")[1]
     if (len(lines) - 1) * step + ink_height > box[3] - box[1]:
         raise ValueError("Texto não cabe; recomponha a cena sem reduzir a fonte")
@@ -95,7 +98,7 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
             position,
             line,
             font=font,
-            fill=policy["typography"]["color"],
+            fill=color,
             anchor="lt",
         )
     padding = image.width * 0.012
@@ -114,8 +117,8 @@ def text(data, value, profile, *, title=False, region=None, alignment=None):
         "font_sha256": digest(font_path.read_bytes()),
         "weight": face["weight"],
         "font_size": font.size,
-        "line_height": 1.2,
-        "color": "#172A3A",
+        "line_height": line_height,
+        "color": color,
         "layout_version": profile["editorial"]["version"],
     }
 
