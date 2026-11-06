@@ -2041,27 +2041,41 @@ async def test_current_preview_is_delivered_for_explicit_user_approval(reference
     assert project.purchase_flow["preview_approved_at"]
 
 
-def test_whole_art_composition_preserves_borders_and_measured_text_gap():
-    from PIL import ImageDraw
-
+@pytest.mark.asyncio
+@pytest.mark.parametrize("version", ["2026-11-05.2", "2026-11-05.3"])
+async def test_reference_pages_preserve_full_bleed_art_without_added_paper_margins(
+    reference_studio, monkeypatch, version
+):
+    from app.services import editorial_profile
     from app.workers import editorial_render as render
 
-    original = Image.new("RGB", (1000, 1000), "blue")
-    draw = ImageDraw.Draw(original)
-    draw.rectangle((0, 0, 999, 999), outline="red", width=25)
-    source = render.encode(original)
-    page_bytes, proof = render.fit_art_below_text(source, [0.1, 0.04, 0.9, 0.27])
-    page = Image.open(io.BytesIO(page_bytes))
-    x0, y0, x1, y1 = proof["art_box_px"]
-    assert y0 >= 300
-    assert proof["cropped"] is False
-    assert (
-        page.crop((x0, y0, x1, y1)).tobytes()
-        == original.resize((x1 - x0, y1 - y0), Image.Resampling.LANCZOS).tobytes()
-    )
-    assert page.crop((100, 40, 900, 270)).getextrema() == ((255, 255), (249, 249), (237, 237))
-    with pytest.raises(ValueError):
-        render.fit_art_below_text(source, [0.1, 0.04, 0.9, 0.8])
+    studio, calls, _ = reference_studio
+    _, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", version)
+    book_profile.update(project, editorial=editorial_profile.snapshot())
+    db.commit()
+    job = await _run(studio, "preview", key="full-bleed-identity")
+    assert job.status == "DONE", job.error
+    assert len(calls) == 5  # three arts and two mockups; no paid regeneration
+    sources = db.scalars(
+        select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
+    ).all()
+    for index, stage in enumerate(("cover", "preview:left", "preview:right"), start=1):
+        art = next(a for a in sources if a.meta.get("stage") == stage + ":art")
+        composed = next(a for a in sources if a.meta.get("stage") == stage + ":text")
+        source = Image.open(io.BytesIO(store[art.storage_key])).convert("RGB")
+        expected = Image.new("RGB", (1024, 1024), (index * 20, 120, 160))
+        assert source.tobytes() == expected.tobytes()  # every original pixel survives
+        assert art.meta["page_composition"]["method"] == "full_bleed_text_overlay"
+        assert art.meta["page_composition"]["scale"] == 1
+        assert composed.meta["art_sha256"] == render.digest(store[art.storage_key])
+        final = Image.open(io.BytesIO(store[composed.storage_key])).convert("RGB")
+        for corner in ((0, 0), (1023, 0), (0, 1023), (1023, 1023)):
+            assert final.getpixel(corner) == expected.getpixel(corner)
+        assert "separate ivory reading area" not in calls[index - 1]["prompt"]
+        assert "this image IS the entire printed page" in calls[index - 1]["prompt"]
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
 
 
 @pytest.mark.asyncio

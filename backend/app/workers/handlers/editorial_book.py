@@ -43,7 +43,7 @@ class Pipeline:
             )
         ]
         self.base = {
-            "renderer_revision": "2026-11-05.5",
+            "renderer_revision": "2026-11-06.full-bleed.1",
             "editorial": self.profile["editorial"],
             "photos": [render.digest(p) for p in photos],
             "style": project.style,
@@ -559,12 +559,6 @@ class Pipeline:
                 alignment=plan["alignment"],
             )
             safe_region = planned_layout["ink_region_with_margin"]
-            if self.designed:
-                # Verify room for the complete scene BEFORE any paid image request.
-                render.fit_art_below_text(
-                    self.master._offline_png("layout", palette=((255, 255, 255), (255, 255, 255))),
-                    safe_region,
-                )
             template = (
                 editorial_profile._root(self.profile["editorial"]["version"])
                 / "prompts/02_ARTE_E_CENAS.txt"
@@ -723,10 +717,16 @@ class Pipeline:
             )
             if self.designed:
                 prompt += (
-                    "\nFINAL PAGE CONTRACT: the server will place this WHOLE image below "
-                    "a separate ivory reading area. Fill the square with the requested scene "
-                    "and prominent naturally proportioned people. No empty text strip is "
-                    "needed INSIDE the artwork. Never draw letters, borders or a physical book."
+                    "\nFINAL PAGE CONTRACT: this image IS the entire printed page, edge to edge. "
+                    "The server overlays the exact approved text directly on its measured quiet "
+                    "background region. Continue the illustrated environment behind and around "
+                    "that region; never create a separate panel, blank paper band, inset picture "
+                    "or ivory frame. Keep people large and recognizable, with the likeness, age, "
+                    "facial features and skin tone from the project's original photos. "
+                    "Use the selected finish consistently across cover, pages and reading scene; "
+                    "never apply a generic watercolor/sepia filter to the person's face. "
+                    "Reserve ONLY the measured text rectangle, not an additional empty strip. "
+                    "Never draw letters, borders or a physical book."
                 )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
@@ -774,9 +774,15 @@ class Pipeline:
             render.square(raw)
             page_composition = None
             if self.designed:
-                source_sha256 = render.digest(raw)
-                raw, page_composition = render.fit_art_below_text(raw, safe_region)
-                operation = "local_whole_art_composition"
+                # The generated scene already owns the full page. Preserve every pixel;
+                # literal typography is overlaid without shrinking or framing the artwork.
+                page_composition = {
+                    "method": "full_bleed_text_overlay",
+                    "source_sha256": render.digest(raw),
+                    "art_box_normalized": [0, 0, 1, 1],
+                    "cropped": False,
+                    "scale": 1,
+                }
             if not title and not self.demo and not self.designed:
                 correction = None
                 for layout_attempt in range(3):
@@ -856,8 +862,8 @@ class Pipeline:
                         ),
                         technical={"typography": layout},
                         full_image_prompt=(
-                            "Intentional ivory paper-page layout: one complete illustration below "
-                            "a separate reading area. Its paper margins are design, not collage. "
+                            "Full-bleed picture-book illustration with text over natural quiet "
+                            "background; no separate reading panel or inset illustration. "
                             if page_composition
                             else ""
                         )
@@ -879,7 +885,7 @@ class Pipeline:
                         ("CAPA_PLANA" if title else "PAGINA_INTERNA")
                         + ": texto literal "
                         + (
-                            "Layout editorial em papel marfim, ilustração inteira abaixo do texto; margens intencionais não são colagem. "
+                            "Ilustração de ponta a ponta, texto integrado ao fundo natural da cena, sem quadro ou faixa separada. "
                             if page_composition
                             else ""
                         )
