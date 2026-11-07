@@ -2251,5 +2251,5 @@
 @media(max-width:540px) { .studio-app .catalog-book-design-trio { grid-template-columns: minmax(0,1fr); } .studio-app .catalog-book-design-trio img { height: auto; max-height: 260px; } }
 @media(min-width:900px) {
   .studio-app .is-preview-review > .master-child-edit { margin: 0; }
-  .studio-app .is-preview-review:has(.catalog-book-design-samples) .master-gallery.has-single-preview .master-shot > img { height: 200px; }
+  .studio-app .is-preview-review:has(.catalog-book-design-samples) .master-gallery.has-single-preview .master-shot > img { height: 180px; }
 }
