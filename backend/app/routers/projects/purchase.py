@@ -31,6 +31,66 @@ class PreviewTitleIn(BaseModel):
     title: str = Field(min_length=1, max_length=120)
 
 
+class PreviewCopyIn(PreviewTitleIn):
+    left: str = Field(min_length=1, max_length=2000)
+    right: str = Field(min_length=1, max_length=2000)
+
+
+@router.put("/{project_id}/preview/copy", response_model=ProjectOut)
+def save_preview_copy(
+    project_id: uuid.UUID,
+    body: PreviewCopyIn,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+):
+    """Repair a failed preview's literal copy locally; never enqueue paid work."""
+    from app.services import book_profile
+    from app.workers import editorial_render
+
+    project = get_owned_project(db, user, project_id)
+    purchase_flow.require_unpaid(db, project)
+    if purchase_flow.active_job(db, project):
+        raise HTTPException(409, "Aguarde a geração terminar antes de corrigir o texto.")
+    book_profile.require_stage(project, "ficha", "cover_ready", "preview_ready")
+    profile = project.book_profile or {}
+    language = project.language or "pt-BR"
+    locales = dict(profile.get("locales") or {})
+    if not book_profile.enabled(project) or not locales.get(language):
+        raise HTTPException(409, "Os textos da prévia ainda não estão disponíveis.")
+    literal = {key: value.strip() for key, value in body.model_dump().items()}
+    try:
+        editorial_render.validate_preview_copy(profile, literal)
+    except editorial_render.TextLayoutError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    changed_title = literal["title"] != locales[language].get("title")
+    locales[language] = literal
+    supplied = {**(profile.get("supplied_locales") or {}), language: literal}
+    records = {
+        **(profile.get("text_record") or {}),
+        language: {key: {"origin": "user_supplied"} for key in literal},
+    }
+    book_profile.update(
+        project,
+        locales=locales,
+        supplied_locales=supplied,
+        text_record=records,
+        title=literal["title"],
+        **({"cover_calibration": None} if changed_title else {}),
+    )
+    purchase_flow.update(
+        project,
+        title=literal["title"],
+        preview_ready_at=None,
+        preview_approved_at=None,
+        quoted_at=None,
+        stage="preview_generating",
+    )
+    project.book_approved_at = None
+    db.commit()
+    db.refresh(project)
+    return project
+
+
 @router.post("/{project_id}/preview/retry-ai", response_model=JobAcceptedOut, status_code=202)
 def retry_real_preview(
     project_id: uuid.UUID,

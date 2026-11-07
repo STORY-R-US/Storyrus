@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import math
+import unicodedata
 from functools import lru_cache
 
 import cv2
@@ -11,6 +12,44 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from app.services import editorial_profile
+
+TEXT_LAYOUT_REVISION = "2026-11-07.local-fit.1"
+
+
+class TextLayoutError(ValueError):
+    """An actionable local text issue; retrying an image provider cannot fix it."""
+
+
+def _fit_copy(draw, value, font_path, preferred, minimum, width, height, line_height, stroke):
+    for size in range(preferred, minimum - 1, -1):
+        font = ImageFont.truetype(str(font_path), size)
+        lines = []
+        fits = True
+        for paragraph in value.splitlines():
+            line = ""
+            for word in paragraph.split():
+                if draw.textlength(word, font=font) + 2 * stroke > width:
+                    fits = False
+                    break
+                candidate = f"{line} {word}".strip()
+                if draw.textlength(candidate, font=font) + 2 * stroke > width:
+                    lines.append(line)
+                    line = word
+                else:
+                    line = candidate
+            lines.append(line)
+            if not fits:
+                break
+        step = max(1, round(size * line_height))
+        ink_height = max(
+            (font.getbbox(line)[3] - font.getbbox(line)[1] for line in lines), default=0
+        )
+        if fits and (len(lines) - 1) * step + ink_height + 2 * stroke <= height:
+            return font, lines, step
+    raise TextLayoutError(
+        "O texto não cabe mantendo uma leitura confortável. Encurte o título ou o trecho "
+        "antes de tentar novamente; nenhuma nova imagem resolve esse limite."
+    )
 
 
 def digest(data):
@@ -30,6 +69,37 @@ def square(data):
     return image
 
 
+def validate_preview_copy(profile, locale):
+    policy = editorial_profile.policy(profile)
+    composition = policy.get("referenceComposition", {})
+    design = profile.get("book_design")
+    items = [("título", locale["title"], True)]
+    if design and design["interior"]["mode"] != "two_scenes":
+        items.append(("texto do livro aberto", locale["left"] + "\n\n" + locale["right"], False))
+    else:
+        items.extend(
+            (label, locale[key], False)
+            for key, label in (
+                ("left", "texto da página esquerda"),
+                ("right", "texto da página direita"),
+            )
+        )
+    blank = encode(Image.new("RGB", (1024, 1024), "white"))
+    for label, literal, title in items:
+        try:
+            text(
+                blank,
+                literal,
+                profile,
+                title=title,
+                region=composition.get("coverRegion" if title else "bodyRegion"),
+                measure_only=True,
+                readable=not title,
+            )
+        except TextLayoutError as exc:
+            raise TextLayoutError(f"Revise o {label}: {exc}") from exc
+
+
 def text(
     data,
     value,
@@ -41,10 +111,10 @@ def text(
     readable=False,
     measure_only=False,
 ):
-    """Fixed, versioned sizes. Overflow fails rather than shrinking or changing words."""
+    """Preserve literal copy and catalog position, fitting locally above readable limits."""
     image = square(data)
     if not isinstance(value, str) or not value.strip():
-        raise ValueError("Texto aprovado ausente")
+        raise TextLayoutError("Preencha o título ou o trecho antes de gerar a imagem.")
     policy = editorial_profile.policy(profile)
     typography = policy["typography"]
     filename = typography.get("titleFontFile" if title else "bodyFontFile", "Nunito-Medium.ttf")
@@ -53,17 +123,15 @@ def text(
     face = manifest.get("faces", {}).get(filename, manifest)
     if digest(font_path.read_bytes()) != face["sha256"]:
         raise ValueError("Fonte editorial alterada")
-    if any(ord(char) not in face["codepoints"] for char in value if not char.isspace()):
-        raise ValueError("Fonte não contém todos os caracteres do texto aprovado")
+    normalized = unicodedata.normalize("NFC", value)
+    if any(ord(char) not in face["codepoints"] for char in normalized if not char.isspace()):
+        raise TextLayoutError("Retire do texto os símbolos que a fonte do livro não suporta.")
     width_ratio = typography.get(
         "titleWidthRatio" if title else "bodyWidthRatio", 0.055 if title else 0.032
     )
     if title and len(value) >= typography.get("longTitleMinCharacters", 100000):
         width_ratio = typography["longTitleWidthRatio"]
-    font = ImageFont.truetype(
-        str(font_path),
-        max(1, round(image.width * width_ratio)),
-    )
+    preferred_size = max(1, round(image.width * width_ratio))
     bounds = region or policy.get("referenceComposition", {}).get(
         "coverRegion" if title else "bodyRegion",
         [0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29],
@@ -71,47 +139,51 @@ def text(
     x0, y0, x1, y1 = validate_region(bounds)
     box = [round(v * image.width) for v in (x0, y0, x1, y1)]
     draw = ImageDraw.Draw(image)
-    lines = []
-    for paragraph in value.splitlines():
-        line = ""
-        for word in paragraph.split():
-            candidate = f"{line} {word}".strip()
-            if draw.textlength(candidate, font=font) > box[2] - box[0]:
-                if not line or draw.textlength(word, font=font) > box[2] - box[0]:
-                    raise ValueError("Palavra não cabe; recomponha a área de leitura")
-                lines.append(line)
-                line = word
-            else:
-                line = candidate
-        lines.append(line)
     line_height = (
         typography.get("titleLineHeight", typography["lineHeight"])
         if title
         else typography["lineHeight"]
     )
     color = typography.get("titleColor", typography["color"]) if title else typography["color"]
-    step = round(font.size * line_height)
-    ink_height = font.getbbox("ÁgjÇ")[3] - font.getbbox("ÁgjÇ")[1]
-    if (len(lines) - 1) * step + ink_height > box[3] - box[1]:
-        raise ValueError("Texto não cabe; recomponha a cena sem reduzir a fonte")
+    minimum_size = (
+        min(preferred_size, max(1, round(image.width * (0.035 if title else 0.028))))
+        if policy.get("referenceComposition")
+        else preferred_size
+    )
+    stroke = max(1, round(image.width * 0.0012)) if readable else 0
+    font, lines, step = _fit_copy(
+        draw,
+        normalized,
+        font_path,
+        preferred_size,
+        minimum_size,
+        box[2] - box[0],
+        box[3] - box[1],
+        line_height,
+        stroke,
+    )
     alignment = alignment or typography["coverAlignment" if title else "bodyAlignment"]
     if alignment not in {"left", "center"}:
         raise ValueError("Alinhamento editorial inválido")
     ink_boxes = []
     for i, line in enumerate(lines):
         offset = (
-            (box[2] - box[0] - draw.textlength(line, font=font)) / 2 if alignment == "center" else 0
+            (box[2] - box[0] - 2 * stroke - draw.textlength(line, font=font)) / 2
+            if alignment == "center"
+            else 0
         )
-        position = (box[0] + offset, box[1] + i * step)
+        position = (box[0] + stroke + offset, box[1] + stroke + i * step)
         if line:
-            ink_boxes.append(draw.textbbox(position, line, font=font, anchor="lt"))
+            ink_boxes.append(
+                draw.textbbox(position, line, font=font, anchor="lt", stroke_width=stroke)
+            )
         draw.text(
             position,
             line,
             font=font,
             fill=color,
             anchor="lt",
-            stroke_width=max(1, round(image.width * 0.0012)) if readable else 0,
+            stroke_width=stroke,
             stroke_fill="#fff9ed" if readable else None,
         )
     padding = image.width * 0.012
@@ -130,6 +202,10 @@ def text(
         "font_sha256": digest(font_path.read_bytes()),
         "weight": face["weight"],
         "font_size": font.size,
+        "preferred_font_size": preferred_size,
+        "minimum_font_size": minimum_size,
+        "fit_adjusted": font.size != preferred_size,
+        "text_layout_revision": TEXT_LAYOUT_REVISION,
         "line_height": line_height,
         "color": color,
         "layout_version": profile["editorial"]["version"],

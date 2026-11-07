@@ -20,6 +20,14 @@ nomes, versos, objetos e personagens do exemplo não são copiados. A capa
 aprovada acompanha a geração das páginas seguintes para manter continuidade.
 
 Título e versos são compostos localmente com fonte e posição do modelo.
+O encaixe começa no tamanho preferido do modelo e, se necessário, ajusta a
+quebra de linhas e o tamanho dentro de limites legíveis: mínimo de 3,5% da
+largura para títulos e 2,8% para versos. Não altera palavras nem move o bloco
+do Catálogo. Acentos de teclado em formas Unicode equivalentes são aceitos.
+Todos os textos conhecidos da prévia são medidos antes da primeira imagem;
+um excesso extremo pede correção do trecho específico sem comprar imagens.
+Atualizações desse encaixe invalidam somente a composição local de texto,
+preservando a arte já comprada e a capa explicitamente aprovada.
 No miolo com leitura separada, cada página de leitura reúne dois trechos
 consecutivos sem reescrever nem perder nenhum dos 16 trechos. Ao corrigir o
 trecho da página ilustrada, a leitura correspondente é atualizada a partir

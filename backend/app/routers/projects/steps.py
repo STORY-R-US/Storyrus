@@ -225,7 +225,10 @@ def start_preview(
                 or payload.get("image")
             ):
                 raise HTTPException(409, "Revise e aprove a capa atual antes de continuar")
-        elif calibration:
+        elif calibration and (
+            project.book_profile.get("stage") == "cover_ready"
+            or payload.get("image") in (None, "01_CAPA")
+        ):
             # A normal retry/adjustment must never purchase the remaining scenes
             # before the user explicitly approves the current cover.
             payload["cover_only"] = True

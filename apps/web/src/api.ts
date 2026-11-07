@@ -435,6 +435,9 @@ export const api = {
   async savePreviewChanges(id: string, body: { title: string; theme_description: string; story_text: string; photo_notes: string }) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/changes`, { method: "PUT", body: JSON.stringify(body) });
   },
+  async savePreviewCopy(id: string, body: { title: string; left: string; right: string }) {
+    return req<Project>(`/v1/projects/${id}/preview/copy`, { method: "PUT", body: JSON.stringify(body) });
+  },
   async saveChildProfile(
     id: string,
     input: { childName: string; childAge?: number; costume: string; trait: string; interest: string },

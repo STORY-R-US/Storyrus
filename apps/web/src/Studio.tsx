@@ -25,6 +25,7 @@ import { PostPreviewFlow } from "./studio/PostPreviewFlow";
 import { purchaseCopy } from "./studio/purchaseCopy";
 import { PreviewTrio } from "./studio/PreviewTrio";
 import { MasterBookFlow } from "./studio/MasterBookFlow";
+import { PreviewCopyRecovery } from "./studio/PreviewCopyRecovery";
 import { CatalogBookDesign, type CatalogDesignId } from "./studio/CatalogBookDesign";
 import { capitalizeChildName } from "./studio/childName";
 import {
@@ -1126,6 +1127,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               </div>
             )}
             {showPreviewRetry && (
+              <>
+              {project?.book_profile && <PreviewCopyRecovery key={project.id} project={project} lang={lang} onSaved={setProject} />}
               <button
                 type="button"
                 className="kbtn kbtn-primary studio-create"
@@ -1135,6 +1138,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               >
                 {t.previewRetry}
               </button>
+              <button type="button" className="link" disabled={busy} onClick={resetProject}>{t.newProject}</button>
+              </>
             )}
             {showPreviewLoading ? (
               <div className="studio-preview-building" data-testid="studio-preview-building">

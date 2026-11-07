@@ -7,7 +7,7 @@ import uuid
 import pytest
 from PIL import Image, ImageChops
 from pypdf import PdfReader
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.ai_clients.base import ImageResult, ProviderError, TextResult
 from app.config import settings
@@ -670,6 +670,113 @@ async def _run(studio, path, body=None, key=None):
 
 
 @pytest.mark.asyncio
+async def test_preview_catches_impossible_body_before_buying_cover(reference_studio):
+    from app.services import book_design
+
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    locales = project.book_profile["locales"]
+    locales["pt-BR"]["left"] = "Texto extenso. " * 500
+    book_profile.update(project, locales=locales, book_design=book_design.snapshot("family"))
+    db.commit()
+    response = client.post(f"/v1/projects/{pid}/preview", json={"cover_only": True})
+    assert response.status_code == 202
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert "Encurte" in job.error and "livro aberto" in job.error
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_long_title_and_layout_upgrade_reuse_the_purchased_art(reference_studio, monkeypatch):
+    from app.services import book_design
+    from app.workers import editorial_render
+
+    studio, calls, _ = reference_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    locales = project.book_profile["locales"]
+    literal = "João Pedro e suas extraordinárias descobertas no parque"
+    locales["pt-BR"]["title"] = literal
+    book_profile.update(project, locales=locales, book_design=book_design.snapshot("family"))
+    db.commit()
+    await _run(studio, "preview", {"cover_only": True}, key="long-title")
+    assert len(calls) == 1
+    first = project.book_profile["cover_calibration"]["flat_meta"]
+    assert first["layout"]["text"] == literal and first["layout"]["fit_adjusted"]
+    monkeypatch.setattr(editorial_render, "TEXT_LAYOUT_REVISION", "next-local-layout")
+    await _run(studio, "preview", {"cover_only": True}, key="local-layout-upgrade")
+    second = project.book_profile["cover_calibration"]["flat_meta"]
+    assert len(calls) == 1
+    assert first["art_key"] == second["art_key"]
+    assert second["layout"]["text_layout_revision"] == "next-local-layout"
+
+
+def test_failed_preview_copy_can_be_saved_without_starting_generation(reference_studio):
+    from app.printkit.service import get_print_order
+
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    literal = {
+        "title": "João no parque",
+        "left": "João olha o céu.\nQue lindo dia!",
+        "right": "Brinca no parque.\nCom alegria!",
+    }
+    before = db.scalar(select(func.count(Job.id)))
+    response = client.put(f"/v1/projects/{pid}/preview/copy", json=literal)
+    assert response.status_code == 200, response.text
+    assert response.json()["book_profile"]["locales"]["pt-BR"] == literal
+    db.refresh(project)
+    assert db.scalar(select(func.count(Job.id))) == before
+    assert not calls
+    response = client.put(
+        f"/v1/projects/{pid}/preview/copy", json={**literal, "left": "Texto extenso. " * 100}
+    )
+    assert response.status_code == 422
+    assert project.book_profile["locales"]["pt-BR"] == literal
+    get_print_order(db, project.id).payment_status = "paid"
+    db.commit()
+    assert client.put(f"/v1/projects/{pid}/preview/copy", json=literal).status_code == 409
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("model", ["family", "adventure", "cartoon"])
+@pytest.mark.parametrize("role", ["01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"])
+async def test_catalog_improvements_reach_provider_without_restarting_cover(
+    reference_studio, model, role
+):
+    studio, calls, _ = reference_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    project.style = "cartoon" if model == "cartoon" else "realistic"
+    db.commit()
+    await _run(
+        studio, "preview", {"catalog_design_id": model, "cover_only": True}, key="first-cover"
+    )
+    if role != "01_CAPA":
+        await _run(
+            studio,
+            "preview",
+            {"approved_cover_sha256": project.book_profile["cover_calibration"]["sha256"]},
+            key="approve-first-cover",
+        )
+    before = len(calls)
+    instruction = "Acrescente uma pequena pipa roxa no fundo da cena"
+    job = await _run(
+        studio, "preview", {"image": role, "adjustment": instruction}, key="requested-improvement"
+    )
+    assert len(calls) > before
+    assert all(instruction in call["prompt"] for call in calls[before:])
+    assert project.book_profile["stage"] == (
+        "cover_ready" if role == "01_CAPA" else "preview_ready"
+    )
+    assert job.result["preview_complete"] == (role != "01_CAPA")
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("model", ["family", "adventure", "cartoon"])
 async def test_complete_catalog_design_controls_preview_and_paid_pages(reference_studio, model):
     from app.printkit.service import get_print_order
@@ -716,6 +823,21 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
     book_profile.update(project, stage="avatar_approved", stories={"pt-BR": story})
     db.commit()
     before = len(calls)
+    if model == "family":
+        broken_story = story.replace(passages[14], "Texto extenso. " * 500)
+        book_profile.update(project, stories={"pt-BR": broken_story})
+        db.commit()
+        response = client.post(
+            f"/v1/projects/{pid}/pages/next",
+            json={"page": 1},
+            headers={"Idempotency-Key": "invalid-later-page"},
+        )
+        job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+        await runner.process_job(db, job)
+        assert job.status == "FAILED" and "página 15" in job.error
+        assert len(calls) == before
+        book_profile.update(project, stories={"pt-BR": story})
+        db.commit()
     for number in (1, 2):
         await _run(studio, "pages/next", {"page": number}, key=f"catalog-page-{number}")
     assert len(calls) == before + 2
@@ -738,6 +860,16 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
         assert len(calls) == before + 1  # illustration only; reading text refreshes locally
         reading = _assets(db, project, workflow=1, language="pt-BR", role="com_texto", page=1)[-1]
         assert reading.meta["layout"]["text"] == passages[0] + "\n\nLia rega a flor com carinho."
+        before = len(calls)
+        instruction = "Mude as folhas decorativas para azul-claro"
+        await _run(
+            studio,
+            "pages/next",
+            {"page": 1, "adjustment": instruction},
+            key="change-reading-background",
+        )
+        assert len(calls) == before + 1
+        assert instruction in calls[-1]["prompt"]
 
 
 @pytest.mark.asyncio

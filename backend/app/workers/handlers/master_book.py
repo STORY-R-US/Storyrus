@@ -1061,6 +1061,25 @@ async def page(db, job, project):
             from .editorial_book import Pipeline
 
             pipe = Pipeline(db, job, project, photos)
+            if number == 1 and pipe.designed:
+                from app.services import book_design
+                from app.workers import editorial_render
+
+                passages = _parse_pages(profile["stories"][language])
+                blank = _offline_png("layout", palette=((255, 255, 255), (255, 255, 255)))
+                for page_number, passage in enumerate(passages, 1):
+                    if pipe.design:
+                        _, passage, _ = book_design.pair_content(pipe.design, page_number, passages)
+                    if not passage:
+                        continue
+                    try:
+                        editorial_render.text(
+                            blank, passage, profile, measure_only=True, readable=True
+                        )
+                    except editorial_render.TextLayoutError as exc:
+                        raise ProviderError(
+                            f"Revise o texto da página {page_number}: {exc}", transient=False
+                        ) from exc
             if pipe.design:
                 pipe.cover_continuity = storage.get_bytes(
                     (cover.meta or {}).get("art_key")

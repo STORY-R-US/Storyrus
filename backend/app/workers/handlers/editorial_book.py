@@ -171,9 +171,7 @@ class Pipeline:
         require_photo_authorization(self.db, self.project.id)
         spend_guard.assert_vendor_allowed(self.db)
 
-    async def stage(self, name, inputs, build):
-        """Immutable intermediates survive worker/job retries, scoped to all relevant inputs."""
-        revisions = self.project.book_profile.get("editorial_revisions", {})
+    def revision_for(self, name):
         role = (
             "01_CAPA"
             if name.startswith("cover")
@@ -183,8 +181,15 @@ class Pipeline:
             if name == "reading"
             else None
         )
-        if revisions.get(role):
-            revision = revisions[role]
+        return self.project.book_profile.get("editorial_revisions", {}).get(role, {})
+
+    async def stage(self, name, inputs, build):
+        """Immutable intermediates survive worker/job retries, scoped to all relevant inputs."""
+        if self.designed and name.endswith(":text"):
+            # Recompose typography locally after a layout fix, retaining purchased raw art.
+            inputs = {**inputs, "text_layout_revision": render.TEXT_LAYOUT_REVISION}
+        revision = self.revision_for(name)
+        if revision:
             if not name.endswith(":art"):
                 inputs = {**inputs, "requested_revision": revision}
             elif revision.get("art_revision"):
@@ -450,10 +455,24 @@ class Pipeline:
         return {**report, "status": "valid"}
 
     async def art(self, name, action, *, title=False, value=None):
+        if self.designed:
+            try:
+                render.text(
+                    self.master._offline_png("layout", palette=((255, 255, 255), (255, 255, 255))),
+                    value,
+                    self.profile,
+                    title=title,
+                    region=self.text_region(title),
+                    alignment=self.alignment(title),
+                    measure_only=True,
+                    readable=not title,
+                )
+            except render.TextLayoutError as exc:
+                raise ProviderError(str(exc), transient=False) from exc
         plan_key = signature([self.base, name, action])
         plan = self.profile.get("scene_plans", {}).get(plan_key)
         if not plan:
-            if self.demo or self.design:
+            if self.demo or self.designed:
                 plan = {
                     "action": action,
                     "text_region": [0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29],
@@ -509,6 +528,8 @@ class Pipeline:
                     )
                     break
                 except ValueError as exc:
+                    if self.designed:
+                        raise ProviderError(str(exc), transient=False) from exc
                     # Vision can propose a box too small even for a short stanza.
                     # Calibrate a larger safe box using the actual font before
                     # requesting another plan or paying for any image generation.
@@ -772,6 +793,15 @@ class Pipeline:
                     )
                     + "\nGenerate ONE square flat full-bleed illustration, no book mockup, spine, letters or example words. Respect the measured text rectangle as natural quiet scenery, free of faces, hair and hands. Use the original project photos and continuity manifest: "
                     + json.dumps(self.base["reference_manifest"], ensure_ascii=False)
+                )
+                revision = self.revision_for(name)
+                prompt += "\n" + json.dumps(
+                    {
+                        "requested_adjustment": revision.get(
+                            "art_adjustment", revision.get("adjustment", "")
+                        )
+                    },
+                    ensure_ascii=False,
                 )
             visual_master = (
                 book_design.reference(self.design, "cover" if title else "page")
@@ -1104,6 +1134,18 @@ class Pipeline:
             if mode == "reading"
             else action
         )
+        revision = self.revision_for(name)
+        adjustment = revision.get("art_adjustment", revision.get("adjustment", ""))
+        if adjustment:
+            art_action = {"scene": art_action, "requested_adjustment": adjustment}
+        if mode == "reading" and isinstance(action, dict):
+            requested = action.get("requested_scene")
+            if isinstance(requested, dict) and requested.get("requested_adjustment"):
+                art_action = {
+                    **art_action,
+                    "requested_adjustment": requested["requested_adjustment"],
+                    "request_id": requested.get("request_id"),
+                }
 
         async def generate(_attempt):
             prompt = book_design.prompt(
@@ -1247,12 +1289,8 @@ class Pipeline:
                 + json.dumps(
                     {
                         "continuity": self.base["continuity"] if reading else {},
+                        "requested_adjustment": self.revision_for(name).get("adjustment", ""),
                         "references": self.base["reference_manifest"] if reading else [],
-                        "requested_adjustment": self.project.book_profile.get(
-                            "editorial_revisions", {}
-                        )
-                        .get("03_LEITURA" if reading else "02_LIVRO_ABERTO", {})
-                        .get("adjustment", ""),
                     },
                     ensure_ascii=False,
                 )
@@ -1292,6 +1330,7 @@ class Pipeline:
                     {
                         "project_identity": self.base["reference_manifest"],
                         "continuity": self.base["continuity"] if reading else {},
+                        "requested_adjustment": self.revision_for(name).get("adjustment", ""),
                     },
                     ensure_ascii=False,
                 )
@@ -1448,6 +1487,13 @@ async def preview(db, job, project):
         project, preview_ready_at=None, preview_approved_at=None, stage="preview_generating"
     )
     locale = project.book_profile["locales"][pipe.language]
+    if pipe.designed:
+        # Check ALL known copy before purchasing the first illustration or mockup.
+        # A later overflowing page must not waste a successfully purchased cover.
+        try:
+            render.validate_preview_copy(pipe.profile, locale)
+        except render.TextLayoutError as exc:
+            raise ProviderError(str(exc), transient=False) from exc
     calibration = project.book_profile.get("cover_calibration") or {}
     approval = payload.get("approved_cover_sha256")
     calibration_context = signature(
@@ -1478,7 +1524,11 @@ async def preview(db, job, project):
     role = "01_CAPA"
     all_meta = {}
     selected = master._payload(job).get("image")
-    cover_only = payload.get("cover_only", False)
+    cover_only = payload.get("cover_only", False) or bool(
+        calibration
+        and not approval
+        and (project.book_profile.get("stage") == "cover_ready" or selected in (None, "01_CAPA"))
+    )
     roles = ("01_CAPA",) if cover_only else editorial_profile.ROLES
     for role in roles:
         if role == "01_CAPA":
