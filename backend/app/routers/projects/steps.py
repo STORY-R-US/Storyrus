@@ -210,6 +210,11 @@ def start_preview(
         payload = {preview_chain.PREVIEW_FLAG: True, "master_preview": True}
         if body:
             payload.update(body.model_dump(exclude_none=True, exclude={"brief"}))
+        if body and body.catalog_design_id:
+            from app.services import book_design
+
+            book_profile.adopt_current_editorial_draft(project)
+            book_design.select(project, body.catalog_design_id)
         calibration = project.book_profile.get("cover_calibration") or {}
         approval = payload.get("approved_cover_sha256")
         if approval:

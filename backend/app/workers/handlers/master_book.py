@@ -1061,6 +1061,12 @@ async def page(db, job, project):
             from .editorial_book import Pipeline
 
             pipe = Pipeline(db, job, project, photos)
+            if pipe.design:
+                pipe.cover_continuity = storage.get_bytes(
+                    (cover.meta or {}).get("art_key")
+                    or (cover.meta or {}).get("flat_cover_key")
+                    or cover.storage_key
+                )
             plans = dict(profile.get("page_plans", {}))
             plan_key = str(number)
             action = plans.get(plan_key) or stanza
@@ -1075,12 +1081,98 @@ async def page(db, job, project):
                 }
             plans[plan_key] = action
             contract.update(project, page_plans=plans)
-            rendered, page_metadata = await pipe.art(f"page:{number}", action, value=stanza)
+            if pipe.design and pipe.design["interior"]["mode"] != "two_scenes":
+                from app.services import book_design
+
+                passages = _parse_pages(profile["stories"][language])
+                page_role, literal, covered = book_design.pair_content(
+                    pipe.design, number, passages
+                )
+                pair_action = {
+                    "passages": [passages[i - 1] for i in covered],
+                    "requested_scene": action,
+                }
+                rendered, page_metadata = await pipe.catalog_page(
+                    f"page:{number}", pair_action, mode=page_role, value=literal, passages=covered
+                )
+                # If a passage on the illustration page changes, refresh its facing
+                # reading page locally from the stored background, without another
+                # image request or a silent mismatch in the printable book.
+                reading_number = (
+                    covered[0] if pipe.design["interior"]["mode"] == "text_left" else covered[-1]
+                )
+                if number != reading_number:
+                    backgrounds = _assets(
+                        db,
+                        project,
+                        workflow=1,
+                        language=language,
+                        role="sem_texto",
+                        page=reading_number,
+                    )
+                    existing_text = _assets(
+                        db,
+                        project,
+                        workflow=1,
+                        language=language,
+                        role="com_texto",
+                        page=reading_number,
+                    )
+                    if backgrounds and existing_text:
+                        from app.workers import editorial_render
+
+                        background = storage.get_bytes(backgrounds[-1].storage_key)
+                        paired_literal = "\n\n".join(passages[i - 1] for i in covered)
+                        corrected, corrected_layout = editorial_render.text(
+                            background,
+                            paired_literal,
+                            project.book_profile,
+                            region=pipe.design["interior"]["region"],
+                            alignment=pipe.design["interior"]["alignment"],
+                            readable=True,
+                        )
+                        if corrected != storage.get_bytes(existing_text[-1].storage_key):
+                            qa = await pipe.review(
+                                corrected, "Integridade da página de leitura atualizada"
+                            )
+                            _store(
+                                db,
+                                project,
+                                "page_image",
+                                corrected,
+                                language=language,
+                                role="com_texto",
+                                page=reading_number,
+                                validation=qa,
+                                layout=corrected_layout,
+                                book_design={
+                                    "id": pipe.design["id"],
+                                    "sha256": pipe.design["sha256"],
+                                },
+                                passages=covered,
+                                name=contract.filename(
+                                    language,
+                                    f"PAGINA_{reading_number:02d}_COM_TEXTO",
+                                    profile["locales"][language]["title"],
+                                ),
+                            )
+            else:
+                rendered, page_metadata = await pipe.art(f"page:{number}", action, value=stanza)
             art = page_metadata.pop("art_bytes")
             page_metadata = {
                 k: v
                 for k, v in page_metadata.items()
-                if k in {"layout", "validation", "art_key", "art_sha256", "editorial"}
+                if k
+                in {
+                    "layout",
+                    "validation",
+                    "art_key",
+                    "art_sha256",
+                    "editorial",
+                    "book_design",
+                    "page_role",
+                    "passages",
+                }
             }
         else:
             sky = "canto superior direito" if number % 2 else "canto superior esquerdo"
@@ -1179,12 +1271,28 @@ async def page(db, job, project):
                         cost_usd=0,
                     )
                 else:
+                    from app.services import book_design
+
+                    selected_design = book_design.resolve(profile)
                     result = await provider.generate_scene(
-                        prompt=contract.back_cover_prompt(project, language),
+                        prompt=book_design.prompt(
+                            selected_design,
+                            "back_cover",
+                            "Continue the approved project cover environment, with the same cast seen from behind. No letters, logos or QR code.",
+                        )
+                        if selected_design
+                        else contract.back_cover_prompt(project, language),
                         character_ref=cover_bytes,
                         photo=photos[0],
-                        extra_refs=photos[1:],
-                        style=contract.art_direction(project.style),
+                        extra_refs=photos[1:]
+                        + (
+                            [book_design.reference(selected_design, "cover")]
+                            if selected_design
+                            else []
+                        ),
+                        style=selected_design["finish"]
+                        if selected_design
+                        else contract.art_direction(project.style),
                     )
                 back_bytes = book_render.back_cover(book_render.png(result.image_bytes))
                 title = profile["locales"][language]["title"]

@@ -25,6 +25,7 @@ import { PostPreviewFlow } from "./studio/PostPreviewFlow";
 import { purchaseCopy } from "./studio/purchaseCopy";
 import { PreviewTrio } from "./studio/PreviewTrio";
 import { MasterBookFlow } from "./studio/MasterBookFlow";
+import { CatalogBookDesign, type CatalogDesignId } from "./studio/CatalogBookDesign";
 import { capitalizeChildName } from "./studio/childName";
 import {
   masterPreviewEta,
@@ -279,6 +280,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const alsoHero = useRef<string | null>(null);
   const [orderSent, setOrderSent] = useState(false);
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
+  const [catalogDesignId, setCatalogDesignId] = useState<CatalogDesignId>("auto");
+  useEffect(() => setCatalogDesignId("auto"), [artMode]);
   const [dedication, setDedication] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -693,7 +696,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       storyTouched.current = false;
       setPhotoNotes("");
       const brief = getStoryBrief().trim();
-      await api.startPreview(p.id, { brief: brief.slice(0, 2000) || undefined, cover_only: p.book_profile?.version === 1 });
+      await api.startPreview(p.id, { brief: brief.slice(0, 2000) || undefined, cover_only: p.book_profile?.version === 1, catalog_design_id: p.book_profile?.version === 1 ? catalogDesignId : undefined });
       try {
         setJobs(await api.listJobs(p.id));
       } catch {
@@ -786,7 +789,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const brief = getStoryBrief().trim();
-      await api.startPreview(project.id, { brief: brief.slice(0, 2000) || undefined, cover_only: project.book_profile?.version === 1 });
+      await api.startPreview(project.id, { brief: brief.slice(0, 2000) || undefined, cover_only: project.book_profile?.version === 1, catalog_design_id: project.book_profile?.version === 1 ? project.book_profile.book_design?.id || catalogDesignId : undefined });
       try {
         setJobs(await api.listJobs(project.id));
       } catch {
@@ -1638,6 +1641,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           )}
 
           <h3 className="studio-section-title"><span>02</span>{studioDesignCopy(lang).details}</h3>
+          <CatalogBookDesign value={catalogDesignId} onChange={setCatalogDesignId} cartoon={artMode === "cartoon"} disabled={fieldsLocked} lang={lang} />
           <div className="studio-choices">
             <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
               <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>

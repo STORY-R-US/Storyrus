@@ -78,6 +78,11 @@ def policy(profile):
     result = json.loads(
         (_root(editorial["version"]) / "config/editorial-policy.json").read_text(encoding="utf-8")
     )
+    from app.services import book_design
+
+    design = book_design.resolve(profile)
+    if design and result.get("referenceComposition"):
+        return book_design.apply_policy(design, result)
     if profile.get("visual_master_preset") == "andre-editorial-v1" and result.get(
         "referenceComposition"
     ):

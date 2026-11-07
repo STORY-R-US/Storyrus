@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "models": {
+    "family": {
+      "name": "Amor de Bisavó",
+      "style": "realistic",
+      "reference_set": "family",
+      "sources": {
+        "cover": "capa-amordebisavo.jpg",
+        "page": "pagina-amordebisavo.jpg",
+        "holding": "foto-amordebisavo.jpg"
+      },
+      "cover": {
+        "region": [
+          0.49,
+          0.055,
+          0.95,
+          0.33
+        ],
+        "alignment": "center",
+        "placement": "upper_right_block",
+        "font_ratio": 0.083,
+        "long_font_ratio": 0.065
+      },
+      "interior": {
+        "mode": "text_left",
+        "region": [
+          0.1,
+          0.16,
+          0.9,
+          0.82
+        ],
+        "alignment": "center",
+        "font_ratio": 0.04,
+        "description": "A left reading page with generous warm natural paper space and discreet themed edge decoration. The facing right page is one prominent full-page illustration. No body text over people."
+      },
+      "finish": "Natural recognizable faces integrated into soft illustrated scenery, warm clear light, rich coordinated colors and gentle paper texture. No generic sepia filter on skin.",
+      "holding": {
+        "pose": "People naturally reading or holding a slightly open hardback, as in this same catalog book. Front cover legible, rear board and hinge visible, real page-block thickness and hands contacting and supporting the book. Preserve the requested cast; never add example people.",
+        "camera": "natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      }
+    },
+    "adventure": {
+      "name": "Meu Pai, Meu Herói",
+      "style": "realistic",
+      "reference_set": "adventure",
+      "sources": {
+        "cover": "capa-meupai-heroi.png",
+        "page": "pagina-meupai-heroi.png",
+        "holding": "foto-meupai-heroi.png"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.34
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.105,
+        "long_font_ratio": 0.078
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two facing illustrated pages. Each has its own short passage in a quiet upper area and one distinct sequential action below, with prominent natural people and matching scenery."
+      },
+      "finish": "Lifelike recognizable people with natural skin texture and luminous vivid realistic environments. Clear blues, greens and warm daylight when appropriate; no watercolor or sepia filter on faces.",
+      "holding": {
+        "pose": "People naturally reading or holding a slightly open hardback, as in this same catalog book. Front cover legible, rear board and hinge visible, real page-block thickness and hands contacting and supporting the book. Preserve the requested cast; never add example people.",
+        "camera": "natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      }
+    },
+    "cartoon": {
+      "name": "Amor de Mãe — cartoon",
+      "style": "cartoon",
+      "reference_set": "cartoon",
+      "sources": {
+        "cover": "cartoon-capa-amordemae.jpg",
+        "page": "cartoon-pagina-amordemae.jpg",
+        "holding": "cartoon-foto-amordemae.jpg"
+      },
+      "cover": {
+        "region": [
+          0.1,
+          0.12,
+          0.55,
+          0.38
+        ],
+        "alignment": "center",
+        "placement": "upper_left_block",
+        "font_ratio": 0.083,
+        "long_font_ratio": 0.065
+      },
+      "interior": {
+        "mode": "text_right",
+        "region": [
+          0.1,
+          0.15,
+          0.9,
+          0.82
+        ],
+        "alignment": "center",
+        "font_ratio": 0.04,
+        "description": "A full-page cartoon illustration on the left. The facing right page has generous quiet reading space with discreet themed decorations near the edges. No text over faces."
+      },
+      "finish": "Premium soft cartoon picture-book imagery with rounded coherent characters, expressive natural poses, soft light, coordinated illustrated surroundings and preserved personal identity cues.",
+      "holding": {
+        "pose": "People naturally reading or holding a slightly open hardback, as in this same catalog book. Front cover legible, rear board and hinge visible, real page-block thickness and hands contacting and supporting the book. Preserve the requested cast; never add example people.",
+        "camera": "natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      }
+    }
+  }
+}

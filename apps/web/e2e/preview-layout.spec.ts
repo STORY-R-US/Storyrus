@@ -10,6 +10,7 @@ test("Single-cover review stays compact and allows optional detail editing", asy
     ebook_url: null, video_url: null,
     purchase_flow: {preview_ready_at: "2026-10-15", preview_approved_at: null as string | null, stage: "preview_ready"},
     created_at: "2026-10-15", book_profile: { version: 1, stage: "cover_ready", cover_calibration: { sha256: "current-cover" }, title: "Lia e as estrelas",
+      book_design: { id: "cartoon", name: "Amor de Mãe — cartoon", style: "cartoon", sources: { cover: "cartoon-capa-amordemae.jpg", page: "cartoon-pagina-amordemae.jpg", holding: "cartoon-foto-amordemae.jpg" } },
       gender: "f", languages: ["pt-BR"], current_page: 0, costume: "Macacão azul", trait: "Curiosidade",
       interest: "Estrelas", stories: { "pt-BR": "Título: Lia e as estrelas\nPágina 1:\nLia olhou o céu.\nUma estrela sorriu." } } };
   const calls: string[] = [];
@@ -70,6 +71,11 @@ test("Single-cover review stays compact and allows optional detail editing", asy
   await page.screenshot({ path: testInfo.outputPath("cover-review-mobile.png"), fullPage: true });
   await page.getByRole("button", { name: "Ampliar Capa", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Capa", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Fechar", exact: true }).click();
+  await page.getByText("Ver o modelo completo do Catálogo: Amor de Mãe — cartoon", { exact: true }).click();
+  await expect(page.locator(".catalog-book-design-trio img")).toHaveCount(3);
+  await page.getByRole("button", { name: "Ampliar referência", exact: true }).first().click();
+  await expect(page.getByRole("dialog", { name: "Amor de Mãe — cartoon · Capa", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Fechar", exact: true }).click();
   expect(calls).toHaveLength(0);
 });

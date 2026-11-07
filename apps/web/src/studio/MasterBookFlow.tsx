@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { CatalogDesignSamples } from "./CatalogBookDesign";
 import { PreviewImageViewer } from "./PreviewImageViewer";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { TitleSuggestions } from "./TitleSuggestions";
@@ -615,6 +616,7 @@ export function MasterBookFlow({
   }
   return (
     <div className={`studio-master-flow${isPreviewReview ? " is-preview-review" : ""}`} data-testid="studio-master-flow">
+      {p.book_design && isPreviewReview && <CatalogDesignSamples model={p.book_design} lang={lang} />}
       {expandedImage && <PreviewImageViewer src={expandedImage.url} title={expandedImage.label}
         lang={lang} onClose={() => setExpandedImage(null)} />}
       {testMode && <section className="master-adjustment-panel" data-testid="studio-test-mode">

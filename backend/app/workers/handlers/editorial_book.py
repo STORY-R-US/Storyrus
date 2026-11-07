@@ -10,14 +10,15 @@ from app import storage
 from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.models import Asset, Job, ProjectStatus
-from app.services import book_profile as contract
 from app.services import (
+    book_design,
     composition_examples,
     editorial_profile,
     purchase_flow,
     spend_guard,
     visual_reference,
 )
+from app.services import book_profile as contract
 from app.services.privacy import require_photo_authorization
 from app.workers import editorial_render as render
 
@@ -35,6 +36,7 @@ class Pipeline:
         self.master = master
         self.db, self.job, self.project, self.photos = db, job, project, photos
         self.profile = project.book_profile
+        self.design = book_design.resolve(self.profile)
         self.policy = editorial_profile.policy(self.profile)
         self.designed = bool(self.policy.get("referenceComposition"))
         self.demo = contract.test_mode(project) or settings.offline_fallback
@@ -57,12 +59,18 @@ class Pipeline:
                 project.style, self.profile["editorial"]["version"], art_only=True
             )
         ]
+        if self.design:
+            self.refs = []  # This book follows one complete catalog model, not mixed finish examples.
         self.base = {
             "renderer_revision": "2026-11-06.full-bleed.1",
-            "visual_masters": visual_reference.fingerprint(project.style, self.reference_theme)
+            "visual_masters": self.design["reference_sha256"]
+            if self.design
+            else visual_reference.fingerprint(project.style, self.reference_theme)
             if self.designed
             else {},
-            "visual_master_preset": self.profile.get("visual_master_preset"),
+            "visual_master_preset": self.design["id"]
+            if self.design
+            else self.profile.get("visual_master_preset"),
             "editorial": self.profile["editorial"],
             "photos": [render.digest(p) for p in photos],
             "style": project.style,
@@ -73,6 +81,8 @@ class Pipeline:
             "language": self.language,
             "reference_manifest": contract.photo_manifest(project, photos),
         }
+        if self.design:
+            self.base["book_design"] = {"id": self.design["id"], "sha256": self.design["sha256"]}
         if self.designed:
             self.base["continuity"]["scene_world"] = self.profile.get("scene_world")
 
@@ -86,6 +96,11 @@ class Pipeline:
         )
 
     def text_instruction(self, title=False):
+        if title and self.design:
+            return (
+                "Título no bloco definido pelo modelo completo do Catálogo: "
+                + self.design["cover"]["placement"]
+            )
         if title:
             return (
                 "Título centralizado dentro do bloco superior direito."
@@ -438,7 +453,7 @@ class Pipeline:
         plan_key = signature([self.base, name, action])
         plan = self.profile.get("scene_plans", {}).get(plan_key)
         if not plan:
-            if self.demo:
+            if self.demo or self.design:
                 plan = {
                     "action": action,
                     "text_region": [0.09, 0.06, 0.91, 0.29] if title else [0.07, 0.07, 0.93, 0.29],
@@ -747,25 +762,47 @@ class Pipeline:
                     "Reserve ONLY the measured text rectangle, not an additional empty strip. "
                     "Never draw letters, borders or a physical book."
                 )
-            visual_master = (
-                visual_reference.load(
-                    "cover" if title else "page", self.project.style, self.reference_theme
+            if self.design:
+                prompt = (
+                    book_design.prompt(
+                        self.design,
+                        "cover" if title else "illustrated_page",
+                        action,
+                        text_region=safe_region,
+                    )
+                    + "\nGenerate ONE square flat full-bleed illustration, no book mockup, spine, letters or example words. Respect the measured text rectangle as natural quiet scenery, free of faces, hair and hands. Use the original project photos and continuity manifest: "
+                    + json.dumps(self.base["reference_manifest"], ensure_ascii=False)
                 )
-                if self.designed
-                else None
+            visual_master = (
+                book_design.reference(self.design, "cover" if title else "page")
+                if self.design
+                else (
+                    visual_reference.load(
+                        "cover" if title else "page", self.project.style, self.reference_theme
+                    )
+                    if self.designed
+                    else None
+                )
             )
             if visual_master:
                 prompt += (
-                    "\nLAST ATTACHED IMAGE = VISUAL MASTER, for composition, finish and visual identity "
-                    "of the book series ONLY. Match its lifelike faces integrated in softly illustrated "
-                    "surroundings, rich coordinated color and full-page scene. It is NOT a cast photo. "
-                    "Do NOT copy its face, person, name, words, computer, flowers or props unless "
-                    "requested in the current story. ORIGINAL project photos alone define people. "
-                    "The master may show a physical book/spread: generate only ONE flat page, "
-                    "without its spine, fold, border or existing lettering. Respect this page's "
-                    "measured text region and current action. Any preceding approved cover "
-                    "reference defines this project's wardrobe, palette and illustrated setting; "
-                    "keep that continuity while illustrating the new action."
+                    "\nLAST ATTACHED IMAGE is the selected catalog design only, never a cast photo. "
+                    "Use its composition and the finish prescribed above. Original project photos "
+                    "define identity; any approved project cover defines this book's continuity. "
+                    "Never copy the example words or draw its physical binding on this flat artwork."
+                    if self.design
+                    else (
+                        "\nLAST ATTACHED IMAGE = VISUAL MASTER, for composition, finish and visual identity "
+                        "of the book series ONLY. Match its lifelike faces integrated in softly illustrated "
+                        "surroundings, rich coordinated color and full-page scene. It is NOT a cast photo. "
+                        "Do NOT copy its face, person, name, words, computer, flowers or props unless "
+                        "requested in the current story. ORIGINAL project photos alone define people. "
+                        "The master may show a physical book/spread: generate only ONE flat page, "
+                        "without its spine, fold, border or existing lettering. Respect this page's "
+                        "measured text region and current action. Any preceding approved cover "
+                        "reference defines this project's wardrobe, palette and illustrated setting; "
+                        "keep that continuity while illustrating the new action."
+                    )
                 )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
@@ -976,7 +1013,7 @@ class Pipeline:
             build,
         )
 
-        if self.designed and not title:
+        if self.designed and not title and not self.design:
             actual_region, local_layout = render.choose_reading_region(
                 raw, value, self.profile, meta["text_region"], alignment=self.alignment()
             )
@@ -1030,7 +1067,154 @@ class Pipeline:
             },
             compose,
         )
-        return data, {**composed_meta, "art_bytes": raw}
+        return data, {
+            **composed_meta,
+            "art_bytes": raw,
+            **(
+                {"book_design": {"id": self.design["id"], "sha256": self.design["sha256"]}}
+                if self.design
+                else {}
+            ),
+        }
+
+    async def catalog_page(self, name, action, *, mode, value="", passages=None):
+        """Construct the page role prescribed by the selected complete catalog book."""
+        design = self.design
+        if not design:
+            raise ProviderError(
+                "Escolha o padrão completo do Catálogo antes de gerar", transient=False
+            )
+        region = design["interior"]["region"]
+        if mode == "reading":
+            # Literal copy must fit before any image is purchased. Text lives on its
+            # own reading page; no face-placement heuristic changes this structure.
+            render.text(
+                self.master._offline_png("layout", palette=((255, 255, 255), (255, 255, 255))),
+                value,
+                self.profile,
+                region=region,
+                alignment=design["interior"]["alignment"],
+                measure_only=True,
+            )
+        art_action = (
+            {
+                "theme": self.project.theme,
+                "role": "quiet decorative reading page; no people, no animals, no main action",
+            }
+            if mode == "reading"
+            else action
+        )
+
+        async def generate(_attempt):
+            prompt = book_design.prompt(
+                design,
+                mode + "_page",
+                art_action,
+                text_region=region if mode == "reading" else None,
+            )
+            prompt += "\nGenerate ONE square FLAT page only. The reference shows the complete book: extract only the requested page role, never draw the book, fold, binding, frame, lettering, example names or text. "
+            prompt += (
+                "Create a warm naturally quiet paper reading page, with discreet thematic decorations near the outer edges only. The measured reading rectangle must be plain, clear and free of people or objects. No portrait or narrative scene in this reading area. "
+                if mode == "reading"
+                else "One prominent full-page story illustration with the project's cast and the requested action. No reserved reading strip, no letters and no printed words. "
+            )
+            prompt += "The FIRST attached image is the project's original identity photo; the LAST is the same catalog book's interior design. Any intervening approved project cover defines wardrobe, palette and environment. Never copy catalog faces or its story."
+            if self.demo:
+                raw = self.master._offline_png(name, palette=((248, 242, 229), (225, 236, 220)))
+            else:
+                self.guard()
+                result = (
+                    await self.master._pkg()
+                    .get_image_provider()
+                    .generate_scene(
+                        prompt=prompt,
+                        character_ref=self.photos[0],
+                        photo=self.photos[0],
+                        extra_refs=self.photos[1:]
+                        + ([self.cover_continuity] if self.cover_continuity else [])
+                        + [book_design.reference(design, "page")],
+                        style=design["finish"],
+                    )
+                )
+                self.account(result, name)
+                raw = result.image_bytes
+            render.square(raw)
+            qa = await self.review(
+                raw, "Integridade do arquivo; avaliação visual pertence ao usuário"
+            )
+            return raw, {
+                "validation": qa,
+                "book_design": {"id": design["id"], "sha256": design["sha256"]},
+                "page_role": mode,
+            }
+
+        raw, source_meta = await self.stage(
+            name + ":art",
+            {
+                "page_role": mode,
+                "action": art_action,
+                "cover": render.digest(self.cover_continuity) if self.cover_continuity else None,
+            },
+            generate,
+        )
+
+        async def compose(_attempt):
+            if mode == "reading":
+                data, layout = render.text(
+                    raw,
+                    value,
+                    self.profile,
+                    region=region,
+                    alignment=design["interior"]["alignment"],
+                    readable=True,
+                )
+            else:
+                data, layout = raw, {"text": "", "lines": [], "illustration_only": True}
+            qa = await self.review(
+                data, "Integridade do arquivo; avaliação visual pertence ao usuário"
+            )
+            return data, {
+                "validation": qa,
+                "layout": layout,
+                "art_key": source_meta["storage_key"],
+                "art_sha256": render.digest(raw),
+                "book_design": source_meta["book_design"],
+                "page_role": mode,
+                "passages": passages or [],
+            }
+
+        data, meta = await self.stage(
+            name + ":text",
+            {
+                "art": render.digest(raw),
+                "text": value,
+                "page_role": mode,
+                "passages": passages or [],
+            },
+            compose,
+        )
+        return data, {**meta, "art_bytes": raw}
+
+    async def catalog_spread(self, name, left, right, actions):
+        mode = self.design["interior"]["mode"]
+        if mode == "two_scenes":
+            first, _ = await self.art(name + ":left", actions[0], value=left)
+            second, _ = await self.art(name + ":right", actions[1], value=right)
+        else:
+            reading, _ = await self.catalog_page(
+                name + ":reading",
+                actions,
+                mode="reading",
+                value=left + "\n\n" + right,
+                passages=[1, 2],
+            )
+            illustration, _ = await self.catalog_page(
+                name + ":illustration", actions, mode="illustration", passages=[1, 2]
+            )
+            first, second = (
+                (reading, illustration) if mode == "text_left" else (illustration, reading)
+            )
+        return await self.mockup("spread", [first, second])
 
     async def mockup(self, name, artworks, *, cover=None):
         async def build(attempt):
@@ -1093,12 +1277,34 @@ class Pipeline:
                     "neutras, sem reflexos coloridos. Região aproximada da capa: "
                     + json.dumps(self.policy["referenceComposition"]["holdingSurfaceRegion"])
                 )
-            template_reference = (
-                visual_reference.load(
-                    "holding" if reading else "page", self.project.style, self.reference_theme
+            if self.design:
+                prompt = book_design.prompt(
+                    self.design,
+                    "holding" if reading else "open_book",
+                    "Build a physical book presentation matching the same catalog model, to receive the finished project artwork.",
                 )
-                if self.designed
-                else None
+                prompt += (
+                    "\nGenerate a natural photographic scene with ONLY the requested project cast, based on the ORIGINAL identity photos. Match the reference book's pose, framing, hand contact, hinge, rear board and page-block thickness. The front printable cover must be a single clearly visible MAGENTA plane #ff00ff. All board edges, spine, rear cover, pages and fingers remain neutral, without registration-color reflections. No printed words or example faces. "
+                    if reading
+                    else "\nGenerate the physical open-book product scene matching this same catalog model: two equal flat square pages, a natural central gutter, visible hardback edges and page-block thickness. The left printable page is MAGENTA #ff00ff and the right is CYAN #00ffff. No people, hands, printed words or example artwork. The real finished project pages will be inserted locally. "
+                )
+                prompt += json.dumps(
+                    {
+                        "project_identity": self.base["reference_manifest"],
+                        "continuity": self.base["continuity"] if reading else {},
+                    },
+                    ensure_ascii=False,
+                )
+            template_reference = (
+                book_design.reference(self.design, "holding" if reading else "page")
+                if self.design
+                else (
+                    visual_reference.load(
+                        "holding" if reading else "page", self.project.style, self.reference_theme
+                    )
+                    if self.designed
+                    else None
+                )
             )
             if template_reference:
                 prompt += "\nÚLTIMA REFERÊNCIA: exemplo do CATÁLOGO, apenas acabamento e estrutura física do livro. Nunca copie as pessoas, palavras, capa ou cenário do exemplo. Fotos originais do projeto definem identidade e elenco. Mantenha a marcação temporária somente nas faces imprimíveis."
@@ -1206,7 +1412,9 @@ async def preview(db, job, project):
         )
     )
     family = visual_reference.catalog_family(project.style, reference_theme)
-    if visual_reference.load("cover", project.style, reference_theme):
+    if not project.book_profile.get("book_design") and visual_reference.load(
+        "cover", project.style, reference_theme
+    ):
         contract.update(
             project,
             visual_master_preset="catalog-adventure-v1"
@@ -1300,18 +1508,38 @@ async def preview(db, job, project):
                 )
                 continue
             actions = project.book_profile.get("preview_actions", {}).get(pipe.language, {})
-            left, _ = await pipe.art(
-                "preview:left", actions.get("left") or locale["left"], value=locale["left"]
-            )
-            right, _ = await pipe.art(
-                "preview:right", actions.get("right") or locale["right"], value=locale["right"]
-            )
-            data, meta = await pipe.mockup("spread", [left, right])
+            if pipe.design:
+                data, meta = await pipe.catalog_spread(
+                    "preview",
+                    locale["left"],
+                    locale["right"],
+                    [
+                        actions.get("left") or locale["left"],
+                        actions.get("right") or locale["right"],
+                    ],
+                )
+            else:
+                left, _ = await pipe.art(
+                    "preview:left", actions.get("left") or locale["left"], value=locale["left"]
+                )
+                right, _ = await pipe.art(
+                    "preview:right", actions.get("right") or locale["right"], value=locale["right"]
+                )
+                data, meta = await pipe.mockup("spread", [left, right])
         else:
             data, meta = await pipe.mockup("reading", [flat], cover=flat)
             meta = {**meta, "cover_sha256": render.digest(cover)}
         kind = {"01_CAPA": "cover", "02_LIVRO_ABERTO": "page_image", "03_LEITURA": "in_hand"}[role]
-        meta = {**meta, "editorial": project.book_profile["editorial"], "texts": locale}
+        meta = {
+            **meta,
+            "editorial": project.book_profile["editorial"],
+            "texts": locale,
+            **(
+                {"book_design": {"id": pipe.design["id"], "sha256": pipe.design["sha256"]}}
+                if pipe.design
+                else {}
+            ),
+        }
         meta.pop("workflow", None)
         existing = master._assets(db, project, workflow=1, language=pipe.language, role=role)
         if (

@@ -69,6 +69,7 @@ export interface Project {
     current_page: number;
     editorial?: { version: string; sha256: string };
     cover_calibration?: { sha256: string };
+    book_design?: { id: string; name: string; style: string; sources: { cover: string; page: string; holding: string } };
     costume?: string;
     palette?: string;
     trait?: string;

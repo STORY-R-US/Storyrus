@@ -346,6 +346,7 @@ class StoryPageUndoIn(BaseModel):
 
 
 class PreviewRequestIn(BaseModel):
+    catalog_design_id: Literal["auto", "family", "adventure", "cartoon"] | None = None
     cover_only: bool = False
     approved_cover_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     image: Literal["01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"] | None = None

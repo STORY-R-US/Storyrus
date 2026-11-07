@@ -670,6 +670,77 @@ async def _run(studio, path, body=None, key=None):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("model", ["family", "adventure", "cartoon"])
+async def test_complete_catalog_design_controls_preview_and_paid_pages(reference_studio, model):
+    from app.printkit.service import get_print_order
+    from app.services import book_design
+
+    studio, calls, _ = reference_studio
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    if model == "cartoon":
+        project.style = "cartoon"
+    db.commit()
+    await _run(studio, "preview", {"catalog_design_id": model, "cover_only": True})
+    project = db.get(Project, uuid.UUID(pid))
+    design = book_design.resolve(project.book_profile)
+    assert design["id"] == model
+    assert len(calls) == 1
+    assert project.book_profile["stage"] == "cover_ready"
+    approval = project.book_profile["cover_calibration"]["sha256"]
+    await _run(studio, "preview", {"approved_cover_sha256": approval}, key="continue-catalog")
+    assert len(calls) == 5
+    expected_roles = ["cover", "page", "page", "page", "holding"]
+    for call, role in zip(calls, expected_roles, strict=True):
+        reference = call["character_ref"] if call.get("landscape") else call["extra_refs"][-1]
+        assert reference == book_design.reference(design, role)
+        assert "COMPLETE CATALOG BOOK DESIGN" in call["prompt"]
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
+    sources = db.scalars(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == "editorial_source")
+    ).all()
+    layouts = {a.meta["stage"]: a.meta["layout"] for a in sources if a.meta.get("layout")}
+    if model != "adventure":
+        locale = project.book_profile["locales"]["pt-BR"]
+        assert layouts["preview:reading:text"]["text"] == locale["left"] + "\n\n" + locale["right"]
+        assert layouts["preview:illustration:text"]["illustration_only"]
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    get_print_order(db, project.id).payment_status = "paid"
+    project.character_ref = {"storage_key": "test-avatar"}
+    store["test-avatar"] = _png()
+    project.character_approved_at = project.created_at
+    passages = [f"Lia observa a flor {i:02d}." for i in range(1, 17)]
+    story = "Título: Lia\n\n" + "\n\n".join(
+        f"Página {i}:\n{passage}" for i, passage in enumerate(passages, 1)
+    )
+    book_profile.update(project, stage="avatar_approved", stories={"pt-BR": story})
+    db.commit()
+    before = len(calls)
+    for number in (1, 2):
+        await _run(studio, "pages/next", {"page": number}, key=f"catalog-page-{number}")
+    assert len(calls) == before + 2
+    pages = client.get(f"/v1/projects/{pid}/assets").json()["page_versions"]
+    rendered = [p for p in pages if p["role"] == "com_texto"]
+    assert len(rendered) == 2
+    combined = "\n".join(p["layout"]["text"] for p in rendered)
+    assert all(combined.count(passage) == 1 for passage in passages[:2])
+    for call in calls[before:]:
+        assert call["extra_refs"][-1] == book_design.reference(design, "page")
+        assert len(call["extra_refs"]) >= 2  # approved cover + catalog reference
+    if model == "family":
+        from app.workers.handlers.master_book import _assets
+
+        revised = story.replace(passages[1], "Lia rega a flor com carinho.")
+        book_profile.update(project, stories={"pt-BR": revised})
+        db.commit()
+        before = len(calls)
+        await _run(studio, "pages/next", {"page": 2}, key="correct-paired-passage")
+        assert len(calls) == before + 1  # illustration only; reading text refreshes locally
+        reading = _assets(db, project, workflow=1, language="pt-BR", role="com_texto", page=1)[-1]
+        assert reading.meta["layout"]["text"] == passages[0] + "\n\nLia rega a flor com carinho."
+
+
+@pytest.mark.asyncio
 async def test_complete_flow_requires_each_approval_and_keeps_16_paired_pages(studio):
     client, db, pid, store = studio
     for route in (
