@@ -11,6 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
+# A reframe may shift up to this fraction of the image height. Catalog cover
+# reserves can end near 39% of the height once the measured ink margin is
+# included, so 40% clears the whole text area without adding a new generation.
+MAX_REFRAME_TOP_FRACTION = 0.4
+
 
 class ProviderError(Exception):
     """Erro recuperavel/irrecuperavel de provedor. `transient=True` -> elegivel a retry."""

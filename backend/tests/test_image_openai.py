@@ -136,6 +136,30 @@ async def test_complete_scene_reframe_preserves_all_source_edges_and_activity():
 
 
 @pytest.mark.asyncio
+async def test_complete_scene_reframe_allows_full_catalog_reserve_clearance():
+    edited = io.BytesIO()
+    Image.new("RGB", (100, 100), "red").save(edited, "PNG")
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(edited.getvalue()))]
+    original = io.BytesIO()
+    Image.new("RGB", (100, 100), "blue").save(original, "PNG")
+    result = await oai.OpenAIImageProvider().reframe_editorial_art(
+        art=original.getvalue(),
+        photos=[],
+        top_fraction=oai.MAX_REFRAME_TOP_FRACTION,
+        prompt="quiet scenery",
+        preserve_complete_scene=True,
+    )
+    assert result.meta["generated_top_fraction"] == oai.MAX_REFRAME_TOP_FRACTION
+    with pytest.raises(ValueError, match="Enquadramento editorial inválido"):
+        await oai.OpenAIImageProvider().reframe_editorial_art(
+            art=original.getvalue(),
+            photos=[],
+            top_fraction=oai.MAX_REFRAME_TOP_FRACTION + 0.01,
+            prompt="quiet scenery",
+        )
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("invalid_image", [True, False])
 async def test_editorial_reframe_rejects_invalid_or_wrong_size_response(invalid_image):
     original = io.BytesIO()

@@ -15,7 +15,7 @@ import random
 import httpx
 from PIL import Image
 
-from app.ai_clients.base import ImageResult, ProviderError
+from app.ai_clients.base import MAX_REFRAME_TOP_FRACTION, ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
@@ -295,7 +295,7 @@ class OpenAIImageProvider:
     ):
         """Extend scenery; optionally fit the complete source without cropping its activity."""
         image = Image.open(io.BytesIO(art)).convert("RGBA")
-        if image.width != image.height or not 0.05 <= top_fraction <= 0.3:
+        if image.width != image.height or not 0.05 <= top_fraction <= MAX_REFRAME_TOP_FRACTION:
             raise ValueError("Enquadramento editorial inválido")
         shift = round(image.height * top_fraction)
         canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))

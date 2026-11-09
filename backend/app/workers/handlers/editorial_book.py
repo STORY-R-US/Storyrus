@@ -7,7 +7,7 @@ import logging
 from sqlalchemy import select
 
 from app import storage
-from app.ai_clients.base import ProviderError
+from app.ai_clients.base import MAX_REFRAME_TOP_FRACTION, ProviderError
 from app.config import settings
 from app.models import Asset, Job, ProjectStatus
 from app.services import (
@@ -53,6 +53,7 @@ class Pipeline:
         self.last_review_scope = None
         self.last_review_issues = []
         self.last_art = None
+        self.last_operation = None
         self.cover_continuity = None
         self.refs = [
             data
@@ -167,6 +168,21 @@ class Pipeline:
         current = self.master._payload(self.job)
         if name != "cover" or not (current.get("image") == "01_CAPA" or current.get("cover_only")):
             return None
+        base_inputs = {"action": action, "title": True, "plan": plan}
+        # stage() only adds a requested revision when the project already has one.
+        # Recompose the same possible keys so a plain cover-only retry (the normal
+        # Studio path, without payload["image"]) can still find its rejected art.
+        revision = self.revision_for("cover:art")
+        revision_inputs = (
+            {
+                "requested_revision": {
+                    "id": revision["art_revision"],
+                    "adjustment": revision.get("art_adjustment", ""),
+                }
+            }
+            if revision.get("art_revision")
+            else {}
+        )
         previous_jobs = self.db.scalars(
             select(Job)
             .where(Job.project_id == self.project.id, Job.status == "FAILED", Job.id != self.job.id)
@@ -175,22 +191,30 @@ class Pipeline:
         ).all()
         for previous in previous_jobs:
             payload = self.master._payload(previous)
-            if payload.get("image") != "01_CAPA" or payload.get("title_refresh"):
+            if payload.get("title_refresh"):
                 continue
-            inputs = {
-                "action": action,
-                "title": True,
-                "plan": plan,
-                "requested_revision": {
-                    "id": str(previous.id),
-                    "adjustment": payload.get("adjustment", ""),
+            if payload.get("image") != "01_CAPA" and not payload.get("cover_only"):
+                continue
+            candidates = [
+                base_inputs,
+                {**base_inputs, **revision_inputs},
+                {
+                    **base_inputs,
+                    "requested_revision": {
+                        "id": str(previous.id),
+                        "adjustment": payload.get("adjustment", ""),
+                    },
                 },
-            }
-            expected = (
+            ]
+            expected = {
                 f"editorial/{self.project.id}/{signature([self.base, 'cover:art', inputs])}.png"
-            )
+                for inputs in candidates
+            }
             task = (previous.result or {}).get("editorial_tasks", {}).get("cover:art", {})
-            if task.get("input_key") != expected or task.get("failure_category") != "visual_review":
+            if (
+                task.get("input_key") not in expected
+                or task.get("failure_category") != "visual_review"
+            ):
                 continue
             for rejected in reversed((previous.result or {}).get("rejected_candidates", [])):
                 asset = self.db.scalar(
@@ -298,6 +322,7 @@ class Pipeline:
         self.last_review_scope = None
         self.last_review_issues = []
         self.last_art = None
+        self.last_operation = None
         previous = (self.job.result or {}).get("editorial_tasks", {}).get(name, {})
         attempts = previous.get("attempts", 0) if previous.get("input_key") == key else 0
         maximum = 1 + min(
@@ -311,9 +336,15 @@ class Pipeline:
         )
         # Current layouts solve placement locally. A genuine quality rejection
         # must not buy another image automatically.
+        repair_allowed = False
         if self.designed:
             maximum = 1
-        for attempt in range(attempts + 1, maximum + 1):
+            # A reserve collision may be repaired once by outpainting the rejected
+            # scene. This never buys a second freshly generated illustration.
+            repair_allowed = name.endswith(":art")
+        attempt = attempts
+        while attempt < maximum:
+            attempt += 1
             self.record(name, "running", attempts=attempt, input_key=key)
             try:
                 self.guard()
@@ -377,6 +408,19 @@ class Pipeline:
                     ),
                 )
                 if attempt == maximum:
+                    if (
+                        repair_allowed
+                        and self.last_operation == "generate_flat_art"
+                        and self.last_review_scope == "text_reserve"
+                        and self.should_reframe_art(
+                            title=name.startswith("cover"), attempt=attempt + 1
+                        )
+                    ):
+                        # Extend this same job by one outpaint attempt so a reserve
+                        # collision does not surface as a failure on the first try.
+                        maximum = attempt + 1
+                        repair_allowed = False
+                        continue
                     if self.designed:
                         raise ProviderError(
                             (
@@ -984,11 +1028,12 @@ class Pipeline:
                 )
                 if recovered and hasattr(provider, "reframe_editorial_art"):
                     operation = "reframe_previous_rejected_cover"
+                    self.last_operation = operation
                     source_sha256 = render.digest(recovered)
                     result = await provider.reframe_editorial_art(
                         art=recovered,
                         photos=self.photos,
-                        top_fraction=min(0.3, safe_region[3] + 0.06),
+                        top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.06),
                         preserve_complete_scene=True,
                         prompt="Extend only the natural scenery. The entire title reserve must "
                         "contain background only, no hair, hats, hands or objects. Preserve the "
@@ -999,6 +1044,7 @@ class Pipeline:
                     provider, "reframe_editorial_art"
                 ):
                     operation = "outpaint_reframed_art"
+                    self.last_operation = operation
                     logging.getLogger(__name__).info(
                         "editorial_reframe stage=%s attempt=%s reserve=%s",
                         name,
@@ -1009,7 +1055,8 @@ class Pipeline:
                     result = await provider.reframe_editorial_art(
                         art=self.last_art,
                         photos=self.photos,
-                        top_fraction=min(0.3, safe_region[3] + 0.04),
+                        top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.04),
+                        preserve_complete_scene=self.designed,
                         prompt="Preserve a identidade, figurino e acabamento da cena original. "
                         + json.dumps(
                             {
@@ -1020,6 +1067,8 @@ class Pipeline:
                         ),
                     )
                 else:
+                    operation = "generate_flat_art"
+                    self.last_operation = operation
                     result = await provider.generate_scene(
                         prompt=prompt,
                         character_ref=self.photos[0],
