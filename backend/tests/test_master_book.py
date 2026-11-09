@@ -2334,6 +2334,75 @@ async def test_cover_overlap_requires_visual_confirmation_and_cannot_bypass_revi
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "context_change",
+    [None, "plain_retry", "legacy_crop", "non_crop", "theme_description", "costume"],
+)
+async def test_explicit_retry_reframes_matching_rejected_cover_once(
+    reference_studio, monkeypatch, context_change
+):
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+    reject_once = True
+
+    async def crop_review(self, **kwargs):
+        nonlocal reject_once
+        if reject_once and kwargs["prompt"].startswith("ARTE_BASE:"):
+            reject_once = False
+            return TextResult(
+                text=json.dumps({"valid": False, "issues": ["hat in reserve"], "limitations": []}),
+                cost_usd=0,
+                meta={
+                    "review_scope": "full_image" if context_change == "non_crop" else "text_reserve"
+                },
+            )
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
+    body = {"cover_only": True, "image": "01_CAPA", "adjustment": "Leave title area clear"}
+    first = client.post(f"/v1/projects/{pid}/preview", json=body)
+    job = db.get(Job, uuid.UUID(first.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED" and len(calls) == 1
+    if context_change in {"theme_description", "costume"}:
+        book_profile.update(
+            db.get(Project, uuid.UUID(pid)), **{context_change: "Changed user context"}
+        )
+        db.commit()
+    if context_change == "legacy_crop":
+        rejected = db.scalar(
+            select(Asset).where(
+                Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_rejected"
+            )
+        )
+        meta = dict(rejected.meta)
+        meta.pop("review_scope", None)
+        meta.pop("role", None)
+        meta["validation"] = {
+            **meta["validation"],
+            "limitations": ["Cannot judge outside the supplied crop"],
+        }
+        rejected.meta = meta
+        db.commit()
+    body["adjustment"] = "Reframe the scene"
+    if context_change == "plain_retry":
+        body.pop("image")
+    second = client.post(f"/v1/projects/{pid}/preview", json=body)
+    retry = db.get(Job, uuid.UUID(second.json()["job_id"]))
+    await runner.process_job(db, retry)
+    assert retry.status == "DONE", retry.error
+    assert len(calls) == 2
+    if context_change in {"theme_description", "costume", "non_crop"}:
+        assert not calls[1].get("operation")
+    else:
+        assert calls[1]["operation"] == "outpaint_reframed_art"
+        assert calls[1]["preserve_complete_scene"] is True
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("version", ["2026-11-05.2", "2026-11-05.3"])
 async def test_reference_pages_preserve_full_bleed_art_without_added_paper_margins(
     reference_studio, monkeypatch, version

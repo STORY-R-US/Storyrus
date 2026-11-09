@@ -162,6 +162,62 @@ class Pipeline:
             )
         )
 
+    def rejected_cover_for_reframe(self, name, action, plan):
+        """Reuse only a matching failed crop on an explicit cover retry, never auto-retry."""
+        current = self.master._payload(self.job)
+        if name != "cover" or not (current.get("image") == "01_CAPA" or current.get("cover_only")):
+            return None
+        previous_jobs = self.db.scalars(
+            select(Job)
+            .where(Job.project_id == self.project.id, Job.status == "FAILED", Job.id != self.job.id)
+            .order_by(Job.created_at.desc())
+            .limit(5)
+        ).all()
+        for previous in previous_jobs:
+            payload = self.master._payload(previous)
+            if payload.get("image") != "01_CAPA" or payload.get("title_refresh"):
+                continue
+            inputs = {
+                "action": action,
+                "title": True,
+                "plan": plan,
+                "requested_revision": {
+                    "id": str(previous.id),
+                    "adjustment": payload.get("adjustment", ""),
+                },
+            }
+            expected = (
+                f"editorial/{self.project.id}/{signature([self.base, 'cover:art', inputs])}.png"
+            )
+            task = (previous.result or {}).get("editorial_tasks", {}).get("cover:art", {})
+            if task.get("input_key") != expected or task.get("failure_category") != "visual_review":
+                continue
+            for rejected in reversed((previous.result or {}).get("rejected_candidates", [])):
+                asset = self.db.scalar(
+                    select(Asset).where(
+                        Asset.project_id == self.project.id,
+                        Asset.kind == "editorial_rejected",
+                        Asset.storage_key == rejected.get("storage_key"),
+                    )
+                )
+                if not asset:
+                    continue
+                meta = asset.meta or {}
+                # Legacy reports explicitly disclosed that only a crop was
+                # inspected. Context hashes still have to match exactly, and
+                # repaired art must pass every visual check again.
+                crop_only = meta.get("review_scope") == "text_reserve" or (
+                    meta.get("review_scope") is None
+                    and meta.get("role") is None
+                    and any(
+                        "crop" in item.lower()
+                        for item in meta.get("validation", {}).get("limitations", [])
+                    )
+                )
+                if crop_only and meta.get("inspection_region"):
+                    return storage.get_bytes(asset.storage_key)
+        return None
+
     def record(self, name, state, **values):
         self.job.result = {
             **(self.job.result or {}),
@@ -448,6 +504,8 @@ class Pipeline:
                     meta={
                         "workflow": 2,
                         "validation": report,
+                        "review_scope": result.meta.get("review_scope"),
+                        "role": prompt.split(":", 1)[0],
                         "inspection_region": (technical or {})
                         .get("typography", {})
                         .get("ink_region_with_margin"),
@@ -919,7 +977,25 @@ class Pipeline:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
                 provider = self.master._pkg().get_image_provider()
-                if self.should_reframe_art(title=title, attempt=attempt) and hasattr(
+                recovered = (
+                    self.rejected_cover_for_reframe(name, action, plan)
+                    if title and self.designed
+                    else None
+                )
+                if recovered and hasattr(provider, "reframe_editorial_art"):
+                    operation = "reframe_previous_rejected_cover"
+                    source_sha256 = render.digest(recovered)
+                    result = await provider.reframe_editorial_art(
+                        art=recovered,
+                        photos=self.photos,
+                        top_fraction=min(0.3, safe_region[3] + 0.06),
+                        preserve_complete_scene=True,
+                        prompt="Extend only the natural scenery. The entire title reserve must "
+                        "contain background only, no hair, hats, hands or objects. Preserve the "
+                        "whole original action, all characters and the complete lower scene. "
+                        + json.dumps({"text_region": safe_region}, ensure_ascii=False),
+                    )
+                elif self.should_reframe_art(title=title, attempt=attempt) and hasattr(
                     provider, "reframe_editorial_art"
                 ):
                     operation = "outpaint_reframed_art"

@@ -108,6 +108,34 @@ async def test_editorial_reframe_masks_only_added_top_and_attaches_original_phot
 
 
 @pytest.mark.asyncio
+async def test_complete_scene_reframe_preserves_all_source_edges_and_activity():
+    edited = io.BytesIO()
+    Image.new("RGB", (100, 100), "red").save(edited, "PNG")
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(edited.getvalue()))]
+    original = Image.new("RGB", (100, 100), "blue")
+    original.paste("green", (0, 90, 100, 100))
+    raw = io.BytesIO()
+    original.save(raw, "PNG")
+    result = await oai.OpenAIImageProvider().reframe_editorial_art(
+        art=raw.getvalue(),
+        photos=[],
+        top_fraction=0.3,
+        prompt="quiet scenery",
+        preserve_complete_scene=True,
+    )
+    output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
+    assert (
+        output.crop((15, 30, 85, 100)).tobytes()
+        == original.resize((70, 70), Image.Resampling.LANCZOS).tobytes()
+    )
+    assert output.getpixel((50, 99)) == (0, 128, 0)
+    assert output.getpixel((0, 80)) == output.getpixel((50, 0)) == (255, 0, 0)
+    mask = Image.open(io.BytesIO(_FakeAsyncClient.calls[0]["files"][1][1][1]))
+    assert mask.getpixel((0, 80))[3] == mask.getpixel((50, 0))[3] == 0
+    assert mask.getpixel((50, 80))[3] == 255
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("invalid_image", [True, False])
 async def test_editorial_reframe_rejects_invalid_or_wrong_size_response(invalid_image):
     original = io.BytesIO()

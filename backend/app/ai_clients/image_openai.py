@@ -290,16 +290,28 @@ class OpenAIImageProvider:
         )
         return await self._generate_with_refs(text, refs, size=settings.openai_image_size_portrait)
 
-    async def reframe_editorial_art(self, *, art, photos, top_fraction, prompt):
-        """Outpaint a translated canvas; preserve subject scale instead of shrinking it."""
+    async def reframe_editorial_art(
+        self, *, art, photos, top_fraction, prompt, preserve_complete_scene=False
+    ):
+        """Extend scenery; optionally fit the complete source without cropping its activity."""
         image = Image.open(io.BytesIO(art)).convert("RGBA")
         if image.width != image.height or not 0.05 <= top_fraction <= 0.3:
             raise ValueError("Enquadramento editorial inválido")
         shift = round(image.height * top_fraction)
         canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))
-        canvas.paste(image, (0, shift))
         mask = Image.new("RGBA", image.size, (255, 255, 255, 255))
-        mask.paste((0, 0, 0, 0), (0, 0, image.width, shift))
+        if preserve_complete_scene:
+            side = image.height - shift
+            left = (image.width - side) // 2
+            source = image.resize((side, side), Image.Resampling.LANCZOS)
+            source_box = (left, shift, left + side, image.height)
+            canvas.paste(source, (left, shift))
+            mask.paste((0, 0, 0, 0), (0, 0, image.width, image.height))
+            mask.paste((255, 255, 255, 255), source_box)
+        else:
+            source_box = (0, shift, image.width, image.height)
+            canvas.paste(image, (0, shift))
+            mask.paste((0, 0, 0, 0), (0, 0, image.width, shift))
 
         def png(value):
             out = io.BytesIO()
@@ -318,11 +330,12 @@ class OpenAIImageProvider:
             "size": settings.openai_image_size_square,
             "quality": settings.openai_image_quality,
             "prompt": (
-                "FIRST image is the scene canvas already reframed at its original scale. "
-                "Fill ONLY the transparent TOP strip with a seamless continuation of its natural "
+                "FIRST image is the scene canvas already fitted at its final position and scale. "
+                "Fill ONLY the transparent areas with a seamless continuation of the existing natural "
                 "background. Preserve the opaque lower image: same person, head position, hands, "
                 "clothes, action and scale. Do NOT move the head upwards or add people, lettering, "
-                "objects, panels or gradients. Other images are ORIGINAL identity references. "
+                "objects, panels or gradients. Continue the scenery through all seams; do not "
+                "leave an inset square, frame or visible border. Other images are ORIGINAL identity references. "
                 "Do not restore their framing. Return one flat square artwork.\n" + prompt
             ),
         }
@@ -334,9 +347,9 @@ class OpenAIImageProvider:
             if generated.size != canvas.size:
                 raise ProviderError("Unexpected reframed artwork dimensions", transient=False)
             # An edit mask guides the model, but is not a pixel-preservation guarantee.
-            # Use generated pixels only in the newly exposed strip. Restoring the
+            # Use generated pixels only in the newly exposed areas. Restoring the
             # opaque canvas prevents the model from moving the head back upwards.
-            generated.paste(canvas.crop((0, shift, image.width, image.height)), (0, shift))
+            generated.paste(canvas.crop(source_box), source_box[:2])
             result.image_bytes = png(generated.convert("RGB"))
             result.mime_type = "image/png"
             result.meta = {
