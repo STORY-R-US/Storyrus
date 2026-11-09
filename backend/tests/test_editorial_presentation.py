@@ -9,6 +9,23 @@ from app.services import editorial_profile
 from app.workers import editorial_render as render
 
 
+@pytest.mark.parametrize("head", [[0.3, 0.06, 0.7, 0.55], [0.3, 0.2, 0.7, 0.6]])
+def test_title_rejects_face_hair_or_hat_inside_measured_ink(monkeypatch, head):
+    monkeypatch.setattr(render, "protected_heads", lambda _: [head])
+    with pytest.raises(ValueError, match="Região do título invade"):
+        render.require_clear_title_area(b"art", {"ink_region_with_margin": [0.1, 0.05, 0.9, 0.24]})
+
+
+def test_title_accepts_head_below_actual_letters_even_inside_larger_plan_region(monkeypatch):
+    head = [0.3, 0.27, 0.7, 0.7]
+    monkeypatch.setattr(render, "protected_heads", lambda _: [head])
+    proof = render.require_clear_title_area(
+        b"art",
+        {"ink_region_with_margin": [0.1, 0.05, 0.9, 0.24], "region": [0.06, 0.045, 0.94, 0.29]},
+    )
+    assert proof["protected_heads"] == [head]
+
+
 def test_reading_area_moves_around_hat_without_rewriting_or_shrinking(monkeypatch):
     profile = {"editorial": editorial_profile.snapshot("2026-11-05.3")}
     source = render.encode(Image.new("RGB", (1000, 1000), "#c3d3b1"))

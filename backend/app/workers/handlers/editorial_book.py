@@ -64,7 +64,7 @@ class Pipeline:
             # Content-rich examples can leak their cast and props into unrelated books.
             self.refs = []
         self.base = {
-            "renderer_revision": "2026-11-09.project-only-references.1",
+            "renderer_revision": "2026-11-09.cover-contract.2",
             "visual_masters": self.design["reference_sha256"]
             if self.design
             else visual_reference.fingerprint(project.style, self.reference_theme)
@@ -323,7 +323,11 @@ class Pipeline:
                 if attempt == maximum:
                     if self.designed:
                         raise ProviderError(
-                            f"Falha técnica na montagem de {name}: {str(exc)[:240]}",
+                            (
+                                f"Capa ou ilustração reprovada em {name}: {str(exc)[:240]}"
+                                if "Revisão visual" in str(exc) or "Região do título" in str(exc)
+                                else f"Falha técnica na montagem de {name}: {str(exc)[:240]}"
+                            ),
                             transient=False,
                         ) from exc
                     raise ProviderError(
@@ -336,8 +340,8 @@ class Pipeline:
         if self.demo:
             return {"status": "demo"}
         if getattr(self, "designed", False):
-            # A render-ready file is not a visual approval. Only the user decides
-            # whether likeness, finish and composition satisfy their expectations.
+            # Cover/source-art contract checks are mandatory. Other assembled
+            # mockups retain technical checks and await explicit user approval.
             import io
 
             from PIL import Image
@@ -346,11 +350,12 @@ class Pipeline:
                 if image.format != "PNG":
                     raise ValueError("Preview must be a valid PNG")
                 image.verify()
-            return {
-                "status": "awaiting_user_review",
-                "reviewer": "user",
-                "method": "technical_integrity_only",
-            }
+            if not prompt.startswith(("ARTE_BASE:", "CAPA_PLANA:")):
+                return {
+                    "status": "awaiting_user_review",
+                    "reviewer": "user",
+                    "method": "technical_integrity_only",
+                }
         self.guard()
         template = (
             editorial_profile._root(self.profile["editorial"]["version"])
@@ -460,7 +465,10 @@ class Pipeline:
             self.db.commit()
             self.last_review_scope = result.meta.get("review_scope")
             self.last_review_issues = report.get("issues", []) if isinstance(report, dict) else []
-            raise ValueError("Revisão visual reprovada ou inconclusiva")
+            reasons = "; ".join(str(issue) for issue in self.last_review_issues)[:400]
+            raise ValueError(
+                "Revisão visual reprovada ou inconclusiva" + (": " + reasons if reasons else "")
+            )
         return {**report, "status": "valid"}
 
     async def art(self, name, action, *, title=False, value=None):
@@ -806,6 +814,8 @@ class Pipeline:
                     )
                     + "\nGenerate ONE square flat full-bleed illustration, no book mockup, spine, letters or example words. Respect the measured text rectangle as natural quiet scenery, free of faces, hair and hands. Use the original project photos and continuity manifest: "
                     + json.dumps(self.base["reference_manifest"], ensure_ascii=False)
+                    + "\nPROJECT CONTINUITY: "
+                    + json.dumps(self.base["continuity"], ensure_ascii=False)
                 )
                 revision = self.revision_for(name)
                 prompt += "\n" + json.dumps(
@@ -854,6 +864,20 @@ class Pipeline:
             )
             if title:
                 prompt += "\nSINGLE FRONT COVER ONLY: one continuous square front face, no open book, spread, central gutter, diptych or two facing pages."
+                prompt += (
+                    "\nRECOMPOSE THE SCENE: original photos define identity and clothing only. "
+                    "Change pose, framing and setting to depict the requested activity. "
+                    "Do not reproduce a selfie, pasted photograph, rectangular portrait, "
+                    "white frame, separate paper panel, drop-shadow inset or background from the source photo. "
+                    "The illustration fills the entire canvas and the title reserve is part of that same scenery. "
+                    "\nMANDATORY COVER FRAMING: zoom out and recompose to keep the ENTIRE "
+                    "head, including hair or hat, OUTSIDE the measured title rectangle with "
+                    "a clear margin. For an upper centered title, place the head below it; "
+                    "for a corner title, the character may remain beside it. "
+                    "Preserve natural proportions and recognizability. "
+                    "Show the concrete story activity and its relevant objects, not just a portrait. "
+                    "Background and illustration must reach all four edges without a white frame."
+                )
             if self.project_only_references:
                 prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
             if self.demo:
@@ -974,6 +998,8 @@ class Pipeline:
                         alignment=self.alignment(title),
                         readable=self.designed and not title,
                     )
+                    if title and self.designed and not self.demo:
+                        layout["title_clearance"] = render.require_clear_title_area(raw, layout)
                     qa = await self.review(
                         raw,
                         "ARTE_BASE: plana quadrada sem qualquer texto, títulos ou mockup. "
@@ -1006,6 +1032,7 @@ class Pipeline:
                         + json.dumps(
                             {
                                 "identity": self.base["continuity"],
+                                "cast_contract": self.base["cast_contract"],
                                 "style": self.project.style,
                                 "expected_action": action,
                             },
@@ -1089,6 +1116,8 @@ class Pipeline:
                 alignment=meta["plan"]["alignment"],
                 readable=self.designed and not title,
             )
+            if title and self.designed and not self.demo:
+                layout["title_clearance"] = render.require_clear_title_area(raw, layout)
             if meta.get("composition_sha256") == render.digest(data):
                 # This exact text composition already passed inspection while its
                 # source art was selected. Changed words produce a different hash.
@@ -1564,9 +1593,16 @@ async def preview(db, job, project):
             raise ProviderError("Arquivo da capa alterado; gere a capa novamente", transient=False)
         flat_meta = calibration["flat_meta"]
     else:
+        cover_action = {
+            "theme": project.book_profile.get("theme_description") or project.theme,
+            "narrative_actions": project.book_profile.get("preview_actions", {}).get(
+                pipe.language, {}
+            ),
+            "instruction": "Depict one concrete activity from this project's story in a single continuous front cover. Original photos define identity, not the scene or camera framing.",
+        }
         flat, flat_meta = await pipe.art(
             "cover",
-            project.book_profile.get("theme_description"),
+            cover_action,
             title=True,
             value=locale["title"],
         )

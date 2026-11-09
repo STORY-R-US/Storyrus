@@ -2191,7 +2191,7 @@ def test_vibrant_cover_title_fits_full_width_without_changing_literal_copy(title
 
 
 @pytest.mark.asyncio
-async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
+async def test_current_preview_checks_cover_and_source_art_without_extra_image_calls(
     reference_studio, monkeypatch
 ):
     from app.services import editorial_profile
@@ -2204,10 +2204,14 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
     db.commit()
     text_class = type(handlers.get_text_provider())
 
-    async def no_automatic_visual_judge(self, **kwargs):
-        raise AssertionError("The visual-review API must not be called")
+    reviewed = []
+    validate = text_class.validate_editorial_preview
 
-    monkeypatch.setattr(text_class, "validate_editorial_preview", no_automatic_visual_judge)
+    async def mandatory_contract_checks(self, **kwargs):
+        reviewed.append(kwargs)
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", mandatory_contract_checks)
     job = await _run(studio, "preview", key="current-layout-all-reserve-repairs")
     assert job.status == "DONE", job.error
     repairs = [call for call in calls if call.get("operation") == "outpaint_reframed_art"]
@@ -2215,6 +2219,12 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
     assert len(calls) == 5
     generated = [call for call in calls if "prompt" in call and not call.get("operation")]
     assert all("COMPOSITION EXAMPLES GUIDE" in call["prompt"] for call in generated[:3])
+    assert sum(check["prompt"].startswith("ARTE_BASE:") for check in reviewed) == 3
+    assert sum(check["prompt"].startswith("CAPA_PLANA:") for check in reviewed) == 1
+    assert "desenha uma flor" in generated[0]["prompt"]
+    assert "MANDATORY COVER FRAMING" in generated[0]["prompt"]
+    assert "RECOMPOSE THE SCENE" in generated[0]["prompt"]
+    assert "cast_contract" in reviewed[0]["full_image_prompt"]
     assert job.cost_credits == 0 and not job.cost_usd
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
     db.refresh(project)
@@ -2224,7 +2234,6 @@ async def test_current_preview_recovers_cover_and_both_pages_without_paid_api(
 @pytest.mark.asyncio
 async def test_current_preview_is_delivered_for_explicit_user_approval(reference_studio):
     studio, calls, control = reference_studio
-    control["reject"] = True  # Automated aesthetic judgement must not veto output.
     client, db, pid, _ = studio
     response = client.post(f"/v1/projects/{pid}/preview")
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
@@ -2240,11 +2249,15 @@ async def test_current_preview_is_delivered_for_explicit_user_approval(reference
     ).all()
     assert len(scenes) == 3
     for scene in scenes:
-        assert scene.meta["validation"] == {
-            "status": "awaiting_user_review",
-            "reviewer": "user",
-            "method": "technical_integrity_only",
-        }
+        if scene.kind == "cover":
+            assert scene.meta["validation"]["status"] == "valid"
+            assert scene.meta["layout"]["title_clearance"]["method"] == "local_title_head_clearance"
+        else:
+            assert scene.meta["validation"] == {
+                "status": "awaiting_user_review",
+                "reviewer": "user",
+                "method": "technical_integrity_only",
+            }
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
     # Merely claiming a pending review is insufficient without server provenance.
     original_meta = scenes[0].meta
@@ -2256,6 +2269,49 @@ async def test_current_preview_is_delivered_for_explicit_user_approval(reference
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
     db.refresh(project)
     assert project.purchase_flow["preview_approved_at"]
+
+
+@pytest.mark.asyncio
+async def test_current_cover_rejection_stops_without_automatic_image_retry(reference_studio):
+    studio, calls, control = reference_studio
+    control["reject"] = True
+    client, db, pid, _ = studio
+    response = client.post(
+        f"/v1/projects/{pid}/preview", headers={"Idempotency-Key": "reject-wrong-cover"}
+    )
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert len(calls) == 1
+    assert "reprovada" in job.error
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_ready_at")
+
+
+@pytest.mark.asyncio
+async def test_current_cover_blocks_hat_overlap_before_paid_visual_review(
+    reference_studio, monkeypatch
+):
+    from app.workers import editorial_render as render
+
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    monkeypatch.setattr(render, "protected_heads", lambda _: [[0.3, 0.05, 0.8, 0.7]])
+
+    async def unexpected_review(self, **kwargs):
+        raise AssertionError("Local title collision must stop before the paid visual review")
+
+    monkeypatch.setattr(
+        type(handlers.get_text_provider()), "validate_editorial_preview", unexpected_review
+    )
+    response = client.post(f"/v1/projects/{pid}/preview")
+    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED"
+    assert "Região do título invade" in job.error
+    assert len(calls) == 1
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
 
 
 @pytest.mark.asyncio
