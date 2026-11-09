@@ -410,14 +410,20 @@ class Pipeline:
                 if attempt == maximum:
                     if (
                         repair_allowed
-                        and self.last_operation == "generate_flat_art"
+                        and self.last_operation
+                        in {"generate_flat_art", "reframe_previous_rejected_cover"}
                         and self.last_review_scope == "text_reserve"
                         and self.should_reframe_art(
                             title=name.startswith("cover"), attempt=attempt + 1
                         )
                     ):
                         # Extend this same job by one outpaint attempt so a reserve
-                        # collision does not surface as a failure on the first try.
+                        # collision does not surface as a failure. When the first
+                        # attempt already reused a previous rejected cover, skip that
+                        # lookup and reframe the image that was just rejected.
+                        self._skip_recovered_reframe = (
+                            self.last_operation == "reframe_previous_rejected_cover"
+                        )
                         maximum = attempt + 1
                         repair_allowed = False
                         continue
@@ -1021,8 +1027,12 @@ class Pipeline:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
                 provider = self.master._pkg().get_image_provider()
+                skip_recovered = getattr(self, "_skip_recovered_reframe", False)
+                self._skip_recovered_reframe = False
                 recovered = (
-                    self.rejected_cover_for_reframe(name, action, plan)
+                    None
+                    if skip_recovered
+                    else self.rejected_cover_for_reframe(name, action, plan)
                     if title and self.designed
                     else None
                 )
@@ -1055,7 +1065,7 @@ class Pipeline:
                     result = await provider.reframe_editorial_art(
                         art=self.last_art,
                         photos=self.photos,
-                        top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.04),
+                        top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.06),
                         preserve_complete_scene=self.designed,
                         prompt="Preserve a identidade, figurino e acabamento da cena original. "
                         + json.dumps(

@@ -2458,6 +2458,49 @@ async def test_plain_cover_only_retry_reframes_matching_rejected_cover(
 
 
 @pytest.mark.asyncio
+async def test_explicit_retry_reframe_failure_triggers_second_automatic_reframe(
+    reference_studio, monkeypatch
+):
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+    remaining = 3
+
+    async def crop_review(self, **kwargs):
+        nonlocal remaining
+        if remaining and kwargs["prompt"].startswith("ARTE_BASE:"):
+            remaining -= 1
+            return TextResult(
+                text=json.dumps(
+                    {"valid": False, "issues": ["hair and heads in reserve"], "limitations": []}
+                ),
+                cost_usd=0,
+                meta={"review_scope": "text_reserve"},
+            )
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
+    body = {"cover_only": True}
+    first = client.post(f"/v1/projects/{pid}/preview", json=body)
+    job = db.get(Job, uuid.UUID(first.json()["job_id"]))
+    await runner.process_job(db, job)
+    assert job.status == "FAILED" and len(calls) == 2
+
+    second = client.post(f"/v1/projects/{pid}/preview", json=body)
+    retry = db.get(Job, uuid.UUID(second.json()["job_id"]))
+    await runner.process_job(db, retry)
+    assert retry.status == "DONE", retry.error
+    assert len(calls) == 4
+    assert not calls[0].get("operation")
+    assert calls[1]["operation"] == "outpaint_reframed_art"
+    # Attempt 1 reused the previous rejected cover; its auto-repair reframed the
+    # rejected result without buying another generated illustration.
+    assert calls[2]["operation"] == "outpaint_reframed_art"
+    assert calls[3]["operation"] == "outpaint_reframed_art"
+
+
+@pytest.mark.asyncio
 async def test_reserve_rejection_reframes_automatically_without_new_generation(
     reference_studio, monkeypatch
 ):
