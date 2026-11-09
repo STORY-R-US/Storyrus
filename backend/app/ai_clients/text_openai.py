@@ -515,7 +515,15 @@ class OpenAITextProvider:
                 "com observações das fotos e do pedido. trait e interest são opcionais: "
                 "retorne string vazia quando não informados; não deduza personalidade de uma foto. "
                 "animal vazio quando não solicitado. Preserve figurino "
-                "explicitamente fornecido e cada nome associado às fotos. Nenhum personagem inventado."
+                "explicitamente fornecido e cada nome associado às fotos. Nenhum personagem inventado. "
+                "Se ficha.title estiver vazio, crie um título curto, criativo e específico a partir "
+                "do tema informado em ficha.theme, da atividade e do protagonista. Não use um "
+                "título genérico de aventura nem apenas repita o tema como rótulo. Se houver "
+                "título fornecido, preserve-o literalmente. "
+                "O elenco autorizado é somente o protagonista e os acompanhantes explicitamente "
+                "informados em ficha.characters. Pessoas no fundo das fotos não são acompanhantes. "
+                "Sem acompanhantes informados, a história e as cenas mostram apenas o protagonista; "
+                "não acrescente criança, parente, amigo, ajudante ou animal."
             )
         return await self._complete(system=system, user=content, max_tokens=2200, json_mode=True)
 

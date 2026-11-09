@@ -120,21 +120,37 @@ def prompt(design, role, action, *, text_region=None):
             "Continue the same illustrated background behind the title: no separate label, "
             "panel, banner, box or blank strip. "
         )
+    layout = (
+        {"cover": design["cover"]}
+        if role == "cover"
+        else {"holding": design["holding"]}
+        if role == "holding"
+        else {"interior": interior}
+        if role != "back_cover"
+        else {}
+    )
     return (
         "COMPLETE CATALOG BOOK DESIGN — authoritative for the whole book. "
         "Use this one design for cover, typography, interior, binding and held-book presentation. "
         "Do not combine layouts or finishes from unrelated examples. Original project photos alone "
         "define the cast and identity. The catalog book defines structure, not its names, words or props. "
         "Any approved project cover defines wardrobe, palette and setting for all following pages. "
+        "Generate ONLY the requested role, never combine cover and interior in one image. "
+        "The actual requested theme and action alone define story objects and setting. "
+        "Never import people, scenery or story props from catalog examples. "
+        + (
+            "COVER ONLY: ONE single square front-cover face, not an open book, spread, "
+            "front-and-back pair, diptych, gutter, central fold or two facing pages. "
+            if role == "cover"
+            else ""
+        )
         + cover_direction
         + json.dumps(
             {
                 "design_id": design["id"],
                 "design_sha256": design["sha256"],
                 "role": role,
-                "cover": design["cover"],
-                "interior": interior,
-                "holding": design["holding"],
+                **layout,
                 "finish": design["finish"],
                 "text_region": text_region,
                 "current_action": action,

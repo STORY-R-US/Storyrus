@@ -37,6 +37,7 @@ class Pipeline:
         self.db, self.job, self.project, self.photos = db, job, project, photos
         self.profile = project.book_profile
         self.design = book_design.resolve(self.profile)
+        self.project_only_references = editorial_profile.composed(self.profile)
         self.policy = editorial_profile.policy(self.profile)
         self.designed = bool(self.policy.get("referenceComposition"))
         self.demo = contract.test_mode(project) or settings.offline_fallback
@@ -59,10 +60,11 @@ class Pipeline:
                 project.style, self.profile["editorial"]["version"], art_only=True
             )
         ]
-        if self.design:
-            self.refs = []  # This book follows one complete catalog model, not mixed finish examples.
+        if self.design or self.project_only_references:
+            # Content-rich examples can leak their cast and props into unrelated books.
+            self.refs = []
         self.base = {
-            "renderer_revision": "2026-11-06.full-bleed.1",
+            "renderer_revision": "2026-11-09.project-only-references.1",
             "visual_masters": self.design["reference_sha256"]
             if self.design
             else visual_reference.fingerprint(project.style, self.reference_theme)
@@ -80,6 +82,13 @@ class Pipeline:
             },
             "language": self.language,
             "reference_manifest": contract.photo_manifest(project, photos),
+            "cast_contract": {
+                "protagonist": project.child_name,
+                "additional_characters": self.profile.get("characters", ""),
+                "additional_photo_names": [ec.get("name") for ec in project.extra_characters or []],
+                "solo": not self.profile.get("characters") and not project.extra_characters,
+                "rule": "Only the protagonist and explicitly requested companions. Ignore people in photo backgrounds. With no companions, show the protagonist alone; never invent a child, relative, helper or animal.",
+            },
         }
         if self.design:
             self.base["book_design"] = {"id": self.design["id"], "sha256": self.design["sha256"]}
@@ -808,7 +817,9 @@ class Pipeline:
                     ensure_ascii=False,
                 )
             visual_master = (
-                book_design.reference(self.design, "cover" if title else "page")
+                None
+                if self.project_only_references
+                else book_design.reference(self.design, "cover" if title else "page")
                 if self.design
                 else (
                     visual_reference.load(
@@ -838,6 +849,13 @@ class Pipeline:
                         "keep that continuity while illustrating the new action."
                     )
                 )
+            prompt += "\nAUTHORIZED CAST: " + json.dumps(
+                self.base["cast_contract"], ensure_ascii=False
+            )
+            if title:
+                prompt += "\nSINGLE FRONT COVER ONLY: one continuous square front face, no open book, spread, central gutter, diptych or two facing pages."
+            if self.project_only_references:
+                prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
@@ -1172,7 +1190,10 @@ class Pipeline:
                 if mode == "reading"
                 else "One prominent full-page story illustration with the project's cast and the requested action. No reserved reading strip, no letters and no printed words. "
             )
-            prompt += "The FIRST attached image is the project's original identity photo; the LAST is the same catalog book's interior design. Any intervening approved project cover defines wardrobe, palette and environment. Never copy catalog faces or its story."
+            prompt += (
+                "All attached images are original project photos or this project's approved cover. They alone define identity, wardrobe, palette and continuity. No catalog people, scenery or story props may be copied. AUTHORIZED CAST: "
+                + json.dumps(self.base["cast_contract"], ensure_ascii=False)
+            )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((248, 242, 229), (225, 236, 220)))
             else:
@@ -1185,8 +1206,7 @@ class Pipeline:
                         character_ref=self.photos[0],
                         photo=self.photos[0],
                         extra_refs=self.photos[1:]
-                        + ([self.cover_continuity] if self.cover_continuity else [])
-                        + [book_design.reference(design, "page")],
+                        + ([self.cover_continuity] if self.cover_continuity else []),
                         style=design["finish"],
                     )
                 )
@@ -1361,8 +1381,13 @@ class Pipeline:
                     },
                     ensure_ascii=False,
                 )
+            prompt += "\nAUTHORIZED CAST: " + json.dumps(
+                self.base["cast_contract"] if reading else {"people": "none"}, ensure_ascii=False
+            )
             template_reference = (
-                book_design.reference(self.design, "holding" if reading else "page")
+                None
+                if self.project_only_references
+                else book_design.reference(self.design, "holding" if reading else "page")
                 if self.design
                 else (
                     visual_reference.load(

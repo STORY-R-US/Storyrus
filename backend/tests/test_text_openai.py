@@ -190,6 +190,34 @@ async def test_prepare_book_profile_sends_photo(client):
 
 
 @pytest.mark.asyncio
+async def test_editorial_profile_creates_theme_title_and_limits_cast(client):
+    from app.services import editorial_profile
+
+    policy = json.loads(
+        (editorial_profile._root() / "config/editorial-policy.json").read_text(encoding="utf-8")
+    )
+    expected = {"locales": {"pt-BR": {"title": "Carlos e as Cores do Jardim"}}}
+    client.script = [(200, _ok(json.dumps(expected)))]
+    result = await oai.OpenAITextProvider().prepare_book_profile(
+        ficha={
+            "name": "Carlos",
+            "title": "",
+            "theme": "Aprender a cuidar das plantas",
+            "characters": {"names": "", "photos": []},
+            "languages": ["pt-BR"],
+            "editorial_policy": policy,
+        },
+        photos=[b"original"],
+    )
+    guidance = client.calls[0]["json"]["messages"][0]["content"]
+    assert "Se ficha.title estiver vazio" in guidance
+    assert "criativo e específico" in guidance
+    assert "Pessoas no fundo das fotos não são acompanhantes" in guidance
+    assert "apenas o protagonista" in guidance
+    assert json.loads(result.text) == expected
+
+
+@pytest.mark.asyncio
 async def test_missing_key_and_transient_error(client, monkeypatch):
     monkeypatch.setattr(oai.settings, "openai_api_key", None)
     with pytest.raises(ProviderError, match="OPENAI_API_KEY"):

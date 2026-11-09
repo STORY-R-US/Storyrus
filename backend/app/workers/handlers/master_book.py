@@ -1303,12 +1303,7 @@ async def page(db, job, project):
                         else contract.back_cover_prompt(project, language),
                         character_ref=cover_bytes,
                         photo=photos[0],
-                        extra_refs=photos[1:]
-                        + (
-                            [book_design.reference(selected_design, "cover")]
-                            if selected_design
-                            else []
-                        ),
+                        extra_refs=photos[1:],
                         style=selected_design["finish"]
                         if selected_design
                         else contract.art_direction(project.style),
