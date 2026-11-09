@@ -720,16 +720,6 @@ class Pipeline:
                     )
                 )
             )
-            if not title:
-                prompt += (
-                    "\nFINAL INTERIOR FRAMING: reserve the measured reading rectangle "
-                    + json.dumps(safe_region)
-                    + " in normalized [left, top, right, bottom] coordinates as natural quiet "
-                    "background. Place ALL heads, hair, faces, hands and the important action "
-                    f"below y={safe_region[3] + 0.04:.3f}. Reframe the camera and pose to fit "
-                    "the scene below that boundary; preserve identity and natural proportions. "
-                    "Do not draw text, blank panels, banners or artificial strips."
-                )
             if title and not self.designed:
                 prompt += (
                     "\nFINAL FRAMING REQUIREMENT, overriding any reference-photo framing or "
@@ -870,13 +860,58 @@ class Pipeline:
                     "Do not reproduce a selfie, pasted photograph, rectangular portrait, "
                     "white frame, separate paper panel, drop-shadow inset or background from the source photo. "
                     "The illustration fills the entire canvas and the title reserve is part of that same scenery. "
-                    "\nMANDATORY COVER FRAMING: zoom out and recompose to keep the ENTIRE "
-                    "head, including hair or hat, OUTSIDE the measured title rectangle with "
-                    "a clear margin. For an upper centered title, place the head below it; "
-                    "for a corner title, the character may remain beside it. "
-                    "Preserve natural proportions and recognizability. "
-                    "Show the concrete story activity and its relevant objects, not just a portrait. "
-                    "Background and illustration must reach all four edges without a white frame."
+                    "\nMANDATORY COVER FRAMING — takes precedence over tight framing in any "
+                    "photo, scene plan or earlier composition instruction. Use a medium-wide "
+                    "story scene viewed at the protagonist's eye level, showing the whole head, "
+                    "shoulders, torso, both arms and the objects needed for the requested activity. "
+                    "The face is recognizable at a natural size; avoid a face-filling close-up, "
+                    "selfie, passport portrait or oversized head. A single person's complete head "
+                    "including hair or hat should occupy roughly 20–24% of the canvas height. "
+                    "Do not crop the hat, hair, hands or activity at the canvas edges. "
+                    "Coordinates below are normalized from 0 to 1, with origin at top-left. "
+                    "The server will place the title inside this exact rectangle: "
+                    + json.dumps(safe_region)
+                    + ". Keep all characters, their clothing, hair, hats, hands and meaningful "
+                    "objects outside it, with generous visible breathing room. "
+                    + (
+                        f"Place the very TOP of every head, INCLUDING the entire hat or hair, "
+                        f"at or below y={max(0.40, safe_region[3] + 0.16):.3f}. "
+                        "Arrange faces, torsos and the activity in the lower part of the scene. "
+                        if self.alignment(True) == "center" and self.text_region(True)[0] < 0.25
+                        else (
+                            f"Place the character group on the LEFT, with its rightmost head/hair "
+                            f"edge left of x={max(0.0, safe_region[0] - 0.08):.3f}; if it cannot "
+                            f"fit naturally beside the title, place the entire heads below "
+                            f"y={max(0.40, safe_region[3] + 0.16):.3f} instead. "
+                        )
+                    )
+                    + "Fill the title area with the SAME room, wall, sky or vegetation that "
+                    "continues behind the rest of the scene, with natural depth and lighting. "
+                    "It is scenery, never a blank white band, separate panel, frame or inserted photo. "
+                    "Show ONE concrete activity from the requested story, with a readable action "
+                    "and visible relevant result; use only objects justified by that activity. "
+                    "Only explicitly requested companions may appear. Do not invent a helper, "
+                    "relative, animal, helicopter or other vehicle to decorate the scene. "
+                    "Preserve facial identity, age, skin tone and natural proportions from the "
+                    "project photos while changing their pose and background. Incidental logos "
+                    "or words on clothing must become plain fabric in the same color. "
+                    "Background and illustration reach all four edges of this ONE flat cover. "
+                    "Do not draw any title or lettering at this art stage; the server composes "
+                    "the exact project title into the reserved scenery afterward."
+                )
+            if not title:
+                prompt += (
+                    "\nFINAL INTERIOR FRAMING: reserve the measured reading rectangle "
+                    + json.dumps(safe_region)
+                    + " in normalized [left, top, right, bottom] coordinates as natural quiet "
+                    "background. Place ALL heads, hair, faces, hands and the important action "
+                    f"below y={max(0.38, safe_region[3] + 0.12):.3f}, including hats and raised hands. "
+                    "Use a medium-wide view with the whole head, shoulders and meaningful activity "
+                    "visible. Keep the camera far enough away to fit the action naturally; "
+                    "do not solve the layout by cropping the head or shrinking only the face. "
+                    "Preserve identity, age and natural proportions. Continue the same setting "
+                    "behind the text and around the activity, with no horizontal visual division. "
+                    "Do not draw text, blank panels, banners or artificial strips."
                 )
             if self.project_only_references:
                 prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
@@ -1398,7 +1433,7 @@ class Pipeline:
                     "Build a physical book presentation matching the same catalog model, to receive the finished project artwork.",
                 )
                 prompt += (
-                    f"\nGenerate a natural photographic scene with ONLY the requested project cast, based on the ORIGINAL identity photos. Show a real {15 if self.project.book_size == 'P' else 20}x{15 if self.project.book_size == 'P' else 20} cm hardback in a natural three-quarter view, slightly open, with two distinct rigid boards joined by a plausible spine and hinge, a continuous thick page block with fine layered paper edges, and consistent perspective and scale. Hands support its weight from below and at the outer edges, fingers naturally wrapping around the boards with correct occlusion and contact shadows. Keep the book close to the lap or torso; no floating book, flat poster, tablet, fused fingers or disconnected covers. Match lighting, focus, grain and shadows across the person and book. The front printable cover must be a single clearly visible MAGENTA plane #ff00ff. All board edges, spine, rear cover, pages and fingers remain neutral, without registration-color reflections. No printed words or example faces. "
+                    f"\nGenerate a natural photographic scene with ONLY the requested project cast, based on the ORIGINAL identity photos. Use a medium-wide view with the person's whole head, torso, forearms, hands and lap visible. Show a real {15 if self.project.book_size == 'P' else 20}x{15 if self.project.book_size == 'P' else 20} cm hardback in a natural three-quarter view, slightly open, with two distinct rigid boards joined by a plausible spine and hinge, a continuous thick page block with fine layered paper edges, and consistent perspective and scale. Establish the book's size relative to the person's hands and torso before posing the fingers; never enlarge the book to fill the frame. Hands support its weight from below and at the outer edges, fingers naturally wrapping around the boards with correct occlusion and contact shadows. The thumb rests on a visible board edge and the other fingers curl behind it; never paste a hand flat over the printed face or bend a rigid board through the fingers. Keep the book close to the lap or torso; no floating book, flat poster, tablet, fused fingers or disconnected covers. Match lighting, focus, grain and shadows across the person and book. The front printable cover must be a single clearly visible MAGENTA plane #ff00ff. All board edges, spine, rear cover, pages and fingers remain neutral, without registration-color reflections. No printed words or example faces. "
                     if reading
                     else "\nGenerate the physical open-book product scene matching this same catalog model: two equal flat square pages, a natural central gutter, visible hardback edges and page-block thickness. The left printable page is MAGENTA #ff00ff and the right is CYAN #00ffff. No people, hands, printed words or example artwork. The real finished project pages will be inserted locally. "
                 )
