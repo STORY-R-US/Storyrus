@@ -2251,7 +2251,10 @@ async def test_current_preview_is_delivered_for_explicit_user_approval(reference
     for scene in scenes:
         if scene.kind == "cover":
             assert scene.meta["validation"]["status"] == "valid"
-            assert scene.meta["layout"]["title_clearance"]["method"] == "local_title_head_clearance"
+            assert (
+                scene.meta["layout"]["title_clearance"]["method"] == "mandatory_visual_title_review"
+            )
+            assert scene.meta["layout"]["title_clearance"]["status"] == "valid"
         else:
             assert scene.meta["validation"] == {
                 "status": "awaiting_user_review",
@@ -2290,28 +2293,44 @@ async def test_current_cover_rejection_stops_without_automatic_image_retry(refer
 
 
 @pytest.mark.asyncio
-async def test_current_cover_blocks_hat_overlap_before_paid_visual_review(
-    reference_studio, monkeypatch
+@pytest.mark.parametrize(
+    "estimated_overlap,confirmed_overlap", [(True, False), (True, True), (False, True)]
+)
+async def test_cover_overlap_requires_visual_confirmation_and_cannot_bypass_review(
+    reference_studio, monkeypatch, estimated_overlap, confirmed_overlap
 ):
     from app.workers import editorial_render as render
 
-    studio, calls, _ = reference_studio
+    studio, calls, control = reference_studio
     client, db, pid, _ = studio
-    monkeypatch.setattr(render, "protected_heads", lambda _: [[0.3, 0.05, 0.8, 0.7]])
-
-    async def unexpected_review(self, **kwargs):
-        raise AssertionError("Local title collision must stop before the paid visual review")
-
     monkeypatch.setattr(
-        type(handlers.get_text_provider()), "validate_editorial_preview", unexpected_review
+        render, "protected_heads", lambda _: [[0.3, 0.05, 0.8, 0.7]] if estimated_overlap else []
     )
-    response = client.post(f"/v1/projects/{pid}/preview")
+    control["reject_cover_text_once"] = confirmed_overlap
+    reviewed = []
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+
+    async def visual_review(self, **kwargs):
+        reviewed.append(kwargs)
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", visual_review)
+    response = client.post(f"/v1/projects/{pid}/preview", json={"cover_only": True})
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
-    assert job.status == "FAILED"
-    assert "Região do título invade" in job.error
+    assert job.status == ("FAILED" if confirmed_overlap else "DONE"), job.error
     assert len(calls) == 1
-    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
+    assert any(check["prompt"].startswith("CAPA_PLANA:") for check in reviewed)
+    assert reviewed[0]["inspection_region"]
+    previews = client.get(f"/v1/projects/{pid}/assets").json()["previews"]
+    if confirmed_overlap:
+        assert previews == []
+        assert "texto sobre o cabelo" in job.error
+    else:
+        clearance = previews[0]["layout"]["title_clearance"]
+        assert clearance["status"] == "valid"
+        assert clearance["local_estimate"]["possible_overlap"] is True
 
 
 @pytest.mark.asyncio

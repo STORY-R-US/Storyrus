@@ -256,18 +256,19 @@ def protected_heads(data):
     ]
 
 
-def require_clear_title_area(data, layout):
-    """Reject a measured title collision with a detected face, hair or hat locally."""
+def title_area_evidence(data, layout):
+    """Advisory face-box estimate; actual title clearance needs visual inspection."""
     x0, y0, x1, y1 = layout["ink_region_with_margin"]
     heads = protected_heads(data)
-    if any(
+    possible_overlap = any(
         min(x1, box[2]) > max(x0, box[0]) and min(y1, box[3]) > max(y0, box[1]) for box in heads
-    ):
-        raise ValueError(
-            "Região do título invade rosto, cabelo ou gorro. A capa precisa de novo "
-            "enquadramento com espaço livre para o título; ela não foi aprovada."
-        )
-    return {"method": "local_title_head_clearance", "protected_heads": heads}
+    )
+    return {
+        "method": "approximate_local_head_boxes",
+        "protected_heads": heads,
+        "possible_overlap": possible_overlap,
+        "authoritative": False,
+    }
 
 
 def choose_reading_region(data, value, profile, preferred, *, alignment="center"):

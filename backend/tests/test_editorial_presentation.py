@@ -10,20 +10,22 @@ from app.workers import editorial_render as render
 
 
 @pytest.mark.parametrize("head", [[0.3, 0.06, 0.7, 0.55], [0.3, 0.2, 0.7, 0.6]])
-def test_title_rejects_face_hair_or_hat_inside_measured_ink(monkeypatch, head):
+def test_title_box_overlap_is_an_advisory_estimate_not_a_visual_rejection(monkeypatch, head):
     monkeypatch.setattr(render, "protected_heads", lambda _: [head])
-    with pytest.raises(ValueError, match="Região do título invade"):
-        render.require_clear_title_area(b"art", {"ink_region_with_margin": [0.1, 0.05, 0.9, 0.24]})
+    proof = render.title_area_evidence(b"art", {"ink_region_with_margin": [0.1, 0.05, 0.9, 0.24]})
+    assert proof["possible_overlap"] is True
+    assert proof["authoritative"] is False
 
 
 def test_title_accepts_head_below_actual_letters_even_inside_larger_plan_region(monkeypatch):
     head = [0.3, 0.27, 0.7, 0.7]
     monkeypatch.setattr(render, "protected_heads", lambda _: [head])
-    proof = render.require_clear_title_area(
+    proof = render.title_area_evidence(
         b"art",
         {"ink_region_with_margin": [0.1, 0.05, 0.9, 0.24], "region": [0.06, 0.045, 0.94, 0.29]},
     )
     assert proof["protected_heads"] == [head]
+    assert proof["possible_overlap"] is False
 
 
 def test_reading_area_moves_around_hat_without_rewriting_or_shrinking(monkeypatch):

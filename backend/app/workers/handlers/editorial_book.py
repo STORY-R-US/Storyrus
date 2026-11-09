@@ -64,7 +64,7 @@ class Pipeline:
             # Content-rich examples can leak their cast and props into unrelated books.
             self.refs = []
         self.base = {
-            "renderer_revision": "2026-11-09.cover-contract.2",
+            "renderer_revision": "2026-11-09.title-review.3",
             "visual_masters": self.design["reference_sha256"]
             if self.design
             else visual_reference.fingerprint(project.style, self.reference_theme)
@@ -1033,8 +1033,6 @@ class Pipeline:
                         alignment=self.alignment(title),
                         readable=self.designed and not title,
                     )
-                    if title and self.designed and not self.demo:
-                        layout["title_clearance"] = render.require_clear_title_area(raw, layout)
                     qa = await self.review(
                         raw,
                         "ARTE_BASE: plana quadrada sem qualquer texto, títulos ou mockup. "
@@ -1151,8 +1149,6 @@ class Pipeline:
                 alignment=meta["plan"]["alignment"],
                 readable=self.designed and not title,
             )
-            if title and self.designed and not self.demo:
-                layout["title_clearance"] = render.require_clear_title_area(raw, layout)
             if meta.get("composition_sha256") == render.digest(data):
                 # This exact text composition already passed inspection while its
                 # source art was selected. Changed words produce a different hash.
@@ -1170,6 +1166,14 @@ class Pipeline:
                     ),
                     technical={"typography": layout},
                 )
+            if title and self.designed and not self.demo:
+                # Only the exact reserve crop and final cover review can confirm
+                # overlap. Expanded Haar boxes are not hair/hat segmentation.
+                layout["title_clearance"] = {
+                    "method": "mandatory_visual_title_review",
+                    "status": qa["status"],
+                    "local_estimate": render.title_area_evidence(raw, layout),
+                }
             return data, {
                 "validation": qa,
                 "art_key": meta["storage_key"],
