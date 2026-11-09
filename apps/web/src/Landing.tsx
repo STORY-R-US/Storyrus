@@ -278,7 +278,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-natalmemetata.png", en: "capa-natalmemetata-en.png", es: "capa-natalmemetata-es.png" },
   { pt: "capa-nanoaventuras.png", en: "capa-nanoaventuras-en.png", es: "capa-nanoaventuras-es.png" },
   { pt: "capa-maya-cachorra-pt.jpg", en: "capa-maya-cachorra-en.jpg", es: "capa-maya-cachorra-es.jpg" },
-  { pt: "capa-mako-amigofiel.png", en: "capa-mako-amigofiel-en.png", es: "capa-mako-amigofiel-es.png" },
+  { pt: "capa-mako-amigofiel.jpg", en: "capa-mako-amigofiel-en.jpg", es: "capa-mako-amigofiel-es.jpg" },
   { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" },
   { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" },
   { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" },
