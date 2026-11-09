@@ -685,7 +685,7 @@ async def test_preview_catches_impossible_body_before_buying_cover(reference_stu
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     assert job.status == "FAILED"
-    assert "Encurte" in job.error and "livro aberto" in job.error
+    assert "Encurte" in job.error and "página esquerda" in job.error
     assert calls == []
 
 
@@ -807,7 +807,17 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
         select(Asset).where(Asset.project_id == project.id, Asset.kind == "editorial_source")
     ).all()
     layouts = {a.meta["stage"]: a.meta["layout"] for a in sources if a.meta.get("layout")}
-    if model != "adventure":
+    if model == "family":
+        locale = project.book_profile["locales"]["pt-BR"]
+        assert layouts["preview:left:text"]["text"] == locale["left"]
+        assert layouts["preview:right:text"]["text"] == locale["right"]
+        for call in calls[1:3]:
+            assert '"role": "preview_page"' in call["prompt"]
+            assert '"mode": "two_scenes"' in call["prompt"]
+            assert "quiet decorative reading page" not in call["prompt"]
+        assert "two distinct rigid boards" in calls[-1]["prompt"]
+        assert "contact shadows" in calls[-1]["prompt"]
+    elif model != "adventure":
         locale = project.book_profile["locales"]["pt-BR"]
         assert layouts["preview:reading:text"]["text"] == locale["left"] + "\n\n" + locale["right"]
         assert layouts["preview:illustration:text"]["illustration_only"]

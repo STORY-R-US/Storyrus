@@ -89,20 +89,51 @@ def apply_policy(design, policy):
     return policy
 
 
+def preview_interior(design):
+    """Preview both story moments without changing existing paid-page contracts."""
+    interior = design["interior"]
+    if design["id"] == "family":
+        return {
+            **interior,
+            "mode": "two_scenes",
+            "region": [0.08, 0.055, 0.92, 0.33],
+            "description": "Two facing illustrated pages. Each page has its own sequential story passage in quiet upper scenery and a distinct meaningful action with the project's characters below. No text over characters and neither page is illustration-only or text-only.",
+        }
+    return interior
+
+
 def prompt(design, role, action, *, text_region=None):
+    interior = design["interior"]
+    if role in {"open_book", "preview_page"}:
+        interior = preview_interior(design)
+    cover_direction = ""
+    if design["id"] == "family" and role == "cover":
+        cover_direction = (
+            "AMOR DE BISAVÓ COVER COMPOSITION: compose the title as an integral part of "
+            "the finished cover image, in the upper-right natural scenery, with harmonious "
+            "color, contrast and generous breathing room. The server adds the exact approved "
+            "title after illustration; do not draw lettering in this art stage. Reserve the "
+            "entire measured text_region plus a clear margin as quiet continuous scenery. "
+            "Keep EVERY character completely outside this title area, including hair, face, "
+            "body, clothing, arms and hands. Reframe or reposition the characters naturally "
+            "on the left and below the title area rather than placing text over them. "
+            "Continue the same illustrated background behind the title: no separate label, "
+            "panel, banner, box or blank strip. "
+        )
     return (
         "COMPLETE CATALOG BOOK DESIGN — authoritative for the whole book. "
         "Use this one design for cover, typography, interior, binding and held-book presentation. "
         "Do not combine layouts or finishes from unrelated examples. Original project photos alone "
         "define the cast and identity. The catalog book defines structure, not its names, words or props. "
         "Any approved project cover defines wardrobe, palette and setting for all following pages. "
+        + cover_direction
         + json.dumps(
             {
                 "design_id": design["id"],
                 "design_sha256": design["sha256"],
                 "role": role,
                 "cover": design["cover"],
-                "interior": design["interior"],
+                "interior": interior,
                 "holding": design["holding"],
                 "finish": design["finish"],
                 "text_region": text_region,

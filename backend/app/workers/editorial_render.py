@@ -73,6 +73,11 @@ def validate_preview_copy(profile, locale):
     policy = editorial_profile.policy(profile)
     composition = policy.get("referenceComposition", {})
     design = profile.get("book_design")
+    if design and design["id"] == "family":
+        from app.services import book_design
+
+        design = {**design, "interior": book_design.preview_interior(design)}
+        composition = {**composition, "bodyRegion": design["interior"]["region"]}
     items = [("título", locale["title"], True)]
     if design and design["interior"]["mode"] != "two_scenes":
         items.append(("texto do livro aberto", locale["left"] + "\n\n" + locale["right"], False))

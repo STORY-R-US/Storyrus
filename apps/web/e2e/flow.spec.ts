@@ -395,6 +395,7 @@ test("avisos ficam nos campos e titulo opcional permite criar a previa", async (
   const state = makeState();
   await mockApi(page, state);
   await loginViaEntrar(page);
+  await expect(page.getByLabel("Padrão visual do livro")).toHaveCount(0);
 
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-error-name")).toHaveText("Preencha o nome.");

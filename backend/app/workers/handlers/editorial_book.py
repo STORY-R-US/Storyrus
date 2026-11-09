@@ -787,7 +787,11 @@ class Pipeline:
                 prompt = (
                     book_design.prompt(
                         self.design,
-                        "cover" if title else "illustrated_page",
+                        "cover"
+                        if title
+                        else "preview_page"
+                        if name.startswith("preview:")
+                        else "illustrated_page",
                         action,
                         text_region=safe_region,
                     )
@@ -1002,6 +1006,14 @@ class Pipeline:
                         )
                         + json.dumps(value, ensure_ascii=False)
                         + ". Sem texto sobre cabelo, rosto, mãos ou ação importante. "
+                        + (
+                            "Na capa Amor de Bisavó, o título deve fazer parte da imagem, "
+                            "integrado ao cenário natural no alto à direita, sem faixa ou quadro. "
+                            "Reprove texto sobre QUALQUER parte dos personagens, incluindo "
+                            "corpo, roupas e braços, ou sem espaço de respiro ao redor das letras. "
+                            if title and self.design and self.design["id"] == "family"
+                            else ""
+                        )
                         + self.text_instruction(title),
                         technical={"typography": layout},
                     )
@@ -1239,7 +1251,22 @@ class Pipeline:
 
     async def catalog_spread(self, name, left, right, actions):
         mode = self.design["interior"]["mode"]
-        if mode == "two_scenes":
+        if self.design["id"] == "family":
+            interior = book_design.preview_interior(self.design)
+            original_policy = self.policy
+            self.policy = {
+                **self.policy,
+                "referenceComposition": {
+                    **self.policy["referenceComposition"],
+                    "bodyRegion": interior["region"],
+                },
+            }
+            try:
+                first, _ = await self.art(name + ":left", actions[0], value=left)
+                second, _ = await self.art(name + ":right", actions[1], value=right)
+            finally:
+                self.policy = original_policy
+        elif mode == "two_scenes":
             first, _ = await self.art(name + ":left", actions[0], value=left)
             second, _ = await self.art(name + ":right", actions[1], value=right)
         else:
@@ -1322,7 +1349,7 @@ class Pipeline:
                     "Build a physical book presentation matching the same catalog model, to receive the finished project artwork.",
                 )
                 prompt += (
-                    "\nGenerate a natural photographic scene with ONLY the requested project cast, based on the ORIGINAL identity photos. Match the reference book's pose, framing, hand contact, hinge, rear board and page-block thickness. The front printable cover must be a single clearly visible MAGENTA plane #ff00ff. All board edges, spine, rear cover, pages and fingers remain neutral, without registration-color reflections. No printed words or example faces. "
+                    f"\nGenerate a natural photographic scene with ONLY the requested project cast, based on the ORIGINAL identity photos. Show a real {15 if self.project.book_size == 'P' else 20}x{15 if self.project.book_size == 'P' else 20} cm hardback in a natural three-quarter view, slightly open, with two distinct rigid boards joined by a plausible spine and hinge, a continuous thick page block with fine layered paper edges, and consistent perspective and scale. Hands support its weight from below and at the outer edges, fingers naturally wrapping around the boards with correct occlusion and contact shadows. Keep the book close to the lap or torso; no floating book, flat poster, tablet, fused fingers or disconnected covers. Match lighting, focus, grain and shadows across the person and book. The front printable cover must be a single clearly visible MAGENTA plane #ff00ff. All board edges, spine, rear cover, pages and fingers remain neutral, without registration-color reflections. No printed words or example faces. "
                     if reading
                     else "\nGenerate the physical open-book product scene matching this same catalog model: two equal flat square pages, a natural central gutter, visible hardback edges and page-block thickness. The left printable page is MAGENTA #ff00ff and the right is CYAN #00ffff. No people, hands, printed words or example artwork. The real finished project pages will be inserted locally. "
                 )
@@ -1386,7 +1413,7 @@ class Pipeline:
                     {
                         "attempt": attempt,
                         "generation_job": str(self.job.id),
-                        "template_contract": 4 if reading else 2,
+                        "template_contract": 5 if reading else 2,
                         "catalog_reference_sha256": render.digest(template_reference)
                         if template_reference
                         else None,
@@ -1411,7 +1438,7 @@ class Pipeline:
             qa = await self.review(
                 data,
                 (
-                    "LEITURA: capa final exata aplicada, pessoas externas fotográficas, mãos naturais, identidade original. "
+                    "LEITURA: capa final exata aplicada, pessoas externas fotográficas, mãos naturais, identidade original. Livro físico realista: escala proporcional às mãos e ao corpo, perspectiva coerente, duas capas rígidas conectadas pela lombada, bloco de folhas com espessura, dedos apoiando o peso com oclusão e sombras de contato. Reprove aparência de placa, livro flutuante, capas desconectadas ou perspectiva incompatível. "
                     if reading
                     else "LIVRO_ABERTO: duas páginas quadradas iguais; texto literal esquerdo e direito, sem título adicional, cenas coerentes. "
                 )
@@ -1429,7 +1456,7 @@ class Pipeline:
             name,
             {
                 "sources": [render.digest(p) for p in artworks],
-                "surface_contract": 6 if name == "reading" else 5,
+                "surface_contract": 7 if name == "reading" else 5,
             },
             build,
         )
