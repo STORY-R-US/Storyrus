@@ -342,6 +342,11 @@ class Pipeline:
             # A reserve collision may be repaired once by outpainting the rejected
             # scene. This never buys a second freshly generated illustration.
             repair_allowed = name.endswith(":art")
+        elif name in {"spread", "reading"}:
+            # A mockup quality/composition failure must not buy another template
+            # automatically. A new user retry is the explicit boundary for another
+            # paid image-generation attempt.
+            maximum = 1
         attempt = attempts
         while attempt < maximum:
             attempt += 1
@@ -1610,6 +1615,8 @@ class Pipeline:
                 prompt += "\nÚLTIMA REFERÊNCIA: exemplo do CATÁLOGO, apenas acabamento e estrutura física do livro. Nunca copie as pessoas, palavras, capa ou cenário do exemplo. Fotos originais do projeto definem identidade e elenco. Mantenha a marcação temporária somente nas faces imprimíveis."
             if self.demo:
                 visible_masks = None
+                geometry_source = "manual"
+                keying_fallback_reason = None
                 raw = self.master._offline_png(name, palette=((248, 240, 220), (230, 240, 250)))
                 geometry = {
                     "valid": True,
@@ -1657,13 +1664,37 @@ class Pipeline:
                     },
                     generate_template,
                 )
-                geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
+                geometry_source = "keyed_pixels"
+                keying_fallback_reason = None
+                try:
+                    geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
+                except ValueError as keying_error:
+                    # Reuse the already-generated photo. Vision measures its
+                    # actual print planes only when pixel keying cannot do so;
+                    # this avoids another billable image-generation attempt.
+                    located = (
+                        await self.master._pkg()
+                        .get_text_provider()
+                        .locate_book_surfaces(data=raw, count=len(artworks))
+                    )
+                    self.account(located, "Localização das superfícies do mockup")
+                    try:
+                        proposed = json.loads(located.text)
+                    except (TypeError, json.JSONDecodeError) as exc:
+                        raise ValueError(
+                            "A localização das páginas do livro retornou um resultado inválido"
+                        ) from exc
+                    geometry = render.validate_geometry(proposed, len(artworks))
+                    visible_masks = None
+                    geometry_source = "vision"
+                    keying_fallback_reason = str(keying_error)[:240]
             data, provenance = render.mockup(
                 raw,
                 artworks,
                 geometry,
                 visible_masks=visible_masks,
                 physical_book=reading and self.designed,
+                geometry_source=geometry_source,
             )
             expected = {
                 key: self.profile["locales"][self.language][key]
@@ -1683,6 +1714,14 @@ class Pipeline:
                 "validation": qa,
                 "composition": provenance,
                 "geometry": geometry,
+                "surface_detection": {
+                    "method": geometry_source,
+                    **(
+                        {"keying_fallback_reason": keying_fallback_reason}
+                        if keying_fallback_reason
+                        else {}
+                    ),
+                },
                 **({"template_key": template_meta["storage_key"]} if not self.demo else {}),
             }
 
@@ -1690,7 +1729,7 @@ class Pipeline:
             name,
             {
                 "sources": [render.digest(p) for p in artworks],
-                "surface_contract": 7 if name == "reading" else 5,
+                "surface_contract": 8 if name == "reading" else 6,
             },
             build,
         )

@@ -95,6 +95,30 @@ def test_keyed_geometry_uses_visible_surface_pixels_and_preserves_hands():
     assert Image.open(io.BytesIO(output)).getpixel((11, 70)) != (255, 230, 255)
 
 
+def test_vision_geometry_rejects_uncertain_or_malformed_book_surfaces():
+    from app.workers import editorial_render as render
+
+    geometry = {
+        "valid": True,
+        "issues": [],
+        "surfaces": [
+            [[0.05, 0.2], [0.48, 0.2], [0.48, 0.8], [0.05, 0.8]],
+            [[0.52, 0.2], [0.95, 0.2], [0.95, 0.8], [0.52, 0.8]],
+        ],
+        "occlusions": [[[0.45, 0.6], [0.5, 0.6], [0.5, 0.7], [0.45, 0.7]]],
+    }
+    checked = render.validate_geometry(geometry, 2)
+    assert checked["surfaces"][0][0] == pytest.approx(geometry["surfaces"][0][0])
+    assert checked["occlusions"][0][0] == pytest.approx(geometry["occlusions"][0][0])
+
+    malformed = {**geometry, "surfaces": list(reversed(geometry["surfaces"]))}
+    with pytest.raises(ValueError, match="ordem incorreta"):
+        render.validate_geometry(malformed, 2)
+    uncertain = {**geometry, "valid": False, "issues": ["gutter unclear"]}
+    with pytest.raises(ValueError, match="não foram identificadas"):
+        render.validate_geometry(uncertain, 2)
+
+
 def test_editorial_literal_text_accents_and_overflow_fail_without_shrinking():
     from app.services import editorial_profile
     from app.workers import editorial_render as render
@@ -322,6 +346,35 @@ async def test_reference_pipeline_uses_actions_illustrated_setting_and_new_typog
 
 
 @pytest.mark.asyncio
+async def test_mockup_falls_back_to_vision_geometry_without_regenerating_images(
+    composed_studio, monkeypatch
+):
+    from app.workers import editorial_render as render
+
+    studio, calls, _ = composed_studio
+
+    def missing_key_pixels(_data, _count):
+        raise ValueError("Superfície de impressão não identificada pelos pixels")
+
+    monkeypatch.setattr(render, "keyed_surfaces", missing_key_pixels)
+    await _run(studio, "preview", key="vision-geometry-fallback")
+    assert len(calls) == 5  # flat art and one template per mockup; no paid retry
+
+    _, db, pid, _ = studio
+    sources = db.scalars(
+        select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
+    ).all()
+    mockups = {asset.meta["stage"]: asset for asset in sources if asset.meta.get("stage")}
+    for stage in ("spread", "reading"):
+        assert mockups[stage].meta["surface_detection"]["method"] == "vision"
+        assert mockups[stage].meta["composition"]["method"] == "vision_geometry_composition"
+        assert (
+            "impressão não identificada"
+            in mockups[stage].meta["surface_detection"]["keying_fallback_reason"]
+        )
+
+
+@pytest.mark.asyncio
 async def test_reference_pipeline_leaves_book_scale_judgement_to_user(reference_studio):
     studio, _, control = reference_studio
     control["large_book"] = True
@@ -450,14 +503,12 @@ async def test_composed_three_scenes_resume_exact_sources_and_purchase_gates(com
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     assert job.status == "FAILED"
-    assert len(calls) == 7  # three flat arts + spread + three rejected holding scenes
+    assert len(calls) == 5  # three flat arts and one template for each mockup
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 2
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 409
     control["reject_reading"] = False
     await _run(studio, "preview", key="resume-composed")
-    assert (
-        len(calls) == 8
-    )  # reuse approved scenes; rejected templates must not freeze later retries
+    assert len(calls) == 6  # reuse approved scenes; one deliberate reading retry by the user
     assets = [
         a
         for a in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid)))

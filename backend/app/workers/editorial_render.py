@@ -495,15 +495,65 @@ def keyed_surfaces(data, count):
     return {"valid": True, "issues": [], "surfaces": surfaces, "occlusions": []}, masks
 
 
-def mockup(template, artworks, geometry, *, visible_masks=None, physical_book=False):
-    """Project the actual finished art; restore explicit foreground occlusions unchanged."""
-    if geometry.get("valid") is not True or geometry.get("issues") != []:
-        raise ValueError("Geometria do mockup não foi aprovada")
+def validate_geometry(geometry, count):
+    """Validate vision-proposed geometry before it can place customer artwork."""
+    if count not in (1, 2):
+        raise ValueError("Quantidade de superfícies inválida")
+    if (
+        not isinstance(geometry, dict)
+        or geometry.get("valid") is not True
+        or geometry.get("issues") != []
+    ):
+        raise ValueError("Superfícies do livro não foram identificadas com confiança")
     surfaces = geometry.get("surfaces")
-    if not isinstance(surfaces, list) or len(surfaces) != len(artworks):
-        raise ValueError("Quantidade de superfícies incorreta")
-    if not isinstance(geometry.get("occlusions"), list):
-        raise ValueError("Oclusões não avaliadas")
+    occlusions = geometry.get("occlusions")
+    if not isinstance(surfaces, list) or len(surfaces) != count:
+        raise ValueError("Quantidade de superfícies identificadas incorreta")
+    if not isinstance(occlusions, list):
+        raise ValueError("Oclusões do livro não foram avaliadas")
+
+    normalized_surfaces = [quad(points).tolist() for points in surfaces]
+    if (
+        count == 2
+        and np.mean(normalized_surfaces[0], axis=0)[0] >= np.mean(normalized_surfaces[1], axis=0)[0]
+    ):
+        raise ValueError("Páginas identificadas em ordem incorreta")
+
+    normalized_occlusions = []
+    for polygon in occlusions:
+        points = np.asarray(polygon, dtype=np.float32)
+        if (
+            points.ndim != 2
+            or points.shape[1] != 2
+            or not 3 <= len(points) <= 128
+            or not np.isfinite(points).all()
+            or (points < 0).any()
+            or (points > 1).any()
+            or cv2.contourArea(points.reshape(-1, 1, 2)) < 0.00005
+        ):
+            raise ValueError("Máscara de oclusão inválida")
+        normalized_occlusions.append(points.tolist())
+
+    return {
+        "valid": True,
+        "issues": [],
+        "surfaces": normalized_surfaces,
+        "occlusions": normalized_occlusions,
+    }
+
+
+def mockup(
+    template,
+    artworks,
+    geometry,
+    *,
+    visible_masks=None,
+    physical_book=False,
+    geometry_source=None,
+):
+    """Project the actual finished art; restore explicit foreground occlusions unchanged."""
+    geometry = validate_geometry(geometry, len(artworks))
+    surfaces = geometry["surfaces"]
     original = np.array(Image.open(io.BytesIO(template)).convert("RGB"))
     output = original.copy()
     h, w = output.shape[:2]
@@ -555,10 +605,17 @@ def mockup(template, artworks, geometry, *, visible_masks=None, physical_book=Fa
     if np.count_nonzero((foreground > 0) & (cover_masks > 0)) > np.count_nonzero(cover_masks) * 0.4:
         raise ValueError("Livro excessivamente oculto para conferir a capa")
     output[foreground > 0] = original[foreground > 0]
+    geometry_source = geometry_source or ("keyed_pixels" if visible_masks is not None else "manual")
+    method = {
+        "keyed_pixels": "keyed_perspective_composition",
+        "vision": "vision_geometry_composition",
+        "manual": "perspective_composition",
+    }.get(geometry_source)
+    if method is None:
+        raise ValueError("Origem da geometria do mockup inválida")
     return encode(Image.fromarray(output)), {
-        "method": "keyed_perspective_composition"
-        if visible_masks is not None
-        else "perspective_composition",
+        "method": method,
+        "geometry_source": geometry_source,
         "surfaces": provenance,
         "occlusions": geometry["occlusions"],
         "binding_finish": "cover_derived_hinge" if physical_book and len(artworks) == 1 else None,
