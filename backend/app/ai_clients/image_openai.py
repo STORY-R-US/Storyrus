@@ -9,8 +9,10 @@ from __future__ import annotations
 import asyncio
 import base64
 import io
+import json
 import logging
 import random
+import re
 
 import httpx
 from PIL import Image
@@ -34,7 +36,33 @@ _TRANSIENT_STATUS = frozenset({429, 500, 502, 503, 504})
 
 
 def _error_from_response(resp: httpx.Response) -> ProviderError:
-    body = (resp.text or "")[:300]
+    raw_body = resp.text or ""
+    try:
+        payload = resp.json()
+    except (ValueError, TypeError):
+        payload = None
+
+    api_error = payload.get("error") if isinstance(payload, dict) else None
+    request_id = str(resp.headers.get("x-request-id") or "").strip()
+    if isinstance(api_error, dict):
+        message = str(api_error.get("message") or "")
+        request_id = request_id or str(api_error.get("request_id") or "").strip()
+        if not request_id:
+            match = re.search(r"\breq_[A-Za-z0-9]+\b", message)
+            request_id = match.group(0) if match else ""
+        details = {"request_id": request_id} if request_id else {}
+        details.update(
+            {
+                key: api_error[key]
+                for key in ("type", "code", "param", "moderation_details")
+                if key in api_error and api_error[key] is not None
+            }
+        )
+        if message:
+            details["message"] = message[:1000]
+        body = json.dumps(details, ensure_ascii=False, separators=(",", ":"))[:1600]
+    else:
+        body = raw_body[:300]
     transient = resp.status_code in _TRANSIENT_STATUS and not billing_exhausted(body)
     return ProviderError(
         f"OpenAI {resp.status_code}: {body}",

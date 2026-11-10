@@ -283,6 +283,38 @@ async def test_transient_503_retries_then_ok():
     assert len(_FakeAsyncClient.calls) == 2
 
 
+def test_moderation_error_keeps_code_details_and_request_id():
+    response = _FakeResponse(
+        400,
+        json_data={
+            "error": {
+                "message": "The request was rejected by the safety system.",
+                "type": "image_generation_user_error",
+                "param": None,
+                "code": "moderation_blocked",
+                "moderation_details": {"stage": "input"},
+            }
+        },
+    )
+    response.headers["x-request-id"] = "req_abc123"
+
+    error = oai._error_from_response(response)
+
+    assert error.status_code == 400
+    assert error.transient is False
+    assert '"code":"moderation_blocked"' in str(error)
+    assert '"moderation_details":{"stage":"input"}' in str(error)
+    assert '"request_id":"req_abc123"' in str(error)
+
+
+def test_error_body_without_json_keeps_short_text_fallback():
+    response = _FakeResponse(400, text="plain error")
+
+    error = oai._error_from_response(response)
+
+    assert "OpenAI 400: plain error" == str(error)
+
+
 @pytest.mark.asyncio
 async def test_missing_api_key_raises(monkeypatch):
     monkeypatch.setattr(oai.settings, "openai_api_key", None)

@@ -409,8 +409,9 @@ async def test_composed_provider_failure_does_not_consume_visual_retries(compose
     async def unavailable(attempt):
         raise ProviderError("temporary outage", transient=True, status_code=503)
 
-    with pytest.raises(ProviderError, match="temporary outage"):
+    with pytest.raises(ProviderError, match="temporary outage") as captured:
         await pipe.stage("cover:art", {}, unavailable)
+    assert "Etapa editorial cover:art" in str(captured.value)
     task = job.result["editorial_tasks"]["cover:art"]
     assert task["state"] == "provider_failed"
     assert task["provider_status"] == 503

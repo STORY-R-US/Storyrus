@@ -381,7 +381,11 @@ class Pipeline:
                         provider_status=exc.status_code,
                         transient=exc.transient,
                     )
-                    raise
+                    raise ProviderError(
+                        f"Etapa editorial {name}: {exc}",
+                        transient=exc.transient,
+                        status_code=exc.status_code,
+                    ) from exc
                 logging.getLogger(__name__).warning(
                     "editorial_technical_failure stage=%s attempt=%s reason=%s",
                     name,
