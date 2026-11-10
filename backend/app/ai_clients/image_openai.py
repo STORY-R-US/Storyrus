@@ -15,7 +15,7 @@ import random
 import re
 
 import httpx
-from PIL import Image
+from PIL import Image, ImageFilter
 
 from app.ai_clients.base import MAX_REFRAME_TOP_FRACTION, ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
@@ -319,77 +319,122 @@ class OpenAIImageProvider:
         return await self._generate_with_refs(text, refs, size=settings.openai_image_size_portrait)
 
     async def reframe_editorial_art(
-        self, *, art, photos, top_fraction, prompt, preserve_complete_scene=False
+        self,
+        *,
+        art,
+        photos,
+        top_fraction,
+        prompt,
+        preserve_complete_scene=False,
+        clear_through_fraction=None,
     ):
-        """Extend scenery; optionally fit the complete source without cropping its activity."""
+        """Make a billable-API-free reserve by extending only the scene's edge background."""
         image = Image.open(io.BytesIO(art)).convert("RGBA")
         if image.width != image.height or not 0.05 <= top_fraction <= MAX_REFRAME_TOP_FRACTION:
             raise ValueError("Enquadramento editorial inválido")
-        shift = round(image.height * top_fraction)
-        canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))
-        mask = Image.new("RGBA", image.size, (255, 255, 255, 255))
+        width, height = image.size
+        clear_through_fraction = (
+            max(0.0, top_fraction - 0.06)
+            if clear_through_fraction is None
+            else float(clear_through_fraction)
+        )
+        if not 0 <= clear_through_fraction < 1:
+            raise ValueError("Reserva editorial inválida")
+        shift = max(
+            round(height * top_fraction),
+            round(height * clear_through_fraction) + 2,
+        )
+        if shift >= height:
+            raise ValueError("Reserva editorial inválida")
+
         if preserve_complete_scene:
             side = image.height - shift
             left = (image.width - side) // 2
             source = image.resize((side, side), Image.Resampling.LANCZOS)
-            source_box = (left, shift, left + side, image.height)
-            canvas.paste(source, (left, shift))
-            mask.paste((0, 0, 0, 0), (0, 0, image.width, image.height))
-            mask.paste((255, 255, 255, 255), source_box)
+            source_box = (left, shift, left + side, height)
         else:
-            source_box = (0, shift, image.width, image.height)
-            canvas.paste(image, (0, shift))
-            mask.paste((0, 0, 0, 0), (0, 0, image.width, shift))
+            left = 0
+            source = image
+            source_box = (0, shift, width, height)
 
-        def png(value):
-            out = io.BytesIO()
-            value.save(out, "PNG")
-            return out.getvalue()
+        # Reuse only narrow outer strips, where a centered protagonist is not
+        # placed. This produces a calm, scene-matched title reserve without
+        # asking the image model to invent another head or hairline.
+        rgb_source = source.convert("RGB")
+        sample_width = max(1, round(rgb_source.width * 0.06))
+        sample_height = max(1, round(rgb_source.height * 0.24))
+        blur_radius = max(1, round(width * 0.006))
+        left_sample = rgb_source.crop((0, 0, sample_width, sample_height))
+        right_sample = rgb_source.crop(
+            (rgb_source.width - sample_width, 0, rgb_source.width, sample_height)
+        )
+        left_background = left_sample.resize((width, shift), Image.Resampling.BICUBIC).filter(
+            ImageFilter.GaussianBlur(blur_radius)
+        )
+        right_background = right_sample.resize((width, shift), Image.Resampling.BICUBIC).filter(
+            ImageFilter.GaussianBlur(blur_radius)
+        )
+        horizontal = Image.new("L", (width, 1))
+        horizontal.putdata([round(255 * x / max(1, width - 1)) for x in range(width)])
+        extension = Image.composite(
+            left_background,
+            right_background,
+            horizontal.resize((width, shift), Image.Resampling.BICUBIC),
+        )
 
-        # The canvas already contains the complete subject, and its opaque source
-        # pixels are restored below. Reattaching identity photos can make the
-        # model reproduce hair or a partial face in the new background area.
-        files = [
-            ("image[]", ("canvas.png", png(canvas), "image/png")),
-            ("mask", ("mask.png", png(mask), "image/png")),
-        ]
-        data = {
-            "model": self._model,
-            "size": settings.openai_image_size_square,
-            "quality": settings.openai_image_quality,
-            "prompt": (
-                "FIRST image is the scene canvas already fitted at its final position and scale. "
-                "Fill ONLY the transparent areas with a seamless continuation of the existing natural "
-                "background. The generated extension must contain background only: no person, hair, "
-                "head, face, hand, clothing, object, lettering, panel or gradient. Preserve the opaque "
-                "source pixels exactly; the backend restores them after generation. Continue the scenery "
-                "through all seams without an inset square, frame or visible border. Return one flat "
-                "square artwork.\n" + prompt
-            ),
-        }
-        if self._model in {"gpt-image-1", "gpt-image-1.5"}:
-            data["input_fidelity"] = "high"
-        result = await self._post_multipart("/images/edits", data=data, files=files)
-        try:
-            generated = Image.open(io.BytesIO(result.image_bytes)).convert("RGBA")
-            if generated.size != canvas.size:
-                raise ProviderError("Unexpected reframed artwork dimensions", transient=False)
-            # An edit mask guides the model, but is not a pixel-preservation guarantee.
-            # Use generated pixels only in the newly exposed areas. Restoring the
-            # opaque canvas prevents the model from moving the head back upwards.
-            generated.paste(canvas.crop(source_box), source_box[:2])
-            result.image_bytes = png(generated.convert("RGB"))
-            result.mime_type = "image/png"
-            result.meta = {
-                **result.meta,
+        # Feather the join only below the verified empty text reserve. The
+        # source is never blended into the protected crop itself.
+        clear_through = round(height * clear_through_fraction)
+        feather_height = min(round(height * 0.035), max(0, shift - clear_through - 2))
+        if feather_height >= 2:
+            left_edge = rgb_source.getpixel((0, 0))
+            right_edge = rgb_source.getpixel((rgb_source.width - 1, 0))
+            for offset in range(feather_height):
+                y = shift - feather_height + offset
+                source_row = Image.new("RGB", (width, 1), left_edge)
+                source_row.paste(rgb_source.crop((0, 0, rgb_source.width, 1)), (left, 0))
+                if source_box[2] < width:
+                    source_row.paste(
+                        Image.new("RGB", (width - source_box[2], 1), right_edge),
+                        (source_box[2], 0),
+                    )
+                source_row = source_row.crop((0, 0, width, 1))
+                current_row = extension.crop((0, y, width, y + 1))
+                alpha = (offset + 1) / (feather_height + 1)
+                extension.paste(Image.blend(current_row, source_row, alpha), (0, y))
+
+        canvas = Image.new("RGB", image.size)
+        canvas.paste(extension, (0, 0))
+        if preserve_complete_scene and left:
+            left_fill = rgb_source.crop((0, 0, 1, rgb_source.height)).resize(
+                (left, rgb_source.height), Image.Resampling.BICUBIC
+            )
+            canvas.paste(left_fill.filter(ImageFilter.GaussianBlur(blur_radius)), (0, shift))
+        if preserve_complete_scene and source_box[2] < width:
+            right_width = width - source_box[2]
+            right_fill = rgb_source.crop(
+                (rgb_source.width - 1, 0, rgb_source.width, rgb_source.height)
+            ).resize((right_width, rgb_source.height), Image.Resampling.BICUBIC)
+            canvas.paste(
+                right_fill.filter(ImageFilter.GaussianBlur(blur_radius)),
+                (source_box[2], shift),
+            )
+        canvas.paste(rgb_source, source_box[:2])
+
+        output = io.BytesIO()
+        canvas.save(output, "PNG")
+        return ImageResult(
+            image_bytes=output.getvalue(),
+            cost_usd=0.0,
+            meta={
+                "provider": "local",
+                "operation": "deterministic_title_reserve_reframe",
+                "billable": False,
                 "protected_source_pixels": True,
-                "generated_top_fraction": shift / image.height,
-            }
-        except (OSError, ValueError) as exc:
-            raise ProviderError(
-                "Invalid reframed artwork returned by provider", transient=False
-            ) from exc
-        return result
+                "generated_top_fraction": shift / height,
+                "clear_through_fraction": clear_through_fraction,
+            },
+        )
 
     async def generate_scene(
         self,

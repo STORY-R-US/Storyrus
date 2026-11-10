@@ -1049,6 +1049,7 @@ class Pipeline:
                         photos=self.photos,
                         top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.06),
                         preserve_complete_scene=True,
+                        clear_through_fraction=safe_region[3],
                         prompt="Extend only the natural scenery. The entire title reserve must "
                         "contain background only, no hair, hats, hands or objects. Preserve the "
                         "whole original action, all characters and the complete lower scene. "
@@ -1071,6 +1072,7 @@ class Pipeline:
                         photos=self.photos,
                         top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.06),
                         preserve_complete_scene=self.designed,
+                        clear_through_fraction=safe_region[3],
                         prompt="Preserve a identidade, figurino e acabamento da cena original. "
                         + json.dumps(
                             {

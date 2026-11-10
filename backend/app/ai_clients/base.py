@@ -11,10 +11,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
-# A reframe may shift up to this fraction of the image height. Catalog cover
-# reserves can end near 39% of the height once the measured ink margin is
-# included, so 40% clears the whole text area without adding a new generation.
-MAX_REFRAME_TOP_FRACTION = 0.4
+# A local reframe may shift up to this fraction of the image height. The upper
+# limit leaves enough room for measured title reserves while retaining at least
+# 55% of the source artwork when the complete scene is fitted.
+MAX_REFRAME_TOP_FRACTION = 0.45
 
 
 class ProviderError(Exception):

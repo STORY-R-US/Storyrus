@@ -76,11 +76,7 @@ def _reset(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_editorial_reframe_masks_only_added_top_without_identity_photo_refs():
-    edited = io.BytesIO()
-    # Simulate an editor that changes EVERY pixel, ignoring its protected mask.
-    Image.new("RGB", (100, 100), "red").save(edited, "PNG")
-    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(edited.getvalue()))]
+async def test_editorial_reframe_uses_local_background_and_preserves_source_pixels():
     raw = io.BytesIO()
     original = Image.new("RGB", (100, 100), "blue")
     original.putpixel((20, 30), (17, 45, 91))
@@ -90,28 +86,18 @@ async def test_editorial_reframe_masks_only_added_top_without_identity_photo_ref
         art=raw.getvalue(), photos=[raw.getvalue()], top_fraction=0.2, prompt="keep identity"
     )
     output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
-    assert output.getpixel((20, 10)) == (255, 0, 0)  # generated background retained
+    assert output.getpixel((50, 10)) == (0, 0, 255)  # scene-matched, subject-free reserve
     assert output.getpixel((20, 50)) == (17, 45, 91)  # shifted subject preserved
     assert output.crop((0, 20, 100, 100)).tobytes() == original.crop((0, 0, 100, 80)).tobytes()
     assert result.meta["protected_source_pixels"] is True
-    request = _FakeAsyncClient.calls[0]
-    assert request["data"]["input_fidelity"] == "high"
-    files = request["files"]
-    assert [part[0] for part in files] == ["image[]", "mask"]
-    canvas = Image.open(io.BytesIO(files[0][1][1]))
-    mask = Image.open(io.BytesIO(files[1][1][1]))
-    assert canvas.size == mask.size == original.size
-    assert canvas.getpixel((20, 50))[:3] == (17, 45, 91)  # moved; never scaled
-    assert canvas.getpixel((20, 10))[3] == mask.getpixel((20, 10))[3] == 0
-    assert mask.getpixel((20, 50))[3] == 255
-    assert "background only: no person, hair, head, face" in request["data"]["prompt"]
+    assert result.cost_usd == 0
+    assert result.meta["provider"] == "local"
+    assert result.meta["billable"] is False
+    assert _FakeAsyncClient.calls == []
 
 
 @pytest.mark.asyncio
 async def test_complete_scene_reframe_preserves_all_source_edges_and_activity():
-    edited = io.BytesIO()
-    Image.new("RGB", (100, 100), "red").save(edited, "PNG")
-    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(edited.getvalue()))]
     original = Image.new("RGB", (100, 100), "blue")
     original.paste("green", (0, 90, 100, 100))
     raw = io.BytesIO()
@@ -129,17 +115,37 @@ async def test_complete_scene_reframe_preserves_all_source_edges_and_activity():
         == original.resize((70, 70), Image.Resampling.LANCZOS).tobytes()
     )
     assert output.getpixel((50, 99)) == (0, 128, 0)
-    assert output.getpixel((0, 80)) == output.getpixel((50, 0)) == (255, 0, 0)
-    mask = Image.open(io.BytesIO(_FakeAsyncClient.calls[0]["files"][1][1][1]))
-    assert mask.getpixel((0, 80))[3] == mask.getpixel((50, 0))[3] == 0
-    assert mask.getpixel((50, 80))[3] == 255
+    assert output.getpixel((0, 80)) == output.getpixel((50, 0)) == (0, 0, 255)
+    assert result.cost_usd == 0
+    assert _FakeAsyncClient.calls == []
+
+
+@pytest.mark.asyncio
+async def test_local_reframe_keeps_subject_out_of_measured_title_reserve():
+    raw = io.BytesIO()
+    original = Image.new("RGB", (100, 100), "blue")
+    for y in range(0, 36):
+        for x in range(25, 76):
+            original.putpixel((x, y), (220, 20, 30))
+    original.save(raw, "PNG")
+
+    result = await oai.OpenAIImageProvider().reframe_editorial_art(
+        art=raw.getvalue(),
+        photos=[raw.getvalue()],
+        top_fraction=0.4,
+        clear_through_fraction=0.34,
+        prompt="background only",
+        preserve_complete_scene=True,
+    )
+
+    output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
+    assert all(output.getpixel((x, y)) != (220, 20, 30) for x in range(9, 92) for y in range(6, 35))
+    assert result.meta["clear_through_fraction"] == 0.34
+    assert _FakeAsyncClient.calls == []
 
 
 @pytest.mark.asyncio
 async def test_complete_scene_reframe_allows_full_catalog_reserve_clearance():
-    edited = io.BytesIO()
-    Image.new("RGB", (100, 100), "red").save(edited, "PNG")
-    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(edited.getvalue()))]
     original = io.BytesIO()
     Image.new("RGB", (100, 100), "blue").save(original, "PNG")
     result = await oai.OpenAIImageProvider().reframe_editorial_art(
@@ -150,6 +156,8 @@ async def test_complete_scene_reframe_allows_full_catalog_reserve_clearance():
         preserve_complete_scene=True,
     )
     assert result.meta["generated_top_fraction"] == oai.MAX_REFRAME_TOP_FRACTION
+    assert result.cost_usd == 0
+    assert _FakeAsyncClient.calls == []
     with pytest.raises(ValueError, match="Enquadramento editorial inválido"):
         await oai.OpenAIImageProvider().reframe_editorial_art(
             art=original.getvalue(),
@@ -160,18 +168,13 @@ async def test_complete_scene_reframe_allows_full_catalog_reserve_clearance():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("invalid_image", [True, False])
-async def test_editorial_reframe_rejects_invalid_or_wrong_size_response(invalid_image):
-    original = io.BytesIO()
-    Image.new("RGB", (100, 100), "blue").save(original, "PNG")
-    edited = io.BytesIO()
-    Image.new("RGB", (50, 50), "red").save(edited, "PNG")
-    payload = b"invalid" if invalid_image else edited.getvalue()
-    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(payload))]
-    with pytest.raises(ProviderError):
+@pytest.mark.parametrize("art,top_fraction", [(b"invalid", 0.2), (b"", 0.2)])
+async def test_editorial_reframe_rejects_invalid_source_image(art, top_fraction):
+    with pytest.raises(OSError):
         await oai.OpenAIImageProvider().reframe_editorial_art(
-            art=original.getvalue(), photos=[], top_fraction=0.2, prompt="preserve identity"
+            art=art, photos=[], top_fraction=top_fraction, prompt="preserve identity"
         )
+    assert _FakeAsyncClient.calls == []
 
 
 @pytest.mark.asyncio
