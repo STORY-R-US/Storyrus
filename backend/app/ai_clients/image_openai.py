@@ -346,13 +346,13 @@ class OpenAIImageProvider:
             value.save(out, "PNG")
             return out.getvalue()
 
+        # The canvas already contains the complete subject, and its opaque source
+        # pixels are restored below. Reattaching identity photos can make the
+        # model reproduce hair or a partial face in the new background area.
         files = [
             ("image[]", ("canvas.png", png(canvas), "image/png")),
             ("mask", ("mask.png", png(mask), "image/png")),
         ]
-        for i, photo in enumerate(photos):
-            original = Image.open(io.BytesIO(photo)).convert("RGB")
-            files.append(("image[]", (f"identity-{i}.png", png(original), "image/png")))
         data = {
             "model": self._model,
             "size": settings.openai_image_size_square,
@@ -360,11 +360,11 @@ class OpenAIImageProvider:
             "prompt": (
                 "FIRST image is the scene canvas already fitted at its final position and scale. "
                 "Fill ONLY the transparent areas with a seamless continuation of the existing natural "
-                "background. Preserve the opaque lower image: same person, head position, hands, "
-                "clothes, action and scale. Do NOT move the head upwards or add people, lettering, "
-                "objects, panels or gradients. Continue the scenery through all seams; do not "
-                "leave an inset square, frame or visible border. Other images are ORIGINAL identity references. "
-                "Do not restore their framing. Return one flat square artwork.\n" + prompt
+                "background. The generated extension must contain background only: no person, hair, "
+                "head, face, hand, clothing, object, lettering, panel or gradient. Preserve the opaque "
+                "source pixels exactly; the backend restores them after generation. Continue the scenery "
+                "through all seams without an inset square, frame or visible border. Return one flat "
+                "square artwork.\n" + prompt
             ),
         }
         if self._model in {"gpt-image-1", "gpt-image-1.5"}:

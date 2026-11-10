@@ -76,7 +76,7 @@ def _reset(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_editorial_reframe_masks_only_added_top_and_attaches_original_photos():
+async def test_editorial_reframe_masks_only_added_top_without_identity_photo_refs():
     edited = io.BytesIO()
     # Simulate an editor that changes EVERY pixel, ignoring its protected mask.
     Image.new("RGB", (100, 100), "red").save(edited, "PNG")
@@ -97,14 +97,14 @@ async def test_editorial_reframe_masks_only_added_top_and_attaches_original_phot
     request = _FakeAsyncClient.calls[0]
     assert request["data"]["input_fidelity"] == "high"
     files = request["files"]
-    assert [part[0] for part in files] == ["image[]", "mask", "image[]"]
+    assert [part[0] for part in files] == ["image[]", "mask"]
     canvas = Image.open(io.BytesIO(files[0][1][1]))
     mask = Image.open(io.BytesIO(files[1][1][1]))
     assert canvas.size == mask.size == original.size
     assert canvas.getpixel((20, 50))[:3] == (17, 45, 91)  # moved; never scaled
     assert canvas.getpixel((20, 10))[3] == mask.getpixel((20, 10))[3] == 0
     assert mask.getpixel((20, 50))[3] == 255
-    assert Image.open(io.BytesIO(files[2][1][1])).getpixel((20, 30)) == (17, 45, 91)
+    assert "background only: no person, hair, head, face" in request["data"]["prompt"]
 
 
 @pytest.mark.asyncio
