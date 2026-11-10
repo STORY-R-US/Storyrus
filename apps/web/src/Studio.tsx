@@ -694,7 +694,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       storyTouched.current = false;
       setPhotoNotes("");
       const brief = getStoryBrief().trim();
-      await api.startPreview(p.id, { brief: brief.slice(0, 2000) || undefined, cover_only: p.book_profile?.version === 1, catalog_design_id: p.book_profile?.version === 1 ? "auto" : undefined });
+      await api.startPreview(p.id, {
+        brief: brief.slice(0, 2000) || undefined,
+        catalog_design_id: p.book_profile?.version === 1 ? "auto" : undefined,
+      });
       try {
         setJobs(await api.listJobs(p.id));
       } catch {
@@ -787,7 +790,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const brief = getStoryBrief().trim();
-      await api.startPreview(project.id, { brief: brief.slice(0, 2000) || undefined, cover_only: project.book_profile?.version === 1, catalog_design_id: project.book_profile?.version === 1 ? project.book_profile.book_design?.id || "auto" : undefined });
+      await api.startPreview(project.id, {
+        brief: brief.slice(0, 2000) || undefined,
+        catalog_design_id:
+          project.book_profile?.version === 1
+            ? project.book_profile.book_design?.id || "auto"
+            : undefined,
+      });
       try {
         setJobs(await api.listJobs(project.id));
       } catch {
