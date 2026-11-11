@@ -1,5 +1,6 @@
 import type { Job } from "../types";
 import { useStudioI18n } from "./useStudioI18n";
+import { generationError } from "./generationError";
 
 export function ProgressList({ jobs }: { jobs: Job[] }) {
   const { t } = useStudioI18n();
@@ -38,7 +39,7 @@ export function ProgressList({ jobs }: { jobs: Job[] }) {
               )}
               {j.error && (
                 <span className="error" role="alert">
-                  {j.error}
+                  {generationError(t, j.error, j)}
                 </span>
               )}
             </li>

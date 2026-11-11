@@ -37,7 +37,7 @@ def _assets(db, project, **metadata):
     return [a for a in assets if all((a.meta or {}).get(k) == v for k, v in metadata.items())]
 
 
-def _photos(db, project) -> list[bytes]:
+def _photos(db, project, *, required=True) -> list[bytes]:
     assets = db.scalars(
         select(Asset)
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
@@ -49,7 +49,7 @@ def _photos(db, project) -> list[bytes]:
         for ec in project.extra_characters or []
         if ec.get("storage_key")
     )
-    if not refs:
+    if not refs and required:
         raise ProviderError("Envie a foto original antes de gerar", transient=False)
     return refs
 
@@ -436,14 +436,18 @@ def _moderation_text(project, job=None) -> str:
     profile = project.book_profile or {}
     locale = (profile.get("locales") or {}).get(project.language or "pt-BR", {})
     payload = _payload(job) if job is not None else {}
+    purchase = project.purchase_flow or {}
     fields = {
         "name": project.child_name,
         "age": project.child_age,
         "theme": project.theme,
+        "extra_theme": project.extra_theme,
         "trait": project.child_trait,
         "interest": project.child_interest,
         "dedication": project.dedication,
         "story": project.story_text,
+        "photo_notes": purchase.get("photo_notes"),
+        "purchase_theme_description": purchase.get("theme_description"),
         "theme_description": profile.get("theme_description"),
         "characters": profile.get("characters"),
         "costume": profile.get("costume"),
@@ -491,7 +495,9 @@ async def _preflight_input_safety(db, job, project, photos) -> None:
             ensure_ascii=False,
         ).encode("utf-8")
     ).hexdigest()
-    prior = (job.result or {}).get("input_safety") or {}
+    profile = project.book_profile or {}
+    cached_checks = profile.get("input_safety_checks") or {}
+    prior = cached_checks.get(fingerprint) or (job.result or {}).get("input_safety") or {}
     if prior.get("fingerprint") == fingerprint:
         if prior.get("status") == "blocked":
             raise ProviderError("INPUT_SAFETY_BLOCKED", transient=False, status_code=400)
@@ -511,8 +517,16 @@ async def _preflight_input_safety(db, job, project, photos) -> None:
             "status": "blocked" if flagged else "passed",
             "model": result.meta.get("model"),
             "request_id": result.meta.get("request_id"),
+            "client_request_id": result.meta.get("client_request_id"),
         },
     }
+    if isinstance(project.book_profile, dict):
+        checks = dict(cached_checks)
+        checks[fingerprint] = job.result["input_safety"]
+        project.book_profile = {
+            **project.book_profile,
+            "input_safety_checks": dict(list(checks.items())[-32:]),
+        }
     db.commit()
     if flagged:
         raise ProviderError("INPUT_SAFETY_BLOCKED", transient=False, status_code=400)

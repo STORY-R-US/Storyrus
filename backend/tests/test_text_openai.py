@@ -6,6 +6,7 @@ import base64
 import io
 import json
 
+import httpx
 import pytest
 from PIL import Image
 
@@ -159,6 +160,7 @@ async def test_generate_story_uses_chat_completions(client):
     assert call["url"].endswith("/chat/completions")
     assert call["json"]["model"] == "gpt-4.1"
     assert call["headers"]["Authorization"] == "Bearer sk-test"
+    assert call["headers"]["X-Client-Request-Id"]
     assert call["json"]["messages"][0]["role"] == "system"
     assert "Luna e a floresta" in call["json"]["messages"][1]["content"]
     assert result.text.startswith("Título:")
@@ -182,10 +184,16 @@ async def test_moderation_preflight_is_free_and_sends_text_and_authorized_photo(
     assert call["json"]["input"][0] == {"type": "text", "text": '{"theme":"stars"}'}
     image = call["json"]["input"][1]
     assert image["type"] == "image_url"
-    assert image["image_url"]["url"].startswith("data:image/png;base64,")
+    image_url = image["image_url"]["url"]
+    assert image_url.startswith("data:image/jpeg;base64,")
+    normalized = base64.b64decode(image_url.split(",", 1)[1])
+    with Image.open(io.BytesIO(normalized)) as sent_image:
+        assert sent_image.format == "JPEG"
+        assert sent_image.size == (8, 8)
     assert result.meta["flagged"] is False
     assert result.cost_usd == 0
     assert result.meta["request_id"] == "req-test-moderation"
+    assert result.meta["client_request_id"] == call["headers"]["X-Client-Request-Id"]
 
 
 @pytest.mark.asyncio
@@ -206,6 +214,29 @@ async def test_moderation_preflight_fails_closed_on_invalid_result_schema(client
 
     with pytest.raises(ProviderError, match="INPUT_SAFETY_CHECK_INVALID"):
         await oai.OpenAITextProvider().moderate_book_input(text="sample", photos=[])
+
+
+@pytest.mark.asyncio
+async def test_moderation_preflight_rejects_corrupt_photo_before_network_call(client):
+    with pytest.raises(ProviderError, match="INPUT_SAFETY_CHECK_INVALID_IMAGE"):
+        await oai.OpenAITextProvider().moderate_book_input(text="sample", photos=[b"bad"])
+    assert client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_ambiguous_text_timeout_is_not_marked_safe_to_retry(client, monkeypatch):
+    class ReadTimeoutClient(_FakeAsyncClient):
+        async def post(self, url, json=None, headers=None):
+            self.calls.append({"url": url, "json": json, "headers": headers})
+            raise httpx.ReadTimeout("response timed out")
+
+    monkeypatch.setattr(oai.httpx, "AsyncClient", ReadTimeoutClient)
+    with pytest.raises(ProviderError) as caught:
+        await oai.OpenAITextProvider().generate_story(brief="Luna", style="cartoon", pages=1)
+    assert caught.value.outcome_unknown is True
+    assert caught.value.retry_safe is False
+    assert caught.value.client_request_id
+    assert len(ReadTimeoutClient.calls) == 1
 
 
 @pytest.mark.asyncio

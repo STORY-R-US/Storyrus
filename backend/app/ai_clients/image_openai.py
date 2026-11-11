@@ -24,6 +24,8 @@ from app.ai_clients.book_prompts import (
     REFINE_SCENE_PROMPT,
     SCENE_GEN_PREFIX,
 )
+from app.ai_clients.request_journal import client_request_id as reserve_request_id
+from app.ai_clients.request_journal import journaled
 from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.observability.opik_trace import track, update_span
@@ -35,7 +37,9 @@ _OPENAI_BASE = "https://api.openai.com/v1"
 _TRANSIENT_STATUS = frozenset({429, 500, 502, 503, 504})
 
 
-def _error_from_response(resp: httpx.Response) -> ProviderError:
+def _error_from_response(
+    resp: httpx.Response, *, client_request_id: str | None = None
+) -> ProviderError:
     raw_body = resp.text or ""
     try:
         payload = resp.json()
@@ -64,10 +68,15 @@ def _error_from_response(resp: httpx.Response) -> ProviderError:
     else:
         body = raw_body[:300]
     transient = resp.status_code in _TRANSIENT_STATUS and not billing_exhausted(body)
+    retry_safe = transient and resp.status_code == 429
     return ProviderError(
         f"OpenAI {resp.status_code}: {body}",
         transient=transient,
         status_code=resp.status_code,
+        retry_safe=retry_safe,
+        outcome_unknown=resp.status_code == 408 or 500 <= resp.status_code < 600,
+        request_id=request_id or None,
+        client_request_id=client_request_id,
     )
 
 
@@ -138,11 +147,12 @@ class OpenAIImageProvider:
         self._timeout = timeout if timeout is not None else settings.openai_timeout_s
         self._model = model or settings.openai_image_model
 
-    def _headers(self) -> dict[str, str]:
+    def _headers(self, client_request_id: str) -> dict[str, str]:
         if not self._api_key:
             raise ProviderError("OPENAI_API_KEY ausente", transient=False)
         return {
             "Authorization": f"Bearer {self._api_key}",
+            "X-Client-Request-Id": client_request_id,
         }
 
     @track(name="openai_generate", type="llm", capture_input=False, capture_output=False)
@@ -188,6 +198,7 @@ class OpenAIImageProvider:
         )
         return await self._post_multipart("/images/edits", data=data, files=files)
 
+    @journaled("openai:image_json")
     async def _post_json(self, path: str, body: dict) -> ImageResult:
         rehearsal = _rehearsal_image(str(body.get("prompt") or "Imagem genérica"))
         if rehearsal is not None:
@@ -197,19 +208,31 @@ class OpenAIImageProvider:
         attempts = max(1, int(settings.openai_max_retries))
 
         for attempt in range(1, attempts + 1):
+            client_request_id = reserve_request_id()
             try:
                 async with httpx.AsyncClient(timeout=self._timeout) as client:
-                    resp = await client.post(url, headers=self._headers(), json=body)
-            except (httpx.TimeoutException, httpx.NetworkError) as exc:
-                last_error = ProviderError(str(exc), transient=True)
-                if attempt >= attempts:
+                    resp = await client.post(
+                        url, headers=self._headers(client_request_id), json=body
+                    )
+            except httpx.RequestError as exc:
+                retry_safe = isinstance(
+                    exc, (httpx.ConnectTimeout, httpx.ConnectError, httpx.PoolTimeout)
+                )
+                last_error = ProviderError(
+                    str(exc),
+                    transient=True,
+                    retry_safe=retry_safe,
+                    outcome_unknown=not retry_safe,
+                    client_request_id=client_request_id,
+                )
+                if not retry_safe or attempt >= attempts:
                     raise last_error
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
 
             if resp.status_code >= 400:
-                last_error = _error_from_response(resp)
-                if not last_error.transient or attempt >= attempts:
+                last_error = _error_from_response(resp, client_request_id=client_request_id)
+                if not last_error.transient or not last_error.retry_safe or attempt >= attempts:
                     raise last_error
                 delay = _retry_after_s(resp) or _retry_delay(attempt)
                 logger.warning(
@@ -222,8 +245,27 @@ class OpenAIImageProvider:
                 await asyncio.sleep(delay)
                 continue
 
-            data = resp.json()
-            image_bytes, mime, usage = _parse_b64_response(data)
+            request_id = str(resp.headers.get("x-request-id") or "").strip() or None
+            try:
+                data = resp.json()
+                image_bytes, mime, usage = _parse_b64_response(data)
+            except ProviderError as exc:
+                raise ProviderError(
+                    str(exc),
+                    transient=False,
+                    retry_safe=False,
+                    outcome_unknown=True,
+                    request_id=request_id,
+                    client_request_id=client_request_id,
+                ) from exc
+            except (ValueError, TypeError, KeyError, AttributeError) as exc:
+                raise ProviderError(
+                    "OpenAI respondeu sem uma imagem utilizável",
+                    transient=False,
+                    outcome_unknown=True,
+                    request_id=request_id,
+                    client_request_id=client_request_id,
+                ) from exc
             cost = openai_image_cost(usage if usage else None)
             update_span(
                 output={"ok": True, "mime": mime, "attempts": attempt},
@@ -238,12 +280,15 @@ class OpenAIImageProvider:
                     "model": self._model,
                     "attempts": attempt,
                     "usage": usage,
+                    "request_id": request_id,
+                    "client_request_id": client_request_id,
                 },
             )
 
         assert last_error is not None
         raise last_error
 
+    @journaled("openai:image_edit")
     async def _post_multipart(
         self,
         path: str,
@@ -259,24 +304,34 @@ class OpenAIImageProvider:
         attempts = max(1, int(settings.openai_max_retries))
 
         for attempt in range(1, attempts + 1):
+            client_request_id = reserve_request_id()
             try:
                 async with httpx.AsyncClient(timeout=self._timeout) as client:
                     resp = await client.post(
                         url,
-                        headers=self._headers(),
+                        headers=self._headers(client_request_id),
                         data=data,
                         files=files,
                     )
-            except (httpx.TimeoutException, httpx.NetworkError) as exc:
-                last_error = ProviderError(str(exc), transient=True)
-                if attempt >= attempts:
+            except httpx.RequestError as exc:
+                retry_safe = isinstance(
+                    exc, (httpx.ConnectTimeout, httpx.ConnectError, httpx.PoolTimeout)
+                )
+                last_error = ProviderError(
+                    str(exc),
+                    transient=True,
+                    retry_safe=retry_safe,
+                    outcome_unknown=not retry_safe,
+                    client_request_id=client_request_id,
+                )
+                if not retry_safe or attempt >= attempts:
                     raise last_error
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
 
             if resp.status_code >= 400:
-                last_error = _error_from_response(resp)
-                if not last_error.transient or attempt >= attempts:
+                last_error = _error_from_response(resp, client_request_id=client_request_id)
+                if not last_error.transient or not last_error.retry_safe or attempt >= attempts:
                     raise last_error
                 delay = _retry_after_s(resp) or _retry_delay(attempt)
                 logger.warning(
@@ -289,8 +344,27 @@ class OpenAIImageProvider:
                 await asyncio.sleep(delay)
                 continue
 
-            payload = resp.json()
-            image_bytes, mime, usage = _parse_b64_response(payload)
+            request_id = str(resp.headers.get("x-request-id") or "").strip() or None
+            try:
+                payload = resp.json()
+                image_bytes, mime, usage = _parse_b64_response(payload)
+            except ProviderError as exc:
+                raise ProviderError(
+                    str(exc),
+                    transient=False,
+                    retry_safe=False,
+                    outcome_unknown=True,
+                    request_id=request_id,
+                    client_request_id=client_request_id,
+                ) from exc
+            except (ValueError, TypeError, KeyError, AttributeError) as exc:
+                raise ProviderError(
+                    "OpenAI respondeu sem uma imagem utilizável",
+                    transient=False,
+                    outcome_unknown=True,
+                    request_id=request_id,
+                    client_request_id=client_request_id,
+                ) from exc
             cost = openai_image_cost(usage if usage else None)
             return ImageResult(
                 image_bytes=image_bytes,
@@ -301,6 +375,8 @@ class OpenAIImageProvider:
                     "model": self._model,
                     "attempts": attempt,
                     "usage": usage,
+                    "request_id": request_id,
+                    "client_request_id": client_request_id,
                 },
             )
 

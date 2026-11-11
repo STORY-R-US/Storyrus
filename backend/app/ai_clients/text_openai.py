@@ -5,11 +5,14 @@ from __future__ import annotations
 import base64
 import io
 import json
+import uuid
 
 import httpx
-from PIL import Image
+from PIL import Image, ImageOps
 
 from app.ai_clients.base import ProviderError, TextResult
+from app.ai_clients.request_journal import client_request_id as reserve_request_id
+from app.ai_clients.request_journal import journaled
 from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.services.pricing import text_cost
@@ -18,6 +21,35 @@ _API_URL = "https://api.openai.com/v1/chat/completions"
 _MODERATION_URL = "https://api.openai.com/v1/moderations"
 _MODERATION_MODEL = "omni-moderation-latest"
 _TRANSIENT = frozenset({429, 500, 502, 503, 504})
+_MODERATION_IMAGE_MAX_EDGE = 1024
+_MODERATION_IMAGE_MAX_PIXELS = 80_000_000
+_MODERATION_IMAGE_MAX_BYTES = 40 * 1024 * 1024
+
+
+def _moderation_image(photo: bytes) -> str:
+    """Validate and shrink a private copy of a photo for the free safety check."""
+    try:
+        if not photo or len(photo) > _MODERATION_IMAGE_MAX_BYTES:
+            raise ValueError("image byte size is outside supported limits")
+        with Image.open(io.BytesIO(photo)) as source:
+            if source.width <= 0 or source.height <= 0:
+                raise ValueError("empty image")
+            if source.width * source.height > _MODERATION_IMAGE_MAX_PIXELS:
+                raise ValueError("image is too large")
+            image = ImageOps.exif_transpose(source).convert("RGBA")
+        image.thumbnail(
+            (_MODERATION_IMAGE_MAX_EDGE, _MODERATION_IMAGE_MAX_EDGE),
+            Image.Resampling.LANCZOS,
+        )
+        background = Image.new("RGB", image.size, "white")
+        background.paste(image, mask=image.getchannel("A"))
+        encoded_image = io.BytesIO()
+        background.save(encoded_image, format="JPEG", quality=86, optimize=True)
+    except (OSError, ValueError, Image.DecompressionBombError) as exc:
+        raise ProviderError("INPUT_SAFETY_CHECK_INVALID_IMAGE", transient=False) from exc
+    encoded = base64.b64encode(encoded_image.getvalue()).decode("ascii")
+    return f"data:image/jpeg;base64,{encoded}"
+
 
 _SYSTEM_PT = (
     "Você é um autor premiado de livros infantis personalizados (nível "
@@ -342,28 +374,18 @@ class OpenAITextProvider:
 
         items = [{"type": "text", "text": text}]
         for photo in photos:
-            mime = (
-                "image/jpeg"
-                if photo.startswith(b"\xff\xd8\xff")
-                else "image/png"
-                if photo.startswith(b"\x89PNG\r\n\x1a\n")
-                else "image/webp"
-                if photo.startswith(b"RIFF") and photo[8:12] == b"WEBP"
-                else None
-            )
-            if not mime:
-                raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=False)
-            encoded = base64.b64encode(photo).decode("ascii")
             items.append(
                 {
                     "type": "image_url",
-                    "image_url": {"url": f"data:{mime};base64,{encoded}"},
+                    "image_url": {"url": _moderation_image(photo)},
                 }
             )
 
+        client_request_id = str(uuid.uuid4())
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "content-type": "application/json",
+            "X-Client-Request-Id": client_request_id,
         }
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -373,25 +395,43 @@ class OpenAITextProvider:
                     headers=headers,
                 )
         except httpx.RequestError as exc:
-            raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=True) from exc
-        request_id = getattr(resp, "headers", {}).get("x-request-id")
-        if resp.status_code >= 400:
             raise ProviderError(
                 "INPUT_SAFETY_CHECK_UNAVAILABLE",
-                transient=resp.status_code in _TRANSIENT,
+                transient=True,
+                retry_safe=True,
+                client_request_id=client_request_id,
+            ) from exc
+        request_id = getattr(resp, "headers", {}).get("x-request-id")
+        if resp.status_code >= 400:
+            transient = resp.status_code in _TRANSIENT
+            raise ProviderError(
+                "INPUT_SAFETY_CHECK_UNAVAILABLE",
+                transient=transient,
                 status_code=resp.status_code,
+                retry_safe=transient,
+                request_id=request_id,
+                client_request_id=client_request_id,
             )
         try:
             data = resp.json()
             results = data.get("results")
-            if not isinstance(results, list) or not results or any(
-                not isinstance(result, dict) or not isinstance(result.get("flagged"), bool)
-                for result in results
+            if (
+                not isinstance(results, list)
+                or not results
+                or any(
+                    not isinstance(result, dict) or not isinstance(result.get("flagged"), bool)
+                    for result in results
+                )
             ):
                 raise ValueError("missing moderation results")
             flagged = any(result["flagged"] for result in results)
         except (AttributeError, TypeError, ValueError) as exc:
-            raise ProviderError("INPUT_SAFETY_CHECK_INVALID", transient=False) from exc
+            raise ProviderError(
+                "INPUT_SAFETY_CHECK_INVALID",
+                transient=False,
+                request_id=request_id,
+                client_request_id=client_request_id,
+            ) from exc
         self.last_cost_usd = 0
         return TextResult(
             text=json.dumps({"flagged": flagged}),
@@ -400,10 +440,12 @@ class OpenAITextProvider:
                 "provider": "openai",
                 "model": _MODERATION_MODEL,
                 "request_id": request_id,
+                "client_request_id": client_request_id,
                 "flagged": flagged,
             },
         )
 
+    @journaled("openai:text")
     async def _complete(
         self, *, system: str, user: str | list, max_tokens: int, json_mode: bool = False
     ) -> TextResult:
@@ -437,32 +479,66 @@ class OpenAITextProvider:
         }
         if json_mode:
             payload["response_format"] = {"type": "json_object"}
+        client_request_id = reserve_request_id()
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "content-type": "application/json",
+            "X-Client-Request-Id": client_request_id,
         }
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 resp = await client.post(_API_URL, json=payload, headers=headers)
         except httpx.RequestError as exc:
-            raise ProviderError(f"Falha de rede: {exc}", transient=True) from exc
+            retry_safe = isinstance(
+                exc, (httpx.ConnectTimeout, httpx.ConnectError, httpx.PoolTimeout)
+            )
+            raise ProviderError(
+                f"Falha de rede: {exc}",
+                transient=True,
+                retry_safe=retry_safe,
+                outcome_unknown=not retry_safe,
+                client_request_id=client_request_id,
+            ) from exc
+        request_id = str(resp.headers.get("x-request-id") or "").strip() or None
         if resp.status_code >= 400:
             body = (resp.text or "")[:300]
             # 429 de limite volta a tentar. 429 de saldo esgotado para na hora.
             transient = resp.status_code in _TRANSIENT and not billing_exhausted(body)
+            retry_safe = transient and resp.status_code == 429
             raise ProviderError(
                 f"OpenAI {resp.status_code}: {body}",
                 transient=transient,
                 status_code=resp.status_code,
+                retry_safe=retry_safe,
+                outcome_unknown=resp.status_code == 408 or 500 <= resp.status_code < 600,
+                request_id=request_id,
+                client_request_id=client_request_id,
             )
-        data = resp.json()
-        usage = data.get("usage") or {}
+        try:
+            data = resp.json()
+            usage = data.get("usage") or {}
+            text = _message_text(data)
+        except (ValueError, TypeError, KeyError, IndexError, AttributeError) as exc:
+            raise ProviderError(
+                "OpenAI respondeu sem um texto utilizável",
+                transient=False,
+                retry_safe=False,
+                outcome_unknown=True,
+                request_id=request_id,
+                client_request_id=client_request_id,
+            ) from exc
         cost = text_cost(usage)
         self.last_cost_usd = cost
         return TextResult(
-            text=_message_text(data),
+            text=text,
             cost_usd=cost,
-            meta={"usage": usage, "model": self._model, "provider": "openai"},
+            meta={
+                "usage": usage,
+                "model": self._model,
+                "provider": "openai",
+                "request_id": request_id,
+                "client_request_id": client_request_id,
+            },
         )
 
     async def generate_story(

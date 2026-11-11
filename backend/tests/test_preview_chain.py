@@ -47,6 +47,7 @@ def db():
 
 @pytest.fixture()
 def mem_storage(monkeypatch):
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     store: dict[str, bytes] = {}
     monkeypatch.setattr("app.storage.put_bytes", lambda k, d, ct="x": store.setdefault(k, d) or k)
     monkeypatch.setattr("app.storage.get_bytes", lambda k: store.get(k, b"bytes"))

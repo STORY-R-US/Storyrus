@@ -102,16 +102,20 @@ def _default_face_score_ok(monkeypatch):
         return 0.91
 
     monkeypatch.setattr(handlers, "score_face_match", high_score)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: FakeText())
 
 
 class FakeText:
     name = "fake-text"
 
+    async def moderate_book_input(self, **kw):
+        return TextResult(text='{"flagged":false}', cost_usd=0, meta={"flagged": False})
+
     async def generate_story(self, **kw):
         return TextResult(text="Pagina 1: ola.\nPagina 2: fim.")
 
 
-class FlakyText:
+class FlakyText(FakeText):
     name = "flaky"
 
     def __init__(self):
@@ -122,6 +126,63 @@ class FlakyText:
         if self.calls < 3:
             raise ProviderError("rate limit", transient=True)
         return TextResult(text="Pagina 1: ok.")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "job_type", ["STORY", "EBOOK", "STORYBOARD", "AVATAR", "REALISTIC", "EXTRA_CHARACTER"]
+)
+async def test_safety_block_prevents_every_paid_handler(db, monkeypatch, job_type):
+    class BlockedText(FakeText):
+        async def moderate_book_input(self, **kw):
+            return TextResult(text='{"flagged":true}', cost_usd=0, meta={"flagged": True})
+
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: BlockedText())
+    _, project = _seed(db)
+    job = _job(db, project, job_type)
+    called = False
+
+    async def paid_handler(*_):
+        nonlocal called
+        called = True
+
+    await runner._process_job_inner(db, job, paid_handler)
+    assert job.status == "FAILED"
+    assert job.error == "INPUT_SAFETY_BLOCKED"
+    assert called is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("translated", [True, False])
+async def test_outer_timeout_keeps_uncertain_request_blocked(db, translated):
+    import asyncio
+
+    from app.ai_clients.request_journal import client_request_id, journaled
+
+    class SlowProvider:
+        @journaled("test:slow")
+        async def generate(self):
+            client_request_id()
+            await asyncio.Event().wait()
+
+    async def handler(*_):
+        try:
+            await asyncio.wait_for(SlowProvider().generate(), timeout=0.001)
+        except TimeoutError:
+            if translated:
+                raise ProviderError("imagens não concluídas", transient=False)
+            raise
+
+    _, project = _seed(db)
+    job = _job(db, project, "EBOOK")
+    await runner._process_job_inner(db, job, handler)
+    assert job.status == "FAILED"
+    assert job.error == "GENERATION_OUTCOME_UNKNOWN"
+    assert job.attempts == 1
+    assert job.result["last_provider_error"]["outcome_unknown"] is True
+    assert job.result["last_provider_error"]["client_request_id"]
 
 
 # ---- testes ----
@@ -649,6 +710,42 @@ async def test_retry_then_success(db, mem_storage, monkeypatch):
     assert j.attempts == 3  # 2 falhas transitorias + sucesso
 
 
+@pytest.mark.asyncio
+async def test_unknown_provider_outcome_is_not_retried_and_keeps_diagnostics(
+    db, mem_storage, monkeypatch
+):
+    calls = 0
+
+    async def unknown_result(_db, _job):
+        nonlocal calls
+        calls += 1
+        raise ProviderError(
+            "image response timed out",
+            transient=True,
+            retry_safe=False,
+            outcome_unknown=True,
+            request_id="req-server",
+            client_request_id="req-client",
+        )
+
+    monkeypatch.setitem(handlers.HANDLERS, "STORY", unknown_result)
+    _, project = _seed(db)
+    job = _job(db, project, "STORY")
+
+    await runner.process_job(db, job)
+
+    db.refresh(job)
+    assert calls == 1
+    assert job.attempts == 1
+    assert job.status == JobStatus.FAILED.value
+    diagnostics = job.result["last_provider_error"]
+    assert diagnostics["request_id"] == "req-server"
+    assert diagnostics["client_request_id"] == "req-client"
+    assert diagnostics["retry_safe"] is False
+    assert diagnostics["outcome_unknown"] is True
+    assert diagnostics["recorded_at"]
+
+
 def test_is_transient_exception_classifies_network_blips():
     import httpx
 
@@ -657,6 +754,9 @@ def test_is_transient_exception_classifies_network_blips():
     assert runner.is_transient_exception(ConnectionResetError("peer reset"))
     assert runner.is_transient_exception(httpx.ConnectError("dns"))
     assert runner.is_transient_exception(ProviderError("rate limit", transient=True))
+    assert not runner.is_transient_exception(
+        ProviderError("unknown outcome", transient=True, retry_safe=False, outcome_unknown=True)
+    )
     assert not runner.is_transient_exception(ProviderError("bad config", transient=False))
     assert not runner.is_transient_exception(ValueError("bug"))
     assert not runner.is_transient_exception(KeyError("missing"))

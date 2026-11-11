@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 # Lado maior guardado. Acima disso o GPT Image estoura o tempo da prévia.
 _MAX_EDGE = 2048
+_MAX_PIXELS = 40_000_000
 
 
 def _normalize_photo(data: bytes) -> bytes:
@@ -45,26 +46,25 @@ def _normalize_photo(data: bytes) -> bytes:
     um projeto CREATED cujo avatar falha minutos depois no worker.
     """
     try:
-        image = Image.open(BytesIO(data))
-        image.load()
+        with Image.open(BytesIO(data)) as source:
+            if source.format not in {"JPEG", "PNG", "WEBP"}:
+                raise ValueError("unsupported image format")
+            if source.width * source.height > _MAX_PIXELS:
+                raise ValueError("image dimensions exceed supported limits")
+            source.load()
+            image = ImageOps.exif_transpose(source).convert("RGBA")
+        image.thumbnail((_MAX_EDGE, _MAX_EDGE), Image.Resampling.LANCZOS)
+        background = Image.new("RGB", image.size, "white")
+        background.paste(image, mask=image.getchannel("A"))
+        buf = BytesIO()
+        background.save(buf, format="JPEG", quality=90)
+        return buf.getvalue()
     except Exception as exc:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             "Não foi possível ler a foto. Envie JPG, PNG ou WEBP. "
             "No iPhone, exporte a foto HEIC nesses formatos.",
         ) from exc
-    image = ImageOps.exif_transpose(image).convert("RGB")
-    width, height = image.size
-    edge = max(width, height)
-    if edge > _MAX_EDGE:
-        scale = _MAX_EDGE / float(edge)
-        image = image.resize(
-            (max(1, int(width * scale)), max(1, int(height * scale))),
-            Image.Resampling.LANCZOS,
-        )
-    buf = BytesIO()
-    image.save(buf, format="JPEG", quality=90)
-    return buf.getvalue()
 
 
 def _schedule_new_order_notice(
@@ -202,7 +202,7 @@ async def upload_photo(
     authorization = media_authorization(
         user, confirmed=guardian_consent, version=consent_version, scope="book_photos"
     )
-    data = await file.read()
+    data = await file.read(10_000_001)
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
     if len(data) > 10_000_000:
@@ -263,7 +263,7 @@ async def upload_extra_character(
     authorization = media_authorization(
         user, confirmed=guardian_consent, version=consent_version, scope="extra_character_photos"
     )
-    data = await file.read()
+    data = await file.read(10_000_001)
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
     if len(data) > 10_000_000:

@@ -59,7 +59,7 @@ def is_outage(exc: BaseException) -> bool:
     if isinstance(exc, OutageError):
         return True
     if isinstance(exc, ProviderError):
-        return exc.transient
+        return exc.transient and exc.retry_safe
     if isinstance(exc, httpx.HTTPStatusError):
         return exc.response.status_code in OUTAGE_STATUS
     if isinstance(exc, httpx.RequestError):

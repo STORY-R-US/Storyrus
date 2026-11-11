@@ -275,15 +275,35 @@ async def test_refine_scene_uses_edits():
 
 
 @pytest.mark.asyncio
-async def test_transient_503_retries_then_ok():
+async def test_ambiguous_503_fails_without_repeating_billable_request():
     _FakeAsyncClient.script = [
         _FakeResponse(503, text="busy"),
         _FakeResponse(200, _ok_payload(b"ok")),
     ]
     provider = oai.OpenAIImageProvider()
-    result = await provider.generate_character(prompt="x", reference_images=[], style="s")
+    with pytest.raises(ProviderError) as caught:
+        await provider.generate_character(prompt="x", reference_images=[], style="s")
+    assert caught.value.outcome_unknown is True
+    assert caught.value.retry_safe is False
+    assert len(_FakeAsyncClient.calls) == 1
+    assert _FakeAsyncClient.calls[0]["headers"]["X-Client-Request-Id"]
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_retry_is_safe_after_explicit_429_response():
+    _FakeAsyncClient.script = [
+        _FakeResponse(429, text="rate limited"),
+        _FakeResponse(200, _ok_payload(b"ok")),
+    ]
+    result = await oai.OpenAIImageProvider().generate_character(
+        prompt="x", reference_images=[], style="s"
+    )
     assert result.image_bytes == b"ok"
     assert len(_FakeAsyncClient.calls) == 2
+    assert (
+        _FakeAsyncClient.calls[0]["headers"]["X-Client-Request-Id"]
+        != _FakeAsyncClient.calls[1]["headers"]["X-Client-Request-Id"]
+    )
 
 
 def test_moderation_error_keeps_code_details_and_request_id():
@@ -305,6 +325,7 @@ def test_moderation_error_keeps_code_details_and_request_id():
 
     assert error.status_code == 400
     assert error.transient is False
+    assert error.request_id == "req_abc123"
     assert '"code":"moderation_blocked"' in str(error)
     assert '"moderation_details":{"stage":"input"}' in str(error)
     assert '"request_id":"req_abc123"' in str(error)

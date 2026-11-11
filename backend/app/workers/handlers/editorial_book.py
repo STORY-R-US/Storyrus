@@ -253,6 +253,29 @@ class Pipeline:
         }
         self.db.commit()
 
+    def _generation_guard_key(self, key):
+        return hashlib.sha256(key.encode("utf-8")).hexdigest()
+
+    def _unknown_generation(self, key):
+        guards = (self.project.book_profile or {}).get("generation_outcomes_unknown") or {}
+        return guards.get(self._generation_guard_key(key))
+
+    def _remember_unknown_generation(self, key, exc, *, stage):
+        profile = dict(self.project.book_profile or {})
+        guards = dict(profile.get("generation_outcomes_unknown") or {})
+        guards[self._generation_guard_key(key)] = {
+            "stage": stage,
+            "request_id": exc.request_id,
+            "client_request_id": exc.client_request_id,
+            "status_code": exc.status_code,
+        }
+        self.project.book_profile = {
+            **profile,
+            "generation_outcomes_unknown": dict(list(guards.items())[-128:]),
+        }
+        self.profile = self.project.book_profile
+        self.db.commit()
+
     def account(self, result, label):
         self.master._account(self.db, self.job, result, label)
         self.db.commit()
@@ -320,6 +343,17 @@ class Pipeline:
                 raise ProviderError("Arte editorial armazenada inválida", transient=False)
             self.record(name, "passed", storage_key=key, resumed=True)
             return data, cached.meta
+        unknown = self._unknown_generation(key) if billable else None
+        if unknown:
+            raise ProviderError(
+                "GENERATION_OUTCOME_UNKNOWN",
+                transient=False,
+                retry_safe=False,
+                outcome_unknown=True,
+                status_code=unknown.get("status_code"),
+                request_id=unknown.get("request_id"),
+                client_request_id=unknown.get("client_request_id"),
+            )
         # Feedback and source art belong only to this task, never the previous scene.
         self.last_review_scope = None
         self.last_review_issues = []
@@ -352,7 +386,13 @@ class Pipeline:
         attempt = attempts
         while attempt < maximum:
             attempt += 1
-            self.record(name, "running", attempts=attempt, input_key=key)
+            self.record(
+                name,
+                "running",
+                attempts=attempt,
+                input_key=key,
+                billable=billable,
+            )
             try:
                 self.guard(billable=billable)
                 data, meta = await build(attempt)
@@ -380,18 +420,29 @@ class Pipeline:
                 if isinstance(exc, ProviderError):
                     # Network/provider retries belong to the worker. They are not
                     # visual rejections and must not consume the composition budget.
+                    state = "outcome_unknown" if exc.outcome_unknown else "provider_failed"
+                    if exc.outcome_unknown:
+                        self._remember_unknown_generation(key, exc, stage=name)
                     self.record(
                         name,
-                        "provider_failed",
+                        state,
                         attempts=attempt - 1,
                         input_key=key,
                         provider_status=exc.status_code,
                         transient=exc.transient,
+                        retry_safe=exc.retry_safe,
+                        outcome_unknown=exc.outcome_unknown,
+                        request_id=exc.request_id,
+                        client_request_id=exc.client_request_id,
                     )
                     raise ProviderError(
                         f"Etapa editorial {name}: {exc}",
                         transient=exc.transient,
                         status_code=exc.status_code,
+                        retry_safe=exc.retry_safe,
+                        outcome_unknown=exc.outcome_unknown,
+                        request_id=exc.request_id,
+                        client_request_id=exc.client_request_id,
                     ) from exc
                 logging.getLogger(__name__).warning(
                     "editorial_technical_failure stage=%s attempt=%s reason=%s",
@@ -1762,7 +1813,9 @@ class Pipeline:
                 raise
             failure = str(exc).lower()
             reason = (
-                "moderation"
+                "outcome_unknown"
+                if exc.outcome_unknown
+                else "moderation"
                 if "moderation" in failure or "safety" in failure
                 else "rate_limit"
                 if exc.status_code == 429

@@ -27,6 +27,7 @@ import { PreviewTrio } from "./studio/PreviewTrio";
 import { MasterBookFlow } from "./studio/MasterBookFlow";
 import { PreviewCopyRecovery } from "./studio/PreviewCopyRecovery";
 import { capitalizeChildName } from "./studio/childName";
+import { generationError as formatGenerationError, uncertainGeneration } from "./studio/generationError";
 import {
   masterPreviewEta,
   masterPreviewSteps,
@@ -342,12 +343,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     void Promise.all([api.getProject(id), api.getAssets(id), api.listJobs(id)]).then(([p, a, j]) => {
       if (cancelled) return;
       setProject(p); setAssets(a); setJobs(j);
-      const previewActive = j.some(
+      const previewStarted = j.some(
         (job) =>
-          (job.status === "PENDING" || job.status === "RUNNING") &&
           Boolean(job.result?.payload?.preview_chain),
       );
-      setOrderSent(!(p.book_profile?.stage === "ficha" && !previewActive));
+      setOrderSent(!(p.book_profile?.stage === "ficha" && !previewStarted));
       setBookTitle(p.purchase_flow?.title || p.book_profile?.title || p.story_text?.match(/^T[íi]tulo:\s*([^\n]+)/i)?.[1] || "");
       setThemeText(p.purchase_flow?.theme_description || p.theme || "");
       setStoryDraft(p.story_text || ""); setPhotoNotes(p.purchase_flow?.photo_notes || "");
@@ -499,25 +499,15 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const generationError = error || previewFailedJob?.error;
   const inputSafetyBlocked = /INPUT_SAFETY_BLOCKED/i.test(generationError || "");
   const providerSafetyBlocked = /moderation_block|content_policy_violation/i.test(generationError || "");
-  const safetyBlocked = inputSafetyBlocked || providerSafetyBlocked;
-  const userFacingError = (message?: string | null) => {
-    if (/INPUT_SAFETY_BLOCKED/i.test(message || "")) return t.previewInputSafetyBlocked;
-    if (/moderation_block|content_policy_violation/i.test(message || "")) {
-      return t.previewProviderSafetyBlocked;
-    }
-    if (/INPUT_SAFETY_CHECK_(?:UNAVAILABLE|INVALID)/i.test(message || "")) {
-      return t.previewSafetyCheckUnavailable;
-    }
-    if (/OpenAI \d{3}:|image_generation_user_error/i.test(message || "")) {
-      return t.previewProviderFailed;
-    }
-    return message;
-  };
+  const generationOutcomeUnknown = uncertainGeneration(generationError, previewFailedJob);
+  const noAutomaticRetry = inputSafetyBlocked || providerSafetyBlocked || generationOutcomeUnknown;
+  const userFacingError = (message?: string | null, job?: Job) =>
+    formatGenerationError(t, message, job);
   const visibleGenerationError = retiredAIError(generationError) ? {
     pt: "Esta tentativa anterior foi interrompida. Agora o teste usa imagens genéricas, sem créditos. Clique em Tentar prévia de novo para continuar.",
     en: "This earlier attempt was interrupted. Tests now use generic images without credits. Click Retry preview to continue.",
     es: "Este intento anterior se interrumpió. Ahora las pruebas usan imágenes genéricas sin créditos. Pulsa Reintentar vista previa para continuar.",
-  }[lang] : userFacingError(generationError);
+  }[lang] : userFacingError(generationError, previewFailedJob);
   const previewReady = Boolean(
     project?.book_profile ? project.book_profile.stage !== "ficha" : project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
@@ -743,7 +733,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const showPreviewLoading =
     orderSent && !isDemo && !error && !previewFailed && (previewChainActive || !previewReady);
   const showPreviewRetry =
-    orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed) && !safetyBlocked;
+    orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed) && !noAutomaticRetry;
   const imageJob = [...jobs].reverse().find((job) => job.type === "EBOOK" && job.result?.payload?.preview_chain);
   const chainSteps = previewChainSteps(jobs);
   const masterSteps = project?.book_profile
@@ -1142,7 +1132,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 <ul>
                   {openJobErrors.map((job) => (
                     <li key={job.id}>
-                      {job.type}: {userFacingError(job.error)}
+                      {job.type}: {userFacingError(job.error, job)}
                     </li>
                   ))}
                 </ul>

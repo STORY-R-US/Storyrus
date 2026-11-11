@@ -9,6 +9,7 @@ import type { Job, Project } from "../types";
 import type { StudioAssets } from "./assets";
 import { useStudioI18n } from "./useStudioI18n";
 import { capitalizeChildName } from "./childName";
+import { generationError, uncertainGeneration } from "./generationError";
 
 const COPY = {
   pt: {
@@ -369,7 +370,7 @@ export function MasterBookFlow({
   setAssets,
   canConfirmPayment = false,
 }: Props) {
-  const { lang } = useStudioI18n();
+  const { lang, t: studioCopy } = useStudioI18n();
   const t = COPY[lang];
   const [expandedImage, setExpandedImage] = useState<{ url: string; label: string } | null>(null);
   const expandLabel = lang === "en" ? "Enlarge" : lang === "es" ? "Ampliar" : "Ampliar";
@@ -607,8 +608,8 @@ export function MasterBookFlow({
       <StudioStageHeading title={testMode ? t.testTitle : t.retryPreviewTitle} illustration={0}>
         <p>{testMode ? t.testHint : t.retryPreviewHint}</p>
       </StudioStageHeading>
-      {error && <p className="studio-error" role="alert">{error}</p>}
-      <button type="button" className="kbtn kbtn-primary" disabled={active}
+      {error && <p className="studio-error" role="alert">{generationError(studioCopy, error)}</p>}
+      <button type="button" className="kbtn kbtn-primary" disabled={active || uncertainGeneration(failed?.error, failed)}
         onClick={() => void run(() => api.retryRealPreview(project.id))}>
         {active ? t.waiting : testMode ? t.retryGeneric : t.retryRealPreview}
       </button>
@@ -624,9 +625,9 @@ export function MasterBookFlow({
         {!project.ai_generation_paused && <button type="button" className="kbtn kbtn-soft" disabled={active}
           onClick={() => void run(() => api.retryRealPreview(project.id))}>{t.exitTest}</button>}
       </section>}
-      {error && <p className="studio-error" role="alert">{error}</p>}
+      {error && <p className="studio-error" role="alert">{generationError(studioCopy, error)}</p>}
       {active && <p className="master-status" role="status">{t.waiting}</p>}
-      {!active && failed?.error && <p className="studio-error" role="alert">{failed.error}</p>}
+      {!active && failed?.error && <p className="studio-error" role="alert">{generationError(studioCopy, failed.error, failed)}</p>}
       {storyReview && (
         <section className="master-story-review" aria-labelledby="story-review-heading" data-testid="studio-story-review">
           <h3 id="story-review-heading">{t.reviewHeading}</h3>

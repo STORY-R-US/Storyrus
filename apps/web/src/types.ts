@@ -135,6 +135,13 @@ export interface Job {
   result?: {
     progress?: JobProgress;
     payload?: { preview_chain?: boolean; purchase_full_book?: boolean; brief?: string; duration_s?: number };
+    last_provider_error?: {
+      stage?: string;
+      request_id?: string | null;
+      client_request_id?: string | null;
+      status_code?: number | null;
+      outcome_unknown?: boolean;
+    };
   } | null;
 }
 

@@ -1414,6 +1414,9 @@ async def test_page_correction_rewrites_only_the_asked_page(studio, monkeypatch)
             assert "Verso 3." in kwargs["brief"]
             return TextResult(text="Lia acendeu três estrelas.", cost_usd=0, meta={})
 
+        async def moderate_book_input(self, **kwargs):
+            return TextResult(text='{"flagged":false}', cost_usd=0, meta={"flagged": False})
+
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(settings, "skip_openai", False)
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: Text())
@@ -1468,6 +1471,9 @@ async def test_story_provider_error_never_approves_or_enqueues_avatar(studio, mo
     class Text:
         async def generate_story(self, **kwargs):
             raise ProviderError("OpenAI 429: insufficient_quota", transient=False)
+
+        async def moderate_book_input(self, **kwargs):
+            return TextResult(text='{"flagged":false}', cost_usd=0, meta={"flagged": False})
 
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(settings, "skip_openai", False)
@@ -2231,7 +2237,7 @@ async def test_input_safety_block_is_cached_and_stops_before_any_paid_generation
 ):
     from app.workers.handlers.master_book import _preflight_input_safety
 
-    _, db, pid, _ = studio
+    client, db, pid, _ = studio
     project = db.get(Project, uuid.UUID(pid))
     job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
     project.story_text = "Página 1: uma história personalizada"
@@ -2256,6 +2262,17 @@ async def test_input_safety_block_is_cached_and_stops_before_any_paid_generation
         await _preflight_input_safety(db, job, project, [_png()])
     with pytest.raises(ProviderError, match="INPUT_SAFETY_BLOCKED"):
         await _preflight_input_safety(db, job, project, [_png()])
+    next_job = Job(
+        project_id=project.id,
+        type="EBOOK",
+        status="RUNNING",
+        cost_usd=0,
+        result={"payload": {"adjustment": "inclua uma ponte azul"}},
+    )
+    db.add(next_job)
+    db.commit()
+    with pytest.raises(ProviderError, match="INPUT_SAFETY_BLOCKED"):
+        await _preflight_input_safety(db, next_job, project, [_png()])
 
     assert len(calls) == 1
     assert "história personalizada" in calls[0][0]
@@ -2263,6 +2280,45 @@ async def test_input_safety_block_is_cached_and_stops_before_any_paid_generation
     assert calls[0][1] == [_png()]
     assert job.result["input_safety"]["status"] == "blocked"
     assert job.cost_usd == 0
+    response = client.get(f"/v1/projects/{pid}").json()
+    assert "input_safety_checks" not in response["book_profile"]
+
+
+@pytest.mark.asyncio
+async def test_editorial_stage_blocks_same_input_after_unknown_provider_outcome(composed_studio):
+    from app.workers.handlers.editorial_book import Pipeline, signature
+
+    studio, _, _ = composed_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+    db.add(job)
+    db.commit()
+    pipeline = Pipeline(db, job, project, [_png()])
+    name = "cover:art"
+    inputs = {"attempt": "unknown-outcome-guard-test"}
+    key = f"editorial/{project.id}/{signature([pipeline.base, name, inputs])}.png"
+    pipeline._remember_unknown_generation(
+        key,
+        ProviderError(
+            "response timed out",
+            transient=True,
+            retry_safe=False,
+            outcome_unknown=True,
+            client_request_id="request-guard-test",
+        ),
+        stage=name,
+    )
+    called = False
+
+    async def must_not_generate(_attempt):
+        nonlocal called
+        called = True
+        return _png(), {}
+
+    with pytest.raises(ProviderError, match="GENERATION_OUTCOME_UNKNOWN"):
+        await pipeline.stage(name, inputs, must_not_generate)
+    assert called is False
 
 
 @pytest.mark.asyncio

@@ -154,6 +154,9 @@ export type StudioCopy = {
   previewProviderSafetyBlocked: string;
   previewSafetyCheckUnavailable: string;
   previewProviderFailed: string;
+  previewGenerationOutcomeUnknown: string;
+  previewInvalidPhoto: string;
+  previewRequestId: string;
   previewFicha: string;
   previewFichaHint: string;
   previewOpenBook: string;
@@ -531,8 +534,11 @@ const pt: StudioCopy = {
   previewTrioHintBookMockup: "A terceira imagem mostra a capa real em um mockup local, sem uma pessoa segurando o livro.",
   previewInputSafetyBlocked: "A checagem gratuita bloqueou estes dados antes de gerar imagens. Ajuste o tema ou o texto, ou escolha outra foto, e comece um novo projeto.",
   previewProviderSafetyBlocked: "O provedor bloqueou esta imagem. Ajuste o tema ou o texto, ou escolha outra foto antes de começar um novo projeto.",
-  previewSafetyCheckUnavailable: "A validação gratuita não ficou disponível, então nenhuma imagem foi gerada ou cobrada. Tente a prévia novamente daqui a pouco.",
+  previewSafetyCheckUnavailable: "A validação gratuita desta etapa não ficou disponível. Nenhuma nova geração foi iniciada nesta etapa. Tente novamente daqui a pouco.",
   previewProviderFailed: "Uma etapa da geração falhou. O Estúdio preservou o que já foi feito e não vai repetir esta imagem automaticamente. Revise a foto ou o texto antes de começar um novo projeto.",
+  previewGenerationOutcomeUnknown: "O provedor não confirmou o resultado desta etapa. Para evitar cobrança duplicada, esta mesma geração ficou bloqueada. Informe o código de solicitação ao suporte antes de tentar de novo.",
+  previewInvalidPhoto: "Não foi possível validar a foto. Envie uma imagem JPG, PNG ou WEBP legível, com até 10 MB.",
+  previewRequestId: "Código de solicitação",
   previewFicha: "Ficha",
   previewFichaHint: "A foto define figurino, paleta e os textos da prévia.",
   previewOpenBook: "Livro Aberto",
@@ -814,8 +820,11 @@ const en: StudioCopy = {
   previewTrioHintBookMockup: "The third image shows the actual cover in a local mockup, without a person holding the book.",
   previewInputSafetyBlocked: "The free check blocked this input before image generation. Adjust the theme or text, or choose another photo, then start a new project.",
   previewProviderSafetyBlocked: "The provider blocked this image. Adjust the theme or text, or choose another photo before starting a new project.",
-  previewSafetyCheckUnavailable: "The free input check was unavailable, so no image was generated or charged. Try the preview again shortly.",
+  previewSafetyCheckUnavailable: "The free check for this step was unavailable. No new generation started in this step. Try again shortly.",
   previewProviderFailed: "A generation step failed. The Studio kept completed work and will not repeat this image automatically. Review the photo or text before starting a new project.",
+  previewGenerationOutcomeUnknown: "The provider did not confirm this step's result. To prevent a duplicate charge, this generation is blocked. Give the request ID to support before trying again.",
+  previewInvalidPhoto: "The photo could not be validated. Upload a readable JPG, PNG or WEBP image up to 10 MB.",
+  previewRequestId: "Request ID",
   previewFicha: "Profile",
   previewFichaHint: "The photo sets the costume, palette, and preview text.",
   previewOpenBook: "Open Book",
@@ -1097,8 +1106,11 @@ const es: StudioCopy = {
   previewTrioHintBookMockup: "La tercera imagen muestra la portada real en una maqueta local, sin una persona sosteniendo el libro.",
   previewInputSafetyBlocked: "La comprobación gratuita bloqueó estos datos antes de generar imágenes. Ajusta el tema o el texto, o elige otra foto y empieza un nuevo proyecto.",
   previewProviderSafetyBlocked: "El proveedor bloqueó esta imagen. Ajusta el tema o el texto, o elige otra foto antes de empezar un nuevo proyecto.",
-  previewSafetyCheckUnavailable: "La comprobación gratuita no estuvo disponible, así que no se generaron ni cobraron imágenes. Vuelve a intentar la vista previa en un momento.",
+  previewSafetyCheckUnavailable: "La comprobación gratuita de esta etapa no estuvo disponible. No se inició ninguna generación nueva en esta etapa. Vuelve a intentarlo en un momento.",
   previewProviderFailed: "Falló una etapa de generación. El Estudio conservó lo que ya estaba hecho y no repetirá esta imagen automáticamente. Revisa la foto o el texto antes de empezar un nuevo proyecto.",
+  previewGenerationOutcomeUnknown: "El proveedor no confirmó el resultado de esta etapa. Para evitar un cobro duplicado, esta generación quedó bloqueada. Informa el ID de solicitud al soporte antes de volver a intentarlo.",
+  previewInvalidPhoto: "No se pudo validar la foto. Envía una imagen JPG, PNG o WEBP legible de hasta 10 MB.",
+  previewRequestId: "ID de solicitud",
   previewFicha: "Ficha",
   previewFichaHint: "La foto define vestuario, paleta y los textos de la vista previa.",
   previewOpenBook: "Libro Abierto",

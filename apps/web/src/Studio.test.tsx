@@ -639,6 +639,49 @@ describe("Prévia automática", () => {
     expect(new URLSearchParams(window.location.search).has("project")).toBe(false);
   });
 
+  it("não oferece repetição quando o provedor não confirmou o resultado", async () => {
+    const project = {
+      id: "unknown-generation",
+      status: "EBOOK_RUNNING",
+      style: "cartoon",
+      language: "pt-BR",
+      story_text: null,
+      ebook_url: null,
+      video_url: null,
+      created_at: "2026-11-11",
+      book_profile: { version: 2, stage: "ficha", title: "Livro de teste", gender: "f", languages: ["pt-BR"], current_page: 0 },
+    };
+    vi.spyOn(api, "getProject").mockResolvedValue(project);
+    vi.spyOn(api, "listJobs").mockResolvedValue([
+      ebookJob({
+        id: "unknown-job",
+        status: "FAILED",
+        error: "GENERATION_OUTCOME_UNKNOWN",
+        result: {
+          payload: { preview_chain: true },
+          last_provider_error: { client_request_id: "client-request-123", outcome_unknown: true },
+        },
+      }),
+    ]);
+    vi.spyOn(api, "getAssets").mockResolvedValue({
+      character_url: null,
+      realistic_url: null,
+      extra_characters: [],
+      page_images: [],
+      ebook_url: null,
+      video_url: null,
+      narrated_video_url: null,
+    });
+    window.history.replaceState({}, "", "/app?projeto=unknown-generation");
+
+    renderApp("/app?projeto=unknown-generation");
+
+    const messages = await screen.findAllByText(/não confirmou o resultado desta etapa/i);
+    expect(messages[0]).toHaveTextContent(/client-request-123/i);
+    expect(screen.queryByText(/^GENERATION_OUTCOME_UNKNOWN$/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("studio-retry-preview")).not.toBeInTheDocument();
+  });
+
   it("reusa o mesmo projeto se o envio da foto falha", async () => {
     state.credits = 20;
     const create = vi.spyOn(api, "createProject");

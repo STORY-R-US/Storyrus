@@ -20,10 +20,26 @@ MAX_REFRAME_TOP_FRACTION = 0.45
 class ProviderError(Exception):
     """Erro recuperavel/irrecuperavel de provedor. `transient=True` -> elegivel a retry."""
 
-    def __init__(self, message: str, *, transient: bool = False, status_code: int | None = None):
+    def __init__(
+        self,
+        message: str,
+        *,
+        transient: bool = False,
+        status_code: int | None = None,
+        retry_safe: bool | None = None,
+        outcome_unknown: bool = False,
+        request_id: str | None = None,
+        client_request_id: str | None = None,
+    ):
         super().__init__(message)
         self.transient = transient
         self.status_code = status_code
+        self.retry_safe = (
+            False if outcome_unknown else transient if retry_safe is None else retry_safe
+        )
+        self.outcome_unknown = outcome_unknown
+        self.request_id = request_id
+        self.client_request_id = client_request_id
 
 
 # --------------------------------------------------------------------------- #

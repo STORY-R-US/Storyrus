@@ -28,9 +28,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai_clients.base import ProviderError
+from app.ai_clients.request_journal import request_journal, unresolved_request
 from app.config import settings
 from app.database import SessionLocal
-from app.models import Job, JobStatus
+from app.models import Job, JobStatus, Project
 from app.observability import opik_trace
 from app.observability.context import correlation_scope
 from app.observability.logging_setup import configure_logging
@@ -40,6 +41,9 @@ logger = logging.getLogger("worker")
 
 # Status HTTP que costumam ser blips de cota/infra (alinhado a resilience).
 _TRANSIENT_HTTP_STATUS = frozenset({429, 500, 502, 503, 504})
+_PHOTO_GENERATION_JOB_TYPES = frozenset(
+    {"AVATAR", "REALISTIC", "STORY", "EBOOK", "EXTRA_CHARACTER", "STORYBOARD"}
+)
 
 
 def backoff_delay(attempt: int) -> float:
@@ -55,7 +59,7 @@ def is_transient_exception(exc: BaseException) -> bool:
     claramente transitórias — ValueError/KeyError/etc. falham na hora.
     """
     if isinstance(exc, ProviderError):
-        return bool(exc.transient)
+        return bool(exc.transient and exc.retry_safe)
     if isinstance(exc, (TimeoutError, ConnectionError)):
         return True
     if isinstance(exc, httpx.RequestError):
@@ -223,19 +227,65 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
             job.updated_at = datetime.now(UTC)
             db.commit()
             try:
-                await _run_tracked(db, job, handler)
+                if (
+                    job.type in _PHOTO_GENERATION_JOB_TYPES
+                    and not settings.offline_fallback
+                    and not settings.skip_openai
+                ):
+                    from app.workers.handlers import master_book
+
+                    project = db.get(Project, job.project_id)
+                    if (
+                        project is not None
+                        and not settings.offline_fallback
+                        and not master_book.contract.test_mode(project)
+                    ):
+                        photos = master_book._photos(db, project, required=False)
+                        await master_book._preflight_input_safety(db, job, project, photos)
+                with request_journal(db, job):
+                    await _run_tracked(db, job, handler)
                 job.status = JobStatus.DONE.value
                 db.commit()
                 logger.info("job %s (%s) DONE", job.id, job.type)
                 return
             except ProviderError as exc:
-                retriable = exc.transient and job.attempts < settings.job_max_attempts
+                # A surrounding wait_for may cancel an HTTP call and translate the
+                # timeout. Preserve the durable uncertainty instead of offering retry.
+                unresolved = unresolved_request(job)
+                if unresolved and not exc.outcome_unknown:
+                    exc = ProviderError(
+                        "GENERATION_OUTCOME_UNKNOWN",
+                        outcome_unknown=True,
+                        request_id=unresolved.get("request_id"),
+                        client_request_id=unresolved.get("client_request_id"),
+                    )
+                retriable = (
+                    exc.transient and exc.retry_safe and job.attempts < settings.job_max_attempts
+                )
+                diagnostics = {
+                    "stage": ((job.result or {}).get("progress") or {}).get("stage") or job.type,
+                    "status_code": exc.status_code,
+                    "request_id": exc.request_id,
+                    "client_request_id": exc.client_request_id,
+                    "retry_safe": exc.retry_safe,
+                    "outcome_unknown": exc.outcome_unknown,
+                    "recorded_at": datetime.now(UTC).isoformat(),
+                }
+                job.result = {
+                    **(job.result or {}),
+                    "last_provider_error": diagnostics,
+                }
+                db.commit()
                 logger.warning(
-                    "job %s falhou (tentativa %s): %s [transient=%s]",
+                    "job %s falhou (tentativa %s) [status=%s transient=%s retry_safe=%s outcome_unknown=%s request_id=%s client_request_id=%s]",
                     job.id,
                     job.attempts,
-                    exc,
+                    exc.status_code,
                     exc.transient,
+                    exc.retry_safe,
+                    exc.outcome_unknown,
+                    exc.request_id,
+                    exc.client_request_id,
                 )
                 if not retriable:
                     jobs_svc.mark_failed_and_refund(db, job, str(exc))
@@ -250,6 +300,20 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                 # A SQL error leaves the transaction unusable. Roll it back so
                 # the failure is saved instead of leaving RUNNING stuck forever.
                 db.rollback()
+                unresolved = unresolved_request(job)
+                if unresolved:
+                    job.result = {
+                        **(job.result or {}),
+                        "last_provider_error": {
+                            "stage": job.type,
+                            "outcome_unknown": True,
+                            "retry_safe": False,
+                            "request_id": unresolved.get("request_id"),
+                            "client_request_id": unresolved.get("client_request_id"),
+                        },
+                    }
+                    jobs_svc.mark_failed_and_refund(db, job, "GENERATION_OUTCOME_UNKNOWN")
+                    return
                 # STO-36: blips de rede/timeout nao queimam o job na 1a tentativa.
                 transient = is_transient_exception(exc)
                 retriable = transient and job.attempts < settings.job_max_attempts

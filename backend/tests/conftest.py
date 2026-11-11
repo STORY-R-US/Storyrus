@@ -10,6 +10,7 @@ os.environ.setdefault("IMAGE_PROVIDER", "openai")
 import uuid
 from datetime import UTC, datetime
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -24,6 +25,19 @@ from app.models import User
 from app.owner_auth import promote_verified_owner
 from app.services import webhook_auth
 from app.services.clerk_identity import create_test_session_token
+
+
+@pytest.fixture(autouse=True)
+def _no_live_openai_requests(monkeypatch):
+    """Tests must use fake transports, even when a local .env contains a live key."""
+    original = httpx.AsyncHTTPTransport.handle_async_request
+
+    async def guarded(transport, request):
+        if request.url.host == "api.openai.com":
+            pytest.fail("Unexpected live OpenAI request: mock the provider or transport")
+        return await original(transport, request)
+
+    monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", guarded)
 
 
 @pytest.fixture(autouse=True)

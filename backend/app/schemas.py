@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, model_validator
 from pydantic_core import PydanticCustomError
 
 from app.models import JobType, ProjectStyle
@@ -292,6 +292,16 @@ class ProjectOut(BaseModel):
     test_mode: bool = False
     ai_generation_paused: bool = False
 
+    @field_serializer("book_profile")
+    def hide_generation_diagnostics(self, value):
+        if not isinstance(value, dict):
+            return value
+        return {
+            key: item
+            for key, item in value.items()
+            if key not in {"input_safety_checks", "generation_outcomes_unknown"}
+        }
+
     @model_validator(mode="after")
     def generation_mode(self):
         from app.config import settings
@@ -397,6 +407,12 @@ class JobOut(BaseModel):
     request_id: str | None = None
     created_at: datetime
     result: dict | None = None
+
+    @field_serializer("result")
+    def hide_paid_request_cache(self, value):
+        if not isinstance(value, dict):
+            return value
+        return {key: item for key, item in value.items() if key != "paid_requests"}
 
 
 class JobAcceptedOut(BaseModel):
