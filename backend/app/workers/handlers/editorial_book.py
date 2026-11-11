@@ -7,7 +7,7 @@ import logging
 from sqlalchemy import select
 
 from app import storage
-from app.ai_clients.base import MAX_REFRAME_TOP_FRACTION, ProviderError
+from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.models import Asset, Job, ProjectStatus
 from app.services import (
@@ -28,6 +28,12 @@ def signature(value):
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, ensure_ascii=False).encode()
     ).hexdigest()
+
+
+class VisualReviewError(ValueError):
+    def __init__(self, message, *, scope):
+        super().__init__(message)
+        self.scope = scope
 
 
 class Pipeline:
@@ -124,37 +130,6 @@ class Pipeline:
             else "Versos alinhados à esquerda."
         )
 
-    def should_reframe_art(self, *, title, attempt):
-        """Repair the first reserve collision instead of repeating the same framing.
-
-        This applies to covers and interior pages with either layout. Repeated
-        translation would crop too much of the action, so the final attempt
-        returns to generation if the repair did not pass review.
-        """
-        return bool(
-            attempt == 2
-            and self.last_art
-            and (
-                getattr(self, "last_review_scope", None) == "text_reserve"
-                or any(
-                    token in " ".join(self.last_review_issues).lower()
-                    for token in (
-                        "text",
-                        "regi",
-                        "sobrepo",
-                        "reserve",
-                        "ink_region",
-                        "tít",
-                        "cabelo",
-                        "cabeça",
-                        "hair",
-                        "head",
-                        "overlap",
-                    )
-                )
-            )
-        )
-
     def cached(self, key):
         return self.db.scalar(
             select(Asset).where(
@@ -164,10 +139,10 @@ class Pipeline:
             )
         )
 
-    def rejected_cover_for_reframe(self, name, action, plan):
-        """Reuse only a matching failed crop on an explicit cover retry, never auto-retry."""
+    def rejected_cover_source(self, name, action, plan):
+        """Recover the ORIGINAL matching source, never a blurred repair or composed cover."""
         current = self.master._payload(self.job)
-        if name != "cover" or not (current.get("image") == "01_CAPA" or current.get("cover_only")):
+        if name != "cover" or current.get("title_refresh"):
             return None
         base_inputs = {"action": action, "title": True, "plan": plan}
         # stage() only adds a requested revision when the project already has one.
@@ -186,15 +161,22 @@ class Pipeline:
         )
         previous_jobs = self.db.scalars(
             select(Job)
-            .where(Job.project_id == self.project.id, Job.status == "FAILED", Job.id != self.job.id)
+            .where(Job.project_id == self.project.id, Job.type == "EBOOK", Job.id != self.job.id)
             .order_by(Job.created_at.desc())
             .limit(5)
         ).all()
         for previous in previous_jobs:
+            task = (previous.result or {}).get("editorial_tasks", {}).get("cover:art", {})
+            if not task:
+                continue
+            # Never resurrect a rejected scene from before a newer completed cover.
+            if previous.status != "FAILED":
+                return None
             payload = self.master._payload(previous)
             if payload.get("title_refresh"):
                 continue
-            if payload.get("image") != "01_CAPA" and not payload.get("cover_only"):
+            if payload.get("adjustment", "") != current.get("adjustment", ""):
+                # A new requested scene adjustment is not a retry of this source.
                 continue
             candidates = [
                 base_inputs,
@@ -211,13 +193,12 @@ class Pipeline:
                 f"editorial/{self.project.id}/{signature([self.base, 'cover:art', inputs])}.png"
                 for inputs in candidates
             }
-            task = (previous.result or {}).get("editorial_tasks", {}).get("cover:art", {})
             if (
                 task.get("input_key") not in expected
                 or task.get("failure_category") != "visual_review"
             ):
                 continue
-            for rejected in reversed((previous.result or {}).get("rejected_candidates", [])):
+            for rejected in (previous.result or {}).get("rejected_candidates", []):
                 asset = self.db.scalar(
                     select(Asset).where(
                         Asset.project_id == self.project.id,
@@ -372,12 +353,8 @@ class Pipeline:
         )
         # Current layouts solve placement locally. A genuine quality rejection
         # must not buy another image automatically.
-        repair_allowed = False
-        if self.designed:
+        if self.designed or name.endswith(":art"):
             maximum = 1
-            # A reserve collision may be repaired once by outpainting the rejected
-            # scene. This never buys a second freshly generated illustration.
-            repair_allowed = name.endswith(":art")
         elif name in {"spread", "reading"}:
             # A mockup quality/composition failure must not buy another template
             # automatically. A new user retry is the explicit boundary for another
@@ -470,26 +447,7 @@ class Pipeline:
                     ),
                 )
                 if attempt == maximum:
-                    if (
-                        repair_allowed
-                        and self.last_operation
-                        in {"generate_flat_art", "reframe_previous_rejected_cover"}
-                        and self.last_review_scope == "text_reserve"
-                        and self.should_reframe_art(
-                            title=name.startswith("cover"), attempt=attempt + 1
-                        )
-                    ):
-                        # Extend this same job by one outpaint attempt so a reserve
-                        # collision does not surface as a failure. When the first
-                        # attempt already reused a previous rejected cover, skip that
-                        # lookup and reframe the image that was just rejected.
-                        self._skip_recovered_reframe = (
-                            self.last_operation == "reframe_previous_rejected_cover"
-                        )
-                        maximum = attempt + 1
-                        repair_allowed = False
-                        continue
-                    if self.designed:
+                    if self.designed or isinstance(exc, VisualReviewError):
                         raise ProviderError(
                             (
                                 f"Capa ou ilustração reprovada em {name}: {str(exc)[:240]}"
@@ -505,6 +463,8 @@ class Pipeline:
         raise ProviderError(f"Etapa {name} esgotou as tentativas deste trabalho", transient=False)
 
     async def review(self, data, prompt, *, cover=None, technical=None, full_image_prompt=None):
+        self.last_review_scope = None
+        self.last_review_issues = []
         if self.demo:
             return {"status": "demo"}
         if getattr(self, "designed", False):
@@ -636,8 +596,9 @@ class Pipeline:
             self.last_review_scope = result.meta.get("review_scope")
             self.last_review_issues = report.get("issues", []) if isinstance(report, dict) else []
             reasons = "; ".join(str(issue) for issue in self.last_review_issues)[:400]
-            raise ValueError(
-                "Revisão visual reprovada ou inconclusiva" + (": " + reasons if reasons else "")
+            raise VisualReviewError(
+                "Revisão visual reprovada ou inconclusiva" + (": " + reasons if reasons else ""),
+                scope=result.meta.get("review_scope") or "full_image",
             )
         return {**report, "status": "valid"}
 
@@ -1089,60 +1050,40 @@ class Pipeline:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
                 provider = self.master._pkg().get_image_provider()
-                skip_recovered = getattr(self, "_skip_recovered_reframe", False)
-                self._skip_recovered_reframe = False
-                recovered = (
-                    None
-                    if skip_recovered
-                    else self.rejected_cover_for_reframe(name, action, plan)
-                    if title and self.designed
-                    else None
+                # Persist purchased pixels before QA. Layout retries and later jobs
+                # with identical inputs must not purchase the same illustration again.
+                source_context = [
+                    self.base,
+                    name,
+                    prompt,
+                    self.revision_for(name).get("art_revision"),
+                ]
+                candidate_key = (
+                    f"editorial/{self.project.id}/{signature(source_context)}.candidate.png"
                 )
-                if recovered and hasattr(provider, "reframe_editorial_art"):
-                    operation = "reframe_previous_rejected_cover"
-                    self.last_operation = operation
-                    source_sha256 = render.digest(recovered)
-                    result = await provider.reframe_editorial_art(
-                        art=recovered,
-                        photos=self.photos,
-                        top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.06),
-                        preserve_complete_scene=True,
-                        clear_through_fraction=safe_region[3],
-                        prompt="Extend only the natural scenery. The entire title reserve must "
-                        "contain background only, no hair, hats, hands or objects. Preserve the "
-                        "whole original action, all characters and the complete lower scene. "
-                        + json.dumps({"text_region": safe_region}, ensure_ascii=False),
+                cached_candidate = self.db.scalar(
+                    select(Asset).where(
+                        Asset.project_id == self.project.id,
+                        Asset.kind == "editorial_candidate",
+                        Asset.storage_key == candidate_key,
                     )
-                elif self.should_reframe_art(title=title, attempt=attempt) and hasattr(
-                    provider, "reframe_editorial_art"
-                ):
-                    operation = "outpaint_reframed_art"
-                    self.last_operation = operation
-                    logging.getLogger(__name__).info(
-                        "editorial_reframe stage=%s attempt=%s reserve=%s",
-                        name,
-                        attempt,
-                        safe_region,
-                    )
-                    source_sha256 = render.digest(self.last_art)
-                    result = await provider.reframe_editorial_art(
-                        art=self.last_art,
-                        photos=self.photos,
-                        top_fraction=min(MAX_REFRAME_TOP_FRACTION, safe_region[3] + 0.06),
-                        preserve_complete_scene=self.designed,
-                        clear_through_fraction=safe_region[3],
-                        prompt="Preserve a identidade, figurino e acabamento da cena original. "
-                        + json.dumps(
-                            {
-                                "text_region": safe_region,
-                                "corrections": self.last_review_issues,
-                            },
-                            ensure_ascii=False,
-                        ),
-                    )
+                )
+                recovered = self.rejected_cover_source(name, action, plan) if title else None
+                if cached_candidate:
+                    try:
+                        raw = storage.get_bytes(candidate_key)
+                    except Exception as exc:
+                        # A missing purchased asset is not permission to buy another.
+                        raise ProviderError(
+                            "Arte original armazenada indisponível", transient=False
+                        ) from exc
+                    if render.digest(raw) != (cached_candidate.meta or {}).get("sha256"):
+                        raise ProviderError("Arte original armazenada inválida", transient=False)
+                    operation = "reuse_original_art"
+                elif recovered:
+                    raw = recovered
+                    operation = "recover_original_art"
                 else:
-                    operation = "generate_flat_art"
-                    self.last_operation = operation
                     result = await provider.generate_scene(
                         prompt=prompt,
                         character_ref=self.photos[0],
@@ -1157,8 +1098,23 @@ class Pipeline:
                             else contract.art_direction(self.project.style)
                         ),
                     )
-                self.account(result, name)
-                raw = result.image_bytes
+                    self.account(result, name)
+                    raw = result.image_bytes
+                render.square(raw)
+                if not cached_candidate:
+                    require_photo_authorization(self.db, self.project.id)
+                    storage.put_bytes(candidate_key, raw, "image/png")
+                    self.db.add(
+                        Asset(
+                            project_id=self.project.id,
+                            kind="editorial_candidate",
+                            storage_key=candidate_key,
+                            meta={"sha256": render.digest(raw), "stage": name, "reviewed": False},
+                        )
+                    )
+                    self.db.commit()
+                source_sha256 = render.digest(raw)
+                self.last_operation = operation
             self.last_art = raw
             render.square(raw)
             page_composition = None
@@ -1216,11 +1172,7 @@ class Pipeline:
                             region = plan["text_region"]
                             break
             local_layout = None
-            regions = (
-                [region]
-                if title or self.designed
-                else [region, [0.07, 0.07, 0.50, 0.40], [0.07, 0.07, 0.93, 0.29]]
-            )
+            regions = [region]
             for region_attempt, region in enumerate(regions):
                 try:
                     candidate, layout = render.text(
@@ -1253,8 +1205,8 @@ class Pipeline:
                         ),
                         technical={"typography": layout},
                         full_image_prompt=(
-                            "Full-bleed picture-book illustration with text over natural quiet "
-                            "background; no separate reading panel or inset illustration. "
+                            "Full-bleed picture-book artwork with natural quiet background "
+                            "prepared for a later text overlay; no reading panel or inset illustration. "
                             if page_composition
                             else ""
                         )
@@ -1295,9 +1247,29 @@ class Pipeline:
                         technical={"typography": layout},
                     )
                     break
-                except ValueError:
+                except VisualReviewError as exc:
+                    # Only a structured reserve collision permits moving text.
+                    # Identity, anatomy, lettering and quality failures stay blocked.
+                    if exc.scope != "text_reserve":
+                        raise
+                    if region_attempt == 0:
+                        regions.extend(
+                            render.reading_region_candidates(
+                                raw,
+                                value,
+                                self.profile,
+                                region,
+                                title=title,
+                                alignment=self.alignment(title),
+                            )[1:]
+                        )
                     if region_attempt == len(regions) - 1:
                         raise
+                    local_layout = {
+                        "method": "text_only_reserve_repair",
+                        "source_pixels_unchanged": True,
+                        "original_region": plan["text_region"],
+                    }
             return raw, {
                 "validation": qa,
                 "composition_review": composition_review,
@@ -1331,12 +1303,6 @@ class Pipeline:
             },
             build,
         )
-
-        if self.designed and not title and not self.design:
-            actual_region, local_layout = render.choose_reading_region(
-                raw, value, self.profile, meta["text_region"], alignment=self.alignment()
-            )
-            meta = {**meta, "text_region": actual_region, "local_reading_layout": local_layout}
 
         async def compose(attempt):
             data, layout = render.text(

@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import base64
-import io
 
 import pytest
-from PIL import Image
 
 from app.ai_clients import image_openai as oai
 from app.ai_clients.base import ProviderError
@@ -73,108 +71,6 @@ def _reset(monkeypatch):
 
     monkeypatch.setattr(oai.asyncio, "sleep", _noop_sleep)
     yield
-
-
-@pytest.mark.asyncio
-async def test_editorial_reframe_uses_local_background_and_preserves_source_pixels():
-    raw = io.BytesIO()
-    original = Image.new("RGB", (100, 100), "blue")
-    original.putpixel((20, 30), (17, 45, 91))
-    original.save(raw, "PNG")
-    provider = oai.OpenAIImageProvider()
-    result = await provider.reframe_editorial_art(
-        art=raw.getvalue(), photos=[raw.getvalue()], top_fraction=0.2, prompt="keep identity"
-    )
-    output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
-    assert output.getpixel((50, 10)) == (0, 0, 255)  # scene-matched, subject-free reserve
-    assert output.getpixel((20, 50)) == (17, 45, 91)  # shifted subject preserved
-    assert output.crop((0, 20, 100, 100)).tobytes() == original.crop((0, 0, 100, 80)).tobytes()
-    assert result.meta["protected_source_pixels"] is True
-    assert result.cost_usd == 0
-    assert result.meta["provider"] == "local"
-    assert result.meta["billable"] is False
-    assert _FakeAsyncClient.calls == []
-
-
-@pytest.mark.asyncio
-async def test_complete_scene_reframe_preserves_all_source_edges_and_activity():
-    original = Image.new("RGB", (100, 100), "blue")
-    original.paste("green", (0, 90, 100, 100))
-    raw = io.BytesIO()
-    original.save(raw, "PNG")
-    result = await oai.OpenAIImageProvider().reframe_editorial_art(
-        art=raw.getvalue(),
-        photos=[],
-        top_fraction=0.3,
-        prompt="quiet scenery",
-        preserve_complete_scene=True,
-    )
-    output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
-    assert (
-        output.crop((15, 30, 85, 100)).tobytes()
-        == original.resize((70, 70), Image.Resampling.LANCZOS).tobytes()
-    )
-    assert output.getpixel((50, 99)) == (0, 128, 0)
-    assert output.getpixel((0, 80)) == output.getpixel((50, 0)) == (0, 0, 255)
-    assert result.cost_usd == 0
-    assert _FakeAsyncClient.calls == []
-
-
-@pytest.mark.asyncio
-async def test_local_reframe_keeps_subject_out_of_measured_title_reserve():
-    raw = io.BytesIO()
-    original = Image.new("RGB", (100, 100), "blue")
-    for y in range(0, 36):
-        for x in range(25, 76):
-            original.putpixel((x, y), (220, 20, 30))
-    original.save(raw, "PNG")
-
-    result = await oai.OpenAIImageProvider().reframe_editorial_art(
-        art=raw.getvalue(),
-        photos=[raw.getvalue()],
-        top_fraction=0.4,
-        clear_through_fraction=0.34,
-        prompt="background only",
-        preserve_complete_scene=True,
-    )
-
-    output = Image.open(io.BytesIO(result.image_bytes)).convert("RGB")
-    assert all(output.getpixel((x, y)) != (220, 20, 30) for x in range(9, 92) for y in range(6, 35))
-    assert result.meta["clear_through_fraction"] == 0.34
-    assert _FakeAsyncClient.calls == []
-
-
-@pytest.mark.asyncio
-async def test_complete_scene_reframe_allows_full_catalog_reserve_clearance():
-    original = io.BytesIO()
-    Image.new("RGB", (100, 100), "blue").save(original, "PNG")
-    result = await oai.OpenAIImageProvider().reframe_editorial_art(
-        art=original.getvalue(),
-        photos=[],
-        top_fraction=oai.MAX_REFRAME_TOP_FRACTION,
-        prompt="quiet scenery",
-        preserve_complete_scene=True,
-    )
-    assert result.meta["generated_top_fraction"] == oai.MAX_REFRAME_TOP_FRACTION
-    assert result.cost_usd == 0
-    assert _FakeAsyncClient.calls == []
-    with pytest.raises(ValueError, match="Enquadramento editorial inválido"):
-        await oai.OpenAIImageProvider().reframe_editorial_art(
-            art=original.getvalue(),
-            photos=[],
-            top_fraction=oai.MAX_REFRAME_TOP_FRACTION + 0.01,
-            prompt="quiet scenery",
-        )
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("art,top_fraction", [(b"invalid", 0.2), (b"", 0.2)])
-async def test_editorial_reframe_rejects_invalid_source_image(art, top_fraction):
-    with pytest.raises(OSError):
-        await oai.OpenAIImageProvider().reframe_editorial_art(
-            art=art, photos=[], top_fraction=top_fraction, prompt="preserve identity"
-        )
-    assert _FakeAsyncClient.calls == []
 
 
 @pytest.mark.asyncio

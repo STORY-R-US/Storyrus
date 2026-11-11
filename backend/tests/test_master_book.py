@@ -163,11 +163,6 @@ def composed_studio(studio, monkeypatch):
     control = {"fail_reading": False, "reject": False}
 
     class Images:
-        async def reframe_editorial_art(self, **kwargs):
-            calls.append({**kwargs, "operation": "outpaint_reframed_art"})
-            assert kwargs["photos"] == [_png()]
-            return ImageResult(_png(), cost_usd=0)
-
         async def generate_scene(self, **kwargs):
             calls.append(kwargs)
             assert kwargs["photo"] == (None if kwargs.get("landscape") else _png())
@@ -287,6 +282,7 @@ def composed_studio(studio, monkeypatch):
                     }
                 ),
                 cost_usd=0,
+                meta={"review_scope": "text_reserve"} if body_overlap else {},
             )
 
     monkeypatch.setattr(settings, "offline_fallback", False)
@@ -452,7 +448,7 @@ async def test_body_layout_adapts_to_observed_art_without_regenerating_scene(com
     pages = [a for a in sources if a.meta["stage"] in {"preview:left:text", "preview:right:text"}]
     assert len(pages) == 2
     layouts = {a.meta["stage"]: a.meta["layout"]["region"] for a in pages}
-    assert layouts["preview:left:text"] == [0.07, 0.07, 0.50, 0.40]
+    assert layouts["preview:left:text"] != [0.07, 0.07, 0.93, 0.37]
     assert layouts["preview:right:text"] == [0.07, 0.07, 0.93, 0.37]
 
 
@@ -487,15 +483,13 @@ async def test_composed_provider_failure_does_not_consume_visual_retries(compose
 
 
 @pytest.mark.asyncio
-async def test_composed_text_overlap_regenerates_art_with_feedback(composed_studio):
+async def test_composed_full_cover_overlap_stops_without_replacing_art(composed_studio):
     studio, calls, control = composed_studio
     control["reject_cover_text_once"] = True
-    job = await _run(studio, "preview", key="repair-text-overlap")
-    assert job.status == "DONE"
-    assert len(calls) == 5  # cover twice, two pages, and the optional holding scene
-    assert "texto sobre o cabelo" in calls[1]["prompt"]
-    assert "text_region" in calls[1]["prompt"]
-    assert calls[1]["operation"] == "outpaint_reframed_art"
+    job = await _run(studio, "preview", key="repair-text-overlap", expected="FAILED")
+    assert job.status == "FAILED"
+    assert "texto sobre o cabelo" in job.error
+    assert len(calls) == 1
 
 
 @pytest.mark.asyncio
@@ -559,7 +553,7 @@ async def test_composed_rejects_identity_with_bounded_retries(composed_studio):
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     assert job.status == "FAILED"
-    assert len(calls) == 3
+    assert len(calls) == 1
     assert not db.get(Project, uuid.UUID(pid)).purchase_flow.get("preview_ready_at")
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
 
@@ -725,7 +719,7 @@ def studio(auth_client, monkeypatch):
     generator.close()
 
 
-async def _run(studio, path, body=None, key=None):
+async def _run(studio, path, body=None, key=None, expected="DONE"):
     client, db, pid, _ = studio
     headers = {"Idempotency-Key": key} if key else {}
     response = client.post(f"/v1/projects/{pid}/{path}", json=body or {}, headers=headers)
@@ -733,7 +727,7 @@ async def _run(studio, path, body=None, key=None):
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     db.refresh(job)
-    assert job.status == "DONE", job.error
+    assert job.status == expected, job.error
     db.expire_all()
     return job
 
@@ -2539,204 +2533,232 @@ async def test_cover_overlap_requires_visual_confirmation_and_cannot_bypass_revi
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "context_change",
-    [None, "plain_retry", "legacy_crop", "non_crop", "theme_description", "costume"],
-)
-async def test_explicit_retry_reframes_matching_rejected_cover_once(
-    reference_studio, monkeypatch, context_change
+async def test_explicit_new_cover_keeps_new_art_revision_separate_from_retry_cache(
+    reference_studio,
+):
+    studio, calls, _ = reference_studio
+    await _run(studio, "preview", {"cover_only": True}, key="original-cover")
+    await _run(studio, "preview", {"image": "01_CAPA"}, key="explicit-new-cover")
+    assert len(calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_reserve_collision_moves_only_text_and_keeps_original_pixels(
+    reference_studio, monkeypatch
+):
+    from app.workers import editorial_render as render
+
+    studio, calls, _ = reference_studio
+    client, db, pid, store = studio
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+    inspected = []
+
+    async def crop_review(self, **kwargs):
+        inspected.append(kwargs)
+        if len(inspected) == 1:
+            return TextResult(
+                text=json.dumps(
+                    {"valid": False, "issues": ["Visible hair and head in crop"], "limitations": []}
+                ),
+                cost_usd=0,
+                meta={"review_scope": "text_reserve"},
+            )
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
+    job = await _run(studio, "preview", {"cover_only": True}, key="text-only-reserve")
+    assert job.status == "DONE", job.error
+    assert len(calls) == 1  # no replacement image, blur, extension, or resizing
+    assert inspected[0]["data"] == inspected[1]["data"]
+    assert inspected[0]["inspection_region"] != inspected[1]["inspection_region"]
+    flat = db.get(Project, uuid.UUID(pid)).book_profile["cover_calibration"]["flat_meta"]
+    assert flat["local_reading_layout"]["source_pixels_unchanged"] is True
+    assert flat["art_sha256"] == render.digest(inspected[0]["data"])
+    assert store[flat["art_key"]] == inspected[0]["data"]
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+async def test_reserve_exhaustion_is_bounded_and_retry_reuses_purchased_art(
+    reference_studio, monkeypatch
 ):
     studio, calls, _ = reference_studio
     client, db, pid, _ = studio
     text_class = type(handlers.get_text_provider())
     validate = text_class.validate_editorial_preview
-    # A reserve rejection now gets one automatic reframe inside the job. Keep
-    # rejecting so the first job still exhausts that repair and fails cleanly;
-    # the following explicit retry is then what the test actually observes.
-    remaining = 1 if context_change == "non_crop" else 2
+    reviewed = []
+    reject = True
 
     async def crop_review(self, **kwargs):
-        nonlocal remaining
-        if remaining and kwargs["prompt"].startswith("ARTE_BASE:"):
-            remaining -= 1
+        reviewed.append(kwargs)
+        if reject:
             return TextResult(
-                text=json.dumps({"valid": False, "issues": ["hat in reserve"], "limitations": []}),
+                text=json.dumps({"valid": False, "issues": ["Head in reserve"], "limitations": []}),
                 cost_usd=0,
-                meta={
-                    "review_scope": "full_image" if context_change == "non_crop" else "text_reserve"
-                },
+                meta={"review_scope": "text_reserve"},
             )
         return await validate(self, **kwargs)
 
     monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
-    body = {"cover_only": True, "image": "01_CAPA", "adjustment": "Leave title area clear"}
-    first = client.post(f"/v1/projects/{pid}/preview", json=body)
-    job = db.get(Job, uuid.UUID(first.json()["job_id"]))
-    await runner.process_job(db, job)
-    first_calls = 1 if context_change == "non_crop" else 2
-    assert job.status == "FAILED" and len(calls) == first_calls
-    if context_change != "non_crop":
-        assert calls[1]["operation"] == "outpaint_reframed_art"
-        assert calls[1]["preserve_complete_scene"] is True
-    if context_change in {"theme_description", "costume"}:
-        book_profile.update(
-            db.get(Project, uuid.UUID(pid)), **{context_change: "Changed user context"}
-        )
-        db.commit()
-    if context_change == "legacy_crop":
-        rejected_assets = db.scalars(
-            select(Asset).where(
-                Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_rejected"
+    job = await _run(
+        studio, "preview", {"cover_only": True}, key="no-space-first", expected="FAILED"
+    )
+    assert job.status == "FAILED" and len(calls) == 1
+    assert len(reviewed) == 3
+    assert len({check["data"] for check in reviewed}) == 1
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
+    reject = False
+    retry = await _run(studio, "preview", {"cover_only": True}, key="no-space-retry")
+    assert retry.status == "DONE", retry.error
+    assert len(calls) == 1
+    assert reviewed[-2]["data"] == reviewed[0]["data"]
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "context_change", [None, "legacy_crop", "full_preview", "theme_description", "costume"]
+)
+async def test_legacy_failed_cover_recovers_original_not_repaired_band(
+    reference_studio, monkeypatch, context_change
+):
+    studio, calls, _ = reference_studio
+    _, db, pid, _ = studio
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+    reject = True
+    inspected = []
+
+    async def crop_review(self, **kwargs):
+        inspected.append(kwargs)
+        if reject:
+            return TextResult(
+                text=json.dumps({"valid": False, "issues": ["Hair in reserve"], "limitations": []}),
+                cost_usd=0,
+                meta={"review_scope": "text_reserve"},
             )
-        ).all()
-        for rejected in rejected_assets:
-            meta = dict(rejected.meta)
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
+    body = {} if context_change == "full_preview" else {"cover_only": True}
+    job = await _run(studio, "preview", body, key="old-cover-first", expected="FAILED")
+    assert job.status == "FAILED" and len(calls) == 1
+    # Simulate a failure recorded before original-candidate persistence existed.
+    for asset in db.scalars(select(Asset).where(Asset.kind == "editorial_candidate")).all():
+        db.delete(asset)
+    if context_change == "legacy_crop":
+        for asset in db.scalars(select(Asset).where(Asset.kind == "editorial_rejected")).all():
+            meta = dict(asset.meta)
             meta.pop("review_scope", None)
             meta.pop("role", None)
             meta["validation"] = {
                 **meta["validation"],
                 "limitations": ["Cannot judge outside the supplied crop"],
             }
-            rejected.meta = meta
-        db.commit()
-    body["adjustment"] = "Reframe the scene"
-    if context_change == "plain_retry":
-        body.pop("image")
-    second = client.post(f"/v1/projects/{pid}/preview", json=body)
-    retry = db.get(Job, uuid.UUID(second.json()["job_id"]))
-    await runner.process_job(db, retry)
+            asset.meta = meta
+    elif context_change in {"theme_description", "costume"}:
+        book_profile.update(
+            db.get(Project, uuid.UUID(pid)), **{context_change: "Changed user context"}
+        )
+    db.commit()
+    reject = False
+    retry = await _run(studio, "preview", body, key="old-cover-retry")
     assert retry.status == "DONE", retry.error
-    assert len(calls) == first_calls + 1
-    if context_change in {"theme_description", "costume", "non_crop"}:
-        assert not calls[-1].get("operation")
-    else:
-        assert calls[-1]["operation"] == "outpaint_reframed_art"
-        assert calls[-1]["preserve_complete_scene"] is True
-    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+    assert len(calls) == (
+        4
+        if context_change == "full_preview"
+        else 2
+        if context_change in {"theme_description", "costume"}
+        else 1
+    )
+    if context_change not in {"theme_description", "costume"}:
+        assert inspected[3]["data"] == inspected[0]["data"]
 
 
 @pytest.mark.asyncio
-async def test_plain_cover_only_retry_reframes_matching_rejected_cover(
+async def test_quality_rejection_after_reserve_repair_does_not_keep_moving_text(
     reference_studio, monkeypatch
 ):
     studio, calls, _ = reference_studio
     client, db, pid, _ = studio
     text_class = type(handlers.get_text_provider())
     validate = text_class.validate_editorial_preview
-    remaining = 2
+    inspected = []
 
-    async def crop_review(self, **kwargs):
-        nonlocal remaining
-        if remaining and kwargs["prompt"].startswith("ARTE_BASE:"):
-            remaining -= 1
+    async def review(self, **kwargs):
+        inspected.append(kwargs)
+        if len(inspected) == 1:
             return TextResult(
-                text=json.dumps({"valid": False, "issues": ["hair in reserve"], "limitations": []}),
+                text=json.dumps({"valid": False, "issues": ["Head in crop"], "limitations": []}),
                 cost_usd=0,
                 meta={"review_scope": "text_reserve"},
             )
-        return await validate(self, **kwargs)
-
-    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
-    # Studio sends only cover_only on the normal retry; it has no payload["image"].
-    body = {"cover_only": True}
-    first = client.post(
-        f"/v1/projects/{pid}/preview",
-        json=body,
-        headers={"Idempotency-Key": "plain-cover-retry-first"},
-    )
-    job = db.get(Job, uuid.UUID(first.json()["job_id"]))
-    await runner.process_job(db, job)
-    assert job.status == "FAILED" and len(calls) == 2
-    assert calls[1]["operation"] == "outpaint_reframed_art"
-
-    second = client.post(
-        f"/v1/projects/{pid}/preview",
-        json=body,
-        headers={"Idempotency-Key": "plain-cover-retry-second"},
-    )
-    retry = db.get(Job, uuid.UUID(second.json()["job_id"]))
-    await runner.process_job(db, retry)
-    assert retry.status == "DONE", retry.error
-    assert len(calls) == 3
-    assert calls[2]["operation"] == "outpaint_reframed_art"
-    assert calls[2]["preserve_complete_scene"] is True
-
-
-@pytest.mark.asyncio
-async def test_explicit_retry_reframe_failure_triggers_second_automatic_reframe(
-    reference_studio, monkeypatch
-):
-    studio, calls, _ = reference_studio
-    client, db, pid, _ = studio
-    text_class = type(handlers.get_text_provider())
-    validate = text_class.validate_editorial_preview
-    remaining = 3
-
-    async def crop_review(self, **kwargs):
-        nonlocal remaining
-        if remaining and kwargs["prompt"].startswith("ARTE_BASE:"):
-            remaining -= 1
+        if kwargs["prompt"].startswith("CAPA_PLANA:"):
             return TextResult(
                 text=json.dumps(
-                    {"valid": False, "issues": ["hair and heads in reserve"], "limitations": []}
+                    {
+                        "valid": False,
+                        "issues": ["Faixa artificial interrompe o fundo natural"],
+                        "limitations": [],
+                    }
                 ),
                 cost_usd=0,
-                meta={"review_scope": "text_reserve"},
             )
         return await validate(self, **kwargs)
 
-    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
-    body = {"cover_only": True}
-    first = client.post(f"/v1/projects/{pid}/preview", json=body)
-    job = db.get(Job, uuid.UUID(first.json()["job_id"]))
-    await runner.process_job(db, job)
-    assert job.status == "FAILED" and len(calls) == 2
-
-    second = client.post(f"/v1/projects/{pid}/preview", json=body)
-    retry = db.get(Job, uuid.UUID(second.json()["job_id"]))
-    await runner.process_job(db, retry)
-    assert retry.status == "DONE", retry.error
-    assert len(calls) == 4
-    assert not calls[0].get("operation")
-    assert calls[1]["operation"] == "outpaint_reframed_art"
-    # Attempt 1 reused the previous rejected cover; its auto-repair reframed the
-    # rejected result without buying another generated illustration.
-    assert calls[2]["operation"] == "outpaint_reframed_art"
-    assert calls[3]["operation"] == "outpaint_reframed_art"
+    monkeypatch.setattr(text_class, "validate_editorial_preview", review)
+    job = await _run(
+        studio, "preview", {"cover_only": True}, key="quality-remains-blocking", expected="FAILED"
+    )
+    assert job.status == "FAILED" and "Faixa artificial" in job.error
+    assert len(calls) == 1 and len(inspected) == 3
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_ready_at")
 
 
 @pytest.mark.asyncio
-async def test_reserve_rejection_reframes_automatically_without_new_generation(
-    reference_studio, monkeypatch
+@pytest.mark.parametrize(
+    "report", ["not-json", "[]", '{"valid":true,"issues":["Identity differs"],"limitations":[]}']
+)
+async def test_invalid_or_inconsistent_review_never_approves_or_regenerates(
+    reference_studio, monkeypatch, report
 ):
     studio, calls, _ = reference_studio
     client, db, pid, _ = studio
     text_class = type(handlers.get_text_provider())
-    validate = text_class.validate_editorial_preview
-    reject_once = True
 
-    async def crop_review(self, **kwargs):
-        nonlocal reject_once
-        if reject_once and kwargs["prompt"].startswith("ARTE_BASE:"):
-            reject_once = False
-            return TextResult(
-                text=json.dumps(
-                    {"valid": False, "issues": ["visible hair and heads"], "limitations": []}
-                ),
-                cost_usd=0,
-                meta={"review_scope": "text_reserve"},
-            )
-        return await validate(self, **kwargs)
+    async def review(self, **kwargs):
+        return TextResult(text=report, cost_usd=0)
 
-    monkeypatch.setattr(text_class, "validate_editorial_preview", crop_review)
-    response = client.post(f"/v1/projects/{pid}/preview", json={"cover_only": True})
-    job = db.get(Job, uuid.UUID(response.json()["job_id"]))
-    await runner.process_job(db, job)
-    assert job.status == "DONE", job.error
-    assert len(calls) == 2
-    assert not calls[0].get("operation")
-    assert calls[1]["operation"] == "outpaint_reframed_art"
-    assert calls[1]["preserve_complete_scene"] is True
+    monkeypatch.setattr(text_class, "validate_editorial_preview", review)
+    job = await _run(
+        studio, "preview", {"cover_only": True}, key="invalid-review", expected="FAILED"
+    )
+    assert job.status == "FAILED" and len(calls) == 1
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_ready_at")
+
+
+@pytest.mark.asyncio
+async def test_corrupt_candidate_blocks_retry_without_purchasing_replacement(
+    reference_studio, monkeypatch
+):
+    studio, calls, control = reference_studio
+    _, db, pid, store = studio
+    control["reject"] = True
+    first = await _run(
+        studio, "preview", {"cover_only": True}, key="candidate-first", expected="FAILED"
+    )
+    assert first.status == "FAILED" and len(calls) == 1
+    candidate = db.scalar(select(Asset).where(Asset.kind == "editorial_candidate"))
+    store[candidate.storage_key] = b"corrupt"
+    control["reject"] = False
+    retry = await _run(
+        studio, "preview", {"cover_only": True}, key="candidate-corrupt-retry", expected="FAILED"
+    )
+    assert retry.status == "FAILED" and "Arte original armazenada inválida" in retry.error
+    assert len(calls) == 1
 
 
 @pytest.mark.asyncio

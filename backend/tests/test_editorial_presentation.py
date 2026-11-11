@@ -48,6 +48,29 @@ def test_reading_area_moves_around_hat_without_rewriting_or_shrinking(monkeypatc
     )
 
 
+@pytest.mark.parametrize("title", [False, True])
+def test_reserve_candidates_preserve_scene_and_literal_copy(monkeypatch, title):
+    profile = {"editorial": editorial_profile.snapshot("2026-11-05.3")}
+    original = Image.new("RGB", (1024, 1024), "#bfe3ef")
+    ImageDraw.Draw(original).rectangle((60, 80, 470, 700), fill="#71573a")
+    source = render.encode(original)
+    monkeypatch.setattr(render, "protected_heads", lambda _: [[0.06, 0.08, 0.46, 0.68]])
+    literal = "André no parque" if title else "André olha o céu.\nQue lindo dia!"
+    preferred = [0.06, 0.055, 0.94, 0.31]
+    regions = render.reading_region_candidates(source, literal, profile, preferred, title=title)
+    assert regions[0] == preferred and 1 < len(regions) <= 3
+    assert len({tuple(r) for r in regions}) == len(regions)
+    image, layout = render.text(source, literal, profile, title=title, region=regions[1])
+    assert layout["text"] == literal and layout["font_size"] >= layout["minimum_font_size"]
+    assert (
+        render.square(image).crop((60, 80, 470, 700)).tobytes()
+        == original.crop((60, 80, 470, 700)).tobytes()
+    )
+    assert render.square(source).tobytes() == original.tobytes()
+    if title:
+        assert all(r[1] <= 0.15 for r in regions)
+
+
 def test_front_spine_inherits_cover_color_and_preserves_flat_source():
     profile = {"editorial": editorial_profile.snapshot("2026-11-05.3")}
     source = render.encode(Image.new("RGB", (1000, 1000), (30, 140, 190)))

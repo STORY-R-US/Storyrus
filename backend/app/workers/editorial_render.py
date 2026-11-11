@@ -271,6 +271,71 @@ def title_area_evidence(data, layout):
     }
 
 
+def reading_region_candidates(data, value, profile, preferred, *, title=False, alignment="center"):
+    """Bounded text-only repairs, ranked on the purchased scene without changing its pixels.
+
+    Face boxes and texture only rank proposals. Mandatory crop/whole-image reviews
+    still decide whether the text avoids hair, hands, objects and important action.
+    """
+    heads = protected_heads(data)
+    gray = np.array(square(data).resize((256, 256)).convert("L"))
+    regions = [preferred]
+    # Keep covers in the upper part of the scene; interiors can use quiet scenery
+    # beside the activity, as in the approved book references.
+    for top in (0.055, 0.10) if title else (0.055, 0.16, 0.35, 0.52):
+        for left, right in ((0.06, 0.94), (0.06, 0.51), (0.49, 0.94), (0.06, 0.65), (0.35, 0.94)):
+            regions.append([left, top, right, min(0.94, top + (0.34 if title else 0.40))])
+    choices = []
+    for index, region in enumerate(regions):
+        try:
+            _, layout = text(
+                data,
+                value,
+                profile,
+                title=title,
+                region=region,
+                alignment=alignment,
+                readable=not title,
+                measure_only=True,
+            )
+        except TextLayoutError:
+            continue
+        ink = layout["ink_region_with_margin"]
+        x0, y0, x1, y1 = ink
+        overlap = sum(
+            max(0, min(x1, b[2]) - max(x0, b[0])) * max(0, min(y1, b[3]) - max(y0, b[1]))
+            for b in heads
+        )
+        crop = gray[
+            max(0, int(y0 * 256)) : max(1, int(y1 * 256)),
+            max(0, int(x0 * 256)) : max(1, int(x1 * 256)),
+        ]
+        busy = float(crop.std()) / 255 if crop.size else 1
+        score = overlap * 1000 + busy * 0.1 + y0 * 0.03
+        choices.append((index, score, region, ink))
+    if not choices:
+        raise TextLayoutError("O texto não cabe nas áreas de leitura disponíveis.")
+    # The catalog layout always gets its mandatory visual check, even when the
+    # approximate face detector disagrees. Avoid spending reviews on near copies.
+    selected = [choices[0]]
+    for choice in sorted(choices[1:], key=lambda item: item[1]):
+        ink = choice[3]
+        if any(_region_iou(ink, previous[3]) > 0.65 for previous in selected):
+            continue
+        selected.append(choice)
+        if len(selected) == 3:
+            break
+    return [item[2] for item in selected]
+
+
+def _region_iou(a, b):
+    intersection = max(0, min(a[2], b[2]) - max(a[0], b[0])) * max(
+        0, min(a[3], b[3]) - max(a[1], b[1])
+    )
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - intersection
+    return intersection / union if union else 0
+
+
 def choose_reading_region(data, value, profile, preferred, *, alignment="center"):
     """Move literal, fixed-size copy around detected heads instead of buying new art."""
     heads = protected_heads(data)

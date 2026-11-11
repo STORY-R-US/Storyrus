@@ -42,53 +42,6 @@ async def test_flat_review_contract(role):
     assert "CAPA_PLANA e PAGINA_INTERNA" in captured[0]
 
 
-@pytest.mark.parametrize("designed", [False, True])
-@pytest.mark.parametrize("title", [False, True])
-def test_cover_and_interior_overlap_use_one_reframe_before_regenerating(designed, title):
-    pipe = object.__new__(Pipeline)
-    pipe.designed = designed
-    pipe.last_art = b"existing candidate"
-    pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
-    assert not pipe.should_reframe_art(title=title, attempt=1)
-    assert pipe.should_reframe_art(title=title, attempt=2)
-    assert not pipe.should_reframe_art(title=title, attempt=3)
-    pipe.last_review_issues = ["Identity differs from the reference photograph"]
-    assert not pipe.should_reframe_art(title=title, attempt=2)
-    pipe.last_review_issues = ["Head overlaps ink_region_with_margin"]
-    pipe.last_art = None
-    assert not pipe.should_reframe_art(title=title, attempt=2)
-
-
-@pytest.mark.parametrize(
-    "issues",
-    [
-        ["Visible hair", "Visible part of a face", "Visible ear"],
-        ["Unspecified crop defect"],
-        [],
-    ],
-)
-def test_text_reserve_scope_triggers_reframe_without_keyword_matching(issues):
-    pipe = object.__new__(Pipeline)
-    pipe.designed = True
-    pipe.last_art = b"rejected scene"
-    pipe.last_review_scope = "text_reserve"
-    pipe.last_review_issues = issues
-    assert pipe.should_reframe_art(title=False, attempt=2)
-    assert not pipe.should_reframe_art(title=False, attempt=1)
-    assert not pipe.should_reframe_art(title=False, attempt=3)
-
-
-@pytest.mark.parametrize("title", [False, True])
-def test_structured_reserve_failure_repairs_current_layout_cover_and_pages(title):
-    pipe = object.__new__(Pipeline)
-    pipe.designed = True
-    pipe.last_art = b"rejected candidate"
-    pipe.last_review_scope = "text_reserve"
-    pipe.last_review_issues = ["Portion of a human head is visible"]
-    assert pipe.should_reframe_art(title=title, attempt=2)
-    assert not pipe.should_reframe_art(title=title, attempt=3)
-
-
 @pytest.mark.asyncio
 async def test_user_visual_review_does_not_accept_corrupt_image():
     from PIL import UnidentifiedImageError
