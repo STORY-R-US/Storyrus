@@ -168,6 +168,8 @@ def composed_studio(studio, monkeypatch):
             assert kwargs["photo"] == (None if kwargs.get("landscape") else _png())
             if control["fail_reading"] and "Protagonista original segura" in kwargs["prompt"]:
                 raise ProviderError("interrupção controlada", transient=False)
+            if control.get("source_art"):
+                return ImageResult(control["source_art"], cost_usd=0)
             image = Image.new("RGB", (1024, 1024), (min(len(calls) * 20, 240), 120, 160))
             if "#ff00ff" in kwargs["prompt"]:
                 from PIL import ImageDraw
@@ -209,7 +211,10 @@ def composed_studio(studio, monkeypatch):
 
         async def plan_editorial_page(self, **kwargs):
             observed_too_small = False
-            if kwargs.get("scene_image"):
+            repair = isinstance(kwargs["action"], dict) and kwargs["action"].get("layout_repair")
+            if repair:
+                control["layout_repair_calls"] = control.get("layout_repair_calls", 0) + 1
+            if kwargs.get("scene_image") and not repair:
                 control["observed_layout_calls"] = control.get("observed_layout_calls", 0) + 1
                 observed_too_small = control.pop("observed_too_small_once", False) or control.get(
                     "observed_always_too_small", False
@@ -225,6 +230,15 @@ def composed_studio(studio, monkeypatch):
                         else [0.09, 0.06, 0.91, 0.29],
                         "alignment": "center" if kwargs["title"] else "left",
                         "protected_content": ["rosto", "mãos"],
+                        "protection_complete": control.get("protection_complete", True),
+                        "protected_regions": control.get(
+                            "protected_regions",
+                            [
+                                {"kind": "head", "region": [0.18, 0.03, 0.53, 0.60]},
+                                {"kind": "hat", "region": [0.18, 0.01, 0.53, 0.16]},
+                                {"kind": "action", "region": [0.06, 0.61, 0.94, 0.94]},
+                            ],
+                        ),
                     }
                 ),
                 cost_usd=0,
@@ -2543,6 +2557,153 @@ async def test_explicit_new_cover_keeps_new_art_revision_separate_from_retry_cac
 
 
 @pytest.mark.asyncio
+async def test_blue_hat_is_protected_when_local_face_detector_misses_it(
+    reference_studio, monkeypatch
+):
+    from PIL import ImageDraw
+
+    from app.workers import editorial_render as render
+
+    studio, calls, control = reference_studio
+    _, db, pid, store = studio
+    source = Image.new("RGB", (1024, 1024), "#bfe3ef")
+    draw = ImageDraw.Draw(source)
+    draw.rectangle((61, 0, 532, 200), fill="#125895")
+    draw.rectangle((61, 200, 532, 615), fill="#d9a078")
+    control["source_art"] = render.encode(source)
+    control["protected_regions"] = [
+        {"kind": "head", "region": [0.06, 0, 0.52, 0.60]},
+        {"kind": "hat", "region": [0.06, 0, 0.52, 0.20]},
+        {"kind": "action", "region": [0.05, 0.7, 0.95, 0.95]},
+    ]
+    monkeypatch.setattr(render, "protected_heads", lambda _: [])
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+    first = True
+
+    async def review(self, **kwargs):
+        nonlocal first
+        if first:
+            first = False
+            return TextResult(
+                text=json.dumps(
+                    {
+                        "valid": False,
+                        "issues": [
+                            "Portion of a person's face visible (forehead, eyes, eyebrow)",
+                            "Portion of a hat visible (blue knit cap)",
+                        ],
+                        "limitations": [],
+                    }
+                ),
+                cost_usd=0,
+                meta={"review_scope": "text_reserve"},
+            )
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", review)
+    job = await _run(studio, "preview", {"cover_only": True}, key="actual-blue-hat-shape")
+    assert job.status == "DONE", job.error
+    assert len(calls) == 1 and control["layout_repair_calls"] == 1
+    project = db.get(Project, uuid.UUID(pid))
+    meta = project.book_profile["cover_calibration"]["flat_meta"]
+    protected = meta["local_reading_layout"]["protected_regions"]
+    assert not render.layout_overlaps(meta["layout"], protected)
+    result = render.square(store[project.book_profile["cover_calibration"]["flat_key"]])
+    assert result.crop((61, 0, 532, 615)).tobytes() == source.crop((61, 0, 532, 615)).tobytes()
+    assert not (project.purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+async def test_changed_title_on_cached_art_gets_new_protected_layout_without_new_image(
+    reference_studio, monkeypatch
+):
+    from PIL import ImageDraw
+
+    from app.workers import editorial_render as render
+
+    studio, calls, control = reference_studio
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    locale = {**project.book_profile["locales"]["pt-BR"], "title": "André"}
+    book_profile.update(
+        project, locales={"pt-BR": locale}, theme_description="Aprender a usar o computador"
+    )
+    db.commit()
+    original = Image.new("RGB", (1024, 1024), "#bfe3ef")
+    ImageDraw.Draw(original).rectangle((61, 0, 256, 615), fill="#125895")
+    control["source_art"] = render.encode(original)
+    control["protected_regions"] = [
+        {"kind": "head", "region": [0.06, 0, 0.25, 0.6]},
+        {"kind": "hat", "region": [0.06, 0, 0.25, 0.2]},
+    ]
+    boxes = render.protected_regions(control["protected_regions"])
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+
+    async def review(self, **kwargs):
+        if kwargs["prompt"].startswith("ARTE_BASE:") and any(
+            render._intersection(line, box)
+            for line in kwargs.get("inspection_regions", [])
+            for box in boxes
+        ):
+            return TextResult(
+                text='{"valid":false,"issues":["blue knit hat in title line"],"limitations":[]}',
+                cost_usd=0,
+                meta={"review_scope": "text_reserve"},
+            )
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", review)
+    await _run(studio, "preview", {"cover_only": True}, key="short-clear-title")
+    assert len(calls) == 1
+    response = client.put(
+        f"/v1/projects/{pid}/preview/copy", json={**locale, "title": "André no Computador"}
+    )
+    assert response.status_code == 200, response.text
+    job = await _run(studio, "preview", {"cover_only": True}, key="longer-title-on-same-art")
+    assert job.status == "DONE" and len(calls) == 1
+    project = db.get(Project, uuid.UUID(pid))
+    calibration = project.book_profile["cover_calibration"]
+    assert not render.layout_overlaps(calibration["flat_meta"]["layout"], boxes)
+    assert (
+        render.square(store[calibration["flat_key"]]).crop((61, 0, 256, 615)).tobytes()
+        == original.crop((61, 0, 256, 615)).tobytes()
+    )
+
+
+@pytest.mark.asyncio
+async def test_full_scene_with_no_clear_area_stops_without_repeated_paid_calls(
+    reference_studio, monkeypatch
+):
+    studio, calls, control = reference_studio
+    _, db, pid, _ = studio
+    control["protected_regions"] = [{"kind": "body", "region": [0, 0, 1, 1]}]
+    text_class = type(handlers.get_text_provider())
+    reviews = []
+
+    async def review(self, **kwargs):
+        reviews.append(kwargs)
+        return TextResult(
+            text='{"valid":false,"issues":["face and hat in crop"],"limitations":[]}',
+            cost_usd=0,
+            meta={"review_scope": "text_reserve"},
+        )
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", review)
+    first = await _run(
+        studio, "preview", {"cover_only": True}, key="full-face-first", expected="FAILED"
+    )
+    assert "BOOK_LAYOUT_UNSAFE" in first.error
+    again = await _run(
+        studio, "preview", {"cover_only": True}, key="full-face-same", expected="FAILED"
+    )
+    assert "BOOK_LAYOUT_UNSAFE" in again.error
+    assert len(calls) == 1 and len(reviews) == 1 and control["layout_repair_calls"] == 1
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_ready_at")
+
+
+@pytest.mark.asyncio
 async def test_reserve_collision_moves_only_text_and_keeps_original_pixels(
     reference_studio, monkeypatch
 ):
@@ -2580,7 +2741,7 @@ async def test_reserve_collision_moves_only_text_and_keeps_original_pixels(
 
 
 @pytest.mark.asyncio
-async def test_reserve_exhaustion_is_bounded_and_retry_reuses_purchased_art(
+async def test_reserve_exhaustion_blocks_same_input_until_copy_changes(
     reference_studio, monkeypatch
 ):
     studio, calls, _ = reference_studio
@@ -2609,7 +2770,17 @@ async def test_reserve_exhaustion_is_bounded_and_retry_reuses_purchased_art(
     assert len({check["data"] for check in reviewed}) == 1
     assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
     reject = False
-    retry = await _run(studio, "preview", {"cover_only": True}, key="no-space-retry")
+    blocked = await _run(
+        studio, "preview", {"cover_only": True}, key="no-space-same-input", expected="FAILED"
+    )
+    assert "BOOK_LAYOUT_UNSAFE" in blocked.error
+    assert len(calls) == 1 and len(reviewed) == 3  # no further paid review or image
+    locale = db.get(Project, uuid.UUID(pid)).book_profile["locales"]["pt-BR"]
+    changed = client.put(
+        f"/v1/projects/{pid}/preview/copy", json={**locale, "title": "ANdré no Computador!"}
+    )
+    assert changed.status_code == 200, changed.text
+    retry = await _run(studio, "preview", {"cover_only": True}, key="no-space-changed-title")
     assert retry.status == "DONE", retry.error
     assert len(calls) == 1
     assert reviewed[-2]["data"] == reviewed[0]["data"]
@@ -2645,7 +2816,9 @@ async def test_legacy_failed_cover_recovers_original_not_repaired_band(
     job = await _run(studio, "preview", body, key="old-cover-first", expected="FAILED")
     assert job.status == "FAILED" and len(calls) == 1
     # Simulate a failure recorded before original-candidate persistence existed.
-    for asset in db.scalars(select(Asset).where(Asset.kind == "editorial_candidate")).all():
+    for asset in db.scalars(
+        select(Asset).where(Asset.kind.in_(["editorial_candidate", "editorial_layout_map"]))
+    ).all():
         db.delete(asset)
     if context_change == "legacy_crop":
         for asset in db.scalars(select(Asset).where(Asset.kind == "editorial_rejected")).all():

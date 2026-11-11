@@ -153,6 +153,11 @@ export type StudioCopy = {
   previewInputSafetyBlocked: string;
   previewProviderSafetyBlocked: string;
   previewSafetyCheckUnavailable: string;
+  previewNoSafeTextArea: string;
+  previewBookTextInvalid: string;
+  previewBookReviewInvalid: string;
+  previewBookArtRejected: string;
+  previewBookArtUnavailable: string;
   previewProviderFailed: string;
   previewGenerationOutcomeUnknown: string;
   previewInvalidPhoto: string;
@@ -535,7 +540,12 @@ const pt: StudioCopy = {
   previewInputSafetyBlocked: "A checagem gratuita bloqueou estes dados antes de gerar imagens. Ajuste o tema ou o texto, ou escolha outra foto, e comece um novo projeto.",
   previewProviderSafetyBlocked: "O provedor bloqueou esta imagem. Ajuste o tema ou o texto, ou escolha outra foto antes de começar um novo projeto.",
   previewSafetyCheckUnavailable: "A validação gratuita desta etapa não ficou disponível. Nenhuma nova geração foi iniciada nesta etapa. Tente novamente daqui a pouco.",
-  previewProviderFailed: "Uma etapa da geração falhou. O Estúdio preservou o que já foi feito e não vai repetir esta imagem automaticamente. Revise a foto ou o texto antes de começar um novo projeto.",
+  previewNoSafeTextArea: "Não foi possível encaixar o texto sem cobrir rosto, cabelo, gorro, mãos ou a ação. A arte original está salva neste projeto. Ajuste o título ou solicite outro enquadramento para esta arte.",
+  previewBookTextInvalid: "O texto precisa de ajuste para caber com leitura confortável. Revise o título ou os versos indicados; a arte existente foi preservada.",
+  previewBookReviewInvalid: "A análise visual não retornou uma confirmação válida. A etapa ficou pendente e a arte original foi preservada neste projeto.",
+  previewBookArtRejected: "A revisão identificou um problema visual na arte. A etapa precisa de correção antes da aprovação; a imagem recebida foi preservada neste projeto.",
+  previewBookArtUnavailable: "Não foi possível conferir a integridade da arte salva. A etapa foi interrompida para preservar o projeto. Informe este erro ao suporte para recuperar o arquivo.",
+  previewProviderFailed: "Uma etapa da geração falhou. O Estúdio preservou o que já foi feito e não vai repetir esta imagem automaticamente. Retome este mesmo projeto após resolver a causa indicada.",
   previewGenerationOutcomeUnknown: "O provedor não confirmou o resultado desta etapa. Para evitar cobrança duplicada, esta mesma geração ficou bloqueada. Informe o código de solicitação ao suporte antes de tentar de novo.",
   previewInvalidPhoto: "Não foi possível validar a foto. Envie uma imagem JPG, PNG ou WEBP legível, com até 10 MB.",
   previewRequestId: "Código de solicitação",
@@ -821,7 +831,12 @@ const en: StudioCopy = {
   previewInputSafetyBlocked: "The free check blocked this input before image generation. Adjust the theme or text, or choose another photo, then start a new project.",
   previewProviderSafetyBlocked: "The provider blocked this image. Adjust the theme or text, or choose another photo before starting a new project.",
   previewSafetyCheckUnavailable: "The free check for this step was unavailable. No new generation started in this step. Try again shortly.",
-  previewProviderFailed: "A generation step failed. The Studio kept completed work and will not repeat this image automatically. Review the photo or text before starting a new project.",
+  previewNoSafeTextArea: "The text could not fit without covering a face, hair, hat, hands or the action. The original artwork is saved in this project. Adjust the title or request different framing for this artwork.",
+  previewBookTextInvalid: "The text needs adjustment to remain comfortably readable. Review the indicated title or verses; existing artwork was preserved.",
+  previewBookReviewInvalid: "The visual analysis did not return a valid confirmation. This step remains pending and the original artwork was preserved in this project.",
+  previewBookArtRejected: "The review found a visual issue in the artwork. This step needs correction before approval; the received image was preserved in this project.",
+  previewBookArtUnavailable: "The saved artwork's integrity could not be verified. This step was stopped to preserve the project. Give this error to support to recover the file.",
+  previewProviderFailed: "A generation step failed. The Studio kept completed work and will not repeat this image automatically. Resume this same project after addressing the reported cause.",
   previewGenerationOutcomeUnknown: "The provider did not confirm this step's result. To prevent a duplicate charge, this generation is blocked. Give the request ID to support before trying again.",
   previewInvalidPhoto: "The photo could not be validated. Upload a readable JPG, PNG or WEBP image up to 10 MB.",
   previewRequestId: "Request ID",
@@ -1107,7 +1122,12 @@ const es: StudioCopy = {
   previewInputSafetyBlocked: "La comprobación gratuita bloqueó estos datos antes de generar imágenes. Ajusta el tema o el texto, o elige otra foto y empieza un nuevo proyecto.",
   previewProviderSafetyBlocked: "El proveedor bloqueó esta imagen. Ajusta el tema o el texto, o elige otra foto antes de empezar un nuevo proyecto.",
   previewSafetyCheckUnavailable: "La comprobación gratuita de esta etapa no estuvo disponible. No se inició ninguna generación nueva en esta etapa. Vuelve a intentarlo en un momento.",
-  previewProviderFailed: "Falló una etapa de generación. El Estudio conservó lo que ya estaba hecho y no repetirá esta imagen automáticamente. Revisa la foto o el texto antes de empezar un nuevo proyecto.",
+  previewNoSafeTextArea: "El texto no cabe sin cubrir el rostro, el cabello, el gorro, las manos o la acción. El arte original está guardado en este proyecto. Ajusta el título o solicita otro encuadre para esta imagen.",
+  previewBookTextInvalid: "El texto necesita un ajuste para mantener una lectura cómoda. Revisa el título o los versos indicados; el arte existente se conservó.",
+  previewBookReviewInvalid: "El análisis visual no devolvió una confirmación válida. La etapa quedó pendiente y el arte original se conservó en este proyecto.",
+  previewBookArtRejected: "La revisión encontró un problema visual en el arte. La etapa necesita una corrección antes de aprobarse; la imagen recibida se conservó en este proyecto.",
+  previewBookArtUnavailable: "No se pudo verificar la integridad del arte guardado. Se interrumpió la etapa para conservar el proyecto. Informa este error al soporte para recuperar el archivo.",
+  previewProviderFailed: "Falló una etapa de generación. El Estudio conservó lo que ya estaba hecho y no repetirá esta imagen automáticamente. Retoma este mismo proyecto después de resolver la causa indicada.",
   previewGenerationOutcomeUnknown: "El proveedor no confirmó el resultado de esta etapa. Para evitar un cobro duplicado, esta generación quedó bloqueada. Informa el ID de solicitud al soporte antes de volver a intentarlo.",
   previewInvalidPhoto: "No se pudo validar la foto. Envía una imagen JPG, PNG o WEBP legible de hasta 10 MB.",
   previewRequestId: "ID de solicitud",

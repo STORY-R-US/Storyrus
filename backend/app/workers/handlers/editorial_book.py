@@ -14,6 +14,7 @@ from app.services import (
     book_design,
     composition_examples,
     editorial_profile,
+    editorial_review,
     purchase_flow,
     spend_guard,
     visual_reference,
@@ -31,9 +32,10 @@ def signature(value):
 
 
 class VisualReviewError(ValueError):
-    def __init__(self, message, *, scope):
+    def __init__(self, message, *, scope, report=None):
         super().__init__(message)
         self.scope = scope
+        self.report = report
 
 
 class Pipeline:
@@ -193,10 +195,7 @@ class Pipeline:
                 f"editorial/{self.project.id}/{signature([self.base, 'cover:art', inputs])}.png"
                 for inputs in candidates
             }
-            if (
-                task.get("input_key") not in expected
-                or task.get("failure_category") != "visual_review"
-            ):
+            if task.get("input_key") not in expected:
                 continue
             for rejected in (previous.result or {}).get("rejected_candidates", []):
                 asset = self.db.scalar(
@@ -447,12 +446,19 @@ class Pipeline:
                     ),
                 )
                 if attempt == maximum:
+                    if isinstance(exc, VisualReviewError) and exc.scope in {
+                        "text_reserve",
+                        "text_overlap",
+                    }:
+                        raise ProviderError(
+                            "BOOK_LAYOUT_UNSAFE: não foi possível posicionar o texto sem cobrir rosto, cabelo, gorro, mãos ou ação importante. A arte original foi preservada."
+                        ) from exc
                     if self.designed or isinstance(exc, VisualReviewError):
                         raise ProviderError(
                             (
-                                f"Capa ou ilustração reprovada em {name}: {str(exc)[:240]}"
+                                f"BOOK_ART_REJECTED: Capa ou ilustração reprovada em {name}: {str(exc)[:240]}"
                                 if "Revisão visual" in str(exc) or "Região do título" in str(exc)
-                                else f"Falha técnica na montagem de {name}: {str(exc)[:240]}"
+                                else f"BOOK_ART_INVALID: Falha técnica na montagem de {name}: {str(exc)[:240]}"
                             ),
                             transient=False,
                         ) from exc
@@ -546,17 +552,14 @@ class Pipeline:
                 inspection_region=(technical or {})
                 .get("typography", {})
                 .get("ink_region_with_margin"),
+                inspection_regions=(technical or {})
+                .get("typography", {})
+                .get("ink_regions_with_margin"),
             )
         )
         self.account(result, "Revisão editorial")
-        report = json.loads(result.text)
-        if (
-            not isinstance(report, dict)
-            or report.get("valid") is not True
-            or report.get("issues") != []
-            or not isinstance(report.get("limitations"), list)
-            or any(not isinstance(item, str) for item in report["limitations"])
-        ):
+        report = editorial_review.parse_report(result.text)
+        if not editorial_review.approved(report):
             logging.getLogger(__name__).warning(
                 "editorial_review_rejected job=%s role=%s issues=%s",
                 self.job.id,
@@ -598,9 +601,107 @@ class Pipeline:
             reasons = "; ".join(str(issue) for issue in self.last_review_issues)[:400]
             raise VisualReviewError(
                 "Revisão visual reprovada ou inconclusiva" + (": " + reasons if reasons else ""),
-                scope=result.meta.get("review_scope") or "full_image",
+                scope=(
+                    "text_overlap"
+                    if prompt.startswith("CAPA_PLANA:") and editorial_review.overlap_only(report)
+                    else result.meta.get("review_scope") or "full_image"
+                ),
+                report=report,
             )
         return {**report, "status": "valid"}
+
+    def reading_layout_key(self, raw, value, name):
+        return f"editorial/{self.project.id}/{signature([self.base, name, render.digest(raw), value, render.TEXT_LAYOUT_REVISION, 'protected-layout-v1'])}.json"
+
+    async def repair_reading_layout(self, raw, value, name, action, preferred, *, title):
+        """Map the already purchased full scene once, then solve placement locally."""
+        key = self.reading_layout_key(raw, value, name)
+        cached = self.db.scalar(
+            select(Asset).where(
+                Asset.project_id == self.project.id,
+                Asset.kind == "editorial_layout_map",
+                Asset.storage_key == key,
+            )
+        )
+        if cached:
+            if (cached.meta or {}).get("layout_exhausted"):
+                raise ProviderError(
+                    "BOOK_LAYOUT_UNSAFE: este texto já esgotou as posições seguras nesta arte. Ajuste o texto ou solicite outro enquadramento; a arte original está salva."
+                )
+            try:
+                body = storage.get_bytes(key)
+                if render.digest(body) != (cached.meta or {}).get("sha256"):
+                    raise ValueError("checksum")
+                observed = json.loads(body)
+            except Exception as exc:
+                raise ProviderError(
+                    "BOOK_ART_UNAVAILABLE: mapa da arte armazenada indisponível"
+                ) from exc
+        else:
+            self.guard()
+            result = (
+                await self.master._pkg()
+                .get_text_provider()
+                .plan_editorial_page(
+                    action={
+                        "scene": action,
+                        "layout_repair": True,
+                        "observed_failure": self.last_review_issues,
+                        "instruction": "Map the FULL source scene. Protect the entire head AND hat, hands and important action. Find naturally empty scenery for the literal text; never modify or regenerate the picture.",
+                    },
+                    text=value,
+                    policy=self.policy,
+                    continuity=self.base["continuity"],
+                    title=title,
+                    scene_image=raw,
+                )
+            )
+            self.account(result, "Mapa das áreas protegidas da arte existente")
+            try:
+                observed = json.loads(result.text)
+            except (ValueError, TypeError) as exc:
+                raise ProviderError("BOOK_REVIEW_INVALID: mapa visual inválido") from exc
+        try:
+            if not isinstance(observed, dict) or observed.get("protection_complete") is not True:
+                raise render.TextLayoutError("Áreas protegidas inconclusivas")
+            obstacles = render.protected_regions(observed.get("protected_regions"))
+        except render.TextLayoutError as exc:
+            raise ProviderError(
+                "BOOK_LAYOUT_UNSAFE: não foi possível confirmar todas as áreas protegidas da arte original"
+            ) from exc
+        if not cached:
+            require_photo_authorization(self.db, self.project.id)
+            body = json.dumps(observed).encode("utf-8")
+            storage.put_bytes(key, body, "application/json")
+            self.db.add(
+                Asset(
+                    project_id=self.project.id,
+                    kind="editorial_layout_map",
+                    storage_key=key,
+                    meta={"sha256": render.digest(body), "source_sha256": render.digest(raw)},
+                )
+            )
+            self.db.commit()
+        try:
+            suggested = render.validate_region(observed.get("text_region"))
+        except ValueError:
+            suggested = None  # Valid protected geometry is enough for the local solver.
+        try:
+            regions = render.reading_region_candidates(
+                raw,
+                value,
+                self.profile,
+                preferred,
+                title=title,
+                alignment=self.alignment(title),
+                obstacles=obstacles,
+                suggested=suggested,
+            )
+        except render.TextLayoutError as exc:
+            raise ProviderError(
+                "BOOK_LAYOUT_UNSAFE: o texto não cabe em uma área livre de rosto, cabelo, gorro, mãos e ação importante. A arte original está salva."
+            ) from exc
+        return regions, obstacles
 
     async def art(self, name, action, *, title=False, value=None):
         if self.designed:
@@ -1100,7 +1201,7 @@ class Pipeline:
                     )
                     self.account(result, name)
                     raw = result.image_bytes
-                render.square(raw)
+                raw = render.normalize_art(raw)
                 if not cached_candidate:
                     require_photo_authorization(self.db, self.project.id)
                     storage.put_bytes(candidate_key, raw, "image/png")
@@ -1173,6 +1274,30 @@ class Pipeline:
                             break
             local_layout = None
             regions = [region]
+            obstacles = None
+            map_key = self.reading_layout_key(raw, value, name)
+            existing_map = (
+                self.db.scalar(
+                    select(Asset).where(
+                        Asset.project_id == self.project.id,
+                        Asset.kind == "editorial_layout_map",
+                        Asset.storage_key == map_key,
+                    )
+                )
+                if not self.demo
+                else None
+            )
+            if existing_map:
+                regions, obstacles = await self.repair_reading_layout(
+                    raw, value, name, action, region, title=title
+                )
+                local_layout = {
+                    "method": "text_only_reserve_repair",
+                    "source_pixels_unchanged": True,
+                    "original_region": plan["text_region"],
+                    "protected_regions": obstacles,
+                    "source_sha256": render.digest(raw),
+                }
             for region_attempt, region in enumerate(regions):
                 try:
                     candidate, layout = render.text(
@@ -1184,18 +1309,20 @@ class Pipeline:
                         alignment=self.alignment(title),
                         readable=self.designed and not title,
                     )
+                    if obstacles is not None and render.layout_overlaps(layout, obstacles):
+                        raise ProviderError("BOOK_LAYOUT_UNSAFE: texto invade uma área protegida")
                     qa = await self.review(
                         raw,
                         "ARTE_BASE: plana quadrada sem qualquer texto, títulos ou mockup. "
                         "Examine a imagem INTEIRA: proibir fotografias de referência inseridas, "
                         "miniaturas, retratos em cantos, capas de exemplo, painéis, divisórias, "
                         "colagens e qualquer palavra. Deve existir somente uma cena contínua. "
-                        "Critério obrigatório: o retângulo ink_region_with_margin deve estar livre "
+                        "Critério obrigatório: cada região de linha ink_regions_with_margin deve estar livre "
                         "de cabelo, cabeça, rosto, mãos e ação importante, incluindo sua margem "
                         "inferior. Coordenadas normalizadas [esquerda, topo, direita, base], origem "
                         "no canto superior esquerdo. Avalie apenas a reserva medida, não a caixa "
                         "maior usada para quebra de linhas. Reprove qualquer invasão da reserva. "
-                        + json.dumps({"ink_region_with_margin": layout["ink_region_with_margin"]})
+                        + json.dumps({"ink_regions_with_margin": layout["ink_regions_with_margin"]})
                         + json.dumps(
                             {
                                 "identity": self.base["continuity"],
@@ -1243,32 +1370,45 @@ class Pipeline:
                             if title and self.design and self.design["id"] == "family"
                             else ""
                         )
-                        + self.text_instruction(title),
+                        + (
+                            self.text_instruction(title)
+                            if obstacles is None
+                            else "Posição adaptativa: use as regiões de linha verificadas na tipografia técnica. A posição do Catálogo é uma preferência; preserve todas as áreas protegidas da arte real."
+                        ),
                         technical={"typography": layout},
                     )
                     break
                 except VisualReviewError as exc:
                     # Only a structured reserve collision permits moving text.
                     # Identity, anatomy, lettering and quality failures stay blocked.
-                    if exc.scope != "text_reserve":
+                    if exc.scope not in {"text_reserve", "text_overlap"}:
                         raise
-                    if region_attempt == 0:
+                    if obstacles is None:
+                        alternatives, obstacles = await self.repair_reading_layout(
+                            raw, value, name, action, region, title=title
+                        )
+                        # These proposals are geometrically safe, not blind shifts of the same rectangle.
                         regions.extend(
-                            render.reading_region_candidates(
-                                raw,
-                                value,
-                                self.profile,
-                                region,
-                                title=title,
-                                alignment=self.alignment(title),
-                            )[1:]
+                            [proposal for proposal in alternatives if proposal != region][:2]
                         )
                     if region_attempt == len(regions) - 1:
+                        layout_map = self.db.scalar(
+                            select(Asset).where(
+                                Asset.project_id == self.project.id,
+                                Asset.kind == "editorial_layout_map",
+                                Asset.storage_key == map_key,
+                            )
+                        )
+                        if layout_map:
+                            layout_map.meta = {**(layout_map.meta or {}), "layout_exhausted": True}
+                            self.db.commit()
                         raise
                     local_layout = {
                         "method": "text_only_reserve_repair",
                         "source_pixels_unchanged": True,
                         "original_region": plan["text_region"],
+                        "protected_regions": obstacles,
+                        "source_sha256": render.digest(raw),
                     }
             return raw, {
                 "validation": qa,
@@ -1305,35 +1445,95 @@ class Pipeline:
         )
 
         async def compose(attempt):
-            data, layout = render.text(
-                raw,
-                value,
-                self.profile,
-                title=title,
-                region=meta["text_region"],
-                alignment=meta["plan"]["alignment"],
-                readable=self.designed and not title,
-            )
-            if meta.get("composition_sha256") == render.digest(data):
-                # This exact text composition already passed inspection while its
-                # source art was selected. Changed words produce a different hash.
-                qa = meta["composition_review"]
-            else:
-                qa = await self.review(
-                    data,
-                    f"{'CAPA_PLANA' if title else 'PAGINA_INTERNA'}: texto literal "
-                    + json.dumps(value, ensure_ascii=False)
-                    + ". Somente esse texto. Tipografia conforme os dados técnicos verificados, sem obstruir pessoas ou ação, sem tarjas; identidade e anatomia corretas. "
-                    + (
-                        self.text_instruction(True)
-                        if title
-                        else "Sem títulos internos ou simulação de livro físico."
-                    ),
-                    technical={"typography": layout},
+            region = meta["text_region"]
+            local_layout = meta.get("local_reading_layout")
+            protected = (local_layout or {}).get("protected_regions")
+            regions = [region]
+            map_key = self.reading_layout_key(raw, value, name)
+            existing_map = (
+                self.db.scalar(
+                    select(Asset).where(
+                        Asset.project_id == self.project.id,
+                        Asset.kind == "editorial_layout_map",
+                        Asset.storage_key == map_key,
+                    )
                 )
+                if not self.demo
+                else None
+            )
+            if existing_map:
+                regions, protected = await self.repair_reading_layout(
+                    raw, value, name, action, region, title=title
+                )
+            for index, region in enumerate(regions):
+                try:
+                    data, layout = render.text(
+                        raw,
+                        value,
+                        self.profile,
+                        title=title,
+                        region=region,
+                        alignment=meta["plan"]["alignment"],
+                        readable=self.designed and not title,
+                    )
+                    if protected is not None and render.layout_overlaps(layout, protected):
+                        raise render.TextLayoutError("Texto invade uma área protegida")
+                    if meta.get("composition_sha256") == render.digest(data):
+                        qa = meta["composition_review"]
+                    else:
+                        # Changed copy can occupy NEW pixels on cached artwork. Check
+                        # those exact lines before accepting the new composed title.
+                        await self.review(
+                            raw,
+                            "ARTE_BASE: ilustração contínua, sem letras. Confira cada região de linha medida; espaço entre linhas é externo à reserva.",
+                            technical={"typography": layout},
+                            full_image_prompt="ARTE_BASE: one continuous flat illustration without letters, panels or artificial bands. Check identity, anatomy, style and action. "
+                            + json.dumps(action, ensure_ascii=False),
+                        )
+                        qa = await self.review(
+                            data,
+                            f"{'CAPA_PLANA' if title else 'PAGINA_INTERNA'}: texto literal "
+                            + json.dumps(value, ensure_ascii=False)
+                            + ". Somente esse texto, nas regiões de linha da tipografia técnica. Sem obstruir pessoas, gorros ou ação. Posição adaptativa permitida para proteger a cena; sem tarjas ou alteração da arte.",
+                            technical={"typography": layout},
+                        )
+                    break
+                except (render.TextLayoutError, VisualReviewError) as exc:
+                    if isinstance(exc, VisualReviewError) and exc.scope not in {
+                        "text_reserve",
+                        "text_overlap",
+                    }:
+                        raise
+                    if len(regions) == 1 and index == 0:
+                        alternatives, protected = await self.repair_reading_layout(
+                            raw, value, name, action, region, title=title
+                        )
+                        regions.extend(
+                            [proposal for proposal in alternatives if proposal != region][:2]
+                        )
+                    if index == len(regions) - 1:
+                        layout_map = self.db.scalar(
+                            select(Asset).where(
+                                Asset.project_id == self.project.id,
+                                Asset.kind == "editorial_layout_map",
+                                Asset.storage_key == map_key,
+                            )
+                        )
+                        if layout_map:
+                            layout_map.meta = {**(layout_map.meta or {}), "layout_exhausted": True}
+                            self.db.commit()
+                        raise ProviderError(
+                            "BOOK_LAYOUT_UNSAFE: o texto alterado não cabe nas áreas seguras da arte salva"
+                        ) from exc
+            if protected is not None:
+                local_layout = {
+                    "method": "text_only_reserve_repair",
+                    "source_pixels_unchanged": True,
+                    "original_region": meta["text_region"],
+                    "protected_regions": protected,
+                    "source_sha256": render.digest(raw),
+                }
             if title and self.designed and not self.demo:
-                # Only the exact reserve crop and final cover review can confirm
-                # overlap. Expanded Haar boxes are not hair/hat segmentation.
                 layout["title_clearance"] = {
                     "method": "mandatory_visual_title_review",
                     "status": qa["status"],
@@ -1344,7 +1544,7 @@ class Pipeline:
                 "art_key": meta["storage_key"],
                 "art_sha256": render.digest(raw),
                 "layout": layout,
-                "local_reading_layout": meta.get("local_reading_layout"),
+                "local_reading_layout": local_layout,
             }
 
         data, composed_meta = await self.stage(

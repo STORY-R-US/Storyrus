@@ -371,3 +371,66 @@ async def test_clear_crop_does_not_override_failed_identity_review(client):
     full_prompt = json.dumps(client.calls[1]["json"]["messages"])
     assert "ink_region_with_margin" not in full_prompt
     assert "requested scene and outfit" in full_prompt
+
+
+@pytest.mark.asyncio
+async def test_each_title_line_is_cropped_without_unused_enclosing_space(client):
+    client.script = [(200, _ok('{"valid":true,"issues":[],"limitations":[]}'))] * 2
+    source = Image.new("RGB", (100, 100), "#bfe3ef")
+    source.paste("blue", (5, 30, 35, 45))  # hat beside short second line, outside its ink
+    raw = io.BytesIO()
+    source.save(raw, "PNG")
+    await oai.OpenAITextProvider().validate_editorial_preview(
+        data=raw.getvalue(),
+        photos=[],
+        cover=None,
+        prompt="ARTE_BASE: source",
+        style_refs=[],
+        inspection_region=[0.05, 0.05, 0.95, 0.45],
+        inspection_regions=[[0.05, 0.05, 0.95, 0.2], [0.4, 0.3, 0.6, 0.45]],
+    )
+    crops = [
+        part["image_url"]
+        for part in client.calls[0]["json"]["messages"][1]["content"]
+        if part["type"] == "image_url"
+    ]
+    assert len(crops) == 2
+    for part in crops:
+        image = Image.open(io.BytesIO(base64.b64decode(part["url"].split(",")[1]))).convert("RGB")
+        assert image.getextrema() == ((191, 191), (227, 227), (239, 239))
+    assert len(client.calls) == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "regions", [[], "bad", [[0, 0, 1, float("nan")]], [[0, 0, 2, 1]], [[0, 0, 0.0001, 0.0001]]]
+)
+async def test_invalid_inspection_geometry_does_not_make_paid_request(client, regions):
+    raw = io.BytesIO()
+    Image.new("RGB", (100, 100), "blue").save(raw, "PNG")
+    with pytest.raises((ProviderError, ValueError)):
+        await oai.OpenAITextProvider().validate_editorial_preview(
+            data=raw.getvalue(),
+            photos=[],
+            cover=None,
+            prompt="ARTE_BASE",
+            style_refs=[],
+            inspection_regions=regions,
+        )
+    assert client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_repair_planner_requests_full_head_and_entire_hat_geometry(client):
+    client.script = [(200, _ok("{}"))]
+    await oai.OpenAITextProvider().plan_editorial_page(
+        action={"layout_repair": True},
+        text="Meu herói",
+        policy={},
+        continuity={},
+        title=True,
+        scene_image=b"source",
+    )
+    system = client.calls[0]["json"]["messages"][0]["content"]
+    assert "ENTIRE hat" in system and "protection_complete" in system
+    assert "ATTACHED FULL SCENE" in system

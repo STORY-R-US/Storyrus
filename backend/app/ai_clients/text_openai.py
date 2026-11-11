@@ -15,6 +15,7 @@ from app.ai_clients.request_journal import client_request_id as reserve_request_
 from app.ai_clients.request_journal import journaled
 from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
+from app.services import editorial_review
 from app.services.pricing import text_cost
 
 _API_URL = "https://api.openai.com/v1/chat/completions"
@@ -729,9 +730,15 @@ class OpenAITextProvider:
             system=(
                 "Plan one flat square editorial illustration and its literal text layer. "
                 "Return JSON {action:string, text_region:[x0,y0,x1,y1], alignment:'left'|'center', "
-                "protected_content:[strings]}. Normalized coordinates, margins >=0.04. "
+                "protected_content:[strings], protected_regions:[{kind:'head'|'face'|'hair'|'hat'|'hand'|'body'|'action'|'object',region:[x0,y0,x1,y1]}], protection_complete:boolean}. "
+                "Coordinates are normalized 0..1 in the ATTACHED FULL SCENE, origin top-left, never a crop. "
+                "With a scene attached locate EVERY visible head including ALL hair and the ENTIRE hat, cap or beanie, "
+                "all visible bodies/clothing, hands, important action and meaningful objects; include partially visible subjects at edges. "
+                "A forehead/eyes box alone is insufficient: protect the whole head AND hat. "
+                "protection_complete is true only when all these visible regions were located; never invent boxes. "
+                "Margins for text >=0.04. "
                 "Plan action, cast and naturally quiet reading area together. Never invent "
-                "cast, age, clothes or rewrite text. A cover title is upper and centered. "
+                "cast, age, clothes or rewrite text. Prefer an upper centered cover title. "
                 "Internal pages show ONLY their stanza, no headings; vary the text block "
                 "position with the action; obey typography.bodyAlignment and coverAlignment in "
                 "the supplied policy. Reserve enough space for the font weight and width ratios "
@@ -741,12 +748,13 @@ class OpenAITextProvider:
                 "When the actual scene image is attached, adapt the reading region to its "
                 "OBSERVED empty background. Do not put text over visible hands, faces, objects "
                 "or action. Keep the alignment declared by the policy; do not assume a tabletop "
-                "or keyboard is empty. referenceComposition, when present, defines the planned "
-                "upper-right cover block and upper centered interior block. Preserve the scene."
+                "or keyboard is empty. The catalog position is preferred; when occupied, propose "
+                "another naturally quiet region, still preferring upper placement, without changing "
+                "the scene or covering people. The server measures separation using actual line bounds."
             ),
             user=user,
             json_mode=True,
-            max_tokens=1000,
+            max_tokens=2000,
         )
 
     async def generate_editorial_story(self, *, brief, pages, language, policy):
@@ -781,35 +789,46 @@ class OpenAITextProvider:
         prompt,
         style_refs,
         inspection_region=None,
+        inspection_regions=None,
         full_image_prompt=None,
     ):
         content = [{"type": "text", "text": prompt}]
         crops = []
         reserve_result = None
-        if inspection_region is not None:
+        if inspection_regions is not None and (
+            not isinstance(inspection_regions, list) or not 1 <= len(inspection_regions) <= 64
+        ):
+            raise ProviderError("BOOK_LAYOUT_UNSAFE: regiões de linha ausentes ou inválidas")
+        regions = (
+            inspection_regions
+            if inspection_regions is not None
+            else ([inspection_region] if inspection_region is not None else [])
+        )
+        if regions:
+            from app.workers.editorial_render import validate_inspection_region
+
             image = Image.open(io.BytesIO(data))
-            box = [
-                round(value * (image.width if i % 2 == 0 else image.height))
-                for i, value in enumerate(inspection_region)
+            crop_content = [
+                {
+                    "type": "text",
+                    "text": "EXACT_TEXT_LINE_CROPS: inspect each line crop only. Blank space between separate line crops is outside the text reserve.",
+                }
             ]
-            crop = io.BytesIO()
-            image.crop(box).save(crop, "PNG")
-            if prompt.startswith("ARTE_BASE"):
-                reserve_result = await self._complete(
-                    system=(
-                        "Inspect ONLY the supplied crop, which is the exact reserved text area "
-                        "including its safety margin. No identity or style references are supplied. "
-                        "Reject visible hair, head, face, hands, important objects/action or lettering "
-                        "ANYWHERE inside this crop. A quiet natural background is valid; do not "
-                        "require people, facial identity, book geometry or text in this empty area. "
-                        "Do not infer subjects outside the crop. Return JSON "
-                        "{valid:boolean, issues:[strings], limitations:[strings]}. "
-                        "Concrete defects or uncertainty about this area require valid:false."
-                    ),
-                    user=[
+            for index, region in enumerate(regions):
+                validate_inspection_region(region)
+                box = [
+                    round(value * (image.width if i % 2 == 0 else image.height))
+                    for i, value in enumerate(region)
+                ]
+                if box[0] >= box[2] or box[1] >= box[3]:
+                    raise ProviderError("BOOK_LAYOUT_UNSAFE: região de inspeção vazia")
+                crop = io.BytesIO()
+                image.crop(box).save(crop, "PNG")
+                crop_content.extend(
+                    [
                         {
                             "type": "text",
-                            "text": "EXACT_TEXT_RESERVE: judge every pixel of this crop only.",
+                            "text": f"EXACT_TEXT_RESERVE line {index + 1}: includes its measured breathing margin.",
                         },
                         {
                             "type": "image_url",
@@ -819,25 +838,35 @@ class OpenAITextProvider:
                                 "detail": "high",
                             },
                         },
-                    ],
+                    ]
+                )
+                crops.append(
+                    (
+                        f"TEXT_RESERVE_CROP {index + 1}: auxiliary crop of OUTPUT only",
+                        crop.getvalue(),
+                    )
+                )
+            if prompt.startswith("ARTE_BASE"):
+                reserve_result = await self._complete(
+                    system=(
+                        "Inspect ONLY the supplied line crops, each an exact reserved text area "
+                        "including its safety margin. No identity or style references are supplied. "
+                        "Reject visible hair, head, face, hats including partial beanies, hands, "
+                        "important objects/action or lettering ANYWHERE inside these crops. "
+                        "A quiet natural background is valid; do not require people, facial identity, "
+                        "book geometry or text in this empty area. Do not infer subjects outside "
+                        "these line crops. Return JSON {valid:boolean, issues:[strings], limitations:[strings]}. "
+                        "Concrete defects or uncertainty about these areas require valid:false."
+                    ),
+                    user=crop_content,
                     max_tokens=600,
                     json_mode=True,
                 )
-                try:
-                    reserve_report = json.loads(reserve_result.text)
-                except (ValueError, TypeError):
-                    raise ProviderError("Invalid text reserve review response", transient=False)
-                if (
-                    not isinstance(reserve_report, dict)
-                    or reserve_report.get("valid") is not True
-                    or reserve_report.get("issues") != []
-                    or not isinstance(reserve_report.get("limitations"), list)
-                    or any(not isinstance(item, str) for item in reserve_report["limitations"])
-                ):
+                reserve_report = editorial_review.parse_report(reserve_result.text)
+                if not editorial_review.approved(reserve_report):
                     reserve_result.meta = {**reserve_result.meta, "review_scope": "text_reserve"}
                     return reserve_result
-            else:
-                crops.append(("TEXT_RESERVE_CROP: auxiliary crop of OUTPUT only", crop.getvalue()))
+                crops = []
         for label, image in [
             *[("IDENTITY", p) for p in photos],
             *[("STYLE_ONLY", p) for p in style_refs],
@@ -881,8 +910,9 @@ class OpenAITextProvider:
             "expected text listed for that role, and do not count expected text as an extra merely "
             "because the art-generation specification reserved a text-free base image. Read all "
             "visible expected text literally, including case, accents and punctuation. For CAPA, "
-            "require exactly the one listed title, centered inside its planned upper block "
-            "(which may be on the upper RIGHT); reject other, "
+            "require exactly the one listed title inside the technically verified text regions. "
+            "The catalog's upper position is preferred; a measured adaptive position is permitted "
+            "when it protects people and the action. Reject other, "
             "duplicate, stray, clipped, oversized or misspelled lettering, and text over the face or "
             "main action. For LIVRO_ABERTO, require only the two listed verses, aligned as "
             "specified by the supplied typography contract, legible, "
@@ -898,17 +928,19 @@ class OpenAITextProvider:
             "claim. When typography includes font_sha256, weight, region, alignment and "
             "line_height, accept these technically verified properties; do not require "
             "inferring a font file or exact centering from pixels. Still reject visible overlap, "
-            "illegibility, clipped or incorrect text. For ARTE_BASE, the entire normalized "
-            "ink_region_with_margin rectangle must be clear of faces, hair, hands and main "
-            "action. The typography region is a larger wrapping container; do not reject hair "
-            "outside ink_region_with_margin merely because it enters that wrapping container. "
+            "illegibility, clipped or incorrect text. Inspect each measured ink_regions_with_margin "
+            "line separately. Space outside those line regions is not occupied by text, even inside "
+            "the enclosing ink_region_with_margin or wrapping container. Never reject a face or hat there. "
             "Judge observable defects against required criteria. Natural occlusion of fingers "
             "is allowed when anatomy is coherent; do not require every finger to be visible. "
             "Do not require optional ornaments or reject a quiet background merely for being "
             "simple. A general disclosure that visual identity review is probabilistic belongs "
             "in limitations and does not itself make a conforming image invalid. Specific "
             "unverifiable required features must still make valid false. "
-            "Return JSON {valid: boolean, issues: [strings], limitations: [strings]}. "
+            "Return JSON {valid:boolean, issues:[strings], limitations:[strings], issue_codes:[strings]}. "
+            "For EACH issue supply one matching code: TEXT_OVERLAP, TEXT_CONTRAST, TEXT_INVALID, IDENTITY, "
+            "ANATOMY, STYLE, SCENE, COLLAGE, GEOMETRY or INCONCLUSIVE. A hat/face under letters is TEXT_OVERLAP; "
+            "an artificial band or blurred extension is STYLE or COLLAGE, never TEXT_OVERLAP. "
             "issues must contain defects only, never positive observations. "
             "If uncertain about any required criterion return valid false. "
             "This is automated visual inspection, not human approval."
@@ -951,7 +983,11 @@ class OpenAITextProvider:
         )
         if reserve_result is not None:
             result.cost_usd = (result.cost_usd or 0) + (reserve_result.cost_usd or 0)
-            result.meta = {**result.meta, "text_reserve_review": reserve_report}
+            result.meta = {
+                **result.meta,
+                "text_reserve_review": reserve_report,
+                "review_scope": "full_image",
+            }
         return result
 
     async def generate_storyboard(

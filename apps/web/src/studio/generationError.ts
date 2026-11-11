@@ -12,6 +12,11 @@ export function generationError(t: StudioCopy, message?: string | null, job?: Jo
       job?.result?.last_provider_error?.request_id;
     return `${t.previewGenerationOutcomeUnknown}${requestId ? ` ${t.previewRequestId}: ${requestId}` : ""}`;
   }
+  if (/BOOK_LAYOUT_UNSAFE/.test(message || "")) return t.previewNoSafeTextArea;
+  if (/BOOK_TEXT_INVALID/.test(message || "")) return t.previewBookTextInvalid;
+  if (/BOOK_REVIEW_INVALID/.test(message || "")) return t.previewBookReviewInvalid;
+  if (/BOOK_ART_(?:UNAVAILABLE|INVALID)|Arte original armazenada|Arte editorial armazenada|Arquivo da capa alterado/.test(message || "")) return t.previewBookArtUnavailable;
+  if (/BOOK_ART_REJECTED|Capa ou ilustração reprovada/.test(message || "")) return t.previewBookArtRejected;
   if (/INPUT_SAFETY_BLOCKED/i.test(message || "")) return t.previewInputSafetyBlocked;
   if (/moderation_block|content_policy_violation/i.test(message || "")) return t.previewProviderSafetyBlocked;
   if (/INPUT_SAFETY_CHECK_INVALID_IMAGE/i.test(message || "")) return t.previewInvalidPhoto;

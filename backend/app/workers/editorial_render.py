@@ -13,16 +13,21 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from app.services import editorial_profile
 
-TEXT_LAYOUT_REVISION = "2026-11-07.local-fit.1"
+TEXT_LAYOUT_REVISION = "2026-11-11.protected-lines.1"
 
 
 class TextLayoutError(ValueError):
     """An actionable local text issue; retrying an image provider cannot fix it."""
 
 
+@lru_cache(maxsize=32)
+def _font(path, size):
+    return ImageFont.truetype(str(path), size)
+
+
 def _fit_copy(draw, value, font_path, preferred, minimum, width, height, line_height, stroke):
     for size in range(preferred, minimum - 1, -1):
-        font = ImageFont.truetype(str(font_path), size)
+        font = _font(font_path, size)
         lines = []
         fits = True
         for paragraph in value.splitlines():
@@ -47,7 +52,7 @@ def _fit_copy(draw, value, font_path, preferred, minimum, width, height, line_he
         if fits and (len(lines) - 1) * step + ink_height + 2 * stroke <= height:
             return font, lines, step
     raise TextLayoutError(
-        "O texto não cabe mantendo uma leitura confortável. Encurte o título ou o trecho "
+        "BOOK_TEXT_INVALID: O texto não cabe mantendo uma leitura confortável. Encurte o título ou o trecho "
         "antes de tentar novamente; nenhuma nova imagem resolve esse limite."
     )
 
@@ -63,13 +68,59 @@ def encode(image):
 
 
 def square(data):
-    image = Image.open(io.BytesIO(data)).convert("RGB")
-    if image.width != image.height:
-        raise ValueError("Arte plana deve ser quadrada; não recorte um mockup")
-    return image
+    try:
+        with Image.open(io.BytesIO(data)) as image:
+            if image.width != image.height:
+                raise ValueError("Arte plana deve ser quadrada; não recorte um mockup")
+            if image.width * image.height > 40_000_000 or image.format not in {
+                "PNG",
+                "JPEG",
+                "WEBP",
+            }:
+                raise ValueError("Formato ou dimensões da arte inválidos")
+            return image.convert("RGB")
+    except (OSError, ValueError, Image.DecompressionBombError) as exc:
+        raise ValueError(f"BOOK_ART_INVALID: {exc}") from exc
+
+
+def normalize_art(data):
+    image = square(data)
+    return data if data.startswith(b"\x89PNG\r\n\x1a\n") else encode(image)
+
+
+def _luminance(rgb):
+    values = np.asarray(rgb, dtype=np.float32) / 255
+    linear = np.where(values <= 0.04045, values / 12.92, ((values + 0.055) / 1.055) ** 2.4)
+    return linear @ np.array([0.2126, 0.7152, 0.0722])
+
+
+def _readable_color(image, mask, preferred):
+    from PIL import ImageColor
+
+    pixels = np.asarray(image)[np.asarray(mask) > 0]
+    if not pixels.size:
+        return preferred, None
+    background = _luminance(pixels)
+
+    def contrast(color):
+        ink = float(_luminance(ImageColor.getrgb(color)))
+        ratios = (np.maximum(background, ink) + 0.05) / (np.minimum(background, ink) + 0.05)
+        return float(np.quantile(ratios, 0.15))
+
+    score = contrast(preferred)
+    if score >= 3:
+        return preferred, score
+    alternatives = [(contrast(color), color) for color in (preferred, "#071337", "#fff9ed")]
+    best, color = max(alternatives)
+    return color, best
 
 
 def validate_preview_copy(profile, locale):
+    if not isinstance(locale, dict) or any(
+        not isinstance(locale.get(key), str) or not locale[key].strip()
+        for key in ("title", "left", "right")
+    ):
+        raise TextLayoutError("BOOK_TEXT_INVALID: preencha o título e os dois trechos da prévia.")
     policy = editorial_profile.policy(profile)
     composition = policy.get("referenceComposition", {})
     design = profile.get("book_design")
@@ -117,20 +168,34 @@ def text(
     measure_only=False,
 ):
     """Preserve literal copy and catalog position, fitting locally above readable limits."""
-    image = square(data)
+    if measure_only:
+        # Font metrics need neither decoded full-page pixels nor a full-size canvas.
+        with Image.open(io.BytesIO(data)) as image:
+            if image.width != image.height:
+                raise ValueError("Arte plana deve ser quadrada; não recorte um mockup")
+    else:
+        image = square(data)
     if not isinstance(value, str) or not value.strip():
-        raise TextLayoutError("Preencha o título ou o trecho antes de gerar a imagem.")
+        raise TextLayoutError(
+            "BOOK_TEXT_INVALID: Preencha o título ou o trecho antes de gerar a imagem."
+        )
     policy = editorial_profile.policy(profile)
     typography = policy["typography"]
     filename = typography.get("titleFontFile" if title else "bodyFontFile", "Nunito-Medium.ttf")
     font_path = editorial_profile._root(profile["editorial"]["version"]) / "fonts" / filename
-    manifest = json.loads((font_path.parent / "manifest.json").read_text(encoding="utf-8"))
+    try:
+        manifest = json.loads((font_path.parent / "manifest.json").read_text(encoding="utf-8"))
+        font_bytes = font_path.read_bytes()
+    except (OSError, ValueError) as exc:
+        raise ValueError("BOOK_ART_UNAVAILABLE: fonte editorial indisponível") from exc
     face = manifest.get("faces", {}).get(filename, manifest)
-    if digest(font_path.read_bytes()) != face["sha256"]:
-        raise ValueError("Fonte editorial alterada")
+    if digest(font_bytes) != face["sha256"]:
+        raise ValueError("BOOK_ART_INVALID: Fonte editorial alterada")
     normalized = unicodedata.normalize("NFC", value)
     if any(ord(char) not in face["codepoints"] for char in normalized if not char.isspace()):
-        raise TextLayoutError("Retire do texto os símbolos que a fonte do livro não suporta.")
+        raise TextLayoutError(
+            "BOOK_TEXT_INVALID: Retire do texto os símbolos que a fonte do livro não suporta."
+        )
     width_ratio = typography.get(
         "titleWidthRatio" if title else "bodyWidthRatio", 0.055 if title else 0.032
     )
@@ -143,7 +208,7 @@ def text(
     )
     x0, y0, x1, y1 = validate_region(bounds)
     box = [round(v * image.width) for v in (x0, y0, x1, y1)]
-    draw = ImageDraw.Draw(image)
+    draw = ImageDraw.Draw(Image.new("RGB", (1, 1)) if measure_only else image)
     line_height = (
         typography.get("titleLineHeight", typography["lineHeight"])
         if title
@@ -171,6 +236,7 @@ def text(
     if alignment not in {"left", "center"}:
         raise ValueError("Alinhamento editorial inválido")
     ink_boxes = []
+    positions = []
     for i, line in enumerate(lines):
         offset = (
             (box[2] - box[0] - 2 * stroke - draw.textlength(line, font=font)) / 2
@@ -182,6 +248,16 @@ def text(
             ink_boxes.append(
                 draw.textbbox(position, line, font=font, anchor="lt", stroke_width=stroke)
             )
+        positions.append((position, line))
+    preferred_color = color
+    contrast = None
+    if not measure_only:
+        mask = Image.new("L", image.size)
+        ink_draw = ImageDraw.Draw(mask)
+        for position, line in positions:
+            ink_draw.text(position, line, font=font, fill=255, anchor="lt", stroke_width=stroke)
+        color, contrast = _readable_color(image, mask, color)
+    for position, line in positions:
         draw.text(
             position,
             line,
@@ -189,7 +265,7 @@ def text(
             fill=color,
             anchor="lt",
             stroke_width=stroke,
-            stroke_fill="#fff9ed" if readable else None,
+            stroke_fill=("#071337" if color == "#fff9ed" else "#fff9ed") if readable else None,
         )
     padding = image.width * 0.012
     ink_region = [
@@ -198,11 +274,21 @@ def text(
         min(image.width, max(b[2] for b in ink_boxes) + padding) / image.width,
         min(image.height, max(b[3] for b in ink_boxes) + padding) / image.height,
     ]
+    line_regions = [
+        [
+            max(0, b[0] - padding) / image.width,
+            max(0, b[1] - padding) / image.height,
+            min(image.width, b[2] + padding) / image.width,
+            min(image.height, b[3] + padding) / image.height,
+        ]
+        for b in ink_boxes
+    ]
     return (data if measure_only else encode(image)), {
         "text": value,
         "lines": lines,
         "region": bounds,
         "ink_region_with_margin": ink_region,
+        "ink_regions_with_margin": line_regions,
         "alignment": alignment,
         "font_sha256": digest(font_path.read_bytes()),
         "weight": face["weight"],
@@ -213,6 +299,9 @@ def text(
         "text_layout_revision": TEXT_LAYOUT_REVISION,
         "line_height": line_height,
         "color": color,
+        "preferred_color": preferred_color,
+        "contrast_adjusted": color != preferred_color,
+        "ink_contrast_p15": contrast,
         "layout_version": profile["editorial"]["version"],
         "readability_outline": readable,
     }
@@ -271,7 +360,66 @@ def title_area_evidence(data, layout):
     }
 
 
-def reading_region_candidates(data, value, profile, preferred, *, title=False, alignment="center"):
+def protected_regions(value):
+    """Validate observed full-scene obstacles before using their geometry."""
+    if not isinstance(value, list) or not 1 <= len(value) <= 64:
+        raise TextLayoutError("Mapa de áreas protegidas ausente ou inválido.")
+    boxes = []
+    for item in value:
+        if not isinstance(item, dict) or item.get("kind") not in {
+            "head",
+            "face",
+            "hair",
+            "hat",
+            "hand",
+            "body",
+            "action",
+            "object",
+        }:
+            raise TextLayoutError("Área protegida sem identificação válida.")
+        box = item.get("region")
+        if (
+            not isinstance(box, list)
+            or len(box) != 4
+            or any(type(n) not in (int, float) or not math.isfinite(n) for n in box)
+            or not (0 <= box[0] < box[2] <= 1 and 0 <= box[1] < box[3] <= 1)
+        ):
+            raise TextLayoutError("Coordenadas de área protegida inválidas.")
+        # Vision coordinates are approximate. Keep a conservative breathing margin.
+        boxes.append(
+            [
+                max(0, box[0] - 0.02),
+                max(0, box[1] - 0.02),
+                min(1, box[2] + 0.02),
+                min(1, box[3] + 0.02),
+            ]
+        )
+    return boxes
+
+
+def _intersection(a, b):
+    return max(0, min(a[2], b[2]) - max(a[0], b[0])) * max(0, min(a[3], b[3]) - max(a[1], b[1]))
+
+
+def layout_overlaps(layout, boxes):
+    return any(
+        _intersection(line, box) > 0
+        for line in layout.get("ink_regions_with_margin", [layout["ink_region_with_margin"]])
+        for box in boxes
+    )
+
+
+def reading_region_candidates(
+    data,
+    value,
+    profile,
+    preferred,
+    *,
+    title=False,
+    alignment="center",
+    obstacles=None,
+    suggested=None,
+):
     """Bounded text-only repairs, ranked on the purchased scene without changing its pixels.
 
     Face boxes and texture only rank proposals. Mandatory crop/whole-image reviews
@@ -280,11 +428,49 @@ def reading_region_candidates(data, value, profile, preferred, *, title=False, a
     heads = protected_heads(data)
     gray = np.array(square(data).resize((256, 256)).convert("L"))
     regions = [preferred]
+    if suggested is not None:
+        regions.append(validate_region(suggested))
     # Keep covers in the upper part of the scene; interiors can use quiet scenery
     # beside the activity, as in the approved book references.
-    for top in (0.055, 0.10) if title else (0.055, 0.16, 0.35, 0.52):
-        for left, right in ((0.06, 0.94), (0.06, 0.51), (0.49, 0.94), (0.06, 0.65), (0.35, 0.94)):
+    # Search locally first; only the best safe candidates need a paid visual check.
+    tops = (
+        (0.055, 0.10, 0.16, 0.24, 0.34, 0.48, 0.62)
+        if obstacles is not None
+        else ((0.055, 0.10) if title else (0.055, 0.16, 0.35, 0.52))
+    )
+    for top in tops:
+        for left, right in (
+            (0.06, 0.94),
+            (0.06, 0.44),
+            (0.56, 0.94),
+            (0.06, 0.51),
+            (0.49, 0.94),
+            (0.06, 0.65),
+            (0.35, 0.94),
+        ):
             regions.append([left, top, right, min(0.94, top + (0.34 if title else 0.40))])
+    if obstacles is not None:
+        # Derive actual free rectangles from obstacle edges. Fixed thirds alone
+        # miss a narrow clear side of a face/hat, especially for longer titles.
+        lanes = {(0.06, 0.94)}
+        anchors = {0.055, *tops}
+        for box in obstacles:
+            if box[0] - 0.02 - 0.06 >= 0.18:
+                lanes.add((0.06, box[0] - 0.02))
+            if 0.94 - (box[2] + 0.02) >= 0.18:
+                lanes.add((box[2] + 0.02, 0.94))
+            if 0.055 <= box[3] + 0.02 < 0.85:
+                anchors.add(box[3] + 0.02)
+        for left, right in sorted(lanes)[:40]:
+            for top in sorted(anchors)[:24]:
+                relevant = [box for box in obstacles if min(right, box[2]) > max(left, box[0])]
+                if any(box[1] <= top < box[3] for box in relevant):
+                    continue
+                bottom = min(
+                    [0.94, top + 0.65, *[box[1] - 0.02 for box in relevant if box[1] > top]]
+                )
+                if bottom - top >= 0.10:
+                    regions.append([left, top, right, bottom])
     choices = []
     for index, region in enumerate(regions):
         try:
@@ -301,6 +487,8 @@ def reading_region_candidates(data, value, profile, preferred, *, title=False, a
         except TextLayoutError:
             continue
         ink = layout["ink_region_with_margin"]
+        if obstacles is not None and layout_overlaps(layout, obstacles):
+            continue
         x0, y0, x1, y1 = ink
         overlap = sum(
             max(0, min(x1, b[2]) - max(x0, b[0])) * max(0, min(y1, b[3]) - max(y0, b[1]))
@@ -311,14 +499,25 @@ def reading_region_candidates(data, value, profile, preferred, *, title=False, a
             max(0, int(x0 * 256)) : max(1, int(x1 * 256)),
         ]
         busy = float(crop.std()) / 255 if crop.size else 1
-        score = overlap * 1000 + busy * 0.1 + y0 * 0.03
+        # Larger readable titles and the catalog's upper placement take priority.
+        score = (
+            overlap * 1000
+            + busy * 0.1
+            + y0 * 0.3
+            + (1 - layout["font_size"] / layout["preferred_font_size"]) * 0.15
+        )
         choices.append((index, score, region, ink))
     if not choices:
         raise TextLayoutError("O texto não cabe nas áreas de leitura disponíveis.")
     # The catalog layout always gets its mandatory visual check, even when the
     # approximate face detector disagrees. Avoid spending reviews on near copies.
-    selected = [choices[0]]
-    for choice in sorted(choices[1:], key=lambda item: item[1]):
+    ordered = (
+        sorted(choices, key=lambda item: item[1])
+        if obstacles is not None
+        else [choices[0], *sorted(choices[1:], key=lambda item: item[1])]
+    )
+    selected = [ordered[0]]
+    for choice in ordered[1:]:
         ink = choice[3]
         if any(_region_iou(ink, previous[3]) > 0.65 for previous in selected):
             continue
@@ -423,6 +622,18 @@ def validate_region(region):
     x0, y0, x1, y1 = region
     if not (0.04 <= x0 < x1 <= 0.96 and 0.04 <= y0 < y1 <= 0.96):
         raise ValueError("Região fora das margens seguras")
+    return region
+
+
+def validate_inspection_region(region):
+    """Ink breathing margins can extend beyond the text container's safe margin."""
+    if (
+        not isinstance(region, list)
+        or len(region) != 4
+        or any(type(n) not in (int, float) or not math.isfinite(n) for n in region)
+        or not (0 <= region[0] < region[2] <= 1 and 0 <= region[1] < region[3] <= 1)
+    ):
+        raise TextLayoutError("BOOK_LAYOUT_UNSAFE: região de inspeção inválida")
     return region
 
 
