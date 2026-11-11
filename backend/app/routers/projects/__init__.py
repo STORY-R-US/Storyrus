@@ -340,6 +340,9 @@ def project_assets(
         "cover_url": cover_url,
         "book_cover_url": book_cover_url,
         "in_hand_url": in_hand_url,
+        "in_hand_presentation": (
+            (in_hand.meta or {}).get("presentation", "person_holding") if in_hand else None
+        ),
         "ebook_url": ebook_url,
         "storyboard_url": storyboard_url,
         "video_url": video_url,

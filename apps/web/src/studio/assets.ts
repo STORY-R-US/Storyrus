@@ -8,6 +8,7 @@ export type StudioAssets = {
   cover_url?: string | null;
   book_cover_url?: string | null;
   in_hand_url?: string | null;
+  in_hand_presentation?: string | null;
   ebook_url: string | null;
   video_url: string | null;
   narrated_video_url: string | null;
@@ -33,5 +34,6 @@ export function mergeStudioAssets(prev: StudioAssets | null, next: StudioAssets)
     cover_url: next.cover_url ?? prev.cover_url ?? null,
     book_cover_url: next.book_cover_url ?? prev.book_cover_url ?? null,
     in_hand_url: next.in_hand_url ?? prev.in_hand_url ?? null,
+    in_hand_presentation: next.in_hand_presentation ?? prev.in_hand_presentation ?? null,
   };
 }

@@ -432,6 +432,92 @@ async def _prepare(db, job, project, photos):
     db.commit()
 
 
+def _moderation_text(project, job=None) -> str:
+    profile = project.book_profile or {}
+    locale = (profile.get("locales") or {}).get(project.language or "pt-BR", {})
+    payload = _payload(job) if job is not None else {}
+    fields = {
+        "name": project.child_name,
+        "age": project.child_age,
+        "theme": project.theme,
+        "trait": project.child_trait,
+        "interest": project.child_interest,
+        "dedication": project.dedication,
+        "story": project.story_text,
+        "theme_description": profile.get("theme_description"),
+        "characters": profile.get("characters"),
+        "costume": profile.get("costume"),
+        "visual_identity": profile.get("visual_identity"),
+        "title": profile.get("title") or locale.get("title"),
+        "left_page": locale.get("left"),
+        "right_page": locale.get("right"),
+        "supplied_locales": profile.get("supplied_locales"),
+        "stories": profile.get("stories"),
+        "page_revisions": profile.get("page_revisions"),
+        "editorial_adjustments": profile.get("editorial_revisions"),
+        "generation_adjustment": payload.get("adjustment"),
+        "generation_brief": payload.get("brief"),
+        "extra_character_names": [
+            item.get("name")
+            for item in project.extra_characters or []
+            if isinstance(item, dict) and isinstance(item.get("name"), str)
+        ],
+    }
+    return json.dumps(
+        {
+            key: value
+            for key, value in fields.items()
+            if value is not None
+            and value != ""
+            and value != {}
+            and value != []
+            and (not isinstance(value, str) or value.strip())
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+async def _preflight_input_safety(db, job, project, photos) -> None:
+    """Cache a free safety decision before text or image generation can spend credits."""
+    if contract.test_mode(project) or settings.offline_fallback:
+        return
+    fingerprint = hashlib.sha256(
+        json.dumps(
+            [
+                _moderation_text(project, job),
+                [hashlib.sha256(photo).hexdigest() for photo in photos],
+            ],
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    prior = (job.result or {}).get("input_safety") or {}
+    if prior.get("fingerprint") == fingerprint:
+        if prior.get("status") == "blocked":
+            raise ProviderError("INPUT_SAFETY_BLOCKED", transient=False, status_code=400)
+        if prior.get("status") == "passed":
+            return
+
+    provider = _pkg().get_text_provider()
+    moderate = getattr(provider, "moderate_book_input", None)
+    if not callable(moderate):
+        raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=False)
+    result = await moderate(text=_moderation_text(project, job), photos=photos)
+    flagged = bool(result.meta.get("flagged"))
+    job.result = {
+        **(job.result or {}),
+        "input_safety": {
+            "fingerprint": fingerprint,
+            "status": "blocked" if flagged else "passed",
+            "model": result.meta.get("model"),
+            "request_id": result.meta.get("request_id"),
+        },
+    }
+    db.commit()
+    if flagged:
+        raise ProviderError("INPUT_SAFETY_BLOCKED", transient=False, status_code=400)
+
+
 def _publish_progress(db, job, *, stage: str, done: int, total: int, language: str | None = None):
     """Grava o estágio antes da chamada lenta, para a barra não ficar mentindo em Capa."""
     progress = {"stage": stage, "done": done, "total": total}
@@ -444,14 +530,15 @@ def _publish_progress(db, job, *, stage: str, done: int, total: int, language: s
 async def preview(db, job, project):
     if contract.adopt_current_editorial_draft(project):
         db.commit()
-    if editorial_profile.composed(project.book_profile or {}):
-        from .editorial_book import preview as composed_preview
-
-        return await composed_preview(db, job, project)
     from app.services.privacy import require_photo_authorization
 
     require_photo_authorization(db, project.id)
     photos = _photos(db, project)
+    await _preflight_input_safety(db, job, project, photos)
+    if editorial_profile.composed(project.book_profile or {}):
+        from .editorial_book import preview as composed_preview
+
+        return await composed_preview(db, job, project)
     editorial = (project.book_profile or {}).get("editorial")
     payload = _payload(job)
     selected = payload.get("image")
@@ -503,7 +590,10 @@ async def preview(db, job, project):
                 editorial
                 and existing
                 and existing[-1].meta.get("editorial") == editorial
-                and existing[-1].meta.get("validation", {}).get("status") in {"valid", "demo"}
+                and (
+                    existing[-1].meta.get("validation", {}).get("status") in {"valid", "demo"}
+                    or existing[-1].meta.get("presentation") == "book_only_fallback"
+                )
             )
             skip_unselected_role = bool(
                 selected

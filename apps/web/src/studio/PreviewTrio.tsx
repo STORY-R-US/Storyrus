@@ -4,17 +4,23 @@ type Props = {
   coverUrl: string | null;
   pageUrl: string | null;
   inHandUrl: string | null;
+  inHandPresentation?: string | null;
 };
 
 /** Strip capa / página / na mão — mesmo trio da landing. */
-export function PreviewTrio({ coverUrl, pageUrl, inHandUrl }: Props) {
+export function PreviewTrio({ coverUrl, pageUrl, inHandUrl, inHandPresentation }: Props) {
   const { t } = useStudioI18n();
   if (!coverUrl && !pageUrl && !inHandUrl) return null;
+  const bookOnly = inHandPresentation === "book_only_fallback";
 
   const shots: { url: string | null; label: string; testId: string }[] = [
     { url: coverUrl, label: t.previewCover, testId: "studio-preview-cover" },
     { url: pageUrl, label: t.previewPage, testId: "studio-preview-page" },
-    { url: inHandUrl, label: t.previewInHand, testId: "studio-preview-in-hand" },
+    {
+      url: inHandUrl,
+      label: bookOnly ? t.previewBookMockup : t.previewInHand,
+      testId: "studio-preview-in-hand",
+    },
   ];
 
   return (
@@ -27,7 +33,9 @@ export function PreviewTrio({ coverUrl, pageUrl, inHandUrl }: Props) {
       <h3 className="field-label" id="studio-preview-trio-heading">
         {t.previewTrioTitle}
       </h3>
-      <p className="muted">{t.previewTrioHint}</p>
+      <p className="muted">
+        {bookOnly ? t.previewTrioHintBookMockup : t.previewTrioHint}
+      </p>
       <div
         className="studio-preview-trio"
         role="list"

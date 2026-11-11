@@ -497,11 +497,27 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     /openai|insufficient_quota|credit_balance_exhausted/i.test(message || ""));
   const openJobErrors = [...latestByType.values()].filter((job) => job.status === "FAILED" && job.error && !retiredAIError(job.error));
   const generationError = error || previewFailedJob?.error;
+  const inputSafetyBlocked = /INPUT_SAFETY_BLOCKED/i.test(generationError || "");
+  const providerSafetyBlocked = /moderation_block|content_policy_violation/i.test(generationError || "");
+  const safetyBlocked = inputSafetyBlocked || providerSafetyBlocked;
+  const userFacingError = (message?: string | null) => {
+    if (/INPUT_SAFETY_BLOCKED/i.test(message || "")) return t.previewInputSafetyBlocked;
+    if (/moderation_block|content_policy_violation/i.test(message || "")) {
+      return t.previewProviderSafetyBlocked;
+    }
+    if (/INPUT_SAFETY_CHECK_(?:UNAVAILABLE|INVALID)/i.test(message || "")) {
+      return t.previewSafetyCheckUnavailable;
+    }
+    if (/OpenAI \d{3}:|image_generation_user_error/i.test(message || "")) {
+      return t.previewProviderFailed;
+    }
+    return message;
+  };
   const visibleGenerationError = retiredAIError(generationError) ? {
     pt: "Esta tentativa anterior foi interrompida. Agora o teste usa imagens genéricas, sem créditos. Clique em Tentar prévia de novo para continuar.",
     en: "This earlier attempt was interrupted. Tests now use generic images without credits. Click Retry preview to continue.",
     es: "Este intento anterior se interrumpió. Ahora las pruebas usan imágenes genéricas sin créditos. Pulsa Reintentar vista previa para continuar.",
-  }[lang] : generationError;
+  }[lang] : userFacingError(generationError);
   const previewReady = Boolean(
     project?.book_profile ? project.book_profile.stage !== "ficha" : project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
@@ -727,7 +743,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const showPreviewLoading =
     orderSent && !isDemo && !error && !previewFailed && (previewChainActive || !previewReady);
   const showPreviewRetry =
-    orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
+    orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed) && !safetyBlocked;
   const imageJob = [...jobs].reverse().find((job) => job.type === "EBOOK" && job.result?.payload?.preview_chain);
   const chainSteps = previewChainSteps(jobs);
   const masterSteps = project?.book_profile
@@ -1126,7 +1142,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 <ul>
                   {openJobErrors.map((job) => (
                     <li key={job.id}>
-                      {job.type}: {job.error}
+                      {job.type}: {userFacingError(job.error)}
                     </li>
                   ))}
                 </ul>
@@ -1239,6 +1255,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     null
                   }
                   inHandUrl={assets?.in_hand_url ?? null}
+                  inHandPresentation={assets?.in_hand_presentation ?? null}
                 />
 
                 {project && <PostPreviewFlow project={project} assets={assets} jobs={jobs}

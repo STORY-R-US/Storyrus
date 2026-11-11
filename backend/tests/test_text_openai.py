@@ -115,6 +115,7 @@ class _FakeResponse:
         self.status_code = status_code
         self._json = json_data or {}
         self.text = text or (json.dumps(self._json) if json_data else f"status {status_code}")
+        self.headers = {"x-request-id": "req-test-moderation"}
 
     def json(self):
         return self._json
@@ -163,6 +164,48 @@ async def test_generate_story_uses_chat_completions(client):
     assert result.text.startswith("Título:")
     assert result.meta["provider"] == "openai"
     assert result.cost_usd > 0
+
+
+@pytest.mark.asyncio
+async def test_moderation_preflight_is_free_and_sends_text_and_authorized_photo(client):
+    photo = io.BytesIO()
+    Image.new("RGB", (8, 8), "blue").save(photo, "PNG")
+    client.script = [(200, {"results": [{"flagged": False, "categories": {}}]})]
+
+    result = await oai.OpenAITextProvider().moderate_book_input(
+        text='{"theme":"stars"}', photos=[photo.getvalue()]
+    )
+
+    call = client.calls[0]
+    assert call["url"].endswith("/moderations")
+    assert call["json"]["model"] == "omni-moderation-latest"
+    assert call["json"]["input"][0] == {"type": "text", "text": '{"theme":"stars"}'}
+    image = call["json"]["input"][1]
+    assert image["type"] == "image_url"
+    assert image["image_url"]["url"].startswith("data:image/png;base64,")
+    assert result.meta["flagged"] is False
+    assert result.cost_usd == 0
+    assert result.meta["request_id"] == "req-test-moderation"
+
+
+@pytest.mark.asyncio
+async def test_moderation_preflight_reports_flagged_input_without_chat_completion(client):
+    client.script = [(200, {"results": [{"flagged": True, "categories": {"violence": True}}]})]
+
+    result = await oai.OpenAITextProvider().moderate_book_input(text="unsafe", photos=[])
+
+    assert result.meta["flagged"] is True
+    assert result.cost_usd == 0
+    assert len(client.calls) == 1
+    assert client.calls[0]["url"].endswith("/moderations")
+
+
+@pytest.mark.asyncio
+async def test_moderation_preflight_fails_closed_on_invalid_result_schema(client):
+    client.script = [(200, {"results": [{"categories": {}}]})]
+
+    with pytest.raises(ProviderError, match="INPUT_SAFETY_CHECK_INVALID"):
+        await oai.OpenAITextProvider().moderate_book_input(text="sample", photos=[])
 
 
 @pytest.mark.asyncio

@@ -20,6 +20,7 @@ from app.services import (
 )
 from app.services import book_profile as contract
 from app.services.privacy import require_photo_authorization
+from app.workers import book_mockups
 from app.workers import editorial_render as render
 
 
@@ -256,9 +257,10 @@ class Pipeline:
         self.master._account(self.db, self.job, result, label)
         self.db.commit()
 
-    def guard(self):
+    def guard(self, *, billable=True):
         require_photo_authorization(self.db, self.project.id)
-        spend_guard.assert_vendor_allowed(self.db)
+        if billable:
+            spend_guard.assert_vendor_allowed(self.db)
 
     def revision_for(self, name):
         role = (
@@ -272,7 +274,7 @@ class Pipeline:
         )
         return self.project.book_profile.get("editorial_revisions", {}).get(role, {})
 
-    async def stage(self, name, inputs, build):
+    async def stage(self, name, inputs, build, *, billable=True):
         """Immutable intermediates survive worker/job retries, scoped to all relevant inputs."""
         if self.designed and name.endswith(":text"):
             # Recompose typography locally after a layout fix, retaining purchased raw art.
@@ -352,7 +354,7 @@ class Pipeline:
             attempt += 1
             self.record(name, "running", attempts=attempt, input_key=key)
             try:
-                self.guard()
+                self.guard(billable=billable)
                 data, meta = await build(attempt)
                 require_photo_authorization(self.db, self.project.id)
                 meta = {
@@ -1520,6 +1522,30 @@ class Pipeline:
         return await self.mockup("spread", [first, second])
 
     async def mockup(self, name, artworks, *, cover=None):
+        if name == "spread":
+
+            async def build_local(_attempt):
+                data, composition = book_mockups.open_book_spread(*artworks)
+                return data, {
+                    "validation": {
+                        "status": "awaiting_user_review",
+                        "reviewer": "user",
+                        "method": "technical_integrity_only",
+                    },
+                    "composition": composition,
+                    "presentation": "open_book_deterministic",
+                }
+
+            return await self.stage(
+                name,
+                {
+                    "sources": [render.digest(p) for p in artworks],
+                    "surface_contract": 7,
+                },
+                build_local,
+                billable=False,
+            )
+
         async def build(attempt):
             reading = len(artworks) == 1
             prompt = (
@@ -1725,13 +1751,54 @@ class Pipeline:
                 **({"template_key": template_meta["storage_key"]} if not self.demo else {}),
             }
 
+        inputs = {
+            "sources": [render.digest(p) for p in artworks],
+            "surface_contract": 9 if name == "reading" else 6,
+        }
+        try:
+            return await self.stage(name, inputs, build)
+        except ProviderError as exc:
+            if name != "reading":
+                raise
+            failure = str(exc).lower()
+            reason = (
+                "moderation"
+                if "moderation" in failure or "safety" in failure
+                else "rate_limit"
+                if exc.status_code == 429
+                else "provider_unavailable"
+                if exc.status_code and exc.status_code >= 500
+                else "quality_review"
+                if "revisão visual" in failure
+                else "provider_failure"
+            )
+            return await self.book_only_fallback(artworks[0], reason=reason)
+
+    async def book_only_fallback(self, cover_art, *, reason="provider_failure"):
+        data, composition = book_mockups.book_only(cover_art)
+
+        async def build_fallback(_attempt):
+            return data, {
+                "validation": {
+                    "status": "awaiting_user_review",
+                    "reviewer": "user",
+                    "method": "technical_integrity_only",
+                },
+                "composition": composition,
+                "presentation": "book_only_fallback",
+                "fallback_reason_category": reason,
+            }
+
         return await self.stage(
-            name,
+            "reading",
             {
-                "sources": [render.digest(p) for p in artworks],
-                "surface_contract": 8 if name == "reading" else 6,
+                "sources": [render.digest(cover_art)],
+                "surface_contract": 10,
+                "presentation": "book_only_fallback",
+                "fallback_revision": 1,
             },
-            build,
+            build_fallback,
+            billable=False,
         )
 
 
@@ -1884,7 +1951,33 @@ async def preview(db, job, project):
                 )
                 data, meta = await pipe.mockup("spread", [left, right])
         else:
-            data, meta = await pipe.mockup("reading", [flat], cover=flat)
+            existing = master._assets(db, project, workflow=1, language=pipe.language, role=role)
+            prior_fallback = next(
+                (
+                    asset
+                    for asset in reversed(existing)
+                    if asset.meta.get("presentation") == "book_only_fallback"
+                    and asset.meta.get("editorial") == project.book_profile["editorial"]
+                ),
+                None,
+            )
+            current_cover_sha256 = render.digest(cover)
+            if prior_fallback and selected != "03_LEITURA":
+                if prior_fallback.meta.get("cover_sha256") == current_cover_sha256:
+                    all_meta[f"{pipe.language}:{role}"] = {
+                        "state": prior_fallback.meta["validation"]["status"],
+                        "presentation": "book_only_fallback",
+                    }
+                    master._publish_progress(
+                        db, job, stage=role, done=3, total=3, language=pipe.language
+                    )
+                    continue
+                data, meta = await pipe.book_only_fallback(
+                    flat,
+                    reason=prior_fallback.meta.get("fallback_reason_category", "previous_fallback"),
+                )
+            else:
+                data, meta = await pipe.mockup("reading", [flat], cover=flat)
             meta = {**meta, "cover_sha256": render.digest(cover)}
         kind = {"01_CAPA": "cover", "02_LIVRO_ABERTO": "page_image", "03_LEITURA": "in_hand"}[role]
         meta = {

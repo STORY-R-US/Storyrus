@@ -15,6 +15,8 @@ from app.config import settings
 from app.services.pricing import text_cost
 
 _API_URL = "https://api.openai.com/v1/chat/completions"
+_MODERATION_URL = "https://api.openai.com/v1/moderations"
+_MODERATION_MODEL = "omni-moderation-latest"
 _TRANSIENT = frozenset({429, 500, 502, 503, 504})
 
 _SYSTEM_PT = (
@@ -330,6 +332,77 @@ class OpenAITextProvider:
         self._timeout = settings.openai_timeout_s if timeout is None else timeout
         self._model = settings.openai_text_model
         self.last_cost_usd: float | None = None
+
+    async def moderate_book_input(self, *, text: str, photos: list[bytes]) -> TextResult:
+        """Run the free safety check before any billable book generation request."""
+        if settings.skip_openai:
+            raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=False)
+        if not self._api_key:
+            raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=False)
+
+        items = [{"type": "text", "text": text}]
+        for photo in photos:
+            mime = (
+                "image/jpeg"
+                if photo.startswith(b"\xff\xd8\xff")
+                else "image/png"
+                if photo.startswith(b"\x89PNG\r\n\x1a\n")
+                else "image/webp"
+                if photo.startswith(b"RIFF") and photo[8:12] == b"WEBP"
+                else None
+            )
+            if not mime:
+                raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=False)
+            encoded = base64.b64encode(photo).decode("ascii")
+            items.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{encoded}"},
+                }
+            )
+
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "content-type": "application/json",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
+                resp = await client.post(
+                    _MODERATION_URL,
+                    json={"model": _MODERATION_MODEL, "input": items},
+                    headers=headers,
+                )
+        except httpx.RequestError as exc:
+            raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=True) from exc
+        request_id = getattr(resp, "headers", {}).get("x-request-id")
+        if resp.status_code >= 400:
+            raise ProviderError(
+                "INPUT_SAFETY_CHECK_UNAVAILABLE",
+                transient=resp.status_code in _TRANSIENT,
+                status_code=resp.status_code,
+            )
+        try:
+            data = resp.json()
+            results = data.get("results")
+            if not isinstance(results, list) or not results or any(
+                not isinstance(result, dict) or not isinstance(result.get("flagged"), bool)
+                for result in results
+            ):
+                raise ValueError("missing moderation results")
+            flagged = any(result["flagged"] for result in results)
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise ProviderError("INPUT_SAFETY_CHECK_INVALID", transient=False) from exc
+        self.last_cost_usd = 0
+        return TextResult(
+            text=json.dumps({"flagged": flagged}),
+            cost_usd=0,
+            meta={
+                "provider": "openai",
+                "model": _MODERATION_MODEL,
+                "request_id": request_id,
+                "flagged": flagged,
+            },
+        )
 
     async def _complete(
         self, *, system: str, user: str | list, max_tokens: int, json_mode: bool = False

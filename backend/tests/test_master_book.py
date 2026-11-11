@@ -194,6 +194,13 @@ def composed_studio(studio, monkeypatch):
             return ImageResult(encode(image), cost_usd=0)
 
     class Text:
+        async def moderate_book_input(self, **kwargs):
+            return TextResult(
+                text='{"flagged": false}',
+                cost_usd=0,
+                meta={"flagged": False, "model": "omni-moderation-latest"},
+            )
+
         async def generate_editorial_story(self, **kwargs):
             return TextResult(
                 text="Título: "
@@ -325,7 +332,7 @@ async def test_reference_pipeline_uses_actions_illustrated_setting_and_new_typog
     studio, calls, _ = reference_studio
     job = await _run(studio, "preview", key="reference-style")
     assert job.status == "DONE"
-    assert len(calls) == 5
+    assert len(calls) == 4
     assert "TOP QUARTER" not in calls[0]["prompt"]
     assert "ABAIXO de 25%" not in calls[0]["prompt"]
     assert "COVER DESIGN" in calls[0]["prompt"]
@@ -358,20 +365,20 @@ async def test_mockup_falls_back_to_vision_geometry_without_regenerating_images(
 
     monkeypatch.setattr(render, "keyed_surfaces", missing_key_pixels)
     await _run(studio, "preview", key="vision-geometry-fallback")
-    assert len(calls) == 5  # flat art and one template per mockup; no paid retry
+    assert len(calls) == 4  # flat art plus the optional holding scene
 
     _, db, pid, _ = studio
     sources = db.scalars(
         select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
     ).all()
     mockups = {asset.meta["stage"]: asset for asset in sources if asset.meta.get("stage")}
-    for stage in ("spread", "reading"):
-        assert mockups[stage].meta["surface_detection"]["method"] == "vision"
-        assert mockups[stage].meta["composition"]["method"] == "vision_geometry_composition"
-        assert (
-            "impressão não identificada"
-            in mockups[stage].meta["surface_detection"]["keying_fallback_reason"]
-        )
+    assert mockups["spread"].meta["composition"]["method"] == "deterministic_open_book_v1"
+    assert mockups["reading"].meta["surface_detection"]["method"] == "vision"
+    assert mockups["reading"].meta["composition"]["method"] == "vision_geometry_composition"
+    assert (
+        "impressão não identificada"
+        in mockups["reading"].meta["surface_detection"]["keying_fallback_reason"]
+    )
 
 
 @pytest.mark.asyncio
@@ -436,7 +443,7 @@ async def test_body_layout_adapts_to_observed_art_without_regenerating_scene(com
     control["reject_body_region_once"] = True
     job = await _run(studio, "preview", key="observed-body-layout")
     assert job.status == "DONE"
-    assert len(calls) == 5
+    assert len(calls) == 4
     assert control["observed_layout_calls"] == 6
     _, db, pid, _ = studio
     sources = db.scalars(
@@ -485,7 +492,7 @@ async def test_composed_text_overlap_regenerates_art_with_feedback(composed_stud
     control["reject_cover_text_once"] = True
     job = await _run(studio, "preview", key="repair-text-overlap")
     assert job.status == "DONE"
-    assert len(calls) == 6  # cover twice, two pages, open book, holding book
+    assert len(calls) == 5  # cover twice, two pages, and the optional holding scene
     assert "texto sobre o cabelo" in calls[1]["prompt"]
     assert "text_region" in calls[1]["prompt"]
     assert calls[1]["operation"] == "outpaint_reframed_art"
@@ -502,13 +509,25 @@ async def test_composed_three_scenes_resume_exact_sources_and_purchase_gates(com
     response = client.post(f"/v1/projects/{pid}/preview")
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
-    assert job.status == "FAILED"
-    assert len(calls) == 5  # three flat arts and one template for each mockup
-    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 2
-    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 409
+    assert job.status == "DONE", job.error
+    assert len(calls) == 4  # three flat arts and one optional holding scene
+    assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+    reading_asset = next(
+        a
+        for a in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid))).all()
+        if a.kind == AssetKind.IN_HAND.value and a.meta.get("workflow") == 1
+    )
+    assert reading_asset.meta["presentation"] == "book_only_fallback"
+    assert reading_asset.meta["validation"]["status"] == "awaiting_user_review"
+    assert (
+        client.get(f"/v1/projects/{pid}/assets").json()["in_hand_presentation"]
+        == "book_only_fallback"
+    )
     control["reject_reading"] = False
+    before_retry = len(calls)
     await _run(studio, "preview", key="resume-composed")
-    assert len(calls) == 6  # reuse approved scenes; one deliberate reading retry by the user
+    assert len(calls) == before_retry  # reuse the exact fallback without another paid attempt
     assets = [
         a
         for a in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid)))
@@ -518,9 +537,7 @@ async def test_composed_three_scenes_resume_exact_sources_and_purchase_gates(com
     assert len(assets) == 3
     cover = next(a for a in assets if a.meta["role"] == "01_CAPA")
     reading = next(a for a in assets if a.meta["role"] == "03_LEITURA")
-    assert reading.meta["composition"]["surfaces"][0]["source_sha256"] == digest(
-        store[cover.meta["flat_cover_key"]]
-    )
+    assert reading.meta["composition"]["source"] == digest(store[cover.meta["flat_cover_key"]])
     assert store[cover.meta["flat_cover_key"]] != store[cover.storage_key]
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
     assert client.post(f"/v1/projects/{pid}/story").status_code == 409
@@ -848,8 +865,8 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
     assert project.book_profile["stage"] == "cover_ready"
     approval = project.book_profile["cover_calibration"]["sha256"]
     await _run(studio, "preview", {"approved_cover_sha256": approval}, key="continue-catalog")
-    assert len(calls) == 5
-    expected_roles = ["cover", "page", "page", "page", "holding"]
+    assert len(calls) == 4
+    expected_roles = ["cover", "page", "page", "holding"]
     for call, role in zip(calls, expected_roles, strict=True):
         references = [call["character_ref"], *call.get("extra_refs", [])]
         assert book_design.reference(design, role) not in references
@@ -1278,6 +1295,13 @@ async def test_ai_errors_fail_preview_without_substitutes_or_automatic_approvals
     client, db, pid, _ = studio
 
     class Text:
+        async def moderate_book_input(self, **kwargs):
+            return TextResult(
+                text='{"flagged": false}',
+                cost_usd=0,
+                meta={"flagged": False, "model": "omni-moderation-latest"},
+            )
+
         async def prepare_book_profile(self, **kwargs):
             if failure_stage == "profile":
                 raise ProviderError(message, transient=False)
@@ -1478,6 +1502,14 @@ async def test_original_photos_and_approved_cover_are_sent_in_all_three_language
     calls = []
 
     class Text:
+        async def moderate_book_input(self, *, text, photos):
+            assert photos == [_png()]
+            return TextResult(
+                text='{"flagged": false}',
+                cost_usd=0,
+                meta={"flagged": False, "model": "omni-moderation-latest"},
+            )
+
         async def prepare_book_profile(self, *, ficha, photos):
             assert photos == [_png()]
             return TextResult(
@@ -1534,6 +1566,8 @@ async def test_original_photos_and_approved_cover_are_sent_in_all_three_language
 async def test_partial_preview_is_never_approved_and_retry_keeps_completed_cover(
     studio, monkeypatch
 ):
+    from app.ai_clients.text_openai import OpenAITextProvider
+
     client, db, pid, _ = studio
     # Prepare the visual profile offline, then exercise a real provider-shaped failure.
     p = db.get(Project, uuid.UUID(pid))
@@ -1557,6 +1591,15 @@ async def test_partial_preview_is_never_approved_and_retry_keeps_completed_cover
             return ImageResult(_png(), cost_usd=0)
 
     images = Images()
+
+    async def moderate_book_input(self, **kwargs):
+        return TextResult(
+            text='{"flagged": false}',
+            cost_usd=0,
+            meta={"flagged": False, "model": "omni-moderation-latest"},
+        )
+
+    monkeypatch.setattr(OpenAITextProvider, "moderate_book_input", moderate_book_input)
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a: images)
     response = client.post(f"/v1/projects/{pid}/preview")
@@ -2114,6 +2157,13 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
             return ImageResult(image, cost_usd=0)
 
     class Text:
+        async def moderate_book_input(self, **kwargs):
+            return TextResult(
+                text='{"flagged": false}',
+                cost_usd=0,
+                meta={"flagged": False, "model": "omni-moderation-latest"},
+            )
+
         async def validate_editorial_preview(self, **kwargs):
             assert kwargs["photos"][0] == _png()
             return TextResult(
@@ -2176,6 +2226,46 @@ async def test_editorial_provider_references_resume_and_zip(studio, monkeypatch)
 
 
 @pytest.mark.asyncio
+async def test_input_safety_block_is_cached_and_stops_before_any_paid_generation(
+    studio, monkeypatch
+):
+    from app.workers.handlers.master_book import _preflight_input_safety
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+    project.story_text = "Página 1: uma história personalizada"
+    job.result = {"payload": {"adjustment": "inclua uma ponte azul"}}
+    db.add(job)
+    db.commit()
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    calls = []
+
+    class Text:
+        async def moderate_book_input(self, *, text, photos):
+            calls.append((text, photos))
+            return TextResult(
+                text='{"flagged": true}',
+                cost_usd=0,
+                meta={"flagged": True, "model": "omni-moderation-latest"},
+            )
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    with pytest.raises(ProviderError, match="INPUT_SAFETY_BLOCKED"):
+        await _preflight_input_safety(db, job, project, [_png()])
+    with pytest.raises(ProviderError, match="INPUT_SAFETY_BLOCKED"):
+        await _preflight_input_safety(db, job, project, [_png()])
+
+    assert len(calls) == 1
+    assert "história personalizada" in calls[0][0]
+    assert "ponte azul" in calls[0][0]
+    assert calls[0][1] == [_png()]
+    assert job.result["input_safety"]["status"] == "blocked"
+    assert job.cost_usd == 0
+
+
+@pytest.mark.asyncio
 async def test_editorial_preview_fails_closed_when_validation_reports_any_issue(
     studio, monkeypatch
 ):
@@ -2204,6 +2294,13 @@ async def test_editorial_preview_fails_closed_when_validation_reports_any_issue(
             return ImageResult(_png(), cost_usd=0)
 
     class Text:
+        async def moderate_book_input(self, **kwargs):
+            return TextResult(
+                text='{"flagged": false}',
+                cost_usd=0,
+                meta={"flagged": False, "model": "omni-moderation-latest"},
+            )
+
         async def validate_editorial_preview(self, **kwargs):
             return TextResult(
                 text='{"valid": true, "issues": ["título duplicado"], "limitations": []}',
@@ -2268,7 +2365,7 @@ async def test_current_preview_checks_cover_and_source_art_without_extra_image_c
     assert job.status == "DONE", job.error
     repairs = [call for call in calls if call.get("operation") == "outpaint_reframed_art"]
     assert len(repairs) == 0
-    assert len(calls) == 5
+    assert len(calls) == 4
     generated = [call for call in calls if "prompt" in call and not call.get("operation")]
     assert all("COMPOSITION EXAMPLES GUIDE" in call["prompt"] for call in generated[:3])
     assert sum(check["prompt"].startswith("ARTE_BASE:") for check in reviewed) == 3
@@ -2291,7 +2388,7 @@ async def test_current_preview_is_delivered_for_explicit_user_approval(reference
     job = db.get(Job, uuid.UUID(response.json()["job_id"]))
     await runner.process_job(db, job)
     assert job.status == "DONE", job.error
-    assert len(calls) == 5
+    assert len(calls) == 4
     project = db.get(Project, uuid.UUID(pid))
     assert not (project.purchase_flow or {}).get("preview_approved_at")
     scenes = db.scalars(
@@ -2602,7 +2699,7 @@ async def test_reference_pages_preserve_full_bleed_art_without_added_paper_margi
     db.commit()
     job = await _run(studio, "preview", key="full-bleed-identity")
     assert job.status == "DONE", job.error
-    assert len(calls) == 5  # three arts and two mockups; no paid regeneration
+    assert len(calls) == 4  # three arts and the optional holding image
     sources = db.scalars(
         select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
     ).all()
@@ -2670,13 +2767,16 @@ async def test_retry_reuses_matching_generated_template_without_new_image_charge
     )
     job = db.get(Job, uuid.UUID(first.json()["job_id"]))
     await runner.process_job(db, job)
-    assert job.status == "FAILED"
+    assert job.status == "DONE", job.error
     before = len(calls)
-    assert before == 5
+    assert before == 4
     recovered = await _run(studio, "preview", key="resume-local-no-new-image")
     assert recovered.status == "DONE", recovered.error
     assert len(calls) == before
-    assert recovered.result["editorial_tasks"]["reading:template"]["resumed"] is True
+    assert (
+        client.get(f"/v1/projects/{pid}/assets").json()["in_hand_presentation"]
+        == "book_only_fallback"
+    )
 
 
 @pytest.mark.asyncio
@@ -2701,7 +2801,7 @@ async def test_cover_calibration_waits_for_user_and_reuses_exact_cover(reference
     )
     assert len(calls) == 1
     await _run(studio, "preview", {"approved_cover_sha256": proof["sha256"]}, key="approve-cover")
-    assert len(calls) == 5  # only two pages and two scenes added, never a second cover
+    assert len(calls) == 4  # two pages and the optional holding scene; no second cover
     assert store[proof["flat_key"]] == original
     assert calls[1]["extra_refs"][-1] == store[proof["flat_meta"]["art_key"]]
     assert calls[2]["extra_refs"][-1] == store[proof["flat_meta"]["art_key"]]

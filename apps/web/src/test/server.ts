@@ -30,6 +30,7 @@ type Project = {
   narrated_video_url?: string | null;
   cover_url?: string | null;
   in_hand_url?: string | null;
+  in_hand_presentation?: string | null;
   page_image_url?: string | null;
   character_approved_at?: string | null;
   book_approved_at?: string | null;
@@ -727,6 +728,7 @@ export const handlers = [
           : [],
       cover_url: p?.cover_url ?? null,
       in_hand_url: p?.in_hand_url ?? null,
+      in_hand_presentation: p?.in_hand_presentation ?? null,
       ebook_url: p?.ebook_url ?? null,
       video_url: p?.video_url ?? null,
       narrated_video_url: p?.narrated_video_url ?? null,

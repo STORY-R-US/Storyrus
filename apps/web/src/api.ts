@@ -493,6 +493,7 @@ export const api = {
       page_images: string[];
       cover_url?: string | null;
       in_hand_url?: string | null;
+      in_hand_presentation?: string | null;
       ebook_url: string | null;
       video_url: string | null;
       narrated_video_url: string | null;

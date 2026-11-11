@@ -23,4 +23,17 @@ describe("PreviewTrio", () => {
     );
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("identifica quando a terceira imagem é um mockup local sem pessoa", () => {
+    render(
+      <PreviewTrio
+        coverUrl="https://cdn.test/capa.png"
+        pageUrl="https://cdn.test/pagina.png"
+        inHandUrl="https://cdn.test/livro.png"
+        inHandPresentation="book_only_fallback"
+      />,
+    );
+    expect(screen.getByText("Mockup do livro")).toBeInTheDocument();
+    expect(screen.getByText(/sem uma pessoa segurando/i)).toBeInTheDocument();
+  });
 });

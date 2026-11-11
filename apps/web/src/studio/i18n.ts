@@ -148,6 +148,12 @@ export type StudioCopy = {
   previewPage: string;
   previewInHand: string;
   previewInHandHint: string;
+  previewBookMockup: string;
+  previewTrioHintBookMockup: string;
+  previewInputSafetyBlocked: string;
+  previewProviderSafetyBlocked: string;
+  previewSafetyCheckUnavailable: string;
+  previewProviderFailed: string;
   previewFicha: string;
   previewFichaHint: string;
   previewOpenBook: string;
@@ -521,6 +527,12 @@ const pt: StudioCopy = {
   previewPage: "Livro aberto",
   previewInHand: "Segurando o livro",
   previewInHandHint: "A pessoa aparece segurando o livro impresso.",
+  previewBookMockup: "Mockup do livro",
+  previewTrioHintBookMockup: "A terceira imagem mostra a capa real em um mockup local, sem uma pessoa segurando o livro.",
+  previewInputSafetyBlocked: "A checagem gratuita bloqueou estes dados antes de gerar imagens. Ajuste o tema ou o texto, ou escolha outra foto, e comece um novo projeto.",
+  previewProviderSafetyBlocked: "O provedor bloqueou esta imagem. Ajuste o tema ou o texto, ou escolha outra foto antes de começar um novo projeto.",
+  previewSafetyCheckUnavailable: "A validação gratuita não ficou disponível, então nenhuma imagem foi gerada ou cobrada. Tente a prévia novamente daqui a pouco.",
+  previewProviderFailed: "Uma etapa da geração falhou. O Estúdio preservou o que já foi feito e não vai repetir esta imagem automaticamente. Revise a foto ou o texto antes de começar um novo projeto.",
   previewFicha: "Ficha",
   previewFichaHint: "A foto define figurino, paleta e os textos da prévia.",
   previewOpenBook: "Livro Aberto",
@@ -798,6 +810,12 @@ const en: StudioCopy = {
   previewPage: "Open book",
   previewInHand: "Holding the book",
   previewInHandHint: "The person is holding the printed book.",
+  previewBookMockup: "Book mockup",
+  previewTrioHintBookMockup: "The third image shows the actual cover in a local mockup, without a person holding the book.",
+  previewInputSafetyBlocked: "The free check blocked this input before image generation. Adjust the theme or text, or choose another photo, then start a new project.",
+  previewProviderSafetyBlocked: "The provider blocked this image. Adjust the theme or text, or choose another photo before starting a new project.",
+  previewSafetyCheckUnavailable: "The free input check was unavailable, so no image was generated or charged. Try the preview again shortly.",
+  previewProviderFailed: "A generation step failed. The Studio kept completed work and will not repeat this image automatically. Review the photo or text before starting a new project.",
   previewFicha: "Profile",
   previewFichaHint: "The photo sets the costume, palette, and preview text.",
   previewOpenBook: "Open Book",
@@ -1075,6 +1093,12 @@ const es: StudioCopy = {
   previewPage: "Libro abierto",
   previewInHand: "Sosteniendo el libro",
   previewInHandHint: "La persona aparece sosteniendo el libro impreso.",
+  previewBookMockup: "Maqueta del libro",
+  previewTrioHintBookMockup: "La tercera imagen muestra la portada real en una maqueta local, sin una persona sosteniendo el libro.",
+  previewInputSafetyBlocked: "La comprobación gratuita bloqueó estos datos antes de generar imágenes. Ajusta el tema o el texto, o elige otra foto y empieza un nuevo proyecto.",
+  previewProviderSafetyBlocked: "El proveedor bloqueó esta imagen. Ajusta el tema o el texto, o elige otra foto antes de empezar un nuevo proyecto.",
+  previewSafetyCheckUnavailable: "La comprobación gratuita no estuvo disponible, así que no se generaron ni cobraron imágenes. Vuelve a intentar la vista previa en un momento.",
+  previewProviderFailed: "Falló una etapa de generación. El Estudio conservó lo que ya estaba hecho y no repetirá esta imagen automáticamente. Revisa la foto o el texto antes de empezar un nuevo proyecto.",
   previewFicha: "Ficha",
   previewFichaHint: "La foto define vestuario, paleta y los textos de la vista previa.",
   previewOpenBook: "Libro Abierto",
