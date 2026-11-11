@@ -67,12 +67,65 @@ def _shade_map(size, *, direction, strength=0.13):
     return np.clip((1 - strength * gutter + 0.025 * outer) * vertical, 0.78, 1.04)
 
 
-def open_book_spread(left, right):
+def _reference_open_book(left, right, cover):
+    """Use approved catalog geometry, replacing both example pages completely."""
+    from pathlib import Path
+
+    template = (
+        Path(__file__).resolve().parents[1]
+        / "assets/composition_examples/catalog/adventure-page.png"
+    ).read_bytes()
+    canvas = Image.open(io.BytesIO(template)).convert("RGB")
+    if canvas.size != (1024, 1024):
+        raise ValueError("Dimensões do modelo de livro aberto alteradas")
+    # Keep the neutral outdoor product setting without the example's airplane.
+    scenery = canvas.crop((512, 0, 1024, 248)).resize((1024, 248), Image.Resampling.LANCZOS)
+    canvas.paste(scenery, (0, 0))
+    edge_scenery = canvas.crop((1000, 248, 1024, 740)).resize((30, 492))
+    canvas.paste(edge_scenery, (0, 248))
+    binding = "catalog_hardback"
+    if cover:
+        with Image.open(io.BytesIO(cover)) as image:
+            sample = np.asarray(image.convert("RGB").resize((64, 64)))
+        edges = np.concatenate((sample[0], sample[-1], sample[:, 0], sample[:, -1]))
+        binding = tuple(int(v) for v in np.median(edges, axis=0))
+        band = np.zeros((1024, 1024), dtype=np.uint8)
+        cv2.fillConvexPoly(band, np.asarray([(33, 252), (990, 250), (994, 736), (30, 737)]), 255)
+        cv2.fillConvexPoly(band, np.asarray([(39, 255), (984, 254), (987, 730), (36, 731)]), 0)
+        pixels = np.asarray(canvas).copy()
+        pixels[band > 0] = binding
+        canvas = Image.fromarray(pixels)
+    surfaces = [
+        [(49, 254), (511, 257), (511, 730), (49, 730)],
+        [(512, 257), (978, 254), (979, 731), (512, 730)],
+    ]
+    # Shade the actual printed art only near the real central gutter.
+    x = np.arange(1024, dtype=np.float32)[None, :]
+    shade = np.broadcast_to(1 - 0.13 * np.exp(-abs(x - 511.5) / 8), (1024, 1024))
+    for art, surface in zip((left, right), surfaces, strict=True):
+        warped, mask = _warp(art, surface, (1024, 1024), shade=shade)
+        canvas.paste(warped, (0, 0), mask)
+    output = io.BytesIO()
+    canvas.resize((2048, 2048), Image.Resampling.LANCZOS).save(output, format="PNG", optimize=True)
+    return output.getvalue(), {
+        "method": "deterministic_open_book_v2",
+        "sources": [_digest(left), _digest(right)],
+        "template_sha256": _digest(template),
+        "dimensions": [2048, 2048],
+        "surfaces": surfaces,
+        "binding_color": binding,
+    }
+
+
+def open_book_spread(left, right, *, presentation=None, cover=None):
     """Render two exact square pages in the same fixed physical hardback shell."""
     for data in (left, right):
         with Image.open(io.BytesIO(data)) as image:
             if image.width != image.height:
                 raise ValueError("As duas páginas precisam ser quadradas")
+
+    if presentation == "meu_pai_heroi_v2":
+        return _reference_open_book(left, right, cover)
 
     width, height = 1600, 800
     background = _gradient(width, height, (244, 240, 232), (220, 214, 202)).convert("RGBA")

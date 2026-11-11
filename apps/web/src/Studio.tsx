@@ -447,7 +447,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const look =
       artMode === "cartoon"
         ? "Estilo cartoon premium, traços desenhados, formas arredondadas, sem anime nem chibi."
-        : "Estilo editorial suavemente realista: pele com luz suave, íris na fração da foto, cabelo fio a fio, sem cartoon.";
+        : "Realismo editorial premium no padrão Meu Pai, Meu Herói: rostos naturais, cabelo fio a fio, luz quente, cores luminosas equilibradas, cenário detalhado e íris na proporção da foto, sem cartoon ou aquarela.";
     const format = `Livro quadrado ${cm}, corte reto, página em sangria total, estrofe curta na faixa calma. ${look}`;
     if (lang === "en") {
       return (

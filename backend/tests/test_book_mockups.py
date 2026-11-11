@@ -42,3 +42,20 @@ def test_book_only_fallback_uses_the_exact_cover_and_declares_its_presentation()
     assert provenance["source"] == hashlib.sha256(cover).hexdigest()
     assert provenance["presentation"] == "book_only_fallback"
     assert image.getpixel((520, 420))[0] > image.getpixel((520, 420))[2]
+
+
+def test_reference_presentation_is_square_reproducible_and_uses_actual_cover_binding():
+    left, right, cover = (_square_png(color) for color in ("red", "blue", "navy"))
+    output, meta = book_mockups.open_book_spread(
+        left, right, presentation="meu_pai_heroi_v2", cover=cover
+    )
+    repeated, _ = book_mockups.open_book_spread(
+        left, right, presentation="meu_pai_heroi_v2", cover=cover
+    )
+    image = Image.open(io.BytesIO(output))
+    assert image.size == (2048, 2048)
+    assert output == repeated
+    assert meta["binding_color"] == (0, 0, 128)
+    assert meta["sources"] == [hashlib.sha256(left).hexdigest(), hashlib.sha256(right).hexdigest()]
+    assert image.getpixel((512, 1024))[0] > image.getpixel((512, 1024))[2]
+    assert image.getpixel((1536, 1024))[2] > image.getpixel((1536, 1024))[0]

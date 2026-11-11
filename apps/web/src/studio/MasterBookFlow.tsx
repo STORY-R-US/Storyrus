@@ -293,6 +293,14 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
   const topic = phrase.length >= 3 && phrase.length <= 40 && phrase.includes(" ") && !/[\n\r]/.test(phrase)
     ? phrase
     : "";
+  const comparable = (value: string) => value.normalize("NFKD").replace(/\p{M}/gu, "")
+    .toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const topicMentions = comparable(topic).match(new RegExp(`(?:^| )${comparable(name)}(?= |$)`, "g"))?.length || 0;
+  const fallback = lang === "en" ? `A new adventure with ${name}`
+    : lang === "es" ? `Una nueva aventura con ${name}` : `${name}: uma nova aventura`;
+  const candidate = topicMentions ? topic
+    : lang === "en" ? `${name} and ${topic}` : lang === "es" ? `${name} y ${topic}` : `${name} e ${topic}`;
+  const themedTitle = topic ? (topicMentions > 1 || comparable(candidate) === comparable(title) ? fallback : candidate) : "";
   const patterns = lang === "en"
     ? [
         `The story of ${name}`,
@@ -300,7 +308,7 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
         `${name} and a world of discoveries`,
         `A book about ${name}`,
         `A story for ${name}`,
-        topic ? `${name} and ${topic}` : "",
+        themedTitle,
       ]
     : lang === "es"
       ? [
@@ -309,7 +317,7 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
           `${name} y un mundo de descubrimientos`,
           `El libro de ${name}`,
           `Una historia para ${name}`,
-          topic ? `${name} y ${topic}` : "",
+          themedTitle,
         ]
       : [
           `A história de ${name}`,
@@ -317,7 +325,7 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
           `${name} e um mundo de descobertas`,
           `O livro de ${name}`,
           `Uma história para ${name}`,
-          topic ? `${name} e ${topic}` : "",
+          themedTitle,
         ];
   const current = title.trim().toLocaleLowerCase();
   return [...new Set(patterns.map((item) => item.trim()).filter(Boolean))]

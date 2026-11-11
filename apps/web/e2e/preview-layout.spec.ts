@@ -1,5 +1,5 @@
 import { TEST_SESSION_TOKEN } from "./session";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("Single-cover review stays compact and allows optional detail editing", async ({ page }, testInfo) => {
   test.setTimeout(60_000);

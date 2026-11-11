@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
-from app.services import book_profile, visual_reference
+from app.services import book_profile
 
 ROOT = Path(__file__).resolve().parents[1] / "assets/composition_examples"
 
@@ -18,9 +18,11 @@ def _signature(value):
     ).hexdigest()
 
 
-@lru_cache(maxsize=1)
-def definitions():
-    return json.loads((ROOT / "book-designs-v1.json").read_text(encoding="utf-8"))
+@lru_cache(maxsize=2)
+def definitions(version=1):
+    if version not in {1, 2}:
+        raise HTTPException(409, "Versão do padrão visual indisponível")
+    return json.loads((ROOT / f"book-designs-v{version}.json").read_text(encoding="utf-8"))
 
 
 def reference(design, stage):
@@ -30,8 +32,9 @@ def reference(design, stage):
     return (ROOT / "catalog" / f"{family}-{role}.{suffix}").read_bytes()
 
 
-def snapshot(model_id):
-    data = definitions()
+def snapshot(model_id, *, version=None):
+    version = version if version is not None else 2 if model_id == "adventure" else 1
+    data = definitions(version)
     if model_id not in data["models"]:
         raise HTTPException(400, "Escolha um padrão do Catálogo disponível")
     model = json.loads(json.dumps(data["models"][model_id]))
@@ -47,7 +50,7 @@ def resolve(profile):
     stored = profile.get("book_design")
     if not stored:
         return None
-    if stored != snapshot(stored.get("id")):
+    if stored != snapshot(stored.get("id"), version=stored.get("version", 1)):
         raise HTTPException(
             409, "O padrão visual deste livro foi alterado; escolha novamente antes de gerar"
         )
@@ -59,8 +62,7 @@ def select(project, requested):
     if requested == "auto" and previous and previous["style"] == project.style:
         return previous
     if requested == "auto":
-        family = visual_reference.catalog_family(project.style, project.theme or "")
-        requested = "family" if family in {"family", "creative"} else family
+        requested = "cartoon" if project.style == "cartoon" else "adventure"
     design = snapshot(requested)
     if design["style"] != project.style:
         raise HTTPException(400, "Escolha um padrão do Catálogo compatível com o estilo do livro")
@@ -86,12 +88,16 @@ def apply_policy(design, policy):
     policy["referenceComposition"].update(
         coverRegion=cover["region"], bodyRegion=interior["region"]
     )
+    policy["typography"].update(design.get("typography", {}))
+    policy["visual"].update(design.get("visual", {}))
     return policy
 
 
 def preview_interior(design):
     """Preview both story moments without changing existing paid-page contracts."""
     interior = design["interior"]
+    if design.get("preview_interior"):
+        return design["preview_interior"]
     if design["id"] == "family":
         return {
             **interior,

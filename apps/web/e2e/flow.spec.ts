@@ -1,5 +1,6 @@
 import { TEST_SESSION_TOKEN } from "./session";
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   // Fontes externas não devem bloquear a navegação nos testes de fluxo.

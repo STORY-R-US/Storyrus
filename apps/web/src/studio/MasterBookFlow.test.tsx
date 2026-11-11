@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { api } from "../api";
 import type { JobAccepted, Project } from "../types";
-import { MasterBookFlow } from "./MasterBookFlow";
+import { MasterBookFlow, extraTitleOptions } from "./MasterBookFlow";
 import type { StudioAssets } from "./assets";
 
 const project: Project = { id: "master", status: "EBOOK_READY", style: "cartoon", language: "pt-BR",
@@ -17,6 +17,27 @@ const assets: StudioAssets = { character_url: null, realistic_url: null, extra_c
 const accepted: JobAccepted = { job_id: "job", status: "PENDING", type: "EBOOK", estimated_cost_credits: 0 };
 
 afterEach(() => vi.restoreAllMocks());
+
+describe("Sugestão de título pelo tema", () => {
+  it.each([
+    ["pt", "André", "Andre No Computador", "Andre No Computador"],
+    ["en", "Andre", "Andre At The Computer", "Andre At The Computer"],
+    ["es", "André", "Andre En El Ordenador", "Andre En El Ordenador"],
+    ["pt", "André", "Livro do André", "Andre e Andre no computador"],
+  ] as const)("não repete o protagonista na opção 6 (%s)", (lang, name, title, theme) => {
+    const options = extraTitleOptions(lang, name, title, theme);
+    expect(options).toHaveLength(6);
+    const normalized = options[5].normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+    expect(normalized.match(/andre/g)).toHaveLength(1);
+  });
+
+  it("mantém o tema quando ele já contém o nome uma vez", () => {
+    expect(extraTitleOptions("pt", "André", "Uma história especial", "Andre no computador")[5])
+      .toBe("Andre no computador");
+    expect(extraTitleOptions("pt", "Ana", "Uma história especial", "Montanhas Annapurna")[5])
+      .toBe("Ana e Montanhas Annapurna");
+  });
+});
 
 describe("Studio approval stages", () => {
   it.each(["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"])("aprova o trio editorial %s antes da cotação e não oferece história gratuita", async (version) => {

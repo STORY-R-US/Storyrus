@@ -1538,7 +1538,7 @@ class Pipeline:
 
     async def catalog_spread(self, name, left, right, actions):
         mode = self.design["interior"]["mode"]
-        if self.design["id"] == "family":
+        if self.design["id"] == "family" or self.design.get("preview_interior"):
             interior = book_design.preview_interior(self.design)
             original_policy = self.policy
             self.policy = {
@@ -1546,6 +1546,10 @@ class Pipeline:
                 "referenceComposition": {
                     **self.policy["referenceComposition"],
                     "bodyRegion": interior["region"],
+                },
+                "typography": {
+                    **self.policy["typography"],
+                    "bodyAlignment": interior["alignment"],
                 },
             }
             try:
@@ -1576,7 +1580,11 @@ class Pipeline:
         if name == "spread":
 
             async def build_local(_attempt):
-                data, composition = book_mockups.open_book_spread(*artworks)
+                data, composition = book_mockups.open_book_spread(
+                    *artworks,
+                    presentation=(self.design or {}).get("presentation"),
+                    cover=self.cover_continuity,
+                )
                 return data, {
                     "validation": {
                         "status": "awaiting_user_review",

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 for (const lang of ["pt", "en", "es"]) {
   test(`catálogo organizado e capas disponíveis em ${lang}`, async ({ page }) => {

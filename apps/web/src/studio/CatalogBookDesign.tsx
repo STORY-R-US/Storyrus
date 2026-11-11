@@ -10,9 +10,9 @@ const MODELS: Record<Exclude<CatalogDesignId, "auto">, Model> = {
   cartoon: { name: "Amor de Mãe — cartoon", sources: { cover: "cartoon-capa-amordemae.jpg", page: "cartoon-pagina-amordemae.jpg", holding: "cartoon-foto-amordemae.jpg" } },
 };
 const COPY = {
-  pt: { title: "Padrão visual do livro", hint: "Este modelo define o conjunto: capa, título, texto, miolo e apresentação do livro nas mãos. A história e as pessoas serão as suas.", auto: "Definir pelo tema", sample: "Ver o modelo completo do Catálogo", cover: "Capa", page: "Livro aberto", holding: "Segurando o livro", enlarge: "Ampliar referência" },
-  en: { title: "Book visual design", hint: "This model defines the complete book: cover, title, text, interior and held-book presentation. The story and people will be yours.", auto: "Choose by theme", sample: "View the complete catalog model", cover: "Cover", page: "Open book", holding: "Holding the book", enlarge: "Enlarge reference" },
-  es: { title: "Diseño visual del libro", hint: "Este modelo define el conjunto: portada, título, texto, interior y presentación en las manos. La historia y las personas serán las tuyas.", auto: "Elegir según el tema", sample: "Ver el modelo completo del Catálogo", cover: "Portada", page: "Libro abierto", holding: "Sosteniendo el libro", enlarge: "Ampliar referencia" },
+  pt: { title: "Padrão visual do livro", hint: "Este modelo define o conjunto: capa, título, texto, miolo e apresentação do livro nas mãos. A história e as pessoas serão as suas.", auto: "Padrão recomendado", sample: "Ver o modelo completo do Catálogo", cover: "Capa", page: "Livro aberto", holding: "Segurando o livro", enlarge: "Ampliar referência" },
+  en: { title: "Book visual design", hint: "This model defines the complete book: cover, title, text, interior and held-book presentation. The story and people will be yours.", auto: "Recommended design", sample: "View the complete catalog model", cover: "Cover", page: "Open book", holding: "Holding the book", enlarge: "Enlarge reference" },
+  es: { title: "Diseño visual del libro", hint: "Este modelo define el conjunto: portada, título, texto, interior y presentación en las manos. La historia y las personas serán las tuyas.", auto: "Diseño recomendado", sample: "Ver el modelo completo del Catálogo", cover: "Portada", page: "Libro abierto", holding: "Sosteniendo el libro", enlarge: "Ampliar referencia" },
 };
 
 export function CatalogDesignSamples({ model, lang }: { model: Model; lang: Lang }) {

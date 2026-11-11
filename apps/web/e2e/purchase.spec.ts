@@ -1,5 +1,5 @@
 import { TEST_SESSION_TOKEN } from "./session";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 for (const master of [false, true]) {
   test(`prévia ${master ? "mestre" : "anterior"} → cotação → meus pedidos`, async ({

@@ -5,10 +5,17 @@ antes do estúdio → temas / nome → criar projeto → consentimento + foto �
 etapas (avatar, história, ebook, vídeo, **vídeo narrado**) → vozes, aprovações
 e pedido de impressão.
 
+O app usa Expo SDK 54, React Native 0.81 e React 19, com Node.js 20.19.4 ou
+superior. Os módulos nativos seguem as versões indicadas pelo Expo. O Clerk
+mantém os fluxos de autenticação existentes pela entrada pública `/legacy`.
+React e React DOM usam o patch 19.1.4, compatível com os peers do React Native
+0.81 e exigido pelo Clerk. A CI confere esses peers e as versões dos módulos
+nativos do SDK separadamente, pois o manifesto do Expo ainda indica React 19.1.0.
+
 ## Rodar
 
 ```bash
-npm install
+npm ci
 npm start          # abre o Expo; use o app Expo Go ou um emulador
 ```
 
@@ -30,7 +37,7 @@ EXPO_PUBLIC_API_BASE=http://192.168.0.10:8000 npx expo start
 
 Ou edite temporariamente `app.json` → `expo.extra.apiBase`.
 
-O JWT de **conta registrada** é persistido em AsyncStorage (`storyrus_token`).
+O cache de sessão do Clerk usa o SecureStore pelo `src/clerkTokenCache.ts`.
 Convidados não entram no estúdio.
 
 ## Estrutura
