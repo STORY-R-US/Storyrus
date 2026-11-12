@@ -142,6 +142,11 @@ def test_editorial_literal_text_accents_and_overflow_fail_without_shrinking():
 @pytest.fixture
 def composed_studio(studio, monkeypatch):
     from app.services import editorial_profile
+    from app.workers.handlers.editorial_book import Pipeline
+
+    # This fixture exercises the retained legacy template/composition contract.
+    # Integrated generation, mandatory review and resume have their own tests.
+    monkeypatch.setattr(Pipeline, "integrated_reading_available", lambda self: False)
 
     monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-05.1")
     client, db, pid, store = studio
@@ -335,6 +340,34 @@ def reference_studio(composed_studio):
     )
     db.commit()
     return studio, calls, control
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reject", [False, True])
+async def test_integrated_reading_requires_review_before_publishing(
+    reference_studio, monkeypatch, reject
+):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, calls, control = reference_studio
+    monkeypatch.setattr(Pipeline, "integrated_reading_available", lambda self: True)
+    control["reject_reading"] = reject
+    job = await _run(
+        studio, "preview", key="integrated-review", expected="FAILED" if reject else "DONE"
+    )
+    assert job.status == ("FAILED" if reject else "DONE"), job.error
+    assert len(calls) == 4
+    assert "INTEGRATED FINAL SCENE" in calls[-1]["prompt"]
+    _, db, pid, _ = studio
+    sources = db.scalars(
+        select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
+    ).all()
+    assert any(a.meta["stage"] == "reading:integrated" for a in sources)
+    finals = [a for a in sources if a.meta["stage"] == "reading"]
+    assert len(finals) == (0 if reject else 1)
+    if finals:
+        assert finals[0].meta["validation"]["status"] == "valid"
+        assert finals[0].meta["presentation"] == "integrated_reading"
 
 
 @pytest.mark.asyncio

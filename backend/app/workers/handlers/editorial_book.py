@@ -376,7 +376,7 @@ class Pipeline:
         # must not buy another image automatically.
         if self.designed or name.endswith(":art"):
             maximum = 1
-        elif name in {"spread", "reading"}:
+        elif name in {"spread", "reading", "reading:integrated"}:
             # A mockup quality/composition failure must not buy another template
             # automatically. A new user retry is the explicit boundary for another
             # paid image-generation attempt.
@@ -2085,6 +2085,129 @@ class Pipeline:
             )
         return await self.mockup("spread", [first, second])
 
+    def integrated_reading_available(self):
+        """Do not migrate a purchased or uncertain legacy template on resume."""
+        if self.demo:
+            return False
+        guards = self.profile.get("generation_outcomes_unknown") or {}
+        if any(item.get("stage") == "reading:integrated" for item in guards.values()):
+            return True
+        if any(item.get("stage") in {"reading", "reading:template"} for item in guards.values()):
+            return False
+        sources = self.db.scalars(
+            select(Asset).where(
+                Asset.project_id == self.project.id, Asset.kind == "editorial_source"
+            )
+        ).all()
+        if any((asset.meta or {}).get("stage") == "reading:template" for asset in sources):
+            return False
+        jobs = self.db.scalars(select(Job).where(Job.project_id == self.project.id)).all()
+        return not any(
+            "reading:template" in ((job.result or {}).get("editorial_tasks") or {}) for job in jobs
+        )
+
+    async def integrated_reading(self, cover):
+        """Persist the complete scene before review; retries reuse that same image."""
+        title = self.profile["locales"][self.language]["title"]
+        reference = (
+            book_design.reference(self.design, "holding")
+            if self.design
+            else visual_reference.load("holding", self.project.style, self.reference_theme)
+            if self.designed
+            else None
+        )
+        direction = (
+            book_design.prompt(
+                self.design, "holding", "Create the finished reading photograph.", integrated=True
+            )
+            if self.design
+            else "Create a finished natural editorial reading photograph."
+        )
+        size = 15 if self.project.book_size == "P" else 20
+        prompt = direction + (
+            f"\nINTEGRATED FINAL SCENE: reference images 1 through {len(self.photos)} are the "
+            "ORIGINAL identity photographs. Preserve each person's facial features, age, skin, "
+            "hair and headwear; never substitute a catalog face or the painted face on the book. "
+            f"Reference {len(self.photos) + 1} is the EXACT FINISHED PROJECT COVER. Print that "
+            "cover on the physical book, preserving its artwork, title, spelling, accents, "
+            "line breaks, lettering and proportions. Do not redesign, translate or add text. "
+            "Create the person, room, hands, lighting and printed book TOGETHER in one image. "
+            "No placeholder colors, chroma-key planes, blank cover or later pasted panel. "
+            f"Show a real square {size}x{size} cm hardback, slightly open, at a readable gentle "
+            "three-quarter angle. Both rigid boards connect through a plausible spine and hinge; "
+            "layered page edges, contact shadows and natural fingers support its weight at the "
+            "outer edges. Keep the printed title fully visible, sharp and readable. No stretched "
+            "cover, floating book, extra fingers or fingers covering the title or printed faces. "
+            "Medium-wide composition: whole head, hair/headwear, torso, forearms and lap visible. "
+            "Use natural facial expression and anatomically credible hands. A coherent welcoming "
+            "room with window daylight, textured upholstery, a few meaningful objects and spatial "
+            "depth; details belong naturally to the scene, never decorative pasted strips. "
+            "The external people and room remain photographic even when the printed cover is "
+            "cartoon. The person's casual clothing may differ from the story costume. "
+        )
+        if reference:
+            prompt += (
+                f"Reference {len(self.photos) + 2} is ONLY the catalog's photographic finish and "
+                "physical book presentation. Never copy its people, printed text or cover art. "
+            )
+        prompt += json.dumps(
+            {
+                "literal_title": title,
+                "language": self.language,
+                "authorized_cast": self.base["cast_contract"],
+                "identity_manifest": self.base["reference_manifest"],
+                "requested_adjustment": self.revision_for("reading").get("adjustment", ""),
+            },
+            ensure_ascii=False,
+        )
+
+        async def generate(_attempt):
+            result = (
+                await self.master._pkg()
+                .get_image_provider()
+                .generate_scene(
+                    prompt=prompt,
+                    character_ref=self.photos[0],
+                    photo=self.photos[0],
+                    extra_refs=self.photos[1:] + [cover] + ([reference] if reference else []),
+                    reference_role="cover",
+                    style="fotografia editorial natural",
+                    landscape=False,
+                )
+            )
+            self.account(result, "reading")
+            return result.image_bytes, {"operation": "generate_integrated_reading"}
+
+        raw, source = await self.stage(
+            "reading:integrated",
+            {"cover_sha256": render.digest(cover), "scene_contract": 1},
+            generate,
+        )
+        qa = await self.review(
+            raw,
+            "LEITURA: inspect the complete integrated photograph against ORIGINAL identity "
+            "photos and EXACT_COVER. Reject changed identity, age, hair/headwear, malformed "
+            "hands, implausible binding, stretched cover, colored placeholders, pasted seams "
+            "or unreadable/changed text. Compare every title word, accent and line break with "
+            "EXACT_COVER; do not approve uncertain lettering. The printed artwork and its "
+            "proportions must match EXACT_COVER. People outside the book must be photographic, "
+            "even for cartoon books. A natural casual outfit outside the book is allowed. "
+            "The book must have physical thickness, connected boards, natural finger contact "
+            "and consistent perspective, light and shadows. Literal title: "
+            + json.dumps(title, ensure_ascii=False),
+            cover=cover,
+            technical={
+                "method": "integrated generation; identity and literal text require visual review"
+            },
+            mandatory=True,
+        )
+        return raw, {
+            "validation": qa,
+            "presentation": "integrated_reading",
+            "source_key": source["storage_key"],
+            "cover_sha256": render.digest(cover),
+        }
+
     async def mockup(self, name, artworks, *, cover=None):
         if name == "spread":
 
@@ -2114,7 +2237,11 @@ class Pipeline:
                 billable=False,
             )
 
+        integrated = name == "reading" and self.integrated_reading_available()
+
         async def build(attempt):
+            if integrated:
+                return await self.integrated_reading(artworks[0])
             reading = len(artworks) == 1
             folded = None
             prompt = (
@@ -2332,7 +2459,7 @@ class Pipeline:
         try:
             return await self.stage(name, inputs, build)
         except ProviderError as exc:
-            if name != "reading":
+            if name != "reading" or integrated:
                 raise
             failure = str(exc).lower()
             reason = (

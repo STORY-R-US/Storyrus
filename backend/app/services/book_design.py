@@ -146,7 +146,7 @@ def preview_interior(design):
     return interior
 
 
-def prompt(design, role, action, *, text_region=None):
+def prompt(design, role, action, *, text_region=None, integrated=False):
     interior = design["interior"]
     if role in {"open_book", "preview_page"}:
         interior = preview_interior(design)
@@ -202,9 +202,14 @@ def prompt(design, role, action, *, text_region=None):
             "HELD BOOK DETAIL: show tactile board edges, fine layered paper, a distinct "
             "hinge, contact shadows under fingers and soft directional light. Keep the "
             "surroundings recognizable with a few relevant furnishings or outdoor details; "
-            "use gentle depth of field, not a featureless blurred background. Only the "
-            "front print plane carries the temporary marker; preserve realistic skin, "
-            "hair, fabric and unmarked rear-board material. "
+            "use gentle depth of field, not a featureless blurred background. "
+            + (
+                "Render the approved cover directly on the book with coherent lighting and "
+                "perspective; preserve its literal text and artwork. No temporary markers. "
+                if integrated
+                else "Only the front print plane carries the temporary marker; preserve realistic "
+                "skin, hair, fabric and unmarked rear-board material. "
+            )
             if role == "holding"
             else ""
         )
