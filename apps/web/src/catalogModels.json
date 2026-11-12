@@ -1510,5 +1510,41 @@
       "page": "cartoon-pagina-nina-boa-noite-v1-pt.webp",
       "holding": "cartoon-foto-nina-boa-noite-v1-pt.webp"
     }
+  },
+  "catalog-realistic-66": {
+    "id": "catalog-realistic-66",
+    "catalog_index": 66,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Theo e as Cores do Coração",
+      "en": "Theo and the Colors of the Heart",
+      "es": "Theo y los Colores del Corazón"
+    },
+    "example_name": "Theo",
+    "sources": {
+      "cover": "covers/realistic-capa-theo-sentimentos-v1-pt.webp",
+      "page": "realistic-pagina-theo-sentimentos-v1-pt.webp",
+      "holding": "realistic-foto-theo-sentimentos-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-66": {
+    "id": "catalog-cartoon-66",
+    "catalog_index": 66,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Theo e as Cores do Coração",
+      "en": "Theo and the Colors of the Heart",
+      "es": "Theo y los Colores del Corazón"
+    },
+    "example_name": "Theo",
+    "sources": {
+      "cover": "covers/cartoon-capa-theo-sentimentos-v1-pt.webp",
+      "page": "cartoon-pagina-theo-sentimentos-v1-pt.webp",
+      "holding": "cartoon-foto-theo-sentimentos-v1-pt.webp"
+    }
   }
 }

@@ -213,6 +213,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   63: "covers/cartoon-capa-lia-cores-v1-pt.webp",
   64: "covers/cartoon-capa-bento-compartilhar-v1-pt.webp",
   65: "covers/cartoon-capa-nina-boa-noite-v1-pt.webp",
+  66: "covers/cartoon-capa-theo-sentimentos-v1-pt.webp",
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -336,6 +337,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   "covers/realistic-capa-lia-cores-v1-pt.webp",
   "covers/realistic-capa-bento-compartilhar-v1-pt.webp",
   "covers/realistic-capa-nina-boa-noite-v1-pt.webp",
+  "covers/realistic-capa-theo-sentimentos-v1-pt.webp",
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -571,6 +573,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   63: { cover: "covers/realistic-capa-lia-cores-v1-pt.webp", page: "realistic-pagina-lia-cores-v1-pt.webp", photo: "realistic-foto-lia-cores-v1-pt.webp" },
   64: { cover: "covers/realistic-capa-bento-compartilhar-v1-pt.webp", page: "realistic-pagina-bento-compartilhar-v1-pt.webp", photo: "realistic-foto-bento-compartilhar-v1-pt.webp" },
   65: { cover: "covers/realistic-capa-nina-boa-noite-v1-pt.webp", page: "realistic-pagina-nina-boa-noite-v1-pt.webp", photo: "realistic-foto-nina-boa-noite-v1-pt.webp" },
+  66: { cover: "covers/realistic-capa-theo-sentimentos-v1-pt.webp", page: "realistic-pagina-theo-sentimentos-v1-pt.webp", photo: "realistic-foto-theo-sentimentos-v1-pt.webp" },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -658,6 +661,7 @@ const CATALOG_THEMES = [
   "cores",
   "compartilhar_revezar",
   "rotina_dormir",
+  "literacia_emocional",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -666,7 +670,7 @@ const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66]);
 /** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   25, 26, 27,
@@ -689,6 +693,7 @@ const HOME_CATALOG_ORDER = [
   63,
   64,
   65,
+  66,
 ];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
@@ -1432,6 +1437,7 @@ const I18N = {
       { t: "Lia e o Jardim das Cores", p: "No jardim, Lia mistura azul e amarelo, descobre o verde e dá novas cores às folhas de sua pintura.", cover: "Hard", size: "M", tag: "Cores", quote: "Uma mistura, uma descoberta, um jardim de cores." },
       { t: "Bento e a Brincadeira que Cresceu", p: "Bento divide seus blocos com uma amiga. Juntos, constroem uma ponte e se revezam para fazer o trenzinho passar.", cover: "Hard", size: "M", tag: "Compartilhar", quote: "Uma peça de cada um, uma brincadeira para os dois." },
       { t: "Boa Noite, Lua! Boa Noite, Nina!", p: "Nina guarda seu livro, dá boa-noite ao quarto e abraça seu coelhinho para se aconchegar e descansar.", cover: "Hard", size: "M", tag: "Hora de Dormir", quote: "Um abraço no coelhinho, um sonho a caminho." },
+      { t: "Theo e as Cores do Coração", p: "Quando sua pipa rasga, Theo aprende a contar o que sente, pedir ajuda e encontrar a calma para voltar a brincar.", cover: "Hard", size: "M", tag: "Sentimentos", quote: "Falar do que sentimos abre espaço para um novo sorriso." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1689,6 +1695,7 @@ const I18N = {
       { t: "Lia and the Garden of Colors", p: "In the garden, Lia mixes blue and yellow, discovers green and brings fresh color to the leaves in her painting.", cover: "Hard", size: "M", tag: "Colors", quote: "A little mixing, a new discovery, a garden of colors." },
       { t: "Bento and the Game That Grew", p: "Bento shares his blocks with a friend. Together, they build a bridge and take turns sending the little train through.", cover: "Hard", size: "M", tag: "Sharing", quote: "A block from each friend, a game for them both." },
       { t: "Good Night, Moon! Good Night, Nina!", p: "Nina puts her book away, says good night to her room and hugs her little bunny as she settles down to rest.", cover: "Hard", size: "M", tag: "Bedtime", quote: "A bunny held tight, a dream for the night." },
+      { t: "Theo and the Colors of the Heart", p: "When his kite tears, Theo learns to say how he feels, ask for help and find the calm he needs to play again.", cover: "Hard", size: "M", tag: "Feelings", quote: "Sharing how we feel makes room for a new smile." },
     ],
     promise_title: "A Personalized Gift to Preserve Unforgettable Moments.",
     promise_sub: "From the photo to the final preview, every detail is created with care, bringing a unique gift to life to treasure forever.",
@@ -1946,6 +1953,7 @@ const I18N = {
       { t: "Lia y el Jardín de los Colores", p: "En el jardín, Lia mezcla azul y amarillo, descubre el verde y da nuevos colores a las hojas de su pintura.", cover: "Hard", size: "M", tag: "Colores", quote: "Una mezcla, un descubrimiento, un jardín de colores." },
       { t: "Bento y el Juego que Creció", p: "Bento comparte sus bloques con una amiga. Juntos, construyen un puente y se turnan para hacer pasar el trenecito.", cover: "Hard", size: "M", tag: "Compartir", quote: "Una pieza de cada uno, un juego para los dos." },
       { t: "¡Buenas Noches, Luna! ¡Buenas Noches, Nina!", p: "Nina guarda su libro, da las buenas noches a su cuarto y abraza a su conejito para acomodarse y descansar.", cover: "Hard", size: "M", tag: "Hora de Dormir", quote: "Un abrazo al conejito, un sueño suavecito." },
+      { t: "Theo y los Colores del Corazón", p: "Cuando se rompe su cometa, Theo aprende a contar lo que siente, pedir ayuda y recuperar la calma para volver a jugar.", cover: "Hard", size: "M", tag: "Sentimientos", quote: "Contar lo que sentimos abre espacio para una nueva sonrisa." },
     ],
     promise_title: "Un Regalo Personalizado Para Eternizar Momentos Inolvidables.",
     promise_sub: "De la foto a la vista previa final, cada detalle se crea con cariño, dando vida a un regalo único para toda la vida.",
