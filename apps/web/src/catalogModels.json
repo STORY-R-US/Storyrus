@@ -1664,5 +1664,23 @@
       "page": "cartoon-pagina-raquel-papai-v1-pt.webp",
       "holding": "cartoon-foto-raquel-papai-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-15": {
+    "id": "catalog-cartoon-15",
+    "catalog_index": 15,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Rebeca, A Pequena Grande Heroína",
+      "en": "Rebeca, The Little Great Heroine",
+      "es": "Rebeca, La Pequeña Gran Heroína"
+    },
+    "example_name": "Rebeca",
+    "sources": {
+      "cover": "covers/cartoon-capa-rebeca-v1-pt.webp",
+      "page": "cartoon-pagina-rebeca-v1-pt.webp",
+      "holding": "cartoon-foto-rebeca-v1-pt.webp"
+    }
   }
 }
