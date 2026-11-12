@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
-import { bookPageMeta, categoryPageMeta, NOT_FOUND_PAGE, staticPageMeta, usePageMeta } from "./pageMeta";
+import { bookPageMeta, categoryPageMeta, staticPageMeta, usePageMeta } from "./pageMeta";
 import { useResolvedLang, type Lang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
 import {
@@ -136,8 +136,8 @@ function CatalogSectionTitle({
 }
 
 export function CatalogPage() {
-  usePageMeta(staticPageMeta("/catalogo"));
   const [lang, setLang] = useSiteLang();
+  usePageMeta(staticPageMeta("/catalogo", lang));
   const copy = catalogPageCopy(lang);
   const sections = catalogSections(lang);
   const { hash } = useLocation();
@@ -191,7 +191,7 @@ export function CategoryCatalogPage() {
   const [lang, setLang] = useSiteLang();
   const params = useParams();
   const section = catalogCategory(lang, params.categoria ?? "");
-  usePageMeta(section ? categoryPageMeta(section.id, section.name) : NOT_FOUND_PAGE);
+  usePageMeta(section ? categoryPageMeta(section.id, section.name, lang) : null);
   if (!section) return <NotFound />;
   const copy = catalogPageCopy(lang);
   return (
@@ -228,7 +228,7 @@ export function BookPage() {
   usePageMeta(
     book
       ? bookPageMeta({ index, title: book.t, description: book.story || book.t })
-      : NOT_FOUND_PAGE,
+      : null,
   );
   if (!book) return <NotFound />;
   const copy = catalogPageCopy(lang);

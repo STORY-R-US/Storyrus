@@ -1,0 +1,782 @@
+{
+  "capa-meupai-heroi.png": {
+    "en": "localized/capa-meupai-heroi-en.webp",
+    "es": "localized/capa-meupai-heroi-es.webp"
+  },
+  "pagina-meupai-heroi.png": {
+    "en": "localized/pagina-meupai-heroi-en.webp",
+    "es": "localized/pagina-meupai-heroi-es.webp"
+  },
+  "foto-meupai-heroi.png": {
+    "en": "localized/foto-meupai-heroi-en.webp",
+    "es": "localized/foto-meupai-heroi-es.webp"
+  },
+  "capa-amordebisavo.jpg": {
+    "en": "capa-amordebisavo-en.jpg",
+    "es": "capa-amordebisavo-es.jpg"
+  },
+  "pagina-amordebisavo.jpg": {
+    "en": "pagina-amordebisavo-en.jpg",
+    "es": "pagina-amordebisavo-es.jpg"
+  },
+  "foto-amordebisavo.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "capa-amordemae.jpg": {
+    "en": "",
+    "es": "capa-amordemae-es.jpg"
+  },
+  "pagina-amordemae.png": {
+    "en": "",
+    "es": ""
+  },
+  "foto-amordemae.jpg": {
+    "en": "localized/foto-amordemae-jpg-en.webp",
+    "es": "localized/foto-amordemae-jpg-es.webp"
+  },
+  "capa-mako-amigofiel.png": {
+    "en": "localized/capa-mako-amigofiel-png-en.webp",
+    "es": "localized/capa-mako-amigofiel-png-es.webp"
+  },
+  "pagina-mako-amigofiel.jpg": {
+    "en": "localized/pagina-mako-amigofiel-jpg-en.webp",
+    "es": "localized/pagina-mako-amigofiel-jpg-es.webp"
+  },
+  "foto-mako-amigofiel.jpg": {
+    "en": "localized/foto-mako-amigofiel-jpg-en.webp",
+    "es": "localized/foto-mako-amigofiel-jpg-es.webp"
+  },
+  "capa-facundo-motocross.jpg": {
+    "en": "localized/capa-facundo-motocross-jpg-en.webp",
+    "es": "localized/capa-facundo-motocross-jpg-es.webp"
+  },
+  "pagina-facundo-motocross.jpg": {
+    "en": "localized/pagina-facundo-motocross-jpg-en.webp",
+    "es": "localized/pagina-facundo-motocross-jpg-es.webp"
+  },
+  "foto-facundo-motocross.jpg": {
+    "en": "localized/foto-facundo-motocross-jpg-en.webp",
+    "es": "localized/foto-facundo-motocross-jpg-es.webp"
+  },
+  "capa-amordetia.png": {
+    "en": "localized/capa-amordetia-en.webp",
+    "es": "localized/capa-amordetia-es.webp"
+  },
+  "pagina-amordetia.png": {
+    "en": "localized/pagina-amordetia-en.webp",
+    "es": "localized/pagina-amordetia-es.webp"
+  },
+  "foto-amordetia.png": {
+    "en": "localized/foto-amordetia-en.webp",
+    "es": "localized/foto-amordetia-es.webp"
+  },
+  "capa-davi-pastor.png": {
+    "en": "localized/capa-davi-pastor-en.webp",
+    "es": "localized/capa-davi-pastor-es.webp"
+  },
+  "pagina-davi-pastor.png": {
+    "en": "localized/pagina-davi-pastor-en.webp",
+    "es": "localized/pagina-davi-pastor-png-es.webp"
+  },
+  "foto-davi-pastor.png": {
+    "en": "localized/foto-davi-pastor-en.webp",
+    "es": "localized/foto-davi-pastor-es.webp"
+  },
+  "capa-enzo-primo.png": {
+    "en": "localized/capa-enzo-primo-en.webp",
+    "es": "localized/capa-enzo-primo-es.webp"
+  },
+  "pagina-enzo-primo.png": {
+    "en": "localized/pagina-enzo-primo-en.webp",
+    "es": "localized/pagina-enzo-primo-es.webp"
+  },
+  "foto-enzo-primo.png": {
+    "en": "localized/foto-enzo-primo-en.webp",
+    "es": "localized/foto-enzo-primo-es.webp"
+  },
+  "capa-lucas-max.png": {
+    "en": "localized/capa-lucas-max-png-en.webp",
+    "es": "localized/capa-lucas-max-png-es.webp"
+  },
+  "pagina-lucas-max.png": {
+    "en": "localized/pagina-lucas-max-png-en.webp",
+    "es": "localized/pagina-lucas-max-png-es.webp"
+  },
+  "foto-lucas-max.png": {
+    "en": "localized/foto-lucas-max-png-en.webp",
+    "es": "localized/foto-lucas-max-png-es.webp"
+  },
+  "capa-esther-higiene.png": {
+    "en": "localized/capa-esther-higiene-png-en.webp",
+    "es": "localized/capa-esther-higiene-png-es.webp"
+  },
+  "pagina-esther-higiene.png": {
+    "en": "localized/pagina-esther-higiene-png-en.webp",
+    "es": "localized/pagina-esther-higiene-png-es.webp"
+  },
+  "foto-esther-higiene.png": {
+    "en": "localized/foto-esther-higiene-png-en.webp",
+    "es": "localized/foto-esther-higiene-png-es.webp"
+  },
+  "capa-natalmemetata.png": {
+    "en": "localized/capa-natalmemetata-png-en.webp",
+    "es": "localized/capa-natalmemetata-png-es.webp"
+  },
+  "pagina-natalmemetata.jpg": {
+    "en": "localized/pagina-natalmemetata-jpg-en.webp",
+    "es": "localized/pagina-natalmemetata-jpg-es.webp"
+  },
+  "foto-natalmemetata.jpg": {
+    "en": "localized/foto-natalmemetata-jpg-en.webp",
+    "es": "localized/foto-natalmemetata-jpg-es.webp"
+  },
+  "capa-matteo-trator.jpg": {
+    "en": "capa-matteo-trator-en.jpg",
+    "es": "capa-matteo-trator-es.jpg"
+  },
+  "pagina-matteo-trator.jpg": {
+    "en": "pagina-matteo-trator-en.jpg",
+    "es": "pagina-matteo-trator-es.jpg"
+  },
+  "foto-matteo-trator.jpg": {
+    "en": "foto-matteo-trator-en.jpg",
+    "es": "foto-matteo-trator-es.jpg"
+  },
+  "capa-nonna-90-anos.png": {
+    "en": "capa-nonna-90-anos-en.png",
+    "es": "capa-nonna-90-anos-es.png"
+  },
+  "pagina-nonna-90-anos.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "foto-nonna-90-anos.jpg": {
+    "en": "localized/foto-nonna-90-anos-jpg-en.webp",
+    "es": "localized/foto-nonna-90-anos-jpg-es.webp"
+  },
+  "capa-maria-fundo-do-mar.png": {
+    "en": "capa-maria-fundo-do-mar-en.png",
+    "es": "capa-maria-fundo-do-mar-es.png"
+  },
+  "pagina-maria-fundo-do-mar.jpg": {
+    "en": "pagina-maria-fundo-do-mar-en.jpg",
+    "es": "pagina-maria-fundo-do-mar-es.jpg"
+  },
+  "foto-maria-fundo-do-mar.jpg": {
+    "en": "foto-maria-fundo-do-mar-en.jpg",
+    "es": "foto-maria-fundo-do-mar-es.jpg"
+  },
+  "capa-nanoaventuras.png": {
+    "en": "localized/capa-nanoaventuras-png-en.webp",
+    "es": "localized/capa-nanoaventuras-png-es.webp"
+  },
+  "pagina-nanoaventuras.jpg": {
+    "en": "localized/pagina-nanoaventuras-jpg-en.webp",
+    "es": "localized/pagina-nanoaventuras-jpg-es.webp"
+  },
+  "foto-nanoaventuras.jpg": {
+    "en": "localized/foto-nanoaventuras-jpg-en.webp",
+    "es": "localized/foto-nanoaventuras-jpg-es.webp"
+  },
+  "capa-feliz-natal-familia.png": {
+    "en": "capa-feliz-natal-familia-en.png",
+    "es": "capa-feliz-natal-familia-es.png"
+  },
+  "pagina-feliz-natal-familia.png": {
+    "en": "pagina-feliz-natal-familia-en.png",
+    "es": "pagina-feliz-natal-familia-es.png"
+  },
+  "foto-feliz-natal-familia.png": {
+    "en": "foto-feliz-natal-familia-en.png",
+    "es": "foto-feliz-natal-familia-es.png"
+  },
+  "capa-enzo-dinossauro.png": {
+    "en": "capa-enzo-dinossauro-en.png",
+    "es": "capa-enzo-dinossauro-es.png"
+  },
+  "pagina-enzo-dinossauro.png": {
+    "en": "pagina-enzo-dinossauro-en.png",
+    "es": "pagina-enzo-dinossauro-es.png"
+  },
+  "foto-enzo-dinossauro.png": {
+    "en": "foto-enzo-dinossauro-en.png",
+    "es": "foto-enzo-dinossauro-es.png"
+  },
+  "capa-pai-e-filha.png": {
+    "en": "localized/capa-pai-e-filha-png-en.webp",
+    "es": "capa-pai-e-filha-es.png"
+  },
+  "pagina-pai-e-filha.png": {
+    "en": "",
+    "es": ""
+  },
+  "foto-pai-e-filha.png": {
+    "en": "",
+    "es": "foto-pai-e-filha-es.png"
+  },
+  "foto-martin-goleiro.jpg": {
+    "en": "localized/foto-martin-goleiro-en.webp",
+    "es": "localized/foto-martin-goleiro-es.webp"
+  },
+  "foto-nicolas-maefilho.jpg": {
+    "en": "localized/foto-nicolas-maefilho-en.webp",
+    "es": "localized/foto-nicolas-maefilho-es.webp"
+  },
+  "foto-emilia-bailarina.jpg": {
+    "en": "localized/foto-emilia-bailarina-en.webp",
+    "es": "localized/foto-emilia-bailarina-es.webp"
+  },
+  "foto-antonio-bicicleta.jpg": {
+    "en": "localized/foto-antonio-bicicleta-jpg-en.webp",
+    "es": "localized/foto-antonio-bicicleta-jpg-es.webp"
+  },
+  "foto-mariajesus-hockey.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "foto-ester.png": {
+    "en": "",
+    "es": ""
+  },
+  "foto-raquel-papai.png": {
+    "en": "",
+    "es": ""
+  },
+  "foto-rebeca.png": {
+    "en": "",
+    "es": ""
+  },
+  "foto-maya-cachorra-pt.jpg": {
+    "en": "foto-maya-cachorra-en.jpg",
+    "es": "foto-maya-cachorra-es.jpg"
+  },
+  "foto-noe.png": {
+    "en": "localized/foto-noe-png-en.webp",
+    "es": "localized/foto-noe-png-es.webp"
+  },
+  "capa-martin-goleiro.jpg": {
+    "en": "localized/capa-martin-goleiro-jpg-en.webp",
+    "es": "localized/capa-martin-goleiro-es.webp"
+  },
+  "pagina-martin-goleiro.jpg": {
+    "en": "localized/pagina-martin-goleiro-en.webp",
+    "es": "localized/pagina-martin-goleiro-es.webp"
+  },
+  "capa-emilia-bailarina.jpg": {
+    "en": "localized/capa-emilia-bailarina-en.webp",
+    "es": "localized/capa-emilia-bailarina-es.webp"
+  },
+  "pagina-emilia-bailarina.jpg": {
+    "en": "localized/pagina-emilia-bailarina-en.webp",
+    "es": "localized/pagina-emilia-bailarina-es.webp"
+  },
+  "capa-antonio-bicicleta.jpg": {
+    "en": "localized/capa-antonio-bicicleta-en.webp",
+    "es": "localized/capa-antonio-bicicleta-es.webp"
+  },
+  "pagina-antonio-bicicleta.jpg": {
+    "en": "localized/pagina-antonio-bicicleta-jpg-en.webp",
+    "es": "localized/pagina-antonio-bicicleta-jpg-es.webp"
+  },
+  "capa-nicolas-maefilho.png": {
+    "en": "localized/capa-nicolas-maefilho-en.webp",
+    "es": "localized/capa-nicolas-maefilho-es.webp"
+  },
+  "pagina-nicolas-maefilho.jpg": {
+    "en": "localized/pagina-nicolas-maefilho-en.webp",
+    "es": "localized/pagina-nicolas-maefilho-es.webp"
+  },
+  "capa-amordemae.png": {
+    "en": "",
+    "es": "capa-amordemae-es.png"
+  },
+  "capa-mamaepapaimatteo.png": {
+    "en": "localized/capa-mamaepapaimatteo-png-en.webp",
+    "es": "localized/capa-mamaepapaimatteo-png-es.webp"
+  },
+  "pagina-mamaepapaimatteo.jpg": {
+    "en": "localized/pagina-mamaepapaimatteo-jpg-en.webp",
+    "es": "localized/pagina-mamaepapaimatteo-jpg-es.webp"
+  },
+  "capa-amordebisavo.png": {
+    "en": "capa-amordebisavo-en.png",
+    "es": "capa-amordebisavo-es.png"
+  },
+  "capa-maya-cachorra-pt.jpg": {
+    "en": "capa-maya-cachorra-en.jpg",
+    "es": "capa-maya-cachorra-es.jpg"
+  },
+  "pagina-maya-cachorra-pt.jpg": {
+    "en": "pagina-maya-cachorra-en.jpg",
+    "es": "pagina-maya-cachorra-es.jpg"
+  },
+  "capa-mako-amigofiel.jpg": {
+    "en": "localized/capa-mako-amigofiel-jpg-en.webp",
+    "es": "localized/capa-mako-amigofiel-jpg-es.webp"
+  },
+  "capa-raquel-papai.png": {
+    "en": "localized/capa-raquel-papai-png-en.webp",
+    "es": "localized/capa-raquel-papai-png-es.webp"
+  },
+  "pagina-raquel-papai.png": {
+    "en": "",
+    "es": ""
+  },
+  "capa-rebeca.png": {
+    "en": "localized/capa-rebeca-png-en.webp",
+    "es": "localized/capa-rebeca-png-es.webp"
+  },
+  "pagina-rebeca.png": {
+    "en": "",
+    "es": ""
+  },
+  "capa-noe.png": {
+    "en": "localized/capa-noe-en.webp",
+    "es": "localized/capa-noe-png-es.webp"
+  },
+  "pagina-noe.png": {
+    "en": "localized/pagina-noe-png-en.webp",
+    "es": "localized/pagina-noe-png-es.webp"
+  },
+  "capa-construtor.png": {
+    "en": "localized/capa-construtor-png-en.webp",
+    "es": "localized/capa-construtor-png-es.webp"
+  },
+  "pagina-construtor.png": {
+    "en": "localized/pagina-construtor-png-en.webp",
+    "es": "localized/pagina-construtor-png-es.webp"
+  },
+  "foto-construtor.png": {
+    "en": "localized/foto-construtor-png-en.webp",
+    "es": "localized/foto-construtor-png-es.webp"
+  },
+  "capa-heroi-bombeiro.png": {
+    "en": "capa-heroi-bombeiro-en.png",
+    "es": "capa-heroi-bombeiro-es.png"
+  },
+  "pagina-heroi-bombeiro.png": {
+    "en": "pagina-heroi-bombeiro-en.png",
+    "es": "pagina-heroi-bombeiro-es.png"
+  },
+  "foto-heroi-bombeiro.png": {
+    "en": "foto-heroi-bombeiro-en.png",
+    "es": "foto-heroi-bombeiro-es.png"
+  },
+  "capa-heroi-policia.png": {
+    "en": "capa-heroi-policia-en.png",
+    "es": "capa-heroi-policia-es.png"
+  },
+  "pagina-heroi-policia.png": {
+    "en": "pagina-heroi-policia-en.png",
+    "es": "pagina-heroi-policia-es.png"
+  },
+  "foto-heroi-policia.png": {
+    "en": "foto-heroi-policia-en.png",
+    "es": "foto-heroi-policia-es.png"
+  },
+  "capa-heroi-aranha.png": {
+    "en": "capa-heroi-aranha-en.png",
+    "es": "capa-heroi-aranha-es.png"
+  },
+  "pagina-heroi-aranha.png": {
+    "en": "pagina-heroi-aranha-en.png",
+    "es": "localized/pagina-heroi-aranha-png-es.webp"
+  },
+  "foto-heroi-aranha.png": {
+    "en": "foto-heroi-aranha-en.png",
+    "es": "foto-heroi-aranha-es.png"
+  },
+  "capa-tia-especial.png": {
+    "en": "capa-tia-especial-en.png",
+    "es": "capa-tia-especial-es.png"
+  },
+  "pagina-tia-especial.png": {
+    "en": "pagina-tia-especial-en.png",
+    "es": "pagina-tia-especial-es.png"
+  },
+  "foto-tia-especial.png": {
+    "en": "foto-tia-especial-en.png",
+    "es": "foto-tia-especial-es.png"
+  },
+  "capa-amor-de-avo.png": {
+    "en": "capa-amor-de-avo-en.png",
+    "es": "localized/capa-amor-de-avo-png-es.webp"
+  },
+  "pagina-amor-de-avo.png": {
+    "en": "pagina-amor-de-avo-en.png",
+    "es": "localized/pagina-amor-de-avo-png-es.webp"
+  },
+  "foto-amor-de-avo.png": {
+    "en": "foto-amor-de-avo-en.png",
+    "es": "localized/foto-amor-de-avo-png-es.webp"
+  },
+  "capa-pascoa.png": {
+    "en": "capa-pascoa-en.png",
+    "es": "capa-pascoa-es.png"
+  },
+  "pagina-pascoa.png": {
+    "en": "pagina-pascoa-en.png",
+    "es": "pagina-pascoa-es.png"
+  },
+  "foto-pascoa.png": {
+    "en": "foto-pascoa-en.png",
+    "es": "foto-pascoa-es.png"
+  },
+  "cartoon-capa-aventura.png": {
+    "en": "localized/cartoon-capa-aventura-png-en.webp",
+    "es": "cartoon-capa-aventura-es.png"
+  },
+  "capa-bruno-animais.png": {
+    "en": "capa-bruno-animais-en.png",
+    "es": "capa-bruno-animais-es.png"
+  },
+  "pagina-bruno-animais.jpg": {
+    "en": "localized/pagina-bruno-animais-jpg-en.webp",
+    "es": "localized/pagina-bruno-animais-jpg-es.webp"
+  },
+  "capa-gael-economia.jpg": {
+    "en": "localized/capa-gael-economia-jpg-en.webp",
+    "es": "localized/capa-gael-economia-jpg-es.webp"
+  },
+  "capa-mariajesus-hockey.png": {
+    "en": "capa-mariajesus-hockey-en.png",
+    "es": "capa-mariajesus-hockey-es.png"
+  },
+  "pagina-mariajesus-hockey.png": {
+    "en": "pagina-mariajesus-hockey-en.png",
+    "es": "pagina-mariajesus-hockey-es.png"
+  },
+  "capa-quatro-geracoes.jpg": {
+    "en": "localized/capa-quatro-geracoes-jpg-en.webp",
+    "es": "capa-quatro-geracoes-es.jpg"
+  },
+  "pagina-quatro-geracoes.jpg": {
+    "en": "pagina-quatro-geracoes-en.jpg",
+    "es": "pagina-quatro-geracoes-es.jpg"
+  },
+  "foto-quatro-geracoes.jpg": {
+    "en": "foto-quatro-geracoes-en.jpg",
+    "es": "foto-quatro-geracoes-es.jpg"
+  },
+  "capa-pedro-amem-se.png": {
+    "en": "capa-pedro-amem-se-en.png",
+    "es": "capa-pedro-amem-se-es.png"
+  },
+  "pagina-pedro-amem-se.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "foto-pedro-amem-se.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "capa-meus-sobrinhos.png": {
+    "en": "capa-meus-sobrinhos-en.png",
+    "es": "capa-meus-sobrinhos-es.png"
+  },
+  "pagina-meus-sobrinhos.jpg": {
+    "en": "pagina-meus-sobrinhos-en.jpg",
+    "es": "pagina-meus-sobrinhos-es.jpg"
+  },
+  "foto-meus-sobrinhos.jpg": {
+    "en": "foto-meus-sobrinhos-en.jpg",
+    "es": "foto-meus-sobrinhos-es.jpg"
+  },
+  "capa-tio-favorito.png": {
+    "en": "capa-tio-favorito-en.png",
+    "es": "capa-tio-favorito-es.png"
+  },
+  "pagina-tio-favorito.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "foto-tio-favorito.jpg": {
+    "en": "foto-tio-favorito-en.jpg",
+    "es": ""
+  },
+  "capa-grace-aniversario.png": {
+    "en": "capa-grace-aniversario-en.png",
+    "es": "capa-grace-aniversario-es.png"
+  },
+  "pagina-grace-aniversario.jpg": {
+    "en": "pagina-grace-aniversario-en.jpg",
+    "es": "pagina-grace-aniversario-es.jpg"
+  },
+  "foto-grace-aniversario.jpg": {
+    "en": "foto-grace-aniversario-en.jpg",
+    "es": "foto-grace-aniversario-es.jpg"
+  },
+  "capa-grace-andar.png": {
+    "en": "localized/capa-grace-andar-png-en.webp",
+    "es": "localized/capa-grace-andar-png-es.webp"
+  },
+  "pagina-grace-andar.jpg": {
+    "en": "localized/pagina-grace-andar-jpg-en.webp",
+    "es": "localized/pagina-grace-andar-jpg-es.webp"
+  },
+  "foto-grace-andar.jpg": {
+    "en": "localized/foto-grace-andar-jpg-en.webp",
+    "es": "localized/foto-grace-andar-jpg-es.webp"
+  },
+  "capa-mamae-e-eu.png": {
+    "en": "capa-mamae-e-eu-en.png",
+    "es": "capa-mamae-e-eu-es.png"
+  },
+  "pagina-mamae-e-eu.jpg": {
+    "en": "pagina-mamae-e-eu-en.jpg",
+    "es": "pagina-mamae-e-eu-es.jpg"
+  },
+  "foto-mamae-e-eu.jpg": {
+    "en": "foto-mamae-e-eu-en.jpg",
+    "es": "foto-mamae-e-eu-es.jpg"
+  },
+  "capa-feliz-natal.png": {
+    "en": "capa-feliz-natal-en.png",
+    "es": "capa-feliz-natal-es.png"
+  },
+  "pagina-feliz-natal.jpg": {
+    "en": "pagina-feliz-natal-en.jpg",
+    "es": "pagina-feliz-natal-es.jpg"
+  },
+  "foto-feliz-natal.jpg": {
+    "en": "foto-feliz-natal-en.jpg",
+    "es": "foto-feliz-natal-es.jpg"
+  },
+  "capa-vovo-vida-leve.png": {
+    "en": "capa-vovo-vida-leve-en.png",
+    "es": "capa-vovo-vida-leve-es.png"
+  },
+  "pagina-vovo-vida-leve.jpg": {
+    "en": "pagina-vovo-vida-leve-en.jpg",
+    "es": "pagina-vovo-vida-leve-es.jpg"
+  },
+  "foto-vovo-vida-leve.jpg": {
+    "en": "foto-vovo-vida-leve-en.jpg",
+    "es": "foto-vovo-vida-leve-es.jpg"
+  },
+  "capa-tome-jesus.png": {
+    "en": "capa-tome-jesus-en.png",
+    "es": "capa-tome-jesus-es.png"
+  },
+  "pagina-tome-jesus.jpg": {
+    "en": "pagina-tome-jesus-en.jpg",
+    "es": "pagina-tome-jesus-es.jpg"
+  },
+  "foto-tome-jesus.jpg": {
+    "en": "foto-tome-jesus-en.jpg",
+    "es": "foto-tome-jesus-es.jpg"
+  },
+  "capa-ana-espaco.png": {
+    "en": "capa-ana-espaco-en.png",
+    "es": "capa-ana-espaco-es.png"
+  },
+  "pagina-ana-espaco.jpg": {
+    "en": "pagina-ana-espaco-en.jpg",
+    "es": "pagina-ana-espaco-es.jpg"
+  },
+  "foto-ana-espaco.jpg": {
+    "en": "foto-ana-espaco-en.jpg",
+    "es": "foto-ana-espaco-es.jpg"
+  },
+  "capa-amor-vovo-motor.png": {
+    "en": "localized/capa-amor-vovo-motor-png-en.webp",
+    "es": "localized/capa-amor-vovo-motor-png-es.webp"
+  },
+  "pagina-amor-vovo-motor.jpg": {
+    "en": "pagina-amor-vovo-motor-en.jpg",
+    "es": "pagina-amor-vovo-motor-es.jpg"
+  },
+  "foto-amor-vovo-motor.jpg": {
+    "en": "foto-amor-vovo-motor-en.jpg",
+    "es": "foto-amor-vovo-motor-es.jpg"
+  },
+  "capa-brilho-bailarina.png": {
+    "en": "capa-brilho-bailarina-en.png",
+    "es": "capa-brilho-bailarina-es.png"
+  },
+  "pagina-brilho-bailarina.jpg": {
+    "en": "pagina-brilho-bailarina-en.jpg",
+    "es": "pagina-brilho-bailarina-es.jpg"
+  },
+  "foto-brilho-bailarina.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "capa-amor-que-cresce.jpg": {
+    "en": "localized/capa-amor-que-cresce-jpg-en.webp",
+    "es": ""
+  },
+  "pagina-amor-que-cresce.jpg": {
+    "en": "localized/pagina-amor-que-cresce-jpg-en.webp",
+    "es": ""
+  },
+  "foto-amor-que-cresce.jpg": {
+    "en": "localized/foto-amor-que-cresce-jpg-en.webp",
+    "es": ""
+  },
+  "capa-matteo-nas-nuvens.png": {
+    "en": "localized/capa-matteo-nas-nuvens-png-en.webp",
+    "es": "localized/capa-matteo-nas-nuvens-png-es.webp"
+  },
+  "pagina-matteo-nas-nuvens.jpg": {
+    "en": "localized/pagina-matteo-nas-nuvens-jpg-en.webp",
+    "es": "localized/pagina-matteo-nas-nuvens-jpg-es.webp"
+  },
+  "foto-matteo-nas-nuvens.jpg": {
+    "en": "localized/foto-matteo-nas-nuvens-jpg-en.webp",
+    "es": ""
+  },
+  "capa-vovo-docura.jpg": {
+    "en": "localized/capa-vovo-docura-jpg-en.webp",
+    "es": "localized/capa-vovo-docura-jpg-es.webp"
+  },
+  "pagina-vovo-docura.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "foto-vovo-docura.jpg": {
+    "en": "foto-vovo-docura-en.jpg",
+    "es": "foto-vovo-docura-es.jpg"
+  },
+  "capa-livro-teste.jpg": {
+    "en": "capa-livro-teste-en.jpg",
+    "es": "capa-livro-teste-es.jpg"
+  },
+  "cartoon-capa-nicolas.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-capa-amordemae.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-capa-matteo.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-capa-bisavo.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-capa-maya.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-capa-mako.png": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-capa-amordetia.png": {
+    "en": "localized/cartoon-capa-amordetia-png-en.webp",
+    "es": "localized/cartoon-capa-amordetia-png-es.webp"
+  },
+  "cartoon-capa-davi.png": {
+    "en": "localized/cartoon-capa-davi-png-en.webp",
+    "es": "localized/cartoon-capa-davi-png-es.webp"
+  },
+  "cartoon-capa-enzo.jpg": {
+    "en": "localized/cartoon-capa-enzo-jpg-en.webp",
+    "es": "localized/cartoon-capa-enzo-jpg-es.webp"
+  },
+  "cartoon-capa-lucas.png": {
+    "en": "localized/cartoon-capa-lucas-png-en.webp",
+    "es": "localized/cartoon-capa-lucas-png-es.webp"
+  },
+  "cartoon-capa-avo.png": {
+    "en": "localized/cartoon-capa-avo-png-en.webp",
+    "es": "localized/cartoon-capa-avo-png-es.webp"
+  },
+  "cartoon-capa-pedro-amem-se.png": {
+    "en": "localized/cartoon-capa-pedro-amem-se-png-en.webp",
+    "es": "localized/cartoon-capa-pedro-amem-se-png-es.webp"
+  },
+  "cartoon-capa-meus-sobrinhos.png": {
+    "en": "cartoon-capa-meus-sobrinhos-en.png",
+    "es": "cartoon-capa-meus-sobrinhos-es.png"
+  },
+  "cartoon-capa-tio-favorito.png": {
+    "en": "cartoon-capa-tio-favorito-en.png",
+    "es": "cartoon-capa-tio-favorito-es.png"
+  },
+  "cartoon-capa-grace-aniversario.png": {
+    "en": "cartoon-capa-grace-aniversario-en.png",
+    "es": "cartoon-capa-grace-aniversario-es.png"
+  },
+  "cartoon-capa-grace-andar.png": {
+    "en": "localized/cartoon-capa-grace-andar-png-en.webp",
+    "es": "localized/cartoon-capa-grace-andar-png-es.webp"
+  },
+  "cartoon-pagina-bisavo.jpg": {
+    "en": "localized/cartoon-pagina-bisavo-jpg-en.webp",
+    "es": "localized/cartoon-pagina-bisavo-jpg-es.webp"
+  },
+  "cartoon-foto-bisavo.jpg": {
+    "en": "localized/cartoon-foto-bisavo-jpg-en.webp",
+    "es": "localized/cartoon-foto-bisavo-jpg-es.webp"
+  },
+  "cartoon-pagina-amordemae.jpg": {
+    "en": "localized/cartoon-pagina-amordemae-jpg-en.webp",
+    "es": "localized/cartoon-pagina-amordemae-jpg-es.webp"
+  },
+  "cartoon-foto-amordemae.jpg": {
+    "en": "localized/cartoon-foto-amordemae-jpg-en.webp",
+    "es": "localized/cartoon-foto-amordemae-jpg-es.webp"
+  },
+  "cartoon-capa-davi.jpg": {
+    "en": "localized/cartoon-capa-davi-jpg-en.webp",
+    "es": "localized/cartoon-capa-davi-jpg-es.webp"
+  },
+  "cartoon-pagina-davi.jpg": {
+    "en": "localized/cartoon-pagina-davi-jpg-en.webp",
+    "es": "localized/cartoon-pagina-davi-jpg-es.webp"
+  },
+  "cartoon-foto-davi.jpg": {
+    "en": "localized/cartoon-foto-davi-jpg-en.webp",
+    "es": "localized/cartoon-foto-davi-jpg-es.webp"
+  },
+  "cartoon-pagina-enzo.jpg": {
+    "en": "localized/cartoon-pagina-enzo-jpg-en.webp",
+    "es": "localized/cartoon-pagina-enzo-jpg-es.webp"
+  },
+  "cartoon-foto-enzo.jpg": {
+    "en": "localized/cartoon-foto-enzo-jpg-en.webp",
+    "es": "localized/cartoon-foto-enzo-jpg-es.webp"
+  },
+  "cartoon-foto-nicolas.jpg": {
+    "en": "localized/cartoon-foto-nicolas-jpg-en.webp",
+    "es": "localized/cartoon-foto-nicolas-jpg-es.webp"
+  },
+  "cartoon-foto-maya.jpg": {
+    "en": "localized/cartoon-foto-maya-jpg-en.webp",
+    "es": "localized/cartoon-foto-maya-jpg-es.webp"
+  },
+  "cartoon-foto-natal.jpg": {
+    "en": "localized/cartoon-foto-natal-jpg-en.webp",
+    "es": ""
+  },
+  "cartoon-foto-matteo.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-como-dados.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "cartoon-pagina-matteo.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "como-envia.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "como-cria.jpg": {
+    "en": "",
+    "es": ""
+  },
+  "como-recebe.jpg": {
+    "en": "",
+    "es": ""
+  }
+}

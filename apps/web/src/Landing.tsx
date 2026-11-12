@@ -5,6 +5,7 @@ import { accountAccess, studioEntryHref } from "./Auth";
 import { api, clerkWillProvideSession, getToken, refreshSessionToken, subscribeClerkToken, whenClerkReady } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
+import { localizedExample } from "./localizedExamples";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -60,13 +61,9 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 type CoverFont = "fredoka" | "baloo" | "lilita";
 type HeroAsset = Record<Lang, string>;
 const heroAsset = (pt: string, en = "", es = ""): HeroAsset => ({ pt, en, es });
-/** Arquivo daquele idioma. Vazio, ou cópia do português, não entra em inglês nem espanhol. */
+/** PT defines the book and scene; the manifest supplies only translated artwork. */
 function assetForLang(asset: HeroAsset, lang: Lang): string {
-  const file = asset[lang];
-  if (!file) return "";
-  if (lang !== "pt" && file === asset.pt) return "";
-  if (lang === "es" && asset.en && file === asset.en) return "";
-  return file;
+  return localizedExample(asset.pt, lang);
 }
 /** Hero strip: capa, página aberta, criança lendo. */
 const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
@@ -220,7 +217,7 @@ const CARTOON_REVIEW_PHOTOS = [
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-/** Reviews strip: foto do idioma. Sem versão própria, a foto não entra. */
+/** Reviews follow the PT selection; localized artwork keeps the same scene. */
 const REVIEW_PHOTOS: { tab: HeroAsset; name: string }[] = [
   { tab: heroAsset("foto-martin-goleiro.jpg"), name: "Martin" },
   { tab: heroAsset("foto-nicolas-maefilho.jpg"), name: "Nicolas" },
@@ -241,14 +238,9 @@ const REVIEW_PHOTOS: { tab: HeroAsset; name: string }[] = [
 ];
 type CatalogImg = string | Partial<Record<Lang, string>>;
 function catalogImgSrc(img: CatalogImg, lang: Lang): string {
-  if (typeof img === "string") return lang === "pt" ? img : "";
-  const file = img[lang];
-  if (!file) return "";
-  if (lang !== "pt" && file === img.pt) return "";
-  if (lang === "es" && img.en && file === img.en) return "";
-  return file;
+  return localizedExample(typeof img === "string" ? img : img.pt ?? "", lang);
 }
-/** Capa daquele idioma. Arquivo único, ou o mesmo arquivo repetido, conta só em português. */
+/** A capa PT define o livro; as traduções das artes ficam no manifesto central. */
 function coverForLang(i: number, lang: Lang): string {
   const img = CATALOG_IMGS[i];
   return img ? catalogImgSrc(img, lang) : "";
@@ -565,19 +557,17 @@ function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; sr
   const series = CATALOG_SERIES[i];
   if (!series) {
     const cover = catalogCoverFile(i, lang, "photo");
-    return cover ? [{ key: "cover", src: cover }] : [];
+    return catalogCoverFile(i, "pt", "photo") ? [{ key: "cover", src: cover }] : [];
   }
   const shots: { key: CatalogSeriesKind; src: string }[] = [];
   const cover = catalogImgSrc(series.cover, lang);
-  if (!cover) return [];
+  if (!catalogImgSrc(series.cover, "pt")) return [];
   shots.push({ key: "cover", src: cover });
-  if (series.page) {
-    const src = catalogImgSrc(series.page, lang);
-    if (src) shots.push({ key: "page", src });
+  if (series.page && catalogImgSrc(series.page, "pt")) {
+    shots.push({ key: "page", src: catalogImgSrc(series.page, lang) });
   }
-  if (series.photo) {
-    const src = catalogImgSrc(series.photo, lang);
-    if (src) shots.push({ key: "photo", src });
+  if (series.photo && catalogImgSrc(series.photo, "pt")) {
+    shots.push({ key: "photo", src: catalogImgSrc(series.photo, lang) });
   }
   return shots;
 }
@@ -1688,17 +1678,17 @@ const I18N = {
       { t: "Happy 90th Birthday, Nonna", p: "Balloons, orchids and her sons-in-law beside her: Nonna's 90th birthday becomes a story to keep.", cover: "Hard", size: "M", tag: "90th birthday", quote: "Happy 90th birthday, Nonna!" },
       { t: "A Grandpa's Love Is Like A Well-Kept Engine", p: "In the garage, grandpa tends the engine and his grandson: a love that, like a well-kept engine, lasts forever.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "It lasts forever." },
       { t: "A Glow That Captivates, A Dancer At Heart", p: "Roses, ballet shoes and a glow on the stage: the dance becomes a story to keep.", cover: "Hard", size: "M", tag: "Ballet", quote: "A glow that captivates, a dancer at heart." },
-      { t: "A Love That Grows And Makes Me Stronger", p: "They used to travel together. Now she sets off and carries the love, the places and the dreams still ahead.", cover: "Hard", size: "M", tag: "Mother and daughter", quote: "A love that grows and makes me stronger." },
+      { t: "A Love That Grows And Ennobles Me", p: "They used to travel together. Now she sets off and carries the love, the places and the dreams still ahead.", cover: "Hard", size: "M", tag: "Mother and daughter", quote: "A love that grows and ennobles me." },
       { t: "Happy Birthday, Matteo!", p: "Today his birthday is here: Matteo flies high, with cake, balloons and his teddy pilot.", cover: "Hard", size: "M", tag: "Birthday", quote: "Happy birthday, Matteo!" },
       { t: "Grandma, Your Sweetness Turns Life Into An Adventure", p: "By her side, every moment becomes a beautiful adventure, full of love and stories to keep.", cover: "Hard", size: "M", tag: "Grandma and me", quote: "Your sweetness turns life into an adventure." },
       { t: "Matteo, Mighty Motor, Giant Tractor", p: "On the green tractor, Matteo listens to the engine, watches the bucket lift the earth and learns that safety comes before play.", cover: "Hard", size: "M", tag: "Tractor", quote: "Mighty motor, giant tractor!" },
       { t: "Test Book", p: "A trial book for checking a fifty-cent order. It is not a catalog gift.", cover: "Soft", size: "P", tag: "Order test", quote: "R$ 0,50." },
       { t: "Merry Christmas, Family!", p: "The tree, the presents and Santa beside them: the whole family keeps Christmas in a story all their own.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Merry Christmas, family!" },
       { t: "Dinosaur Secrets, Enzo, From Past To Future", p: "Magnifying glass in hand, Enzo travels through time beside a triceratops and discovers the secrets of the dinosaurs.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "From the past to the future, the adventure goes on." },
-      { t: "Dad and Daughter: A Pair Beyond Compare", p: "On graduation day, dad and daughter hold the diploma together: a pair that shines in every achievement.", cover: "Hard", size: "M", tag: "Dad and daughter", quote: "A pair beyond compare." },
+      { t: "Dad and Daughter: A Pair That Shines", p: "On graduation day, dad and daughter hold the diploma together: a pair that shines in every achievement.", cover: "Hard", size: "M", tag: "Dad and daughter", quote: "A pair that shines." },
     ],
-    promise_title: "Every Detail Crafted to Feel Special",
-    promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
+    promise_title: "A Personalized Gift to Preserve Unforgettable Moments.",
+    promise_sub: "From the photo to the final preview, every detail is created with care, bringing a unique gift to life to treasure forever.",
     promise: [
       { t: "Photo Privacy", p: "The photo you upload is used only to create the book — never for promotion. The examples on this page are platform demos." },
       { t: "Print Made as a Gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
@@ -1941,7 +1931,7 @@ const I18N = {
       { t: "Felices 90 Años, Nonna", p: "Globos, orquídeas y los yernos al lado: los 90 años de Nonna se vuelven una historia para guardar.", cover: "Hard", size: "M", tag: "90 años", quote: "¡Felices 90 años, Nonna!" },
       { t: "El Amor Del Abuelo Es Como Un Motor Bien Cuidado", p: "En el taller, el abuelo cuida el motor y a su nieto: un amor que, como un motor bien cuidado, dura para siempre.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "Dura para siempre." },
       { t: "Un Brillo Que Fascina, Alma De Bailarina", p: "Rosas, zapatillas y un brillo en el escenario: la danza se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Ballet", quote: "Un brillo que fascina, alma de bailarina." },
-      { t: "Un Amor Que Crece Y Me Enobrece", p: "Antes viajaban juntas. Hoy ella parte y se lleva el amor, los lugares y los sueños que aún viven en ella.", cover: "Hard", size: "M", tag: "Madre e hija", quote: "Un amor que crece y me enoblece." },
+      { t: "Un Amor Que Crece Y Me Ennoblece", p: "Antes viajaban juntas. Hoy ella parte y se lleva el amor, los lugares y los sueños que aún van a soñar.", cover: "Hard", size: "M", tag: "Madre e hija", quote: "Un amor que crece y me ennoblece." },
       { t: "¡Feliz Cumpleaños, Matteo!", p: "Hoy llegó su cumpleaños: Matteo vuela alto, entre la torta, los globos y su osito aviador.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Feliz cumpleaños, Matteo!" },
       { t: "Abuela, Tu Dulzura Convierte La Vida En Una Aventura", p: "A su lado, cada momento se convierte en una gran aventura, llena de amor e historias para guardar.", cover: "Hard", size: "M", tag: "Abuela y yo", quote: "Tu dulzura convierte la vida en una aventura." },
       { t: "Matteo, Motor Potente, Tractor Gigante", p: "En el tractor verde, Matteo escucha el motor, ve la pala levantar la tierra y aprende que la seguridad viene antes de jugar.", cover: "Hard", size: "M", tag: "Tractor", quote: "Motor potente, tractor gigante." },
@@ -1950,8 +1940,8 @@ const I18N = {
       { t: "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro", p: "Con una lupa en la mano, Enzo cruza el tiempo junto a un triceratops y descubre los secretos de los dinosaurios.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Del pasado al futuro, la aventura sigue." },
       { t: "Papá e Hija: Un Equipo que Brilla", p: "El día de la graduación, papá e hija sostienen juntos el diploma: un equipo que brilla en cada logro.", cover: "Hard", size: "M", tag: "Papá e hija", quote: "Un equipo que brilla." },
     ],
-    promise_title: "Cada Detalle Pensado Para Ser Especial",
-    promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
+    promise_title: "Un Regalo Personalizado Para Eternizar Momentos Inolvidables.",
+    promise_sub: "De la foto a la vista previa final, cada detalle se crea con cariño, dando vida a un regalo único para toda la vida.",
     promise: [
       { t: "Privacidad de la Foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
       { t: "Impresión Pensada como Regalo", p: "Preparado para verse hermoso en las manos, en la lectura en familia y al momento de entregarlo." },
@@ -1990,6 +1980,19 @@ const I18N = {
 } as const;
 
 /** "fold" = página dobrando (landing-flip-fold.css). "fade" = esmaecer. */
+function exampleName(name: string, lang: Lang): string {
+  const index: Record<string, number> = {
+    "Meu Pai, Meu Herói": 21, "Amor de Bisavó": 8, "Amor de Mãe": 6,
+    "Amor de Tia": 19, "Davi, o Menino Pastor": 20, "Enzo, Meu Primo Predileto": 22,
+    "Lucas e seu amigo Max": 23, "Esther e os Superpoderes da Higiene": 24,
+    "Matteo, Força No Motor, Gigante O Trator": 57, "Feliz 90 Anos, Nonna": 51,
+    "Maria E Os Segredos Do Fundo Do Mar": 43, "Nano E Suas Aventuras": 10,
+    "Feliz Natal, Família": 59, "Segredos Do Dinossauro, Enzo": 60,
+    "Pai e Filha: Uma Dupla que Brilha": 61,
+  };
+  return lang !== "pt" && index[name] !== undefined ? I18N[lang].catalog[index[name]].t : name;
+}
+
 const FLIP_FX = "fade" as "fade" | "fold";
 const FLIP_MS = FLIP_FX === "fold" ? 1100 : 700;
 const FLIP_AUTO_MS = 3600;
@@ -2510,7 +2513,7 @@ function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
   const img = catalogCoverFile(index, lang, "photo");
-  if (!book || !theme || !img) return null;
+  if (!book || !theme || !coverForLang(index, "pt")) return null;
   return {
     t: book.t,
     story: book.p,
@@ -2661,12 +2664,13 @@ export function catalogSections(lang: Lang): CatalogSection[] {
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
   const { pathname } = useLocation();
+  const [lang, setLang] = useResolvedLang();
   usePageMeta(
     pathname === "/cartoon" || variant === "cartoon"
-      ? staticPageMeta("/cartoon")
+      ? staticPageMeta("/cartoon", lang)
       : pathname === "/landing"
-        ? staticPageMeta("/landing")
-        : staticPageMeta("/"),
+        ? staticPageMeta("/landing", lang)
+        : staticPageMeta("/", lang),
   );
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -2678,7 +2682,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
   const [mobileSub, setMobileSub] = useState<{ cat: number; sub: number } | null>(null);
-  const [lang, setLang] = useResolvedLang();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
@@ -2695,6 +2698,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
+  const promiseWord = lang === "en" ? "Gift" : "Regalo";
+  const [promiseBefore, promiseAfter] = t.promise_title.split(promiseWord);
   const [session, setSession] = useState<LandingSession>(() =>
     getToken() || clerkWillProvideSession() ? { status: "loading" } : { status: "out" },
   );
@@ -2704,11 +2709,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const headerCtaLabel = signedIn ? t.hero_cta : t.cta_play;
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
-  const howImgs = variant === "cartoon" ? (lang === "pt" ? HOW_IMGS : []) : HOW_SCENE_IMGS;
+  const howImgs = (variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS).map((file) => localizedExample(file, lang));
   const passoBook = variant === "cartoon"
-    ? (lang === "pt" ? "cartoon-pagina-matteo.jpg" : "")
+    ? localizedExample("cartoon-pagina-matteo.jpg", lang)
     : assetForLang(heroAsset("pagina-mamaepapaimatteo.jpg", "pagina-mamaepapaimatteo-en.jpg", "pagina-mamaepapaimatteo-es.jpg"), lang);
-  const passoImgs = ["dica-boa.png", "dica-multi.png", ...(passoBook ? [passoBook] : [])];
+  const passoImgs = ["dica-boa.png", "dica-multi.png", passoBook];
   const framing = import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
@@ -2724,14 +2729,14 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       };
     }
     const shots = [assetForLang(entry.cover, lang), assetForLang(entry.page, lang), assetForLang(entry.photo, lang)];
-    if (shots.some((src) => !src)) return [];
-    return [{ name: entry.name, shots }];
+    if ([entry.cover, entry.page, entry.photo].some((asset) => !asset.pt)) return [];
+    return [{ name: exampleName(entry.name, lang), shots }];
   });
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
-          ? Boolean(CARTOON_COVER[i]) && Boolean(catalogCoverFile(i, lang, "cartoon"))
-          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, lang))))
+          ? Boolean(CARTOON_COVER[i]) && Boolean(catalogCoverFile(i, "pt", "cartoon"))
+          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, "pt"))))
         .sort((a, b) => {
           const rank = (i: number) => {
             const order = variant === "cartoon" ? CATALOG_LEAD : HOME_CATALOG_ORDER;
@@ -2751,8 +2756,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           catalogI: i,
         }));
   const reviewPhotos = (variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS).flatMap((b) => {
-    const tab = typeof b.tab === "string" ? assetForLang(heroAsset(b.tab), lang) : assetForLang(b.tab, lang);
-    return tab ? [{ name: b.name, tab }] : [];
+    const master = typeof b.tab === "string" ? b.tab : b.tab.pt;
+    if (!master) return [];
+    return [{ name: exampleName(b.name, lang), tab: localizedExample(master, lang) }];
   });
   const heroPages = heroStrip.flatMap((book) => book.shots);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
@@ -2788,7 +2794,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       if (HIDDEN_BOOK_INDEXES.has(meta.catalogI)) return [];
       if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
       const img = catalogCoverFile(meta.catalogI, lang, variant);
-      if (!img) return [];
+      if (!catalogCoverFile(meta.catalogI, "pt", variant)) return [];
       return [{
         label,
         href: `/catalogo#${NAV_CAT_META[i].id}`,
@@ -2811,7 +2817,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     if (variant !== "cartoon" && isCartoonOnlyCover(i)) return [];
     const book = t.catalog[i];
     const img = catalogCoverFile(i, lang, variant);
-    if (!book || !img) return [];
+    if (!book || !catalogCoverFile(i, "pt", variant)) return [];
     return [{ label: book.t, href: `/catalogo#${catalogSectionId(theme)}`, img }];
   }).slice(0, 4);
 
@@ -3515,7 +3521,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <>
               Um <span className="promise-mark">Presente</span> Personalizado para Eternizar Momentos Inesquecíveis.
             </>
-          ) : t.promise_title}
+          ) : (
+            <>{promiseBefore}<span className="promise-mark">{promiseWord}</span>{promiseAfter}</>
+          )}
         </h2>
         <p className="ksub reveal">{t.promise_sub}</p>
         <div className="promise-grid">
@@ -3538,8 +3546,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.vid_sub}</p>
         <div className="vid-grid">
           {t.videos.map((v, i) => {
-            const poster = VIDEO_IMGS[i];
-            if (i === 0 && lang !== "pt") return null;
+            const poster = i === 0 ? localizedExample(VIDEO_IMGS[i], lang) : VIDEO_IMGS[i];
             const src = VIDEO_SRCS[i];
             const canPlay = Boolean(src);
             return (

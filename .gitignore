@@ -559,3 +559,8 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 
 # User-supplied visual examples stay local; publish only derived composition rules.
 /backend/app/assets/composition_examples/originals/
+
+# Reviewed localizations of the approved PT website illustrations.
+!apps/web/public/exemplos/localized/
+!apps/web/public/exemplos/localized/**
+/outputs/idiomas-audit/

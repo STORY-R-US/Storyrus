@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { Lang } from "./i18n/lang";
 
 export const SITE_ORIGIN = "https://storyrus.ai";
 
@@ -51,7 +52,9 @@ export const CATALOG_CATEGORIES: readonly { id: string; name: string }[] = [
   { id: "sentimentos", name: "Sentimentos" },
 ];
 
-function categoryDescription(name: string): string {
+function categoryDescription(name: string, lang: Lang = "pt"): string {
+  if (lang === "en") return `Illustrated books about ${name}. Choose a theme and Story R Us creates a story from your child's photo.`;
+  if (lang === "es") return `Libros ilustrados de ${name}. Elige un tema y Story R Us crea una historia con la foto de tu hijo.`;
   return `Livros ilustrados de ${name}. Escolha um tema e a Story R Us cria uma história com a foto do seu filho.`;
 }
 
@@ -182,16 +185,34 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
 ];
 
-export function staticPageMeta(pathname: string): HtmlPage | null {
+export function staticPageMeta(pathname: string, lang: Lang = "pt"): HtmlPage | null {
   const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
-  return STATIC_PAGES.find((page) => page.path === path) ?? null;
+  const page = STATIC_PAGES.find((page) => page.path === path) ?? null;
+  if (!page || lang === "pt") return page;
+  const copy = PUBLIC_META[lang][path === "/landing" ? "/" : path];
+  return copy ? { ...page, title: siteTitle(copy[0]), description: copy[1] } : page;
 }
 
-export function categoryPageMeta(id: string, name: string): HtmlPage {
+const PUBLIC_META: Record<"en" | "es", Record<string, [string, string]>> = {
+  en: {
+    "/": ["We turn photos into personalized books, stories into everlasting memories.", "Send a photo and Story R Us creates an illustrated character, a PDF book and a narrated video with your child as the hero."],
+    "/cartoon": ["Cartoon Books", "Illustrated cartoon books with your child's photo as the hero. Explore the cartoon examples and create your own."],
+    "/catalogo": ["Our Books", "A catalog of personalized illustrated books. Choose a theme and create a story from your child's photo."],
+    "/exemplos": ["Platform Examples", "The demonstration photos and videos on this website are Story R Us materials, separate from what you upload to the studio."],
+  },
+  es: {
+    "/": ["Transformamos fotos en libros personalizados, historias en recuerdos eternos.", "Envía una foto y Story R Us crea un personaje ilustrado, un libro en PDF y un video narrado con tu hijo como protagonista."],
+    "/cartoon": ["Libros Cartoon", "Libros ilustrados en dibujo con la foto de tu hijo como protagonista. Explora los ejemplos cartoon y crea el tuyo."],
+    "/catalogo": ["Nuestros Libros", "Catálogo de libros ilustrados personalizados. Elige un tema y crea una historia con la foto del niño."],
+    "/exemplos": ["Ejemplos De La Plataforma", "Las fotos y los videos de demostración del sitio son materiales de Story R Us, separados de lo que envías al estudio."],
+  },
+};
+
+export function categoryPageMeta(id: string, name: string, lang: Lang = "pt"): HtmlPage {
   return {
     path: `/catalogo/${id}`,
     title: siteTitle(name),
-    description: categoryDescription(name),
+    description: categoryDescription(name, lang),
     sitemap: true,
   };
 }
