@@ -1770,6 +1770,65 @@ class Pipeline:
             },
             compose,
         )
+        # Reuse the already-observed protection map. Local scenery accents must
+        # never request another image or another paid map merely for decoration.
+        from app.workers import local_scene_details
+
+        observed_layout = composed_meta.get("local_reading_layout") or {}
+        scene_theme = " ".join(
+            str(v or "")
+            for v in (
+                self.project.theme,
+                self.profile.get("theme_description"),
+                self.profile.get("locales", {}).get(self.language, {}).get("title"),
+                action,
+            )
+        )
+        if (
+            not self.demo
+            and observed_layout.get("source_sha256") == render.digest(raw)
+            and observed_layout.get("protected_regions")
+            and local_scene_details.football_theme(scene_theme)
+        ):
+            original_composition = data
+            original_meta = composed_meta
+
+            async def enrich_local(_attempt):
+                enriched, detail_report = local_scene_details.enrich(
+                    original_composition,
+                    theme=scene_theme,
+                    protected=observed_layout["protected_regions"],
+                    text_regions=original_meta["layout"]["ink_regions_with_margin"],
+                    accent=(self.design or {}).get("typography", {}).get("titleColor"),
+                )
+                return enriched, {
+                    **original_meta,
+                    "local_scene_details": detail_report,
+                    **(
+                        {
+                            "base_validation": original_meta["validation"],
+                            "validation": {
+                                "status": "awaiting_user_review",
+                                "reviewer": "user",
+                                "method": "protected_local_scenery_composition",
+                            },
+                        }
+                        if detail_report["added"]
+                        else {}
+                    ),
+                }
+
+            data, composed_meta = await self.stage(
+                name + ":details",
+                {
+                    "source": render.digest(data),
+                    "contract": local_scene_details.VERSION,
+                    "theme": scene_theme,
+                    "protected": observed_layout["protected_regions"],
+                },
+                enrich_local,
+                billable=False,
+            )
         return data, {
             **composed_meta,
             "art_bytes": raw,

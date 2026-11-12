@@ -3101,6 +3101,53 @@ async def test_new_compositor_reuses_folded_template_without_paid_calls(
 
 
 @pytest.mark.asyncio
+async def test_local_scenery_reuses_observed_map_and_never_buys_another_image(
+    reference_studio, monkeypatch
+):
+    from test_local_scene_details import scene
+
+    from app.workers import editorial_render as render
+    from app.workers.handlers import editorial_book
+
+    studio, calls, control = reference_studio
+    _, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    project.theme = "futebol"
+    db.commit()
+    control["source_art"] = render.encode(scene(1024))
+    original_stage = editorial_book.Pipeline.stage
+    local_calls = []
+
+    async def observed_stage(self, name, inputs, build, **kwargs):
+        if name.endswith(":details"):
+            assert kwargs["billable"] is False
+            local_calls.append(name)
+        data, meta = await original_stage(self, name, inputs, build, **kwargs)
+        if name.endswith(":text"):
+            meta = {
+                **meta,
+                "local_reading_layout": {
+                    "source_sha256": meta["art_sha256"],
+                    "protected_regions": [[0.30, 0.32, 0.62, 0.95]],
+                },
+            }
+        return data, meta
+
+    monkeypatch.setattr(editorial_book.Pipeline, "stage", observed_stage)
+    first = await _run(studio, "preview", {"cover_only": True}, key="local-scenery-first")
+    assert first.status == "DONE", first.error
+    assert len(calls) == 1 and local_calls == ["cover:details"]
+    proof = project.book_profile["cover_calibration"]
+    before = store[proof["flat_key"]]
+    assert proof["flat_meta"]["local_scene_details"]["added"]
+    assert proof["flat_meta"]["validation"]["status"] == "awaiting_user_review"
+    second = await _run(studio, "preview", {"cover_only": True}, key="local-scenery-retry")
+    assert second.status == "DONE", second.error
+    assert len(calls) == 1
+    assert store[project.book_profile["cover_calibration"]["flat_key"]] == before
+
+
+@pytest.mark.asyncio
 async def test_cover_calibration_waits_for_user_and_reuses_exact_cover(reference_studio):
     studio, calls, _ = reference_studio
     client, db, pid, store = studio
