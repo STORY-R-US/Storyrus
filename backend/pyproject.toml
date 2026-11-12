@@ -27,7 +27,7 @@ dependencies = [
     "fal-client>=0.5",
     "insightface>=0.7",
     "onnxruntime>=1.18",
-    "opencv-python-headless>=4.8,<5",
+    "opencv-python-headless>=4.8,<6",
     # InsightFace also installs the desktop distribution into the same cv2 module.
     # Keep both on the supported API; an unconstrained desktop v5 overrides v4.
     "opencv-python>=4.8,<5",
