@@ -835,11 +835,22 @@ def keyed_folded_cover(data):
     hsv = cv2.cvtColor(original, cv2.COLOR_RGB2HSV)
     marker = cv2.inRange(hsv, (135, 65, 35), (175, 255, 255))
     contours, _ = cv2.findContours(marker, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if not contours:
-        return None
-    contour = max(contours, key=cv2.contourArea)
-    if cv2.contourArea(contour) < h * w * 0.035:
-        return None
+    candidates = []
+    for contour in contours:
+        if cv2.contourArea(contour) < h * w * 0.035:
+            continue
+        candidate = _keyed_folded_component(original, hsv, contour)
+        if candidate is not None:
+            candidates.append(candidate)
+    if len(candidates) > 1:
+        raise ValueError("Mais de um livro marcado: montagem ambígua")
+    return candidates[0] if candidates else None
+
+
+def _keyed_folded_component(original, hsv, contour):
+    """Require hinge evidence; pink clothing alone is not a book surface."""
+    original = original.copy()
+    h, w = original.shape[:2]
     polygon = cv2.approxPolyDP(contour, cv2.arcLength(contour, True) * 0.01, True)
     points = polygon.reshape(-1, 2).astype(np.float32)
     lo, hi = points.min(axis=0), points.max(axis=0)
@@ -847,10 +858,14 @@ def keyed_folded_cover(data):
     hinges = []
     for i, point in enumerate(points):
         before, after = points[i - 1], points[(i + 1) % len(points)]
+        left_neighbor, right_neighbor = sorted((before, after), key=lambda p: p[0])
+        chord = right_neighbor - left_neighbor
+        offset = point - left_neighbor
+        depth = (chord[0] * offset[1] - chord[1] * offset[0]) / max(1, np.linalg.norm(chord))
         if (
             lo[0] + span[0] * 0.25 < point[0] < hi[0] - span[0] * 0.25
             and point[1] < lo[1] + span[1] * 0.4
-            and min(point[1] - before[1], point[1] - after[1]) > span[1] * 0.07
+            and depth > span[1] * 0.07
             and min(before[0], after[0]) < point[0] < max(before[0], after[0])
         ):
             hinges.append((i, point))
@@ -861,15 +876,18 @@ def keyed_folded_cover(data):
     i, top = hinges[0]
     direction = 1 if points[(i + 1) % len(points), 0] > top[0] else -1
     right = points[(i + direction) % len(points)]
+    left = points[(i - direction) % len(points)]
+    across = (right - left) / np.linalg.norm(right - left)
+    down = np.array([-across[1], across[0]])
     outer = points[(i + 2 * direction) % len(points)]
-    bottom_index = int(np.argmax(points[:, 1]))
+    bottom_index = int(np.argmax(points @ down))
     bottom = points[bottom_index]
     lower = points[(bottom_index - direction) % len(points)]
     # Extrapolate only rigid board edges hidden behind the fingers. Their
     # observed segments must be long enough to constrain the missing corner.
     if (
         np.linalg.norm(outer - right) < span[1] * 0.2
-        or lower[0] - bottom[0] < span[0] * 0.12
+        or np.dot(lower - bottom, across) < span[0] * 0.12
         or not lo[0] + span[0] * 0.25 < bottom[0] < hi[0] - span[0] * 0.25
     ):
         raise ValueError("Bordas da capa insuficientes para montar sem deformação")
@@ -888,9 +906,9 @@ def keyed_folded_cover(data):
     neighborhood = cv2.dilate(component, np.ones((3, 3), np.uint8))
     visible = cv2.inRange(hsv, (135, 15, 35), (175, 255, 255)) & neighborhood
     yy, xx = np.indices((h, w))
-    hinge_x = top[0] + (yy - top[1]) * (bottom[0] - top[0]) / (bottom[1] - top[1])
+    hinge_side = (bottom[0] - top[0]) * (yy - top[1]) - (bottom[1] - top[1]) * (xx - top[0])
     front = visible.copy()
-    front[xx < hinge_x] = 0
+    front[hinge_side > 0] = 0
     back = (visible > 0) & (front == 0)
     # Retain the original illumination and hinge shadows, remove registration
     # hue on the reverse instead of duplicating/distorting the cover artwork.
@@ -1083,8 +1101,14 @@ def mockup(
         contours, _ = cv2.findContours(marker, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if contours:
             component = np.zeros((h, w), np.uint8)
-            cv2.drawContours(component, [max(contours, key=cv2.contourArea)], -1, 255, cv2.FILLED)
+            for contour in contours:
+                candidate = np.zeros((h, w), np.uint8)
+                cv2.drawContours(candidate, [contour], -1, 255, cv2.FILLED)
+                if np.any((candidate > 0) & (cover_masks > 0)):
+                    component |= candidate
             marked = (marker > 0) & (component > 0)
+            if not marked.any() and np.count_nonzero(marker) > h * w * 0.035:
+                raise ValueError("Superfície proposta não coincide com o livro marcado")
             uncovered = marked & ((cover_masks == 0) | (foreground > 0))
             if np.count_nonzero(uncovered) > max(8, np.count_nonzero(marked) * 0.005):
                 raise ValueError(

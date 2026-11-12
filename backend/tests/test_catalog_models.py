@@ -95,6 +95,21 @@ def test_exact_selected_models_are_distinct_and_generic_default_is_unchanged():
         assert "The user may change the story theme" in prompt
 
 
+@pytest.mark.parametrize(
+    "model", ["catalog-realistic-6", "catalog-realistic-1", "catalog-realistic-0"]
+)
+def test_richer_scenery_preserves_the_selected_reading_page_contract(model):
+    design = book_design.snapshot(model)
+    for role in ("cover", "illustration_page", "holding"):
+        prompt = book_design.prompt(design, role, "Lia explora a praia")
+        assert "SCENE DETAIL AND DEPTH" in prompt
+        assert "Lia explora a praia" in prompt
+        assert design["sha256"] in prompt
+    reading = book_design.prompt(design, "reading_page", "Página de leitura")
+    assert "SCENE DETAIL AND DEPTH" not in reading
+    assert "READING PAGE DETAIL" in reading
+
+
 def test_custom_club_title_survives_catalog_selection_and_retry():
     project = SimpleNamespace(
         book_profile={"stage": "ficha", "title": "João, goleiro do Palmeiras"},

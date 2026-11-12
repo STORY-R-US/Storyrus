@@ -181,6 +181,32 @@ def prompt(design, role, action, *, text_region=None):
         "The actual requested theme and action alone define story objects and setting. "
         "Never import people, scenery or story props from catalog examples. "
         + (
+            "READING PAGE DETAIL: preserve the catalog's quiet reading-page layout. "
+            "Use discreet thematic details only near outer edges, keeping the entire "
+            "reading rectangle clear; never insert a narrative scene or people there. "
+            if role == "reading_page"
+            else "SCENE DETAIL AND DEPTH: stage a medium-wide scene with a readable foreground, "
+            "middle ground and distant background. Include three to five specific, story-relevant "
+            "environmental details, varied natural materials and coherent contact shadows; "
+            "avoid an empty generic backdrop, flat stock-photo lighting or a tight portrait crop. "
+            "Keep material detail in the selected catalog's own finish: illustrated models stay "
+            "illustrated, photographic models keep natural texture without plastic skin or halos. "
+            "Maintain the approved wardrobe, palette and recurring setting details across pages, "
+            "while varying the action and camera angle. Preserve complete faces, hair and hats. "
+            "Distribute detail around the action, never inside the measured lettering reserve: "
+            "that reserve remains calm, naturally continuous scenery, not a blank band or blur. "
+        )
+        + (
+            "HELD BOOK DETAIL: show tactile board edges, fine layered paper, a distinct "
+            "hinge, contact shadows under fingers and soft directional light. Keep the "
+            "surroundings recognizable with a few relevant furnishings or outdoor details; "
+            "use gentle depth of field, not a featureless blurred background. Only the "
+            "front print plane carries the temporary marker; preserve realistic skin, "
+            "hair, fabric and unmarked rear-board material. "
+            if role == "holding"
+            else ""
+        )
+        + (
             "COVER ONLY: ONE single square front-cover face, not an open book, spread, "
             "front-and-back pair, diptych, gutter, central fold or two facing pages. "
             if role == "cover"

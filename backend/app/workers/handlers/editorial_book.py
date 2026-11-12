@@ -1992,7 +1992,7 @@ class Pipeline:
             prompt = (
                 "Uma cena fotográfica natural, ambiente acolhedor. "
                 + (
-                    "Protagonista original segura um livro físico quadrado de capa dura, ligeiramente aberto, em primeiro plano. A capa dianteira fica legível para a câmera e a contracapa aparece num ângulo natural. Ambiente tranquilo de fundo desfocado, somente o elenco solicitado nas fotos e na ficha. A foto define somente identidade, não copie seu cenário. Capa PLANA voltada para a câmera, vista quase frontal. Mãos naturais segurando somente as bordas, sem ocultar o centro da capa. "
+                    "Protagonista original segura um livro físico quadrado de capa dura, ligeiramente aberto, em primeiro plano. A capa dianteira fica legível para a câmera e a contracapa aparece num ângulo natural. Ambiente acolhedor com detalhes reconhecíveis, texturas naturais e profundidade suave, somente o elenco solicitado nas fotos e na ficha. A foto define somente identidade, não copie seu cenário. Capa PLANA voltada para a câmera, vista quase frontal. Mãos naturais segurando somente as bordas, sem ocultar o centro da capa. "
                     if reading
                     else "Foto de produto: um livro aberto A 180 GRAUS sobre uma mesa, visto de cima, com duas páginas quadradas PLANAS iguais. Sem páginas curvas, sem pessoas nem mãos. "
                 )
@@ -2203,7 +2203,7 @@ class Pipeline:
 
         inputs = {
             "sources": [render.digest(p) for p in artworks],
-            "surface_contract": 11 if name == "reading" else 6,
+            "surface_contract": 12 if name == "reading" else 6,
         }
         try:
             return await self.stage(name, inputs, build)
