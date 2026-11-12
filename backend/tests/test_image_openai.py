@@ -17,6 +17,24 @@ def _ok_payload(image: bytes = b"png-bytes") -> dict:
     }
 
 
+@pytest.mark.asyncio
+async def test_production_model_keeps_high_quality_and_original_reference_bytes():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload())]
+    provider = oai.OpenAIImageProvider(model="gpt-image-1.5")
+    references = [b"original-photo", b"companion-photo", b"selected-catalog", b"saved-art"]
+    await provider._generate_with_refs("Preserve the supplied roles", references, size="1024x1024")
+    call = _FakeAsyncClient.calls[0]
+    assert call["data"] == {
+        "model": "gpt-image-1.5",
+        "prompt": "Preserve the supplied roles",
+        "quality": "high",
+        "input_fidelity": "high",
+        "size": "1024x1024",
+    }
+    assert [value[1] for _, value in call["files"]] == references
+    assert len(_FakeAsyncClient.calls) == 1
+
+
 class _FakeResponse:
     def __init__(self, status_code: int, json_data: dict | None = None, text: str = ""):
         self.status_code = status_code

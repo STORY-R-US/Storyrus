@@ -124,3 +124,32 @@ async def test_photographic_holding_does_not_get_cartoon_cast(monkeypatch):
     )
     assert captured["images"] == [b"photo", b"cover"]
     assert cartoon_style.MARKER not in captured["prompt"]
+
+
+@pytest.mark.asyncio
+async def test_selected_catalog_and_saved_edit_target_are_not_replaced(monkeypatch):
+    captured = {}
+
+    async def capture(self, prompt, images, *, size):
+        captured.update(prompt=prompt, images=images)
+        return ImageResult(image_bytes=b"result", cost_usd=0)
+
+    monkeypatch.setattr(OpenAIImageProvider, "_generate_with_refs", capture)
+    await OpenAIImageProvider().generate_scene(
+        prompt="COMPLETE CATALOG BOOK DESIGN. IMAGE 2 defines style. EDIT THE LAST ATTACHED IMAGE.",
+        character_ref=b"photo",
+        photo=b"photo",
+        extra_refs=[b"selected-model", b"saved-scene"],
+        style="cartoon",
+    )
+    assert captured["images"] == [b"photo", b"selected-model", b"saved-scene"]
+    assert "EDIT THE LAST ATTACHED IMAGE" in captured["prompt"]
+
+
+def test_generic_cartoon_reference_does_not_steal_saved_edit_target():
+    prompt, images = cartoon_style.inputs(
+        "EDIT THE LAST ATTACHED IMAGE", [b"photo", b"saved-scene"], "cartoon"
+    )
+    assert "EDIT THE IMAGE 2" in prompt
+    assert images[1] == b"saved-scene"
+    assert images[-1] == cartoon_style.reference()

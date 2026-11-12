@@ -880,10 +880,10 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
     expected_roles = ["cover", "page", "page", "holding"]
     for call, role in zip(calls, expected_roles, strict=True):
         references = [call["character_ref"], *call.get("extra_refs", [])]
-        assert book_design.reference(design, role) not in references
+        assert book_design.reference(design, role) in references
         assert "COMPLETE CATALOG BOOK DESIGN" in call["prompt"]
         assert "AUTHORIZED CAST" in call["prompt"]
-    assert len(calls[0]["extra_refs"]) == 1  # abstract layout guide, never example cast
+    assert len(calls[0]["extra_refs"]) == 2  # layout guide + selected visual model
     assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
     assert "SINGLE FRONT COVER ONLY" in calls[0]["prompt"]
     assert '"solo": true' in calls[0]["prompt"]
@@ -942,8 +942,8 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
     combined = "\n".join(p["layout"]["text"] for p in rendered)
     assert all(combined.count(passage) == 1 for passage in passages[:2])
     for call in calls[before:]:
-        assert book_design.reference(design, "page") not in call["extra_refs"]
-        assert len(call["extra_refs"]) >= 1  # this project's approved cover only
+        assert book_design.reference(design, "page") in call["extra_refs"]
+        assert len(call["extra_refs"]) >= 2  # approved project cover + catalog style
     if model == "family":
         from app.workers.handlers.master_book import _assets
 
@@ -3186,7 +3186,7 @@ async def test_cover_calibration_waits_for_user_and_reuses_exact_cover(reference
 
 
 @pytest.mark.asyncio
-async def test_visual_master_is_not_attached_to_project_art(
+async def test_visual_master_is_attached_as_style_not_identity(
     reference_studio, monkeypatch, tmp_path
 ):
     from cryptography.fernet import Fernet
@@ -3208,10 +3208,10 @@ async def test_visual_master_is_not_attached_to_project_art(
     await _run(studio, "preview", {"cover_only": True}, key="master-style-only")
     assert len(calls) == 1
     assert calls[0]["photo"] == _png()
-    assert len(calls[0]["extra_refs"]) == 1
-    assert all(reference not in masters.values() for reference in calls[0]["extra_refs"])
+    assert len(calls[0]["extra_refs"]) == 2
+    assert calls[0]["extra_refs"][-1] == masters["cover"]
     assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
-    assert "PROJECT-ONLY REFERENCES" in calls[0]["prompt"]
+    assert "PROJECT-ONLY REFERENCES" not in calls[0]["prompt"]
     _, db, pid, _ = studio
     project = db.get(Project, uuid.UUID(pid))
     from app.services import editorial_profile
@@ -3298,9 +3298,9 @@ async def test_new_cover_uses_catalog_finish_and_keeps_project_photo(
     await _run(studio, "preview", {"cover_only": True}, key="catalog-first-cover")
     assert len(calls) == 1
     assert calls[0]["photo"] == _png()
-    assert len(calls[0]["extra_refs"]) == 1
+    assert len(calls[0]["extra_refs"]) == 2
     assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
-    assert "PROJECT-ONLY REFERENCES" in calls[0]["prompt"]
+    assert "PROJECT-ONLY REFERENCES" not in calls[0]["prompt"]
     assert visual_reference.catalog_family(style, title) == family
 
 

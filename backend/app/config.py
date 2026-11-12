@@ -187,7 +187,7 @@ class Settings(BaseSettings):
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
     openai_api_key: str | None = None  # texto, GPT Image e juiz de historia
     editorial_visual_reference_key: str | None = None
-    openai_image_model: str = "gpt-image-1"
+    openai_image_model: str = "gpt-image-1.5"
     openai_image_quality: Literal["auto", "low", "medium", "high"] = "high"
     openai_image_size_portrait: str = "1024x1536"
     openai_image_size_square: str = "1024x1024"
