@@ -210,6 +210,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   42: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
   60: "covers/cartoon-capa-enzo-dinossauro-v1-pt.webp",
   62: "covers/cartoon-capa-sofia-princesa-v1-pt.webp",
+  63: "covers/cartoon-capa-lia-cores-v1-pt.webp",
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -330,6 +331,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
   { pt: "capa-pai-e-filha.png", en: "capa-pai-e-filha-en.png", es: "capa-pai-e-filha-es.png" },
   "covers/realistic-capa-sofia-princesa-v1-pt.webp",
+  "covers/realistic-capa-lia-cores-v1-pt.webp",
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -562,6 +564,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     photo: { pt: "foto-pai-e-filha.png", en: "foto-pai-e-filha-en.png", es: "foto-pai-e-filha-es.png" },
   },
   62: { cover: "covers/realistic-capa-sofia-princesa-v1-pt.webp", page: "realistic-pagina-sofia-princesa-v1-pt.webp", photo: "realistic-foto-sofia-princesa-v1-pt.webp" },
+  63: { cover: "covers/realistic-capa-lia-cores-v1-pt.webp", page: "realistic-pagina-lia-cores-v1-pt.webp", photo: "realistic-foto-lia-cores-v1-pt.webp" },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -646,6 +649,7 @@ const CATALOG_THEMES = [
   "dinosaurs",
   "fathers_day",
   "princess",
+  "cores",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -654,7 +658,7 @@ const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]);
 /** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   25, 26, 27,
@@ -674,6 +678,7 @@ const HOME_CATALOG_ORDER = [
   45, 58,
   10, 59, 60,
   61, 62,
+  63,
 ];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
@@ -1414,6 +1419,7 @@ const I18N = {
       { t: "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro", p: "Com uma lupa na mão, o Enzo atravessa o tempo ao lado de um triceratops e descobre os segredos dos dinossauros.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Do passado ao futuro, a aventura continua." },
       { t: "Pai e Filha: Uma Dupla que Brilha", p: "No dia da formatura, pai e filha seguram juntos o diploma: uma dupla que brilha em cada conquista.", cover: "Hard", size: "M", tag: "Pai e filha", quote: "Uma dupla que brilha." },
       { t: "Sofia, a Princesa que Cultivava Gentileza", p: "Sofia e um amigo plantam e cuidam juntos de um jardim, descobrindo como pequenos gestos fazem a gentileza florescer.", cover: "Hard", size: "M", tag: "Princesas", quote: "Pequenos cuidados fazem a gentileza florescer." },
+      { t: "Lia e o Jardim das Cores", p: "No jardim, Lia mistura azul e amarelo, descobre o verde e dá novas cores às folhas de sua pintura.", cover: "Hard", size: "M", tag: "Cores", quote: "Uma mistura, uma descoberta, um jardim de cores." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1668,6 +1674,7 @@ const I18N = {
       { t: "Dinosaur Secrets, Enzo, From Past To Future", p: "Magnifying glass in hand, Enzo travels through time beside a triceratops and discovers the secrets of the dinosaurs.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "From the past to the future, the adventure goes on." },
       { t: "Dad and Daughter: A Pair That Shines", p: "On graduation day, dad and daughter hold the diploma together: a pair that shines in every achievement.", cover: "Hard", size: "M", tag: "Dad and daughter", quote: "A pair that shines." },
       { t: "Sofia, the Princess Who Grew Kindness", p: "Sofia and a friend plant and care for a garden together, discovering how small acts help kindness bloom.", cover: "Hard", size: "M", tag: "Princesses", quote: "Small acts of care help kindness bloom." },
+      { t: "Lia and the Garden of Colors", p: "In the garden, Lia mixes blue and yellow, discovers green and brings fresh color to the leaves in her painting.", cover: "Hard", size: "M", tag: "Colors", quote: "A little mixing, a new discovery, a garden of colors." },
     ],
     promise_title: "A Personalized Gift to Preserve Unforgettable Moments.",
     promise_sub: "From the photo to the final preview, every detail is created with care, bringing a unique gift to life to treasure forever.",
@@ -1922,6 +1929,7 @@ const I18N = {
       { t: "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro", p: "Con una lupa en la mano, Enzo cruza el tiempo junto a un triceratops y descubre los secretos de los dinosaurios.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Del pasado al futuro, la aventura sigue." },
       { t: "Papá e Hija: Un Equipo que Brilla", p: "El día de la graduación, papá e hija sostienen juntos el diploma: un equipo que brilla en cada logro.", cover: "Hard", size: "M", tag: "Papá e hija", quote: "Un equipo que brilla." },
       { t: "Sofia, la Princesa que Cultivaba la Bondad", p: "Sofia y un amigo plantan y cuidan juntos un jardín, descubriendo cómo los pequeños gestos hacen florecer la bondad.", cover: "Hard", size: "M", tag: "Princesas", quote: "Los pequeños cuidados hacen florecer la bondad." },
+      { t: "Lia y el Jardín de los Colores", p: "En el jardín, Lia mezcla azul y amarillo, descubre el verde y da nuevos colores a las hojas de su pintura.", cover: "Hard", size: "M", tag: "Colores", quote: "Una mezcla, un descubrimiento, un jardín de colores." },
     ],
     promise_title: "Un Regalo Personalizado Para Eternizar Momentos Inolvidables.",
     promise_sub: "De la foto a la vista previa final, cada detalle se crea con cariño, dando vida a un regalo único para toda la vida.",

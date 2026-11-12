@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-for (const [route, count] of [["/", 48], ["/cartoon", 23], ["/catalogo", 53]] as const) {
+for (const [route, count] of [["/", 49], ["/cartoon", 24], ["/catalogo", 54]] as const) {
 for (const lang of ["pt", "en", "es"]) {
   test(`visible cover artwork fills the frame in ${lang} on ${route}`, async ({ page }) => {
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
@@ -10,7 +10,9 @@ for (const lang of ["pt", "en", "es"]) {
     while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
     await expect(page.locator("#catalogo .cat-card")).toHaveCount(count);
     const gaps = await page.locator("#catalogo .cat-card .cat-book img").evaluateAll(async images => {
-      return Promise.all(images.map(async element => {
+      const results: { src: string; gaps: number[] }[] = [];
+      // Release each decoded image before inspecting the next large cover.
+      for (const element of images) {
         const image = element as HTMLImageElement;
         // Decode even lazy images: check artwork pixels, not just equal DOM boxes.
         const bitmap = await createImageBitmap(await (await fetch(image.src)).blob());
@@ -35,13 +37,17 @@ for (const lang of ["pt", "en", "es"]) {
         const y1 = rows.findLastIndex(n => n > canvas.width / 2) + 1;
         const rect = image.getBoundingClientRect();
         const frame = image.parentElement!.getBoundingClientRect();
-        return { src: image.src, gaps: [
+        results.push({ src: image.src, gaps: [
           rect.left + x0 / canvas.width * rect.width - frame.left,
           rect.top + y0 / canvas.height * rect.height - frame.top,
           frame.right - rect.left - x1 / canvas.width * rect.width,
           frame.bottom - rect.top - y1 / canvas.height * rect.height,
-        ] };
-      }));
+        ] });
+        bitmap.close();
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+      return results;
     });
     expect(gaps).toHaveLength(count);
     for (const cover of gaps) {
@@ -52,7 +58,7 @@ for (const lang of ["pt", "en", "es"]) {
 }
 
 for (const width of [390, 1280]) {
-for (const [route, count] of [["/", 48], ["/cartoon", 23], ["/catalogo", 53]] as const) {
+for (const [route, count] of [["/", 49], ["/cartoon", 24], ["/catalogo", 54]] as const) {
 for (const lang of ["pt", "en", "es"]) {
   test(`uniform covers and working P/M in ${lang} on ${route} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
