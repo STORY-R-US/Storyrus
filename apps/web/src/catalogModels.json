@@ -1438,5 +1438,41 @@
       "page": "cartoon-pagina-lia-cores-v1-pt.webp",
       "holding": "cartoon-foto-lia-cores-v1-pt.webp"
     }
+  },
+  "catalog-realistic-64": {
+    "id": "catalog-realistic-64",
+    "catalog_index": 64,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Bento e a Brincadeira que Cresceu",
+      "en": "Bento and the Game That Grew",
+      "es": "Bento y el Juego que Creció"
+    },
+    "example_name": "Bento",
+    "sources": {
+      "cover": "covers/realistic-capa-bento-compartilhar-v1-pt.webp",
+      "page": "realistic-pagina-bento-compartilhar-v1-pt.webp",
+      "holding": "realistic-foto-bento-compartilhar-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-64": {
+    "id": "catalog-cartoon-64",
+    "catalog_index": 64,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Bento e a Brincadeira que Cresceu",
+      "en": "Bento and the Game That Grew",
+      "es": "Bento y el Juego que Creció"
+    },
+    "example_name": "Bento",
+    "sources": {
+      "cover": "covers/cartoon-capa-bento-compartilhar-v1-pt.webp",
+      "page": "cartoon-pagina-bento-compartilhar-v1-pt.webp",
+      "holding": "cartoon-foto-bento-compartilhar-v1-pt.webp"
+    }
   }
 }

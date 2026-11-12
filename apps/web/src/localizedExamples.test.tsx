@@ -83,7 +83,7 @@ describe("approved PT images in all languages", () => {
         videos: container.querySelectorAll("#videos .vid-card").length,
       });
       const pt = read();
-      expect(pt.books).toHaveLength(variant === "photo" ? 49 : 24);
+      expect(pt.books).toHaveLength(variant === "photo" ? 50 : 25);
       expect(pt.hero).toHaveLength(variant === "photo" ? 108 : 24);
       for (const lang of ["en", "es"] as const) {
         fireEvent.click(screen.getByTestId(`landing-lang-${lang}`));
@@ -100,7 +100,7 @@ describe("approved PT images in all languages", () => {
     }));
     for (const lang of ["en", "es"] as const) {
       expect(shelves(lang)).toEqual(shelves("pt"));
-      for (let i = 0; i < 64; i++) expect(Boolean(catalogEntry(lang, i)), `book ${i}`).toBe(Boolean(catalogEntry("pt", i)));
+      for (let i = 0; i < 65; i++) expect(Boolean(catalogEntry(lang, i)), `book ${i}`).toBe(Boolean(catalogEntry("pt", i)));
     }
   });
 });
