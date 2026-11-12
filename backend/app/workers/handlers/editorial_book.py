@@ -2835,7 +2835,7 @@ async def preview(db, job, project):
             title=True,
             value=locale["title"],
         )
-    if pipe.designed and flat_meta.get("art_key"):
+    if (pipe.designed or flat_meta.get("integrated_text")) and flat_meta.get("art_key"):
         pipe.cover_continuity = storage.get_bytes(flat_meta["art_key"])
     cover = render.front(flat, profile=project.book_profile)
     role = "01_CAPA"

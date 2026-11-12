@@ -1196,7 +1196,7 @@ async def page(db, job, project):
                         raise ProviderError(
                             f"Revise o texto da página {page_number}: {exc}", transient=False
                         ) from exc
-            if pipe.design:
+            if pipe.design or pipe.integrated_editorial_available():
                 pipe.cover_continuity = storage.get_bytes(
                     (cover.meta or {}).get("art_key")
                     or (cover.meta or {}).get("flat_cover_key")
