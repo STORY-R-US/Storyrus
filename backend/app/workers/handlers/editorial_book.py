@@ -527,7 +527,10 @@ class Pipeline:
             # scene rubric asks for book geometry and lettering absent at this stage.
             template = (
                 "Revise somente OUTPUT conforme a tarefa declarada no início. "
-                "Compare identidade, idade, anatomia e figurino com as fotos originais; "
+                "Compare identidade, idade e anatomia com as fotos originais. "
+                "Para o figurino, a ficha da história prevalece sobre a roupa das fotos: "
+                + json.dumps(self.profile.get("costume", ""), ensure_ascii=False)
+                + ". Não invente exigências de roupa ausentes nessa ficha; "
                 "confira acabamento, ação solicitada e continuidade. "
                 "ARTE_BASE deve ser uma ilustração contínua sem letras; a ausência de "
                 "texto é obrigatória. Avalie a reserva de leitura medida. "
@@ -799,6 +802,11 @@ class Pipeline:
                     "Continue the same environment seamlessly on every expanded edge, matching "
                     "perspective, materials, light and the selected illustration style. "
                     "No frame, rectangular inset, blank band, repeated edges or blurred strips. "
+                    "No dark vignette, black gradient, shadow band or transparent checkerboard. "
+                    "Transparent pixels are missing scenery, never shadows to reproduce. "
+                    "Preserve the story wardrobe exactly: "
+                    + json.dumps(self.profile.get("costume", ""), ensure_ascii=False)
+                    + ". "
                     "No title, text, stars or symbols; the server overlays those later. Story: "
                     + json.dumps(action, ensure_ascii=False)
                     + self.scenery_direction(action, "expansion", region)
@@ -1372,6 +1380,32 @@ class Pipeline:
                     raw = recovered
                     operation = "recover_original_art"
                 else:
+                    saved_revision = None
+                    source_id = self.revision_for(name).get("source_asset_id") if title else None
+                    if source_id:
+                        import uuid
+
+                        saved_asset = self.db.scalar(
+                            select(Asset).where(
+                                Asset.id == uuid.UUID(source_id),
+                                Asset.project_id == self.project.id,
+                                Asset.kind == "editorial_candidate",
+                            )
+                        )
+                        if not saved_asset:
+                            raise ProviderError(
+                                "Arte original da edição indisponível", transient=False
+                            )
+                        saved_revision = storage.get_bytes(saved_asset.storage_key)
+                        if render.digest(saved_revision) != (saved_asset.meta or {}).get("sha256"):
+                            raise ProviderError("Arte original da edição inválida", transient=False)
+                        prompt += (
+                            "\nEDIT THE LAST ATTACHED IMAGE: it is the saved scene for this requested "
+                            "correction, not a style example. Preserve its people, identity, activity "
+                            "and environment. Apply requested_adjustment and the exact story wardrobe. "
+                            "Reframe only as needed for the measured title reserve; keep continuous "
+                            "natural scenery, no dark vignette or blurred strips."
+                        )
                     result = await provider.generate_scene(
                         prompt=prompt,
                         character_ref=self.photos[0],
@@ -1380,7 +1414,8 @@ class Pipeline:
                         + self.refs
                         + ([self.cover_continuity] if not title and self.cover_continuity else [])
                         + ([composition_guide] if composition_guide else [])
-                        + ([visual_master] if visual_master else []),
+                        + ([visual_master] if visual_master else [])
+                        + ([saved_revision] if saved_revision else []),
                         style=(
                             self.policy["visual"]["artDirection"]
                             if self.designed
@@ -2360,7 +2395,26 @@ async def preview(db, job, project):
     if selected:
         revisions = dict(project.book_profile.get("editorial_revisions", {}))
         previous = revisions.get(selected, {})
+        source_asset_id = (
+            previous.get("source_asset_id") if previous.get("id") == str(job.id) else None
+        )
+        if (
+            selected == "01_CAPA"
+            and payload.get("adjustment")
+            and not payload.get("title_refresh")
+            and not source_asset_id
+        ):
+            saved = db.scalars(
+                select(Asset)
+                .where(Asset.project_id == project.id, Asset.kind == "editorial_candidate")
+                .order_by(Asset.created_at.desc())
+            ).all()
+            source = next(
+                (asset for asset in saved if (asset.meta or {}).get("stage") == "cover"), None
+            )
+            source_asset_id = str(source.id) if source else None
         revisions[selected] = {
+            **({"source_asset_id": source_asset_id} if source_asset_id else {}),
             "id": str(job.id),
             "adjustment": payload.get("adjustment", ""),
             "art_revision": previous.get("art_revision")

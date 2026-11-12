@@ -3,7 +3,7 @@
 import io
 import json
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageStat
 
 
 def cover_guide(region, *, alignment):
@@ -81,7 +81,15 @@ def expansion_canvas(data, title_bottom, head_height, protected=(), *, reserve="
     left, top = (size - side) // 2, size - side
     if reserve == "bottom":
         top = 0
-    seed = Image.new("RGBA", source.size)
+    # Transparent black can leak into edits as a dark vignette. Give hidden RGB
+    # pixels a neutral scene colour, without stretching/copying scenery edges.
+    edge = (
+        source.crop((0, 0, size, max(1, size // 16)))
+        if reserve == "top"
+        else source.crop((0, size - max(1, size // 16), size, size))
+    )
+    background = tuple(round(v) for v in ImageStat.Stat(edge.convert("RGB")).mean)
+    seed = Image.new("RGBA", source.size, (*background, 0))
     seed.paste(source.resize((side, side), Image.Resampling.LANCZOS), (left, top))
     # A narrow transition at the scenery edges; the face/body core stays exact.
     alpha = Image.new("L", source.size)

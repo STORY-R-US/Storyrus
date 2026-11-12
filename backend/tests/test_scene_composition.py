@@ -150,3 +150,15 @@ def test_named_line_reports_fail_closed(bad):
         report["line 2"]["valid"] = "true"
     with pytest.raises(ProviderError):
         editorial_review.parse_crop_report(json.dumps(report), 2)
+
+
+@pytest.mark.parametrize("reserve", ["top", "bottom"])
+def test_transparent_expansion_rgb_does_not_seed_black_vignette(reserve):
+    source = Image.new("RGB", (128, 128), (140, 180, 220))
+    buffer = io.BytesIO()
+    source.save(buffer, "PNG")
+    seed, mask, _ = scene_composition.expansion_canvas(buffer.getvalue(), 0.3, 0.3, reserve=reserve)
+    image = Image.open(io.BytesIO(seed))
+    point = (0, 0 if reserve == "top" else 127)
+    assert image.getpixel(point) == (140, 180, 220, 0)
+    assert Image.open(io.BytesIO(mask)).getpixel(point)[3] == 0

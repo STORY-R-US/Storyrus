@@ -3710,3 +3710,55 @@ async def test_generated_line_breaks_reflow_locally_but_user_text_is_not_rewritt
         assert p.book_profile["locales"]["pt-BR"]["left"] == " ".join(words)
         await _prepare(db, job, p, [_png()])
     assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_explicit_cover_correction_uses_saved_art_and_keeps_it_pinned(reference_studio):
+    studio, calls, control = reference_studio
+    _, db, pid, store = studio
+    control["reject"] = True
+    await _run(studio, "preview", {"cover_only": True}, key="repair-original", expected="FAILED")
+    source = db.scalar(select(Asset).where(Asset.kind == "editorial_candidate"))
+    original = store[source.storage_key]
+    control["reject"] = False
+    job = await _run(
+        studio,
+        "preview",
+        {
+            "cover_only": True,
+            "image": "01_CAPA",
+            "adjustment": "Corrigir o figurino e remover vinheta escura",
+        },
+        key="repair-requested",
+    )
+    assert len(calls) == 2
+    assert calls[-1]["extra_refs"][-1] == original
+    assert "EDIT THE LAST ATTACHED IMAGE" in calls[-1]["prompt"]
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["editorial_revisions"]["01_CAPA"]["source_asset_id"] == str(
+        source.id
+    )
+    assert store[source.storage_key] == original
+    assert job.cost_credits == 0
+
+
+@pytest.mark.asyncio
+async def test_cover_correction_does_not_buy_when_saved_art_is_corrupt(reference_studio):
+    studio, calls, control = reference_studio
+    _, db, _, store = studio
+    control["reject"] = True
+    await _run(
+        studio, "preview", {"cover_only": True}, key="repair-corrupt-source", expected="FAILED"
+    )
+    source = db.scalar(select(Asset).where(Asset.kind == "editorial_candidate"))
+    store[source.storage_key] = b"corrupt"
+    control["reject"] = False
+    job = await _run(
+        studio,
+        "preview",
+        {"cover_only": True, "image": "01_CAPA", "adjustment": "Corrigir figurino"},
+        key="repair-corrupt-request",
+        expected="FAILED",
+    )
+    assert "Arte original da edição inválida" in job.error
+    assert len(calls) == 1
