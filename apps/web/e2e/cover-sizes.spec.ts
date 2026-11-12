@@ -6,6 +6,7 @@ for (const lang of ["pt", "en", "es"]) {
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
     await page.route("**/health", r => r.fulfill({ json: { status: "ok" } }));
     await page.goto(route);
+    await expect(page.getByTestId("catalog-search")).toBeVisible();
     while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
     await expect(page.locator("#catalogo .cat-card")).toHaveCount(count);
     const gaps = await page.locator("#catalogo .cat-card .cat-book img").evaluateAll(async images => {
@@ -58,6 +59,7 @@ for (const lang of ["pt", "en", "es"]) {
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
     await page.route("**/health", r => r.fulfill({ json: { status: "ok" } }));
     await page.goto(route);
+    await expect(page.getByTestId("catalog-search")).toBeVisible();
     while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
     const cards = page.locator("#catalogo .cat-card");
     await expect(cards).toHaveCount(count);

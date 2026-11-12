@@ -2036,11 +2036,13 @@ function prefersReducedMotion() {
 
 function FlipBook({
   pages,
+  referencePages,
   index,
   onIndex,
   labels,
 }: {
   pages: string[];
+  referencePages: string[];
   index: number;
   onIndex: (next: number) => void;
   labels: { prev: string; next: string; turn: string; cover: string; photo: string };
@@ -2059,7 +2061,7 @@ function FlipBook({
   indexRef.current = index;
   onIndexRef.current = onIndex;
   pagesRef.current = pages;
-  const pageSrc = pages[index];
+  const referenceSrc = referencePages[index];
   const pageKey = pages.join("|");
   useEffect(() => {
     pages.forEach((src) => {
@@ -2081,14 +2083,15 @@ function FlipBook({
       });
     };
     img.onload = apply;
-    img.src = exUrl(pageSrc);
+    // The approved PT artwork defines geometry in every language.
+    img.src = exUrl(referenceSrc);
     if (img.complete) apply();
     window.addEventListener("resize", apply);
     return () => {
       alive = false;
       window.removeEventListener("resize", apply);
     };
-  }, [pageSrc]);
+  }, [referenceSrc]);
   useEffect(() => {
     if (!didMount.current) {
       didMount.current = true;
@@ -2709,8 +2712,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   });
   const [heroPick, setHeroPick] = useState(0);
   useEffect(() => { setHeroPick(0); }, [lang]);
-  const heroH1Ref = useRef<HTMLHeadingElement>(null);
-  const heroCarouselRef = useRef<HTMLDivElement>(null);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -2751,7 +2752,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     }
     const shots = [assetForLang(entry.cover, lang), assetForLang(entry.page, lang), assetForLang(entry.photo, lang)];
     if ([entry.cover, entry.page, entry.photo].some((asset) => !asset.pt)) return [];
-    return [{ name: exampleName(entry.name, lang), shots }];
+    return [{ name: exampleName(entry.name, lang), shots, references: [entry.cover, entry.page, entry.photo].map(asset => assetForLang(asset, "pt")) }];
   });
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
@@ -2782,6 +2783,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return [{ name: exampleName(b.name, lang), tab: localizedExample(master, lang) }];
   });
   const heroPages = heroStrip.flatMap((book) => book.shots);
+  const heroReferencePages = heroStrip.flatMap((book) => book.references);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
@@ -2922,68 +2924,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     els.forEach((el, i) => { (el as HTMLElement).style.transitionDelay = `${(i % 3) * 0.1}s`; io.observe(el); });
     return () => io.disconnect();
   }, []);
-
-  // Dimensiona o carrossel do hero para a largura da linha do título que vai
-  // de "inesquecível" até "protagonista", mantendo as fotos proporcionais.
-  useEffect(() => {
-    const carousel = heroCarouselRef.current;
-    const h1 = heroH1Ref.current;
-    if (!carousel || !h1) return;
-
-    const layout = () => {
-      const g2 = h1.querySelector<HTMLElement>(".g2");
-      let spanW = 0;
-      if (g2 && typeof document.createRange === "function") {
-        const range = document.createRange();
-        if (typeof range.getClientRects === "function") {
-          range.selectNodeContents(h1);
-          const rects = Array.from(range.getClientRects());
-          const gr = g2.getBoundingClientRect();
-          const mid = (gr.top + gr.bottom) / 2;
-          const sameLine = rects.filter((r) => Math.abs((r.top + r.bottom) / 2 - mid) < gr.height / 2 + 1);
-          const source = sameLine.length ? sameLine : [gr];
-          spanW = Math.max(...source.map((r) => r.right)) - Math.min(...source.map((r) => r.left));
-        }
-      }
-      if (!spanW) return;
-
-      carousel.style.setProperty("--hero-w", `${Math.round(spanW)}px`);
-
-      // Moldura (border 1px em cada lado) + 2 filetes de 2px. Sem padding interno.
-      // A altura usa a largura real da faixa, para as três fotos caberem inteiras.
-      const imgBudget = Math.max(1, carousel.clientWidth - 1 * 2 - 2 * 2);
-      const inners = Array.from(carousel.querySelectorAll<HTMLElement>(".hero-series-inner"));
-      const firstCopy = inners.slice(0, Math.ceil(inners.length / 2));
-      let maxShot = 0;
-      firstCopy.forEach((inner) => {
-        const imgs = Array.from(inner.querySelectorAll("img"));
-        let ratio = 0;
-        let ready = imgs.length > 0;
-        for (const img of imgs) {
-          if (img.naturalWidth && img.naturalHeight) ratio += img.naturalWidth / img.naturalHeight;
-          else ready = false;
-        }
-        if (!ready || !ratio) return;
-        const h = Math.max(1, Math.round(Math.min(420, imgBudget / ratio)));
-        inner.style.setProperty("--hero-shot-h", `${h}px`);
-        maxShot = Math.max(maxShot, h);
-      });
-      if (maxShot) carousel.style.setProperty("--hero-shot-max", `${maxShot}px`);
-    };
-
-    layout();
-    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(layout);
-    ro?.observe(h1);
-    const onImgLoad = () => layout();
-    const imgs = Array.from(carousel.querySelectorAll("img"));
-    imgs.forEach((img) => img.addEventListener("load", onImgLoad));
-    window.addEventListener("resize", onImgLoad);
-    return () => {
-      ro?.disconnect();
-      window.removeEventListener("resize", onImgLoad);
-      imgs.forEach((img) => img.removeEventListener("load", onImgLoad));
-    };
-  }, [lang, variant]);
 
   useEffect(() => {
     try { localStorage.setItem("coverFont", coverFont); } catch { /* ignore */ }
@@ -3397,11 +3337,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       {/* HERO — proposta de valor + faixa de livros */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
-          <h1 ref={heroH1Ref}>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
+          <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
           <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
-        <div className="hero-carousel" ref={heroCarouselRef} aria-label={t.book_carousel}>
+        <div className="hero-carousel" aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
               const shots = book.shots;
@@ -3445,8 +3385,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         {heroPages.length > 0 ? (
           <div className="khero-flipbook">
             <FlipBook
-              key={lang}
               pages={heroPages}
+              referencePages={heroReferencePages}
               index={Math.min(heroPick, Math.max(heroPages.length - 1, 0))}
               onIndex={setHeroPick}
               labels={flipLabels}
