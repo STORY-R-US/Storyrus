@@ -113,7 +113,12 @@ async def test_scene_and_reading_receive_original_photo_before_generated_referen
         reference_role="cover",
     )
     call = _FakeAsyncClient.calls[0]
-    assert [value[1] for _, value in call["files"]] == [b"original-photo", b"cover", b"pet-photo"]
+    assert [value[1] for _, value in call["files"]][:3] == [
+        b"original-photo",
+        b"cover",
+        b"pet-photo",
+    ]
+    assert call["files"][-1][1][1] == oai.cartoon_style.reference()
     assert "FOTO ORIGINAL" in call["data"]["prompt"]
     assert "unica fonte de verdade do rosto" not in call["data"]["prompt"]
 
@@ -143,8 +148,9 @@ async def test_multiple_reference_files_use_matching_mime_types():
         style="cartoon",
     )
     files = _FakeAsyncClient.calls[0]["files"]
-    assert [field for field, _ in files] == ["image[]", "image[]"]
-    assert [value[2] for _, value in files] == ["image/jpeg", "image/png"]
+    assert [field for field, _ in files] == ["image[]", "image[]", "image[]"]
+    assert [value[2] for _, value in files] == ["image/jpeg", "image/png", "image/jpeg"]
+    assert files[-1][1][1] == oai.cartoon_style.reference()
 
 
 @pytest.mark.asyncio

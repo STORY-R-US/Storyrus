@@ -1846,6 +1846,14 @@ img.ex-tab-cover {
   letter-spacing: 0.02em;
   color: var(--yellow);
 }
+#catalogo.book-page .book-series-shot.is-page .cat-flip-nav {
+  top: auto;
+  bottom: 6px;
+  transform: none;
+}
+#catalogo.book-page .book-series-shot.is-page .cat-flip-nav:hover {
+  transform: scale(1.08);
+}
 [data-theme="light"] .kid .book-page .book-series-shot figcaption { color: #1f3568; }
 .book-page .book-tag {
   display: inline-block;

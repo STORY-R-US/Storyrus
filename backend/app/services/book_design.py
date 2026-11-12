@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
-from app.services import book_profile
+from app.services import book_profile, cartoon_style
 
 ROOT = Path(__file__).resolve().parents[1] / "assets/composition_examples"
 
@@ -126,6 +126,8 @@ def apply_policy(design, policy):
     )
     policy["typography"].update(design.get("typography", {}))
     policy["visual"].update(design.get("visual", {}))
+    if design["style"] == "cartoon":
+        policy["visual"]["artDirection"] = cartoon_style.DIRECTION + " " + design["finish"]
     return policy
 
 

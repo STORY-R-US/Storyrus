@@ -1330,5 +1330,77 @@
       "page": "cartoon-pagina-meupai-heroi-v1-pt.webp",
       "holding": "cartoon-foto-meupai-heroi-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-9": {
+    "id": "catalog-cartoon-9",
+    "catalog_index": 9,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Natal Com A Meme E O Tata",
+      "en": "Christmas With Tata And Meme",
+      "es": "Navidad Con Tata Y Meme"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-natal-v1-pt.webp",
+      "page": "cartoon-pagina-natal-v1-pt.webp",
+      "holding": "cartoon-foto-natal-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-10": {
+    "id": "catalog-cartoon-10",
+    "catalog_index": 10,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Nano E Suas Aventuras",
+      "en": "Nano And His Adventures",
+      "es": "Nano Y Sus Aventuras"
+    },
+    "example_name": "Nano",
+    "sources": {
+      "cover": "covers/cartoon-capa-nano-v1-pt.webp",
+      "page": "cartoon-pagina-nano-v1-pt.webp",
+      "holding": "cartoon-foto-nano-v1-pt.webp"
+    }
+  },
+  "catalog-realistic-62": {
+    "id": "catalog-realistic-62",
+    "catalog_index": 62,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Sofia, a Princesa que Cultivava Gentileza",
+      "en": "Sofia, the Princess Who Grew Kindness",
+      "es": "Sofia, la Princesa que Cultivaba la Bondad"
+    },
+    "example_name": "Sofia",
+    "sources": {
+      "cover": "covers/realistic-capa-sofia-princesa-v1-pt.webp",
+      "page": "realistic-pagina-sofia-princesa-v1-pt.webp",
+      "holding": "realistic-foto-sofia-princesa-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-62": {
+    "id": "catalog-cartoon-62",
+    "catalog_index": 62,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Sofia, a Princesa que Cultivava Gentileza",
+      "en": "Sofia, the Princess Who Grew Kindness",
+      "es": "Sofia, la Princesa que Cultivaba la Bondad"
+    },
+    "example_name": "Sofia",
+    "sources": {
+      "cover": "covers/cartoon-capa-sofia-princesa-v1-pt.webp",
+      "page": "cartoon-pagina-sofia-princesa-v1-pt.webp",
+      "holding": "cartoon-foto-sofia-princesa-v1-pt.webp"
+    }
   }
 }

@@ -4693,6 +4693,294 @@
         "page": "catalog_models/cartoon-21-page.webp",
         "holding": "catalog_models/cartoon-21-holding.webp"
       }
+    },
+    "catalog-cartoon-9": {
+      "name": "Natal Com A Meme E O Tata",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-natal-v1-pt.webp",
+        "page": "cartoon-pagina-natal-v1-pt.webp",
+        "holding": "cartoon-foto-natal-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "text_left",
+        "region": [
+          0.1,
+          0.16,
+          0.9,
+          0.82
+        ],
+        "alignment": "center",
+        "font_ratio": 0.04,
+        "description": "Two square pages side by side, physical spread 2:1. Left page has short moderate-weight narrative in naturally quiet ivory space with discreet thematic illustration below or at edges. Right page shows the same recognizable characters as the cover in the selected story action. No text over faces or hands."
+      },
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
+      "visual": {
+        "finish": "catalog_specific_9",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#061A45",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 2,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people, animals and environment remain photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 9,
+      "title_templates": {
+        "pt-BR": "Natal Com A Meme E O Tata",
+        "en": "Christmas With Tata And Meme",
+        "es": "Navidad Con Tata Y Meme"
+      },
+      "example_name": "",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-9-cover.webp",
+        "page": "catalog_models/cartoon-9-page.webp",
+        "holding": "catalog_models/cartoon-9-holding.webp"
+      }
+    },
+    "catalog-cartoon-10": {
+      "name": "Nano E Suas Aventuras",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-nano-v1-pt.webp",
+        "page": "cartoon-pagina-nano-v1-pt.webp",
+        "holding": "cartoon-foto-nano-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "text_left",
+        "region": [
+          0.1,
+          0.16,
+          0.9,
+          0.82
+        ],
+        "alignment": "center",
+        "font_ratio": 0.04,
+        "description": "Two square pages side by side, physical spread 2:1. Left page has short moderate-weight narrative in naturally quiet ivory space with discreet thematic illustration below or at edges. Right page shows the same recognizable characters as the cover in the selected story action. No text over faces or hands."
+      },
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
+      "visual": {
+        "finish": "catalog_specific_10",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#061A45",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 2,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people, animals and environment remain photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 10,
+      "title_templates": {
+        "pt-BR": "Nano E Suas Aventuras",
+        "en": "Nano And His Adventures",
+        "es": "Nano Y Sus Aventuras"
+      },
+      "example_name": "Nano",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-10-cover.webp",
+        "page": "catalog_models/cartoon-10-page.webp",
+        "holding": "catalog_models/cartoon-10-holding.webp"
+      }
+    },
+    "catalog-realistic-62": {
+      "name": "Sofia, a Princesa que Cultivava Gentileza",
+      "style": "realistic",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/realistic-capa-sofia-princesa-v1-pt.webp",
+        "page": "realistic-pagina-sofia-princesa-v1-pt.webp",
+        "holding": "realistic-foto-sofia-princesa-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Premium realistic illustrated storybook matching O Amor de Mae: natural recognizable human faces and ages, soft modeling, diffuse light, coordinated colors, delicate illustrated scenery and subtle texture. No enlarged cartoon eyes, artificial skin or oversharpening. Original project photos define identity. Preserve selected composition and square physical book geometry, adapting scene and props to the user theme. Corresponding PT, EN and ES scenes change only text.",
+      "visual": {
+        "finish": "amor_de_mae_realista_premium",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 3,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback. Preserve exact approved cover and title. Exterior people and environment remain photographic; printed cover keeps the approved premium realistic illustrated finish. Never copy the reference child identity.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 62,
+      "title_templates": {
+        "pt-BR": "Sofia, a Princesa que Cultivava Gentileza",
+        "en": "Sofia, the Princess Who Grew Kindness",
+        "es": "Sofia, la Princesa que Cultivaba la Bondad"
+      },
+      "example_name": "Sofia",
+      "reference_files": {
+        "cover": "catalog_models/realistic-62-cover.webp",
+        "page": "catalog_models/realistic-62-page.webp",
+        "holding": "catalog_models/realistic-62-holding.webp"
+      }
+    },
+    "catalog-cartoon-62": {
+      "name": "Sofia, a Princesa que Cultivava Gentileza",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-sofia-princesa-v1-pt.webp",
+        "page": "cartoon-pagina-sofia-princesa-v1-pt.webp",
+        "holding": "cartoon-foto-sofia-princesa-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
+      "visual": {
+        "finish": "amor_de_bisavo_cartoon",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 3,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 62,
+      "title_templates": {
+        "pt-BR": "Sofia, a Princesa que Cultivava Gentileza",
+        "en": "Sofia, the Princess Who Grew Kindness",
+        "es": "Sofia, la Princesa que Cultivaba la Bondad"
+      },
+      "example_name": "Sofia",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-62-cover.webp",
+        "page": "catalog_models/cartoon-62-page.webp",
+        "holding": "catalog_models/cartoon-62-holding.webp"
+      }
     }
   },
   "unavailable": {

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-for (const [route, count] of [["/", 47], ["/cartoon", 20], ["/catalogo", 52]] as const) {
+for (const [route, count] of [["/", 48], ["/cartoon", 23], ["/catalogo", 53]] as const) {
 for (const lang of ["pt", "en", "es"]) {
   test(`visible cover artwork fills the frame in ${lang} on ${route}`, async ({ page }) => {
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
@@ -52,7 +52,7 @@ for (const lang of ["pt", "en", "es"]) {
 }
 
 for (const width of [390, 1280]) {
-for (const [route, count] of [["/", 47], ["/cartoon", 20], ["/catalogo", 52]] as const) {
+for (const [route, count] of [["/", 48], ["/cartoon", 23], ["/catalogo", 53]] as const) {
 for (const lang of ["pt", "en", "es"]) {
   test(`uniform covers and working P/M in ${lang} on ${route} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });

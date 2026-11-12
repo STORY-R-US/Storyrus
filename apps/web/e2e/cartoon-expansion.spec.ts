@@ -1,11 +1,12 @@
 import { expect, test } from "./fixtures";
 import { TEST_SESSION_TOKEN } from "./session";
 
-const books = [[18, "noe"], [60, "enzo-dinossauro"], [21, "meupai-heroi"]] as const;
+const books = [[18, "noe", "cartoon"], [60, "enzo-dinossauro", "cartoon"], [21, "meupai-heroi", "cartoon"], [9, "natal", "cartoon"], [10, "nano", "cartoon"], [62, "sofia-princesa", "cartoon"], [62, "sofia-princesa", "realistic"]] as const;
 
 for (const lang of ["pt", "en", "es"]) {
   for (const width of [390, 1440]) {
     test(`new Cartoon books keep localized scenes and square covers in ${lang} at ${width}px`, async ({ page }) => {
+      test.setTimeout(90_000);
       await page.setViewportSize({ width, height: 950 });
       await page.addInitScript(({ lang, token }) => {
         localStorage.setItem("lang", lang);
@@ -23,14 +24,15 @@ for (const lang of ["pt", "en", "es"]) {
         return route.fulfill({ json: [] });
       });
       let expectedCoverWidth = 0;
-      for (const [index, slug] of books) {
-        await page.goto(`/livro/${index}?modo=cartoon`);
+      for (const [index, slug, style] of books) {
+        await page.goto(`/livro/${index}${style === "cartoon" ? "?modo=cartoon" : ""}`);
         const gallery = page.getByTestId("book-series");
         const image = gallery.locator("img");
         await expect(gallery.getByRole("tab")).toHaveCount(3);
         for (const [position, role] of ["capa", "pagina", "foto"].entries()) {
           await gallery.getByRole("tab").nth(position).click();
-          await expect(image).toHaveAttribute("src", `/exemplos/${position === 0 ? "covers/" : ""}cartoon-${role}-${slug}-v1-${lang}.webp`);
+          await expect(image).toHaveAttribute("src", `/exemplos/${position === 0 ? "covers/" : ""}${style}-${role}-${slug}-v1-${lang}.webp`);
+          await image.evaluate(async el => { await (el as HTMLImageElement).decode(); await new Promise(requestAnimationFrame); });
           await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
           const ratio = await image.evaluate(el => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight);
           expect(ratio).toBeCloseTo(position === 1 ? 2 : 1, 2);
@@ -43,15 +45,23 @@ for (const lang of ["pt", "en", "es"]) {
             expect(await image.evaluate(el => getComputedStyle(el).objectFit)).toBe("contain");
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-          if (position === 1) await gallery.screenshot({ path: `test-results/cartoon-${index}-${lang}-${width}-open.png` });
+          if (position === 1) {
+            const bounds = (await image.boundingBox())!;
+            const artworkBottom = bounds.y + (bounds.height + bounds.width / ratio) / 2;
+            for (const arrow of await gallery.locator(".cat-flip-nav").all()) {
+              expect((await arrow.boundingBox())!.y).toBeGreaterThan(artworkBottom);
+            }
+          }
+          if (position === 1) await gallery.screenshot({ path: `test-results/${style}-${index}-${lang}-${width}-open.png` });
         }
         await gallery.getByRole("tab").first().click();
-        if (lang === "pt") await page.screenshot({ path: `test-results/cartoon-${index}-${width}-page.png`, fullPage: true });
+        await image.evaluate(async el => { await (el as HTMLImageElement).decode(); await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); });
+        if (lang === "pt") await page.screenshot({ path: `test-results/${style}-${index}-${width}-page.png`, fullPage: true });
         const personalize = page.getByTestId("landing-personalize");
-        await expect(personalize).toHaveAttribute("href", new RegExp(`modelo=catalog-cartoon-${index}`));
+        await expect(personalize).toHaveAttribute("href", new RegExp(`modelo=catalog-${style}-${index}`));
         await personalize.click();
         await expect(page.getByTestId("studio-selected-catalog-model")).toBeVisible();
-        await expect(page).toHaveURL(new RegExp(`modelo=catalog-cartoon-${index}`));
+        await expect(page).toHaveURL(new RegExp(`modelo=catalog-${style}-${index}`));
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       }
     });

@@ -17,6 +17,7 @@ import httpx
 
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
+    AVATAR_PROMPT,
     REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
     REFINE_SCENE_PROMPT,
@@ -27,6 +28,7 @@ from app.ai_clients.request_journal import journaled
 from app.ai_clients.resilience import billing_exhausted
 from app.config import settings
 from app.observability.opik_trace import track, update_span
+from app.services import cartoon_style
 from app.services.pricing import openai_image_cost
 
 logger = logging.getLogger(__name__)
@@ -385,11 +387,18 @@ class OpenAIImageProvider:
         self, *, prompt: str, reference_images: list[bytes], style: str
     ) -> ImageResult:
         refs = [img for img in (reference_images or []) if img]
+        if cartoon_style.applies(style) and prompt == AVATAR_PROMPT:
+            prompt = (
+                "Crie o personagem-base reconhecivel a partir das fotos originais, "
+                "meio corpo, fundo creme, sem texto. Preserve idade e identidade. "
+                + cartoon_style.DIRECTION
+            )
         text = (
             f"Estilo pedido: '{style}'. {prompt}"
             if refs
             else f"Gere a partir do texto. Nao ha foto anexa. Estilo pedido: '{style}'. {prompt}"
         )
+        text, refs = cartoon_style.inputs(text, refs, style)
         return await self._generate_with_refs(text, refs, size=settings.openai_image_size_portrait)
 
     async def generate_scene(
@@ -417,25 +426,29 @@ class OpenAIImageProvider:
                 f"{reference_note}Referencias seguintes: fotos adicionais e "
                 f"continuidade, conforme a ficha. {IDENTITY}\nEstilo: {style}.\n{prompt}"
             )
-            return await self._generate_with_refs(text, [photo] + secondary + extras, size=size)
+            text, images = cartoon_style.inputs(text, [photo] + secondary + extras, style)
+            return await self._generate_with_refs(text, images, size=size)
         if reference_role == "cover":
             # Preserve the product prompt: this reference is a book cover,
             # never an avatar or an instruction to illustrate the real person.
             text = f"{prompt}\nEstilo da fotografia: {style}."
-            return await self._generate_with_refs(text, [character_ref] + extras, size=size)
+            text, images = cartoon_style.inputs(text, [character_ref] + extras, style)
+            return await self._generate_with_refs(text, images, size=size)
         identity = (
             "A primeira imagem e o AVATAR (unica fonte de verdade do rosto, "
             "cabelo, idade e proporcoes). NAO copie a roupa dele. "
         )
         if extras:
             identity += "As imagens seguintes sao referencias de figurino, ficha ou estilo. "
+        prefix = cartoon_style.DIRECTION if cartoon_style.applies(style) else SCENE_GEN_PREFIX
         text = (
-            f"{SCENE_GEN_PREFIX}{identity}"
+            f"{prefix}{identity}"
             f"Ilustre no estilo '{style}', identico ao estilo da referencia. "
             f"Cena: {prompt}"
         )
         images = [character_ref] + extras
-        return await self._generate_with_refs(text, images, size=settings.openai_image_size_square)
+        text, images = cartoon_style.inputs(text, images, style)
+        return await self._generate_with_refs(text, images, size=size)
 
     async def expand_scene(self, *, canvas: bytes, mask: bytes, prompt: str) -> ImageResult:
         """Fill the transparent surroundings of already purchased, scaled artwork."""
@@ -463,8 +476,9 @@ class OpenAIImageProvider:
         if negative:
             text += f"\n\nNegative prompt (evite/avoid): {negative}"
         text += f"\nEstilo: {style}"
+        text, images = cartoon_style.inputs(text, [photo], style)
         return await self._generate_with_refs(
-            text, [photo], size=settings.openai_image_size_portrait
+            text, images, size=settings.openai_image_size_portrait
         )
 
     async def refine_identity(
@@ -477,9 +491,16 @@ class OpenAIImageProvider:
         if not photo or not illustration:
             raise ProviderError("refine_identity OpenAI exige foto e ilustracao", transient=False)
         prompt = REFINE_IDENTITY_AVATAR_PROMPT if "CGI" in (style or "") else REFINE_IDENTITY_PROMPT
+        if cartoon_style.applies(style):
+            prompt = (
+                "Corrija somente a identidade do personagem da SEGUNDA imagem usando a "
+                "PRIMEIRA foto original. Preserve idade, tracos, pose, roupas, expressao, "
+                "cenario e acabamento Cartoon; nao transforme o rosto em fotografia. "
+            )
+        prompt, images = cartoon_style.inputs(prompt, [photo, illustration], style)
         return await self._generate_with_refs(
             prompt,
-            [photo, illustration],
+            images,
             size=settings.openai_image_size_portrait,
         )
 
@@ -497,6 +518,18 @@ class OpenAIImageProvider:
         """
         if not character_ref or not scene:
             raise ProviderError("refine_scene OpenAI exige avatar e cena", transient=False)
+        if cartoon_style.applies(style):
+            images = [photo, character_ref, scene] if photo else [character_ref, scene]
+            scene_number = 3 if photo else 2
+            prompt = (
+                f"Corrija somente a identidade na imagem {scene_number} (cena). "
+                "A primeira imagem define a identidade; preserve acabamento Cartoon, "
+                "idade, figurino, pose, expressao, enquadramento, texto e cenario da cena. "
+            )
+            prompt, images = cartoon_style.inputs(prompt, images, style)
+            return await self._generate_with_refs(
+                prompt, images, size=settings.openai_image_size_square
+            )
         if photo:
             from app.services.book_profile import IDENTITY
 

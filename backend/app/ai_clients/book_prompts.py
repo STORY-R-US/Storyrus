@@ -14,6 +14,8 @@ from __future__ import annotations
 import re
 import unicodedata
 
+from app.services import cartoon_style
+
 # --------------------------------------------------------------------------- #
 # Expressoes faciais permitidas
 # --------------------------------------------------------------------------- #
@@ -407,13 +409,7 @@ _REALISTA = (
     "bracos volumosos ou corpo esticado. Identidade rigorosa das fotos. " + _PAGE_LOCK
 )
 
-_CARTOON = (
-    "ilustracao cartoon premium de livro infantil, claramente cartoon: tracos desenhados, "
-    "contornos suaves, formas arredondadas, olhos no tamanho natural da foto, expressoes ludicas, "
-    "cores alegres, acabamento editorial. Nao e uma foto suavizada. "
-    "Sem anime, manga, chibi extremo, caricatura extrema, 3D plastico ou personagem generico. "
-    "Identidade rigorosa das fotos. " + _PAGE_LOCK
-)
+_CARTOON = cartoon_style.DIRECTION + " " + _PAGE_LOCK
 
 
 def book_art_direction(style: str | None) -> str:

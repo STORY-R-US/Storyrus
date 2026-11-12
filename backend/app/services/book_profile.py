@@ -7,6 +7,8 @@ import unicodedata
 
 from fastapi import HTTPException
 
+from app.services import cartoon_style
+
 VERSION = 1
 LANGUAGES = {"pt-BR": "PORTUGUES", "en": "INGLES", "es": "ESPANHOL"}
 TYPOGRAPHY = (
@@ -253,11 +255,7 @@ def filename(language: str, kind: str, title: str) -> str:
 
 def art_direction(style: str | None) -> str:
     if style == "cartoon":
-        return (
-            "Cartoon premium: ilustracao claramente DESENHADA, linhas suaves, volumes "
-            "arredondados, cores alegres e sofisticadas, acabamento digital editorial. "
-            "Mais desenho que o realista; rosto reconhecivel derivado da foto, olhos naturais."
-        )
+        return cartoon_style.DIRECTION
     return (
         "Realista premium: fotografia editorial suavemente ilustrada, pele e cabelo naturais, luz suave, "
         "profundidade fotografica, composicao comercial elegante. Sem plastico, CGI ou filtro."
@@ -346,6 +344,13 @@ def back_cover_prompt(project, language: str) -> str:
 
 
 def avatar_prompt(project) -> str:
+    if project.style == "cartoon":
+        return (
+            f"Retrato-base de {project.child_name}, {project.child_age} anos. "
+            "Desenhe a pessoa original em meio corpo, fundo creme, sem texto ou moldura. "
+            "Preserve identidade, idade e figurino da serie; nao copie o elenco da referencia de estilo. "
+            + cartoon_style.DIRECTION
+        )
     return (
         f"Retrato-base de {project.child_name}, {project.child_age} anos. Desenhe ESTA "
         "pessoa da foto, adulto continua adulto. Rosto reconhecivel; no realista, "
