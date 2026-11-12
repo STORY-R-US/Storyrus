@@ -670,7 +670,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           language,
         });
         draftRef.current = { project: p, fingerprint, signature, uploaded: 0 };
-        window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}`);
+        window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}${selectedCatalogId ? `&modelo=${encodeURIComponent(selectedCatalogId)}` : ""}`);
       }
       setMediaConsent(true);
       const uploadMeta = {
@@ -703,7 +703,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       }
       accepted = true;
       setProject(p);
-      window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}`);
+      window.history.replaceState({}, "", `/app?projeto=${encodeURIComponent(p.id)}${selectedCatalogId ? `&modelo=${encodeURIComponent(selectedCatalogId)}` : ""}`);
       setJobs([]);
       setAssets(null);
       setOrderSent(true);
@@ -811,9 +811,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         cover_only: !project.purchase_flow?.preview_approved_at,
         brief: brief.slice(0, 2000) || undefined,
         catalog_design_id:
-          project.book_profile?.version === 1
+          selectedCatalogId || (project.book_profile?.version === 1
             ? project.book_profile.book_design?.id || "auto"
-            : undefined,
+            : undefined),
       });
       try {
         setJobs(await api.listJobs(project.id));

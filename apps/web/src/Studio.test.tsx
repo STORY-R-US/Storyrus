@@ -759,10 +759,11 @@ describe("Prévia automática", () => {
 });
 
 describe("Studio — perfil específico do Catálogo", () => {
-  it("preserva o perfil e o título personalizado ao escolher outro tema", async () => {
+  it.each([false, true])("preserva o perfil e o título, inclusive após falha inicial: %s", async (failFirst) => {
     window.history.replaceState({}, "", "/app?modelo=catalog-realistic-0&tema=sport&campos=nome");
     const user = userEvent.setup();
     const preview = vi.spyOn(api, "startPreview");
+    if (failFirst) preview.mockRejectedValueOnce(new Error("500: temporary preview failure"));
     render(<Studio />);
     await openBook(user);
     await user.type(screen.getByLabelText(/nome do protagonista/i), "João");
@@ -777,6 +778,8 @@ describe("Studio — perfil específico do Catálogo", () => {
     await user.click(screen.getByRole("checkbox", {name:/responsável legal/i}));
     await user.click(screen.getByRole("button", {name:/gerar o livro/i}));
     await screen.findByTestId("studio-order-sent");
-    expect(preview).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({catalog_design_id:"catalog-realistic-0"}));
+    if (failFirst) await user.click(await screen.findByTestId("studio-retry-preview"));
+    expect(preview).toHaveBeenLastCalledWith(expect.any(String), expect.objectContaining({catalog_design_id:"catalog-realistic-0"}));
+    expect(window.location.search).toContain("modelo=catalog-realistic-0");
   });
 });
