@@ -145,7 +145,7 @@ def test_named_line_reports_fail_closed(bad):
     elif bad == "extra":
         report["line 3"] = report["line 1"]
     elif bad == "conflict":
-        report["valid"] = True
+        report.update(valid=True, issues=[], limitations=[])
     else:
         report["line 2"]["valid"] = "true"
     with pytest.raises(ProviderError):

@@ -65,6 +65,8 @@ def parse_crop_report(text, expected_lines):
                 for number in range(1, expected_lines + 1)
             ]
         }
+    elif isinstance(value, dict) and any(key.startswith("line ") for key in value):
+        raise ProviderError("BOOK_REVIEW_INVALID: revisão por linha incompleta ou conflitante")
     if not isinstance(value, dict) or "results" not in value:
         return parse_report(text)
     rows = value["results"]
