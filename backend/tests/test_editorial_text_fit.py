@@ -38,7 +38,14 @@ def test_catalog_titles_fit_without_rewriting_or_moving_the_design(model, title)
     assert layout["ink_region_with_margin"][3] <= region[3] + 0.015
     # Measuring and actual composition must choose exactly the same fit.
     measured, evidence = render.text(source, title, profile, title=True, measure_only=True)
-    assert measured == source and evidence == layout
+    assert measured == source
+    # Fit-only measurement does not decode the background or assess contrast.
+    # Every geometric/font metric must still match actual composition exactly.
+    contrast_fields = {"color", "preferred_color", "contrast_adjusted", "ink_contrast_p15"}
+    assert {k: v for k, v in evidence.items() if k not in contrast_fields} == {
+        k: v for k, v in layout.items() if k not in contrast_fields
+    }
+    assert layout["ink_contrast_p15"] >= 3
 
 
 def test_fitting_is_local_keeps_copy_and_handles_decomposed_accents():
