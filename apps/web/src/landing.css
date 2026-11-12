@@ -3331,7 +3331,7 @@ img.ex-tab-cover {
 
 /* Reserve the same translated-copy slots across PT, EN and ES. Text may grow
    for accessibility; it is never clipped or reduced to fit a shorter locale. */
-.khero-intro h1 { min-height: 2lh; }
+.khero-intro h1 { width: 100%; min-height: 2lh; }
 .khero-intro .keyebrow { width: min(418px, 100%); min-height: 64px; box-sizing: border-box; justify-content: center; }
 .khero-after { width: min(627px, 100%); }
 .khero-after .keyebrow { width: 100%; min-height: 64px; box-sizing: border-box; justify-content: center; }
@@ -3388,6 +3388,7 @@ img.ex-tab-cover {
 }
 @media (max-width: 360px) {
   .promise-section .promise-heading { min-height: 5lh; }
+  #catalogo > .ksub { min-height: 4lh; }
   #faq > .ksub { min-height: 2lh; }
   .promise-section .ksub { min-height: 5lh; }
   .rev-card blockquote { min-height: 6lh; }
