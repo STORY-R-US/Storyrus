@@ -141,16 +141,29 @@ def _payload(job: Job) -> dict:
 
 def _parse_title(story: str) -> str | None:
     """Extrai o título gerado pela IA (linha 'Título: ...' no começo da história)."""
-    m = re.match(r"(?is)\s*t[íi]tulo\s*[:\-]\s*(.+?)\s*(?:\n|$)", story or "")
+    m = re.match(
+        r"(?is)\s*(?:#{1,6}\s*)?(?:\*\*)?(?:t[íi]tulo|title)\s*[:\-]\s*(.+?)\s*(?:\n|$)",
+        story or "",
+    )
     if not m:
         return None
-    title = m.group(1).strip().strip('"“”')
+    title = m.group(1).strip()
+    if title.startswith("**"):
+        title = title[2:].strip()
+    if (story or "").lstrip().startswith("**") and title.endswith("**"):
+        title = title[:-2].rstrip()
+    title = title.strip('"“”')
     return title[:120] or None
 
 
 def _strip_title(story: str) -> str:
     """Remove a linha 'Título: ...' para que não vire página."""
-    return re.sub(r"(?is)^\s*t[íi]tulo\s*[:\-].*?(?:\n+|$)", "", story or "", count=1)
+    return re.sub(
+        r"(?is)^\s*(?:#{1,6}\s*)?(?:\*\*)?(?:t[íi]tulo|title)\s*[:\-].*?(?:\n+|$)",
+        "",
+        story or "",
+        count=1,
+    )
 
 
 def _parse_pages(story: str, limit: int = 200) -> list[str]:
@@ -163,7 +176,11 @@ def _parse_pages(story: str, limit: int = 200) -> list[str]:
     Usa TODA a historia (limite alto so como protecao). Cada item retornado e o
     TEXTO INTEGRAL daquele trecho (contexto completo para a ilustracao).
     """
-    story = _strip_title((story or "").strip())
+    story = (story or "").strip()
+    fence = re.fullmatch(r"```(?:text|markdown)?\s*\n(.*?)\n```", story, flags=re.I | re.S)
+    if fence:
+        story = fence.group(1)
+    story = _strip_title(story)
     # remove blocos de sugestao de imagem que a IA possa ter incluido,
     # ex.: "*(Imagem sugerida: ...)*" — nao devem virar pagina nem texto impresso
     story = re.sub(r"(?is)\*?\(\s*imagem[^)]*\)\*?", "", story).strip()
@@ -171,8 +188,30 @@ def _parse_pages(story: str, limit: int = 200) -> list[str]:
         return []
 
     # 1) marcadores "Pagina N:"
-    parts = re.split(r"(?im)^\s*p[áa]gina\s*\d+\s*[:\-]", story)
-    pages = [p.strip() for p in parts if p.strip()]
+    markers = list(
+        re.finditer(
+            r"(?im)^[ \t]*(?:#{1,6}[ \t]*)?(?:\*\*|__)?(?:p[áa]gina|page)[ \t]+(\d+)[ \t]*"
+            r"(?:(?:[:\-–—])[ \t]*(?:\*\*|__)?|(?:\*\*|__)?[ \t]*(?=\r?$))[ \t]*",
+            story,
+        )
+    )
+    if markers:
+        numbers = [int(match.group(1)) for match in markers]
+        # Never silently renumber duplicated/missing story pages or drop prose.
+        if story[: markers[0].start()].strip() or (
+            len(numbers) > 1 and numbers != list(range(1, len(numbers) + 1))
+        ):
+            return []
+        pages = [
+            story[
+                match.end() : markers[i + 1].start() if i + 1 < len(markers) else len(story)
+            ].strip()
+            for i, match in enumerate(markers)
+        ]
+        if any(not page for page in pages):
+            return []
+        return pages[:limit]
+    pages = [story]
 
     # 2) paragrafos -> uma pagina por paragrafo
     if len(pages) <= 1:

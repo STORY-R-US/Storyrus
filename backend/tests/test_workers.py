@@ -1677,3 +1677,21 @@ def test_job_out_includes_progress():
 
     out = JobOut.model_validate(_Row())
     assert out.result == {"progress": {"stage": "pages", "done": 4, "total": 11}}
+
+
+@pytest.mark.parametrize(
+    "status,code,expected",
+    [
+        (503, "ServiceUnavailable", True),
+        (429, "SlowDown", True),
+        (404, "NoSuchKey", False),
+        (403, "AccessDenied", False),
+    ],
+)
+def test_storage_service_retry_does_not_retry_missing_or_forbidden_objects(status, code, expected):
+    from botocore.exceptions import ClientError
+
+    exc = ClientError(
+        {"Error": {"Code": code}, "ResponseMetadata": {"HTTPStatusCode": status}}, "GetObject"
+    )
+    assert runner.is_transient_exception(exc) is expected

@@ -14,7 +14,7 @@ from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, ProjectStatus
 from app.services import book_profile as contract
-from app.services import editorial_profile, purchase_flow
+from app.services import editorial_profile, generated_content, purchase_flow
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.workers import book_render
@@ -196,10 +196,10 @@ def _normalize_editorial_ficha(prepared, *, trait=None, interest=None):
     missing = [key for key in ("visual_identity", "costume", "palette") if not normalized[key]]
     if missing:
         raise ProviderError(
-            "A IA não descreveu os dados visuais necessários ("
+            "BOOK_GENERATED_CONTENT_INVALID: A IA não descreveu os dados visuais necessários ("
             + ", ".join(missing)
-            + "). Tente novamente; nenhuma identidade ou roupa foi inventada.",
-            transient=True,
+            + "). Nenhuma identidade ou roupa foi inventada.",
+            transient=False,
         )
     return normalized
 
@@ -312,28 +312,40 @@ async def _prepare(db, job, project, photos):
         )
         job.cost_usd = add_usd(job.cost_usd, result.cost_usd)
         try:
-            prepared = json.loads(
-                result.text.strip().removeprefix("```json").removesuffix("```").strip()
-            )
+            prepared = generated_content.object_from_text(result.text)
         except (ValueError, TypeError) as exc:
-            raise ProviderError("Ficha visual invalida; tente novamente", transient=True) from exc
+            raise ProviderError(
+                "BOOK_GENERATED_CONTENT_INVALID: ficha visual inválida", transient=False
+            ) from exc
     if not isinstance(prepared, dict):
-        raise ProviderError("Ficha visual invalida", transient=True)
+        raise ProviderError(
+            "BOOK_GENERATED_CONTENT_INVALID: ficha visual inválida", transient=False
+        )
     if profile.get("editorial") and not (contract.test_mode(project) or settings.offline_fallback):
+        try:
+            prepared = generated_content.normalize_locales(prepared, profile["languages"])
+        except ValueError as exc:
+            raise ProviderError(
+                "BOOK_GENERATED_CONTENT_INVALID: idiomas incompletos", transient=False
+            ) from exc
+        # Supplied fields win before checking provider completeness.
+        for lang, supplied in profile.get("supplied_locales", {}).items():
+            if lang in prepared["locales"]:
+                prepared["locales"][lang].update(
+                    {k: v for k, v in supplied.items() if isinstance(v, str) and v}
+                )
         for lang in profile["languages"]:
             locale = prepared.get("locales", {}).get(lang, {})
+            if lang == project.language and profile.get("title"):
+                locale["title"] = profile["title"]
             if not all(
                 isinstance(locale.get(k), str) and locale[k].strip()
                 for k in ("title", "left", "right")
             ):
                 raise ProviderError(
-                    "Textos localizados incompletos; tente novamente", transient=True
+                    "BOOK_GENERATED_CONTENT_INVALID: textos localizados incompletos",
+                    transient=False,
                 )
-        # Existing supplied texts always win; only absent fields may be composed.
-        for lang, locale in profile.get("supplied_locales", {}).items():
-            for key, value in locale.items():
-                if isinstance(value, str) and value:
-                    prepared["locales"][lang][key] = value
         if editorial_profile.composed(profile):
             from app.workers import editorial_render
 
@@ -347,7 +359,20 @@ async def _prepare(db, job, project, photos):
                 try:
                     editorial_render.validate_preview_copy(profile, locale)
                 except editorial_render.TextLayoutError as exc:
-                    raise ProviderError(f"BOOK_TEXT_INVALID: {exc}", transient=False) from exc
+                    # Recover excessive hard line breaks in generated drafts only.
+                    # All words and user-supplied passages remain untouched.
+                    supplied = profile.get("supplied_locales", {}).get(lang, {})
+                    reflowed = dict(locale)
+                    for key in ("left", "right"):
+                        if key not in supplied:
+                            reflowed[key] = " ".join(locale[key].split())
+                    try:
+                        editorial_render.validate_preview_copy(profile, reflowed)
+                    except editorial_render.TextLayoutError:
+                        code = "BOOK_TEXT_INVALID" if supplied else "BOOK_GENERATED_CONTENT_INVALID"
+                        raise ProviderError(f"{code}: {exc}", transient=False) from exc
+                    for key in ("left", "right"):
+                        prepared["locales"][lang][key] = reflowed[key]
     if profile.get("costume"):
         prepared["costume"] = profile["costume"]
     if editorial_profile.composed(profile) and not (
@@ -1065,7 +1090,8 @@ async def story(db, job, project):
         pages = _parse_pages(text)
         if len(pages) != 16:
             raise ProviderError(
-                "A historia deve conter exatamente 16 paginas; tente novamente", transient=True
+                "BOOK_GENERATED_CONTENT_INVALID: a história recebida não contém as 16 páginas completas",
+                transient=False,
             )
         if project.dedication:
             pages[1] = project.dedication

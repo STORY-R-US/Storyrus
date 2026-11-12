@@ -132,6 +132,15 @@ class RequestJournal:
                 self._save(key, completed)
                 return key, completed, output
             except Exception as exc:
+                if storage.is_transient_error(exc):
+                    # The paid result is known and durably saved. Retry its READ,
+                    # never turn a temporary object-store outage into uncertainty.
+                    raise ProviderError(
+                        "BOOK_STORAGE_TEMPORARY",
+                        transient=True,
+                        retry_safe=True,
+                        request_id=completed.get("request_id"),
+                    ) from exc
                 # An unavailable cache is not permission to purchase another output.
                 self._save(key, {**completed, "state": "unknown"})
                 raise _unknown(completed) from exc

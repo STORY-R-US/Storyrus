@@ -351,3 +351,82 @@ async def test_uncertain_request_does_not_block_different_input_or_other_project
     with request_journal(db, other):
         await provider.generate(prompt="one")
     assert provider.calls == 3
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("image", [False, True])
+async def test_temporary_saved_result_read_recovers_without_poisoning_receipt(
+    setup, monkeypatch, image
+):
+    from botocore.exceptions import EndpointConnectionError
+
+    from app import storage
+
+    db, job, objects = setup
+    provider = Provider(db, job, image=image)
+    with request_journal(db, job):
+        await provider.generate(prompt="same")
+    other = Job(project_id=job.project_id, type="EBOOK", status="RUNNING")
+    db.add(other)
+    db.commit()
+    provider.job = other
+    reads = []
+
+    def flaky_read(key):
+        reads.append(key)
+        if len(reads) == 1:
+            raise EndpointConnectionError(endpoint_url="https://storage.invalid")
+        return objects[key]
+
+    monkeypatch.setattr(storage, "get_bytes", flaky_read)
+    with request_journal(db, other):
+        with pytest.raises(ProviderError, match="BOOK_STORAGE_TEMPORARY") as caught:
+            await provider.generate(prompt="same")
+        assert caught.value.transient and caught.value.retry_safe
+        assert not caught.value.outcome_unknown
+        assert next(iter(job.result["paid_requests"].values()))["state"] == "done"
+        result = await provider.generate(prompt="same")
+    assert provider.calls == 1
+    assert result.cost_usd == 0 and result.meta["reused"]
+    assert next(iter(other.result["paid_requests"].values()))["state"] == "done"
+
+
+@pytest.mark.asyncio
+async def test_worker_automatically_recovers_saved_output_read_without_customer_retry(
+    setup, monkeypatch
+):
+    from app import storage
+    from app.workers import runner
+
+    db, job, objects = setup
+    provider = Provider(db, job, image=True)
+    with request_journal(db, job):
+        await provider.generate(prompt="same")
+    other = Job(project_id=job.project_id, type="EBOOK", status="RUNNING", attempts=0)
+    db.add(other)
+    db.commit()
+    provider.job = other
+    reads = []
+
+    def flaky_read(key):
+        reads.append(key)
+        if len(reads) == 1:
+            raise TimeoutError("temporary object-store read failure")
+        return objects[key]
+
+    async def handler(db, job):
+        result = await provider.generate(prompt="same")
+        assert result.cost_usd == 0
+
+    monkeypatch.setattr(storage, "get_bytes", flaky_read)
+    monkeypatch.setattr("app.services.privacy.photos_authorized", lambda *args: True)
+    monkeypatch.setattr(
+        "app.services.spend_guard.assert_vendor_allowed", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(runner.settings, "skip_openai", True)
+    monkeypatch.setattr(runner.settings, "job_heartbeat_interval_s", 0)
+    monkeypatch.setattr(runner.settings, "retry_backoff_base_s", 0)
+    monkeypatch.setattr(runner.settings, "job_max_attempts", 3)
+    await runner._process_job_inner(db, other, handler)
+    assert other.status == "DONE" and other.attempts == 2
+    assert provider.calls == 1
