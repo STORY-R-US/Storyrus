@@ -488,7 +488,7 @@ a.kcat-group-name.is-chip:focus-visible {
 }
 .khero-intro {
   text-align: center; width: 100%; max-width: 70rem;
-  display: flex; flex-direction: column; align-items: center; gap: 44px;
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
 }
 .khero-intro h1 { font-size: clamp(1.75rem, 3.1vw, 2.9rem); line-height: 1.2; margin: 0; text-wrap: balance; }
 .khero-intro .keyebrow { margin: 0; }
@@ -863,7 +863,7 @@ a.kcat-group-name.is-chip:focus-visible {
 .kbh-thumb-title .cover-story { font-size: clamp(.62rem, 2.5vw, .98rem); bottom: 7%; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 12px; gap: 14px; }
-  .khero-intro { gap: 32px; }
+  .khero-intro { gap: 20px; }
   .khero-flipbook .fb-board { gap: 0; }
   .khero-flipbook .fb-nav {
     position: absolute; z-index: 4; width: 40px; height: 40px; font-size: 1.4rem;
@@ -1981,7 +1981,7 @@ img.ex-tab-cover {
 .faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: none; border: none; cursor: pointer; padding: 18px 20px; text-align: left; color: #e9eefb; font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 1.08rem; }
 .faq-chev { width: 22px; height: 22px; color: var(--yellow); transition: transform .2s ease; flex: none; }
 .faq-item.open .faq-chev { transform: rotate(180deg); }
-.faq-q { min-height: 56px; }
+.faq-q { min-height: 60px; padding: 12px 20px; line-height: 1.4; }
 .kid .faq-q,
 .kid .faq-q:hover:not(:disabled) { border-radius: 0; box-shadow: none; transform: none; }
 .kid .faq-q:focus-visible { outline: 2px solid var(--yellow); outline-offset: -4px; }
@@ -3308,7 +3308,6 @@ img.ex-tab-cover {
 @media (max-width: 800px) {
   #catalogo.book-page .book-sheet { grid-template-columns: minmax(0, 1fr); }
 }
-.khero-intro > .kbtn { display: flex; justify-content: center; box-sizing: border-box; width: min(224px, 100%); margin: 20px auto 8px; }
 [data-theme="light"] .kid .catalog-filters input,
 [data-theme="light"] .kid .catalog-filters select { color: #1f3568; background: #fff; border-color: #9aa8c5; }
 [data-theme="light"] .kid .catalog-count,
@@ -3361,10 +3360,17 @@ img.ex-tab-cover {
 .kfoot-nav a { width: 160px; box-sizing: border-box; justify-content: center; }
 .kfoot-tag { width: min(360px, 100%); min-height: 2lh; justify-content: center; }
 .kfoot-copy { min-height: 2lh; }
-.faq-q { min-height: calc(2lh + 36px); }
 .rev-card blockquote { min-height: 3lh; }
-.vid-card figcaption h3 { min-height: 3lh; }
-.vid-card figcaption p { min-height: 3lh; }
+.vid-card figcaption h3 { min-height: 2lh; line-height: 1.25; }
+.vid-card figcaption p { min-height: 0; }
+.locale-copy { display: grid; }
+.locale-copy > *, .locale-copy::before, .locale-copy::after { grid-area: 1 / 1; }
+.locale-copy::before, .locale-copy::after { visibility: hidden; pointer-events: none; }
+.locale-copy::before { content: attr(data-copy-a); }
+.locale-copy::after { content: attr(data-copy-b); }
+.faq-q > .locale-copy { flex: 1; min-width: 0; }
+.faq-chev { flex-shrink: 0; }
+#catalogo.catalog-page > .ktitle { min-height: 1lh; }
 .promise-card { min-width: 0; overflow-wrap: anywhere; }
 .promise-card h3 { min-height: 3lh; }
 .promise-card p { min-height: 8lh; }
@@ -3372,8 +3378,23 @@ img.ex-tab-cover {
   .promise-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (min-width: 1321px) {
-  .khead-inner { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .kid:not(.studio-app) .khead-inner { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
 }
+@media (min-width: 1321px) and (max-width: 1759px) {
+  .kid:not(.studio-app) .kcats .kcat-btn { width: 96px; padding: 8px 6px; font-size: .7rem; }
+  .kid:not(.studio-app) .khead-utils { gap: 6px; }
+  .kid:not(.studio-app) .khead .theme-toggle { width: 34px; padding: 0; justify-content: center; }
+  .kid:not(.studio-app) .khead .theme-toggle-label { display: none; }
+  .kid:not(.studio-app) .khead .lang button { padding: 5px 7px; }
+  .kid:not(.studio-app) .khead-links .kbtn { width: 60px; }
+  .kid:not(.studio-app) .khead-links .kbtn:last-child { width: 96px; }
+  .kid:not(.studio-app) .khead-user { max-width: 80px; }
+}
+[data-theme="light"] .kid .khead .kcats .kcat-btn {
+  background: #fff; color: #1f3568; box-shadow: none;
+}
+[data-theme="light"] .kid .khead .kcats .kcat-btn:hover,
+[data-theme="light"] .kid .khead .kcats .kcat-btn:focus-visible { background: #fff4d4; }
 @container (max-width: 250px) {
   #catalogo .cat-card:not(.book-sheet) .cat-note-grid p { min-height: 4lh; }
 }
@@ -3393,7 +3414,6 @@ img.ex-tab-cover {
   #videos > .ksub { min-height: 3lh; }
   #reviews > .ksub { min-height: 2lh; }
   .rev-card blockquote { min-height: 5lh; }
-  .faq-q { min-height: calc(3lh + 36px); }
   .khero-intro h1 { min-height: 4lh; }
   .kid:not(.studio-app) .khead-links .kbtn { width: 60px; }
   .kid:not(.studio-app) .khead-links .kbtn:last-child { width: 94px; }
@@ -3405,7 +3425,6 @@ img.ex-tab-cover {
   #faq > .ksub { min-height: 2lh; }
   .promise-section .ksub { min-height: 5lh; }
   .rev-card blockquote { min-height: 6lh; }
-  .faq-q { min-height: calc(4lh + 36px); }
   .khero-intro h1 { min-height: 6lh; }
   .howex-card figcaption p { min-height: 7lh; }
   .kid:not(.studio-app) .khead-links .kbtn { width: 54px; }

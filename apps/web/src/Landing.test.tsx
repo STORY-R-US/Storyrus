@@ -66,11 +66,11 @@ describe("Landing — idioma", () => {
     const user = userEvent.setup();
     renderLanding();
 
-    expect(await screen.findByTestId("landing-hero-cta")).toHaveTextContent(/criar meu livro/i);
+    expect(await screen.findByTestId("landing-hero-title")).toHaveTextContent(/transforme uma foto/i);
     expect(screen.getByRole("heading", { name: /perguntas frequentes/i })).toBeInTheDocument();
 
     await user.click(screen.getByTestId("landing-lang-en"));
-    expect(screen.getByTestId("landing-hero-cta")).toHaveTextContent(/create my book/i);
+    expect(screen.getByTestId("landing-hero-title")).toHaveTextContent(/turn a photo/i);
     expect(screen.getByRole("heading", { name: /frequently asked questions/i })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en");
     expect(localStorage.getItem("lang")).toBe("en");
@@ -78,7 +78,7 @@ describe("Landing — idioma", () => {
     expect(screen.getByTestId("landing-lang-pt")).not.toHaveClass("on");
 
     await user.click(screen.getByTestId("landing-lang-es"));
-    expect(screen.getByTestId("landing-hero-cta")).toHaveTextContent(/crear mi libro/i);
+    expect(screen.getByTestId("landing-hero-title")).toHaveTextContent(/convierte una foto/i);
     expect(screen.getByRole("heading", { name: /preguntas frecuentes/i })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("es");
     expect(localStorage.getItem("lang")).toBe("es");
@@ -89,7 +89,7 @@ describe("Landing — idioma", () => {
     localStorage.setItem("lang", "en");
     renderLanding();
 
-    expect(await screen.findByTestId("landing-hero-cta")).toHaveTextContent(/create my book/i);
+    expect(await screen.findByTestId("landing-hero-title")).toHaveTextContent(/turn a photo/i);
     expect(document.documentElement.lang).toBe("en");
     expect(screen.getByTestId("landing-lang-en")).toHaveClass("on");
   });
@@ -100,7 +100,7 @@ describe("Landing — tema", () => {
     const user = userEvent.setup();
     renderLanding();
 
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
     const themeButtons = () => screen.getAllByRole("button", { name: /alternar tema/i });
     expect(themeButtons()[0]).toHaveTextContent(/claro/i);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
@@ -119,7 +119,7 @@ describe("Landing — tema", () => {
     localStorage.setItem("theme", "light");
     renderLanding();
 
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
   });
 });
@@ -128,7 +128,7 @@ describe("Landing — promessa", () => {
   it("destaca presente no título e usa a nova copy em PT", async () => {
     renderLanding();
 
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
     const heading = screen.getByRole("heading", { name: /um presente personalizado para eternizar momentos inesquecíveis/i });
     expect(within(heading).getByText(/^presente$/i)).toHaveClass("promise-mark");
     expect(
@@ -403,7 +403,7 @@ describe("Landing — catálogo", () => {
 
   it("aponta os livros realistas para os temas existentes", async () => {
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
 
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize).toHaveLength(46);
@@ -456,7 +456,7 @@ describe("Landing — FAQ", () => {
 describe("Landing — menu mobile e abas do hero", () => {
   it("abre as categorias pelo menu desktop", async () => {
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
     const nav = document.querySelector(".kcats") as HTMLElement;
     expect(within(nav).getByRole("link", { name: /^temáticas$/i })).toHaveAttribute("href", "/catalogo#aventuras");
     expect(within(nav).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
@@ -625,7 +625,8 @@ describe("Landing — CTAs e links", () => {
   it("CTAs principais apontam para cadastro e login", async () => {
     renderLanding();
 
-    expect(await screen.findByTestId("landing-hero-cta")).toHaveAttribute("href", "/cadastro");
+    await screen.findByTestId("landing-hero-title");
+    expect(screen.queryByTestId("landing-hero-cta")).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-header-auth")).toBeInTheDocument();
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
     expect(screen.getByTestId("landing-header-cta")).toHaveClass("kbtn", "kbtn-primary");
@@ -638,7 +639,7 @@ describe("Landing — CTAs e links", () => {
 
   it("footer liga privacidade e termos", async () => {
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
 
     expect(screen.getByRole("link", { name: /^privacidade$/i })).toHaveAttribute("href", "/privacidade");
     expect(screen.getByRole("link", { name: /^termos$/i })).toHaveAttribute("href", "/termos");
@@ -646,7 +647,7 @@ describe("Landing — CTAs e links", () => {
 
   it("botão Personalizar leva tema no query", async () => {
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
 
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize.length).toBeGreaterThan(0);
@@ -665,9 +666,9 @@ describe("Landing — CTAs e links", () => {
     setToken("test-token");
     const user = userEvent.setup();
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
 
-    expect(screen.getByTestId("landing-hero-cta")).toHaveAttribute("href", "/app");
+    expect(screen.queryByTestId("landing-hero-cta")).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-header-user")).toHaveTextContent("Ana");
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
     expect(screen.getByTestId("landing-header-cta")).toHaveTextContent(/criar meu livro/i);
@@ -722,7 +723,7 @@ describe("Landing — CTAs e links", () => {
 
   it("mostra Meu Pai na seção de vídeos", async () => {
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
 
     const videos = document.getElementById("videos") as HTMLElement;
     expect(videos).toBeTruthy();
@@ -737,7 +738,7 @@ describe("Landing — CTAs e links", () => {
 
   it("ordena as seções e aponta o Instagram para storyr.us", async () => {
     renderLanding();
-    await screen.findByTestId("landing-hero-cta");
+    await screen.findByTestId("landing-hero-title");
 
     const order = ["como", "passo", "catalogo", "promessa", "videos", "reviews", "faq"];
     const nodes = order.map((id) => document.getElementById(id));
@@ -768,7 +769,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(passo).getByRole("heading", { name: "Envie Fotos dos Outros Personagens" })).toBeInTheDocument();
     expect(within(passo).getByRole("heading", { name: "Revise e Aprove" })).toBeInTheDocument();
     expect(passo.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["dica-boa.png", "dica-multi.png", "pagina-mamaepapaimatteo.jpg"]) {
+    for (const file of ["passo-protagonista-v2.webp", "passo-familia-v2.webp", "pagina-mamaepapaimatteo.jpg"]) {
       expect(passo.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
   });
@@ -913,7 +914,7 @@ describe("Landing — CTAs e links", () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId("landing-hero-cta")).toBeInTheDocument();
+    expect(await screen.findByTestId("landing-hero-title")).toBeInTheDocument();
     const cartoonNav = document.querySelector(".kcats") as HTMLElement;
     expect(within(cartoonNav).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(within(cartoonNav).queryByRole("link", { name: /^livros cartoon$/i })).not.toBeInTheDocument();
@@ -944,7 +945,7 @@ describe("Landing — CTAs e links", () => {
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
     expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["dica-boa.png", "dica-multi.png", "cartoon-pagina-matteo.jpg"]) {
+    for (const file of ["passo-protagonista-v2.webp", "passo-familia-v2.webp", "cartoon-pagina-matteo.jpg"]) {
       expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 

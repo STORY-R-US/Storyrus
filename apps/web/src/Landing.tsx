@@ -1190,13 +1190,15 @@ function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
   );
 }
 
-function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
+function Faq({ items, lang }: { items: readonly { q: string; a: string }[]; lang: Lang }) {
   const [open, setOpen] = useState<number | null>(null);
   return (
     <div className="faq">
       {items.map((it, i) => {
         const qid = `faq-q-${i}`;
         const aid = `faq-a-${i}`;
+        const otherQuestions = (["pt", "en", "es"] as const)
+          .filter((locale) => locale !== lang).map((locale) => I18N[locale].faq[i].q);
         return (
         <div className={`faq-item${open === i ? " open" : ""}`} key={it.q}>
           <button
@@ -1207,7 +1209,7 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
             aria-expanded={open === i}
             aria-controls={aid}
           >
-            <span>{it.q}</span><IcChevron className="faq-chev" />
+            <span className="locale-copy" data-copy-a={otherQuestions[0]} data-copy-b={otherQuestions[1]}><span>{it.q}</span></span><IcChevron className="faq-chev" />
           </button>
           <div className="faq-a" id={aid} role="region" aria-labelledby={qid} aria-hidden={open !== i}>
             <div className="faq-a-inner">
@@ -1473,7 +1475,7 @@ const I18N = {
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
     band_cta: "Criar Minha Conta",
     tagline: "Feito com amor. Criado para encantar.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Eternity.",
+    foot_copy: "© 2026 Story R Us — Onde memórias se tornam eternas.",
   },
   en: {
     nav: ["How It Works", "Books", "Videos", "FAQ"],
@@ -1979,7 +1981,7 @@ const I18N = {
     band_sub: "Envía tu foto y recibe una historia única, creada solo para ti.",
     band_cta: "Crear Mi Cuenta",
     tagline: "Hecho con amor. Creado para encantar.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Eternity.",
+    foot_copy: "© 2026 Story R Us — Donde los recuerdos se vuelven eternos.",
   },
 } as const;
 
@@ -2742,7 +2744,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const passoBook = variant === "cartoon"
     ? localizedExample("cartoon-pagina-matteo.jpg", lang)
     : assetForLang(heroAsset("pagina-mamaepapaimatteo.jpg", "pagina-mamaepapaimatteo-en.jpg", "pagina-mamaepapaimatteo-es.jpg"), lang);
-  const passoImgs = ["dica-boa.png", "dica-multi.png", passoBook];
+  const passoImgs = ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
   const framing = import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
@@ -3344,9 +3346,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       {/* HERO — proposta de valor + faixa de livros */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
-          <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
+          <h1 data-testid="landing-hero-title">{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
-          <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
         <div className="hero-carousel" aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
@@ -3446,8 +3447,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <div className="howex-lead">
                     <h3>{h.t}</h3>
                   </div>
-                  {framing && i < 2 && (passoImgs[i] === "dica-boa.png" || passoImgs[i] === "dica-multi.png") ? (
-                    <PassoFrame file={passoImgs[i]} alt={h.t} n={i + 1} />
+                  {framing && i < 2 ? (
+                    <PassoFrame file={i === 0 ? "dica-boa.png" : "dica-multi.png"} alt={h.t} n={i + 1} />
                   ) : (
                     <div className="howex-media">
                       {passoImgs[i] ? <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" /> : null}
@@ -3507,6 +3508,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.vid_sub}</p>
         <div className="vid-grid">
           {t.videos.map((v, i) => {
+            const otherVideos = (["pt", "en", "es"] as const)
+              .filter((locale) => locale !== lang).map((locale) => I18N[locale].videos[i]);
             const poster = i === 0 ? localizedExample(VIDEO_IMGS[i], lang) : VIDEO_IMGS[i];
             const src = VIDEO_SRCS[i];
             const canPlay = Boolean(src);
@@ -3527,7 +3530,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </button>
                   )}
                 </div>
-                <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
+                <figcaption>
+                  <h3 className="locale-copy" data-copy-a={otherVideos[0].t} data-copy-b={otherVideos[1].t}><span>{v.t}</span></h3>
+                  <p className="locale-copy" data-copy-a={otherVideos[0].p} data-copy-b={otherVideos[1].p}><span>{v.p}</span></p>
+                </figcaption>
               </figure>
             );
           })}
@@ -3571,7 +3577,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="faq">
         <h2 className="ktitle reveal">{t.faq_title}</h2>
         <p className="ksub reveal">{t.faq_sub}</p>
-        <div className="reveal"><Faq items={t.faq} /></div>
+        <div className="reveal"><Faq items={t.faq} lang={lang} /></div>
       </section>
 
       {/* FAIXA DE ATRIBUTOS */}

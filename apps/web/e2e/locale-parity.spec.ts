@@ -5,7 +5,7 @@ for (const path of ["/", "/cartoon"]) {
     await page.addInitScript(() => localStorage.setItem("lang", "pt"));
     await page.route("**/health", (route) => route.fulfill({ json: { status: "ok" } }));
     await page.goto(path);
-    await expect(page.getByTestId("landing-hero-cta")).toBeVisible();
+    await expect(page.getByTestId("landing-hero-title")).toBeVisible();
     while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
     const read = async () => ({
       books: await page.locator("#catalogo .cat-book-link").evaluateAll((links) => links.map((a) => a.getAttribute("href"))),

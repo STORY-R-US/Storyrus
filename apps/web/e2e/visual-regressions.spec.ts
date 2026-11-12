@@ -1,4 +1,38 @@
 import { expect, test } from "./fixtures";
+import { TEST_SESSION_TOKEN } from "./session";
+
+for (const signedIn of [false, true]) {
+  test(`navigation stays centered and readable with signedIn=${signedIn}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.addInitScript(({ signedIn, token }) => {
+      localStorage.setItem("lang", "pt");
+      if (signedIn) localStorage.setItem("storyrus_token", token);
+    }, { signedIn, token: TEST_SESSION_TOKEN });
+    await page.route("**/v1/auth/me", r => r.fulfill({ json: {
+      id: "visual-test", email: "test@example.invalid", is_guest: false,
+      email_verified: true, full_name: "Alexandria Teste", credits: 0,
+    } }));
+    await page.goto("/");
+    await expect(page.getByTestId("landing-hero-title")).toBeVisible();
+    if (signedIn) await expect(page.getByTestId("landing-header-user")).toBeVisible();
+    for (const width of [1321, 1366, 1440, 1600, 1760, 1862]) {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const lang of ["pt", "en", "es"]) {
+        await page.getByTestId(`landing-lang-${lang}`).click();
+        const nav = (await page.locator(".kcats").boundingBox())!;
+        const actions = (await page.locator(".khead-actions").boundingBox())!;
+        expect(Math.abs(nav.x + nav.width / 2 - width / 2), `${lang} at ${width}`).toBeLessThan(1);
+        expect(nav.x + nav.width + 8).toBeLessThanOrEqual(actions.x);
+        expect(actions.x + actions.width).toBeLessThanOrEqual(width);
+      }
+    }
+    await page.locator(".theme-toggle").first().click();
+    await expect.poll(() => page.locator(".kcats .kcat-btn").first().evaluate(el => {
+      const style = getComputedStyle(el);
+      return { color: style.color, background: style.backgroundColor };
+    })).toEqual({ background: "rgb(255, 255, 255)", color: "rgb(31, 53, 104)" });
+  });
+}
 
 for (const width of [390, 1440]) {
   for (const lang of ["pt", "en", "es"]) {
@@ -60,8 +94,8 @@ for (const lang of ["pt", "en", "es"]) {
     const actions = await page.locator(".khead-actions").boundingBox();
     expect(navigation!.x + navigation!.width).toBeLessThan(actions!.x);
     await page.setViewportSize({ width: 1024, height: 900 });
-    const cta = await page.getByTestId("landing-hero-cta").boundingBox();
-    expect(cta!.y + cta!.height).toBeLessThan(900);
+    await expect(page.getByTestId("landing-hero-cta")).toHaveCount(0);
+    await expect(page.getByTestId("landing-header-cta")).toBeVisible();
     await page.getByTestId("catalog-search").fill("noé");
     // Search ignores accents; translated proper names can differ.
     await page.getByTestId("catalog-search").fill("Enzo");

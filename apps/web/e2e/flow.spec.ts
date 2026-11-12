@@ -382,11 +382,11 @@ test("landing leva ao cadastro", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const heroCta = page.getByTestId("landing-hero-cta");
-  await expect(heroCta).toBeVisible();
-  await expect(heroCta).toHaveAttribute("href", "/cadastro");
+  const headerCta = page.getByTestId("landing-header-cta");
+  await expect(headerCta).toBeVisible();
+  await expect(headerCta).toHaveAttribute("href", "/cadastro");
   await expect(page.getByTestId("landing-header-login")).toHaveAttribute("href", "/entrar");
-  await heroCta.click();
+  await headerCta.click();
   await expect(page).toHaveURL(/\/cadastro/);
   await expect(page.getByTestId("auth-page")).toBeVisible();
   await expect(page.locator(".cl-rootBox, [data-testid='auth-clerk-missing']").first()).toBeVisible();
