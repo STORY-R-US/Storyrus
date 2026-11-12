@@ -7,16 +7,24 @@ import { markClerkPresent, setClerkGetToken, setClerkSignOut } from "./api";
 import { warmBackend } from "./backendConnection";
 import "./styles.css";
 import "./studio.css";
+import { useResolvedLang } from "./i18n/lang";
 
-function clerkLocalization() {
-  let lang = "pt";
-  try {
-    lang = localStorage.getItem("lang") || "pt";
-  } catch {
-    /* storage indisponível */
-  }
+// The bundled Spanish locale omits the combined sign-in/sign-up heading.
+const clerkSpanish = {
+  ...esES,
+  signIn: {
+    ...esES.signIn,
+    start: {
+      ...esES.signIn?.start,
+      titleCombined: "Continuar en {{applicationName}}",
+      subtitleCombined: "Inicia sesión o crea una cuenta para continuar.",
+    },
+  },
+};
+
+function clerkLocalization(lang: string) {
   if (lang === "en") return enUS;
-  if (lang === "es") return esES;
+  if (lang === "es") return clerkSpanish;
   return ptBR;
 }
 
@@ -42,16 +50,19 @@ function AppTree() {
 
 const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+function LocalizedApp() {
+  const [lang] = useResolvedLang();
+  return clerkKey ? (
+    <ClerkProvider publishableKey={clerkKey} localization={clerkLocalization(lang)}>
+      <AppTree />
+    </ClerkProvider>
+  ) : <Root />;
+}
+
 void warmBackend().catch(() => { /* a próxima ação pode tentar novamente */ });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {clerkKey ? (
-      <ClerkProvider publishableKey={clerkKey} localization={clerkLocalization()}>
-        <AppTree />
-      </ClerkProvider>
-    ) : (
-      <Root />
-    )}
+    <LocalizedApp />
   </React.StrictMode>,
 );

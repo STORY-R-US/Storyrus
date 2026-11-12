@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import assets from "./localizedExamples.json";
 import coverFormats from "./coverFormats.json";
 import { localizedExample } from "./localizedExamples";
+import catalogModels from "./catalogModels.json";
 import { Landing, catalogEntry, catalogSections } from "./Landing";
 
 const entries = Object.entries(assets);
@@ -25,6 +26,18 @@ const canonical = (src: string) => {
 };
 
 describe("approved PT images in all languages", () => {
+  it("localizes every Cartoon gallery image, including images absent from the homepage", () => {
+    for (const model of Object.values(catalogModels).filter((model) => model.style === "cartoon")) {
+      for (const source of Object.values(model.sources).filter(Boolean)) {
+        const master = source.replace(/^\/?exemplos\//, "");
+        for (const lang of ["en", "es"] as const) {
+          const displayed = localizedExample(master, lang);
+          expect(displayed, `${model.id}: ${master} ${lang}`).not.toBe(master);
+          expect(existsSync(resolve("public/exemplos", displayed))).toBe(true);
+        }
+      }
+    }
+  });
   it("uses the standard book format for every cover and language", () => {
     for (const [master] of entries.filter(([name]) => /^(cartoon-)?capa-/.test(name) && name !== "capa-livro-teste.jpg")) {
       for (const lang of ["pt", "en", "es"] as const) {
@@ -60,6 +73,7 @@ describe("approved PT images in all languages", () => {
       localStorage.setItem("lang", "pt");
       const { container } = render(<MemoryRouter><Landing variant={variant} /></MemoryRouter>);
       await screen.findByTestId("landing-hero-cta");
+      while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
       const read = () => ({
         books: [...container.querySelectorAll("#catalogo .cat-book-link")].map((a) => a.getAttribute("href")),
         hero: [...container.querySelectorAll(".hero-carousel img")].map((img) => canonical(img.getAttribute("src")!)),
@@ -69,7 +83,7 @@ describe("approved PT images in all languages", () => {
         videos: container.querySelectorAll("#videos .vid-card").length,
       });
       const pt = read();
-      expect(pt.books).toHaveLength(variant === "photo" ? 48 : 17);
+      expect(pt.books).toHaveLength(variant === "photo" ? 47 : 17);
       expect(pt.hero).toHaveLength(variant === "photo" ? 108 : 24);
       for (const lang of ["en", "es"] as const) {
         fireEvent.click(screen.getByTestId(`landing-lang-${lang}`));

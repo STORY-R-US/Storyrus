@@ -1670,7 +1670,7 @@ img.ex-tab-cover {
 .cat-body { display: flex; flex-direction: column; flex: 1; padding: 14px 4px 8px; text-align: left; }
 .cat-body h3 {
   margin: 0 0 20px; color: #e9eefb; font-size: clamp(.95rem, 1.7vw, 1.15rem); line-height: 1.2;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: normal; overflow-wrap: anywhere; min-height: 2.4em;
 }
 .cat-body h3 a { color: inherit; text-decoration: none; }
 .cat-body p {
@@ -1863,9 +1863,8 @@ img.ex-tab-cover {
   color: #e9eefb;
   font-size: clamp(1.35rem, 3.2vw, 2.4rem);
   line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .book-page .book-block { margin: 0 0 22px; }
 .book-page .book-block h2 {
@@ -2191,7 +2190,7 @@ img.ex-tab-cover {
 }
 
 /* ---------- responsivo ---------- */
-@media (max-width: 900px) {
+@media (max-width: 1320px) {
   .khero { grid-template-columns: 1fr; text-align: center; }
   .khero-text { order: 2; } .khero-art { order: 1; }
   .klead { margin-inline: auto; } .khero-cta { justify-content: center; }
@@ -2969,10 +2968,6 @@ img.ex-tab-cover {
   height: 1.15rem !important;
   flex: 0 0 auto;
 }
-.auth-card-clerk .cl-socialButtonsIconButton__apple::after { content: "Continuar com Apple"; }
-.auth-card-clerk .cl-socialButtonsIconButton__facebook::after { content: "Continuar com Facebook"; }
-.auth-card-clerk .cl-socialButtonsIconButton__google::after { content: "Continuar com Google"; }
-.auth-card-clerk .cl-socialButtonsIconButton__microsoft::after { content: "Continuar com Microsoft"; }
 .auth-card-clerk .cl-formButtonPrimary {
   width: 100% !important;
   height: auto !important;
@@ -3293,4 +3288,43 @@ img.ex-tab-cover {
 }
 @media (prefers-reduced-motion: reduce) {
   #catalogo .cat-book { transition: none; }
+}
+
+/* Shared catalog browsing and book detail containment. */
+.catalog-filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 24px 0 12px; text-align: left; }
+.catalog-filters label { display: grid; gap: 6px; flex: 1 1 250px; min-width: 0; font-weight: 700; }
+.catalog-filters input, .catalog-filters select { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid #455581; border-radius: 12px; padding: 12px; font: inherit; background: #182343; color: #e9eefb; }
+.catalog-count { text-align: left; color: #b9c8e7; }
+.catalog-result { display: flex; min-width: 0; }
+.catalog-result > .cat-card { width: 100%; box-sizing: border-box; }
+.catalog-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+#catalogo.book-page .book-sheet, #catalogo.book-page .book-sheet > *, #catalogo.book-page .book-series-shot { min-width: 0; max-width: 100%; box-sizing: border-box; }
+#catalogo.book-page .book-series { width: 100%; }
+#catalogo.book-page .cat-body { overflow-wrap: anywhere; }
+#catalogo.book-page .cat-note-line > span { min-width: 0; }
+@media (max-width: 800px) {
+  #catalogo.book-page .book-sheet { grid-template-columns: minmax(0, 1fr); }
+}
+.khero-intro > .kbtn { display: flex; width: fit-content; margin: 20px auto 8px; }
+[data-theme="light"] .kid .catalog-filters input,
+[data-theme="light"] .kid .catalog-filters select { color: #1f3568; background: #fff; border-color: #9aa8c5; }
+[data-theme="light"] .kid .catalog-count,
+[data-theme="light"] .kid .book-block h2,
+[data-theme="light"] .kid #catalogo.book-page .book-series-shot figcaption,
+[data-theme="light"] .kid .cat-note-grid strong,
+[data-theme="light"] .kid .cat-notes-lead,
+[data-theme="light"] .kid .cat-notes-sizes .is-price,
+[data-theme="light"] .kid .g1 { color: #795200; }
+.auth-card-clerk { padding: 1rem 1.25rem; gap: .6rem; }
+.auth-card-clerk .auth-logo { margin-top: 2rem; }
+.auth-card-clerk .auth-logo img { height: 58px; }
+.auth-card-clerk .auth-lead { font-size: .88rem; line-height: 1.4; margin: .25rem 0 .5rem; }
+.auth-card-clerk .cl-card { padding: .5rem 0 !important; gap: 1rem !important; }
+.auth-card-clerk .cl-main { gap: 1rem !important; }
+.auth-card-clerk .cl-headerTitle { font-size: 1.65rem !important; line-height: 1.2 !important; }
+.auth-card-clerk .cl-socialButtonsBlockButton { padding: .6rem !important; font-size: .9rem !important; }
+.auth-card-clerk .cl-footer { padding: .75rem 0 !important; }
+@media (max-width: 420px) {
+  .auth-kid { padding: 12px 8px; }
+  .auth-card-clerk { padding: 12px; }
 }

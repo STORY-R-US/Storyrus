@@ -374,7 +374,7 @@ test("perfil aguarda o despertar sem erro nem envio duplicado", async ({ page },
   await fillSignupForm(page);
   await page.getByTestId("auth-submit").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
-  await expect(page.getByRole("status")).toHaveCount(0);
+  await expect(page.getByRole("status")).not.toContainText("preparando sua conexão");
   expect(saves).toBe(1);
 });
 

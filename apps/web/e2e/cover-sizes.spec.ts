@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-for (const [route, count] of [["/", 48], ["/cartoon", 17]] as const) {
+for (const [route, count] of [["/", 47], ["/cartoon", 17]] as const) {
 for (const lang of ["pt", "en", "es"]) {
   test(`visible cover artwork fills the frame in ${lang} on ${route}`, async ({ page }) => {
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
     await page.route("**/health", r => r.fulfill({ json: { status: "ok" } }));
     await page.goto(route);
+    while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
     await expect(page.locator("#catalogo .cat-card")).toHaveCount(count);
     const gaps = await page.locator("#catalogo .cat-card .cat-book img").evaluateAll(async images => {
       return Promise.all(images.map(async element => {
@@ -50,13 +51,14 @@ for (const lang of ["pt", "en", "es"]) {
 }
 
 for (const width of [390, 1280]) {
-for (const [route, count] of [["/", 48], ["/cartoon", 17]] as const) {
+for (const [route, count] of [["/", 47], ["/cartoon", 17]] as const) {
 for (const lang of ["pt", "en", "es"]) {
   test(`uniform covers and working P/M in ${lang} on ${route} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
     await page.route("**/health", r => r.fulfill({ json: { status: "ok" } }));
     await page.goto(route);
+    while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
     const cards = page.locator("#catalogo .cat-card");
     await expect(cards).toHaveCount(count);
     const boxes = await cards.locator(".cat-book").evaluateAll(els => els.map(e => ({ w: e.getBoundingClientRect().width, h: e.getBoundingClientRect().height })));

@@ -17,6 +17,8 @@ export function PostPreviewFlow({
   onJobs,
   onAdjust,
   canConfirmPayment = false,
+  showSteps = true,
+  adjusting = false,
 }: {
   project: Project;
   assets: StudioAssets | null;
@@ -27,6 +29,8 @@ export function PostPreviewFlow({
   onJobs: (jobs: Job[]) => void;
   onAdjust: () => void;
   canConfirmPayment?: boolean;
+  showSteps?: boolean;
+  adjusting?: boolean;
 }) {
   const { lang } = useStudioI18n();
   const t = purchaseCopy(lang);
@@ -96,7 +100,7 @@ export function PostPreviewFlow({
       aria-labelledby="purchase-heading"
       data-testid="purchase-flow"
     >
-      {!compactReview && (
+      {showSteps && !compactReview && (
       <ol className="purchase-steps" aria-label={t.summary}>
         {t.steps.map((label, i) => (
           <li
@@ -129,9 +133,9 @@ export function PostPreviewFlow({
             >
               {t.approve}
             </button>
-            <button type="button" className="kbtn" disabled={isDemo || busy || active} onClick={onAdjust}>
+            {!adjusting && <button type="button" className="kbtn" disabled={isDemo || busy || active} onClick={onAdjust}>
               {t.adjust}
-            </button>
+            </button>}
           </div>
         </>
       ) : (

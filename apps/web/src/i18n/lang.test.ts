@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook } from "@testing-library/react";
 import {
   detectCountryByIp,
   ipCountryUrl,
@@ -7,6 +8,7 @@ import {
   peekStoredLang,
   resolveInitialLang,
   writeStoredLang,
+  useResolvedLang,
 } from "./lang";
 
 afterEach(() => {
@@ -83,4 +85,16 @@ describe("detectCountryByIp", () => {
     await expect(detectCountryByIp()).resolves.toBe("BR");
     expect(fetchMock).toHaveBeenCalledWith(ipCountryUrl(), expect.anything());
   });
+});
+
+it("keeps the page and authentication provider in the same language without reloading", () => {
+  writeStoredLang("pt");
+  const page = renderHook(() => useResolvedLang());
+  const provider = renderHook(() => useResolvedLang());
+  act(() => page.result.current[1]("es"));
+  expect(provider.result.current[0]).toBe("es");
+  expect(document.documentElement.lang).toBe("es");
+  act(() => provider.result.current[1]("en"));
+  expect(page.result.current[0]).toBe("en");
+  expect(peekStoredLang()).toBe("en");
 });

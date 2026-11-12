@@ -7,9 +7,11 @@ import { catalogModel, catalogModelId } from "./catalogModel";
 import { bookPageMeta, categoryPageMeta, staticPageMeta, usePageMeta } from "./pageMeta";
 import { useResolvedLang, type Lang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
+import { CatalogBrowser } from "./CatalogBrowser";
 import {
   CatalogBookCard,
   catalogCategory,
+  catalogCoverFile,
   catalogEntry,
   catalogPageCopy,
   catalogSections,
@@ -98,6 +100,9 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
           <button className="khamb" type="button" aria-label={copy.menu} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>☰</button>
         </div>
         <nav className={`kmobile${menuOpen ? " open" : ""}`} hidden={!menuOpen}>
+          <div className="kmobile-tools"><button type="button" className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+            <ThemeIcon theme={theme} /><span className="theme-toggle-label">{theme === "dark" ? copy.themeLight : copy.themeDark}</span>
+          </button></div>
           {links.map((item) => (
             <Link key={item.href} to={item.href} className="kmobile-link" onClick={closeMenu}>{item.label}</Link>
           ))}
@@ -142,47 +147,13 @@ export function CatalogPage() {
   const copy = catalogPageCopy(lang);
   const sections = catalogSections(lang);
   const { hash } = useLocation();
-  useEffect(() => {
-    const id = hash.replace("#", "");
-    if (!id) return;
-    const scrollToSection = () => {
-      const el = document.getElementById(id);
-      if (!el) return false;
-      const header = document.querySelector(".khead");
-      const offset = header ? header.getBoundingClientRect().height + 12 : 0;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top });
-      return true;
-    };
-    // Retenta: capas/lazy-load mudam a altura depois do 1º paint.
-    scrollToSection();
-    const t1 = window.setTimeout(scrollToSection, 80);
-    const t2 = window.setTimeout(scrollToSection, 320);
-    return () => {
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-    };
-  }, [sections, hash]);
   return (
     <div className="kid">
       <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
-        {sections.map((section) => (
-          <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
-            <CatalogSectionTitle name={section.name} color={section.color} />
-            {section.subs.map((sub) => (
-              <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
-                <h3 className="catalog-sub-title">{sub.name}</h3>
-                <div className="cat-grid">
-                  {sub.books.map((book) => (
-                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </section>
-        ))}
+        <CatalogBrowser books={sections.flatMap((section) => section.books)} sections={sections} hash={hash} lang={lang}
+          renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} />} />
       </main>
     </div>
   );
@@ -201,20 +172,8 @@ export function CategoryCatalogPage() {
       <main className="ksection catalog-page" id="catalogo">
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <CatalogSectionTitle name={section.name} color={section.color} as="h1" />
-          {section.subs.length > 0 ? (
-            section.subs.map((sub) => (
-              <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
-                <h3 className="catalog-sub-title">{sub.name}</h3>
-                <div className="cat-grid">
-                  {sub.books.map((book) => (
-                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="kcat-empty">{copy.empty}</p>
-          )}
+          <CatalogBrowser key={section.id} books={section.books} lang={lang}
+            renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} />} />
         </section>
       </main>
     </div>
@@ -229,7 +188,7 @@ export function BookPage() {
   const cartoon = new URLSearchParams(search).get("modo") === "cartoon";
   const entry = Number.isInteger(index) ? catalogEntry(lang, index) : null;
   const model = cartoon ? catalogModel(catalogModelId(index, true)) : undefined;
-  const book = entry && (!cartoon || model) ? {...entry, img: model ? `/exemplos/${model.sources.cover}` : entry.img} : null;
+  const book = entry && (!cartoon || model) ? {...entry, img: catalogCoverFile(index, lang, cartoon ? "cartoon" : "photo")} : null;
   usePageMeta(
     book
       ? bookPageMeta({ index, title: book.t, description: book.story || book.t })

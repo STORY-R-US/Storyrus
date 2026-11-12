@@ -778,5 +778,45 @@
   "como-recebe.jpg": {
     "en": "localized/como-recebe-jpg-en.webp",
     "es": "localized/como-recebe-jpg-es.webp"
+  },
+  "cartoon-pagina-meus-sobrinhos.jpg": {
+    "en": "cartoon-pagina-meus-sobrinhos-en.jpg",
+    "es": "cartoon-pagina-meus-sobrinhos-es.jpg"
+  },
+  "cartoon-foto-meus-sobrinhos.jpg": {
+    "en": "localized/cartoon-foto-meus-sobrinhos-jpg-en.webp",
+    "es": "localized/cartoon-foto-meus-sobrinhos-jpg-es.webp"
+  },
+  "cartoon-pagina-tio-favorito.jpg": {
+    "en": "cartoon-pagina-tio-favorito-en.jpg",
+    "es": "cartoon-pagina-tio-favorito-es.jpg"
+  },
+  "cartoon-foto-tio-favorito.jpg": {
+    "en": "localized/cartoon-foto-tio-favorito-jpg-en.webp",
+    "es": "localized/cartoon-foto-tio-favorito-jpg-es.webp"
+  },
+  "cartoon-pagina-grace-aniversario.jpg": {
+    "en": "cartoon-pagina-grace-aniversario-en.jpg",
+    "es": "cartoon-pagina-grace-aniversario-es.jpg"
+  },
+  "cartoon-foto-grace-aniversario.jpg": {
+    "en": "cartoon-foto-grace-aniversario-en.jpg",
+    "es": "cartoon-foto-grace-aniversario-es.jpg"
+  },
+  "cartoon-pagina-grace-andar.jpg": {
+    "en": "cartoon-pagina-grace-andar-en.jpg",
+    "es": "cartoon-pagina-grace-andar-es.jpg"
+  },
+  "cartoon-foto-grace-andar.jpg": {
+    "en": "cartoon-foto-grace-andar-en.jpg",
+    "es": "cartoon-foto-grace-andar-es.jpg"
+  },
+  "cartoon-pagina-nicolas.jpg": {
+    "en": "localized/cartoon-pagina-nicolas-jpg-en.webp",
+    "es": "localized/cartoon-pagina-nicolas-jpg-es.webp"
+  },
+  "cartoon-pagina-maya.jpg": {
+    "en": "localized/cartoon-pagina-maya-jpg-en.webp",
+    "es": "localized/cartoon-pagina-maya-jpg-es.webp"
   }
 }

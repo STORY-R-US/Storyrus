@@ -323,7 +323,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   useEffect(() => {
     if (!isDemo) return;
-    const demo = getDemoExample();
+    const demo = getDemoExample(lang);
     setChildName(demo.childName);
     setChildAge(demo.childAge);
     setBookTitle(demo.bookTitle);
@@ -334,7 +334,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setStoryDraft(demo.project.story_text ?? "");
     setOrderSent(true);
     setJobs([]);
-  }, [isDemo]);
+  }, [isDemo, lang]);
 
   useEffect(() => {
     if (isDemo) return;
@@ -1274,10 +1274,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 />
 
                 {project && <PostPreviewFlow project={project} assets={assets} jobs={jobs}
-                  isDemo={isDemo} dirty={reviewDirty} onProject={setProject} onJobs={setJobs}
+                  isDemo={isDemo} dirty={reviewDirty} showSteps={false} adjusting={reviewOpen || isDemo} onProject={setProject} onJobs={setJobs}
                   onAdjust={() => setReviewOpen(true)} canConfirmPayment={isOwner} />}
 
-                {!project?.purchase_flow?.full_book_ready_at && project?.purchase_flow?.stage !== "generating_book" && <details className="purchase-adjustments" open={reviewOpen} onToggle={(e) => setReviewOpen(e.currentTarget.open)}>
+                {(reviewOpen || isDemo || !!project?.purchase_flow?.preview_approved_at) && !project?.purchase_flow?.full_book_ready_at && project?.purchase_flow?.stage !== "generating_book" && <details className="purchase-adjustments" open={reviewOpen} onToggle={(e) => setReviewOpen(e.currentTarget.open)}>
                   <summary>{purchaseCopy(lang).adjust}</summary>
                 <div
                   className="studio-review-changes"

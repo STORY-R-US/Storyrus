@@ -7,6 +7,7 @@ export type Lang = "pt" | "en" | "es";
 export const LANGS: Lang[] = ["pt", "en", "es"];
 
 export const LANG_STORAGE_KEY = "lang";
+const LANG_CHANGE_EVENT = "storyrus:language";
 
 const PT_COUNTRIES = new Set([
   "BR",
@@ -61,11 +62,13 @@ export function readStoredLang(fallback: Lang = "pt"): Lang {
 }
 
 export function writeStoredLang(lang: Lang): void {
+  const changed = peekStoredLang() !== lang;
   try {
     localStorage.setItem(LANG_STORAGE_KEY, lang);
   } catch {
     /* ignore */
   }
+  if (changed) window.dispatchEvent(new CustomEvent(LANG_CHANGE_EVENT, { detail: lang }));
 }
 
 export function htmlLangAttr(lang: Lang): string {
@@ -129,6 +132,22 @@ export async function resolveInitialLang(signal?: AbortSignal): Promise<Lang> {
 export function useResolvedLang(): [Lang, (lang: Lang) => void] {
   const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
   const locked = useRef(peekStoredLang() !== null);
+
+  useEffect(() => {
+    const sync = (event: Event) => {
+      const next = event instanceof StorageEvent ? event.newValue : (event as CustomEvent).detail;
+      if (event instanceof StorageEvent && event.key !== LANG_STORAGE_KEY) return;
+      if (!isLang(next)) return;
+      locked.current = true;
+      setLangState(next);
+    };
+    window.addEventListener(LANG_CHANGE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(LANG_CHANGE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   useEffect(() => {
     applyDocumentLang(lang);

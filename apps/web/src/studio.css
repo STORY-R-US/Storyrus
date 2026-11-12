@@ -2253,3 +2253,5 @@
   .studio-app .is-preview-review > .master-child-edit { margin: 0; }
   .studio-app .is-preview-review:has(.catalog-book-design-samples) .master-gallery.has-single-preview .master-shot > img { height: 180px; }
 }
+
+.studio-app .purchase-orders-link { color: var(--studio-link); text-underline-offset: 4px; }

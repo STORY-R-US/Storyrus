@@ -942,6 +942,8 @@ export function MasterBookFlow({
       )}
       {((["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"].includes(p.editorial?.version || "") && stage === "preview_ready") || ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage)) && (
         <PostPreviewFlow
+          showSteps={false}
+          adjusting={editing}
           project={project}
           jobs={jobs}
           assets={assets}

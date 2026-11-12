@@ -558,7 +558,7 @@ describe("Revisão do projeto", () => {
     expect(document.title).toBe("Story R Us - Prévia Pronta");
     expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-story-result")).toBeInTheDocument();
-    expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/matteo/i);
+    expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/noé/i);
     expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
     expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();
     expect(screen.getByTestId("studio-review-title")).toBeDisabled();

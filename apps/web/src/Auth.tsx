@@ -565,12 +565,10 @@ function AuthBody({
             </div>
             <SiteBackNav className="site-back-nav-center" />
             <p className="auth-lead" data-testid="auth-adult-service">{ADULT_SERVICE[lang]}</p>
-            <p className="auth-lead" data-testid="auth-clerk-hint">
-              {mode === "login" ? t.loginLead : t.signupLead}
-            </p>
             {clerkReady ? (
               mode === "login" ? (
                 <SignIn
+                  appearance={{ options: { socialButtonsVariant: "blockButton" } }}
                   routing="path"
                   path="/entrar"
                   withSignUp
@@ -581,6 +579,7 @@ function AuthBody({
                 />
               ) : (
                 <SignUp
+                  appearance={{ options: { socialButtonsVariant: "blockButton" } }}
                   routing="path"
                   path="/cadastro"
                   signInUrl={`/entrar?next=${encodeURIComponent(next)}`}
@@ -597,6 +596,9 @@ function AuthBody({
                     : "O login fica indisponível até a chave do Clerk estar configurada."}
               </p>
             )}
+            <p className="auth-lead" data-testid="auth-clerk-hint">
+              {mode === "login" ? t.loginLead : t.signupLead}
+            </p>
           </div>
         </div>
       </div>

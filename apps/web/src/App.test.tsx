@@ -103,7 +103,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(await screen.findByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();
     expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
-    expect(screen.getByDisplayValue(/matteo e o vale dos dinossauros/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/noé na terra dos dinossauros/i)).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
   });
 });

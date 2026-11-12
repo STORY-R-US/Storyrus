@@ -5,6 +5,7 @@ import { accountAccess, studioEntryHref } from "./Auth";
 import { api, clerkWillProvideSession, getToken, refreshSessionToken, subscribeClerkToken, whenClerkReady } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
+import { CatalogBrowser } from "./CatalogBrowser";
 import { localizedExample } from "./localizedExamples";
 import coverBounds from "./coverBounds.json";
 import { catalogModel, catalogModelId, unavailableCatalogCopy } from "./catalogModel";
@@ -247,7 +248,7 @@ function coverForLang(i: number, lang: Lang): string {
   const img = CATALOG_IMGS[i];
   return img ? catalogImgSrc(img, lang) : "";
 }
-function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): string {
+export function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): string {
   const cartoon = CARTOON_COVER[i];
   if (variant === "cartoon" && cartoon) return catalogImgSrc(cartoon, lang);
   return coverForLang(i, lang);
@@ -562,7 +563,7 @@ function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; sr
     return catalogCoverFile(i, "pt", "photo") ? [{ key: "cover", src: cover }] : [];
   }
   const shots: { key: CatalogSeriesKind; src: string }[] = [];
-  const cover = catalogImgSrc(series.cover, lang);
+  const cover = catalogCoverFile(i, lang, "photo");
   if (!catalogImgSrc(series.cover, "pt")) return [];
   shots.push({ key: "cover", src: cover });
   if (series.page && catalogImgSrc(series.page, "pt")) {
@@ -640,7 +641,7 @@ const CATALOG_THEMES = [
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50]);
+const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
@@ -945,7 +946,7 @@ function personalizeHref(opts: {
   if (opts.catalogI != null) q.set("modelo", catalogModelId(opts.catalogI, opts.modo === "cartoon"));
   return studioEntryHref(`/app?${q.toString()}`);
 }
-const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
+const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f.replace(/^\/?exemplos\//, "")}`);
 
 /** Recorte inicial dentro de familia-original.jpg. cx/cy e side são frações da foto. */
 const FRAME_START: Record<string, { cx: number; cy: number; side: number }> = {
@@ -2490,7 +2491,14 @@ export function CatalogBookCard({
   );
   if (layout === "page") {
     const series =
-      modo === "cartoon" && selectedModel ? (["cover", "page", "holding"] as const).filter((role) => Boolean(selectedModel.sources[role])).map((role) => ({key: role === "holding" ? "photo" as const : role, src: exUrl(selectedModel.sources[role])})) :
+      modo === "cartoon" && selectedModel ? (["cover", "page", "holding"] as const)
+        .filter((role) => Boolean(selectedModel.sources[role]))
+        .map((role) => ({
+          key: role === "holding" ? "photo" as const : role,
+          src: role === "cover" && book.catalogI != null
+            ? catalogCoverFile(book.catalogI, lang, "cartoon")
+            : localizedExample(selectedModel.sources[role].replace(/^\/?exemplos\//, ""), lang),
+        })) :
       book.catalogI != null
         ? catalogSeriesShots(book.catalogI, lang)
         : [{ key: "cover" as const, src: book.img }];
@@ -2672,17 +2680,6 @@ export function catalogSections(lang: Lang): CatalogSection[] {
       books: [...new Map(subs.flatMap((sub) => sub.books).map((book) => [book.catalogI, book])).values()],
     };
   });
-  const testCard = toCatalogCard(lang, 58);
-  if (testCard) {
-    const testName = lang === "en" ? "Test" : lang === "es" ? "Prueba" : "Teste";
-    sections.push({
-      id: "teste",
-      name: testName,
-      color: "#9b8cff",
-      subs: [{ id: "livro_teste", name: testCard.t, books: [testCard] }],
-      books: [testCard],
-    });
-  }
   return sections;
 }
 
@@ -3402,6 +3399,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <div className="khero-intro">
           <h1 ref={heroH1Ref}>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
+          <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
         <div className="hero-carousel" ref={heroCarouselRef} aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
@@ -3457,7 +3455,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         ) : null}
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
       </section>
 
@@ -3525,17 +3522,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
-        <div className="cat-grid">
-          {catalogBooks.map((c) => (
-            <CatalogBookCard
-              key={c.t}
-              book={c}
-              lang={lang}
-              personalize={t.personalize}
-              modo={variant === "cartoon" ? "cartoon" : "realista"}
-            />
-          ))}
-        </div>
+        <CatalogBrowser books={catalogBooks} lang={lang} renderBook={(book) => (
+          <CatalogBookCard book={book} lang={lang} personalize={t.personalize}
+            modo={variant === "cartoon" ? "cartoon" : "realista"} />
+        )} />
       </section>
 
       {/* NOSSA PROMESSA — logo abaixo dos livros */}
