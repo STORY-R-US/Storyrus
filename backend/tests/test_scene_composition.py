@@ -116,3 +116,37 @@ def test_expansion_reserves_natural_text_space_above_or_below_source(reserve):
     assert alpha.getpixel((512, text_y)) == 0
     assert transform["top"] == (1024 - transform["side"] if reserve == "top" else 0)
     assert image.getpixel((512, transform["top"] + transform["side"] // 2)) == (255, 0, 0, 255)
+
+
+@pytest.mark.parametrize("rejected", [False, True])
+def test_named_line_reports_require_complete_evidence_and_keep_rejections(rejected):
+    import json
+
+    from app.services import editorial_review
+
+    report = {f"line {n}": {"valid": True, "issues": [], "limitations": []} for n in range(1, 11)}
+    if rejected:
+        report["line 10"] = {"valid": False, "issues": ["Visible hair"], "limitations": []}
+    parsed = editorial_review.parse_crop_report(json.dumps(report), 10)
+    assert parsed["valid"] is (not rejected)
+    assert parsed["issues"] == (["Line 10: Visible hair"] if rejected else [])
+
+
+@pytest.mark.parametrize("bad", ["missing", "extra", "conflict", "invalid"])
+def test_named_line_reports_fail_closed(bad):
+    import json
+
+    from app.ai_clients.base import ProviderError
+    from app.services import editorial_review
+
+    report = {f"line {n}": {"valid": True, "issues": [], "limitations": []} for n in range(1, 3)}
+    if bad == "missing":
+        report.pop("line 2")
+    elif bad == "extra":
+        report["line 3"] = report["line 1"]
+    elif bad == "conflict":
+        report["valid"] = True
+    else:
+        report["line 2"]["valid"] = "true"
+    with pytest.raises(ProviderError):
+        editorial_review.parse_crop_report(json.dumps(report), 2)

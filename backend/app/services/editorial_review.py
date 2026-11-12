@@ -54,6 +54,17 @@ def parse_crop_report(text, expected_lines):
         value = json.loads(text)
     except (ValueError, TypeError):
         return parse_report(text)
+    if isinstance(value, dict) and set(value) == {
+        f"line {number}" for number in range(1, expected_lines + 1)
+    }:
+        if any(not isinstance(row, dict) or "line" in row for row in value.values()):
+            raise ProviderError("BOOK_REVIEW_INVALID: revisão por linha inválida")
+        value = {
+            "results": [
+                {**value[f"line {number}"], "line": number}
+                for number in range(1, expected_lines + 1)
+            ]
+        }
     if not isinstance(value, dict) or "results" not in value:
         return parse_report(text)
     rows = value["results"]
