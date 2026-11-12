@@ -821,7 +821,7 @@ describe("Landing — CTAs e links", () => {
           expect(shown.length, `${lang}: ${link.textContent}`).toBeGreaterThan(0);
           shown.forEach((book) => books.add(book.getAttribute("href")!));
         }
-        expect(books.size).toBe(variant === "photo" ? 58 : 33);
+        expect(books.size).toBe(variant === "photo" ? 58 : 34);
         if (variant === "photo") expect(books.has("/livro/31")).toBe(true);
         else expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
       }
@@ -890,14 +890,14 @@ describe("Landing — CTAs e links", () => {
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(33);
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(34);
     expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-pedro-amem-se.png", "pt")));
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Tia")).toBeInTheDocument();
     expect(within(catalog).getByText("Lucas E Seu Amigo Max")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
-    expect(within(catalog).queryByText(/esther/i)).not.toBeInTheDocument();
+    expect(within(catalog).getByText("Esther E Os Superpoderes Da Higiene")).toBeInTheDocument();
     expect(within(catalog).getByText("Nano E Suas Aventuras")).toBeInTheDocument();
     expect(within(catalog).getByText(/meme e o tata/i)).toBeInTheDocument();
     expect(within(cards[0]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();

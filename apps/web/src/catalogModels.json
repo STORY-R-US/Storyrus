@@ -1682,5 +1682,23 @@
       "page": "cartoon-pagina-rebeca-v1-pt.webp",
       "holding": "cartoon-foto-rebeca-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-24": {
+    "id": "catalog-cartoon-24",
+    "catalog_index": 24,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Esther E Os Superpoderes Da Higiene",
+      "en": "Esther And The Superpowers Of Hygiene",
+      "es": "Esther Y Los Superpoderes De La Higiene"
+    },
+    "example_name": "Esther",
+    "sources": {
+      "cover": "covers/cartoon-capa-esther-higiene-v1-pt.webp",
+      "page": "cartoon-pagina-esther-higiene-v1-pt.webp",
+      "holding": "cartoon-foto-esther-higiene-v1-pt.webp"
+    }
   }
 }
