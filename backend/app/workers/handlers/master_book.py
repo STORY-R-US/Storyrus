@@ -1177,7 +1177,7 @@ async def page(db, job, project):
             from .editorial_book import Pipeline
 
             pipe = Pipeline(db, job, project, photos)
-            if number == 1 and pipe.designed:
+            if number == 1 and pipe.designed and not pipe.integrated_editorial_available():
                 from app.services import book_design
                 from app.workers import editorial_render
 
@@ -1196,7 +1196,7 @@ async def page(db, job, project):
                         raise ProviderError(
                             f"Revise o texto da página {page_number}: {exc}", transient=False
                         ) from exc
-            if pipe.design:
+            if pipe.design or pipe.integrated_editorial_available():
                 pipe.cover_continuity = storage.get_bytes(
                     (cover.meta or {}).get("art_key")
                     or (cover.meta or {}).get("flat_cover_key")
@@ -1253,7 +1253,34 @@ async def page(db, job, project):
                         role="com_texto",
                         page=reading_number,
                     )
-                    if backgrounds and existing_text:
+                    if existing_text and pipe.integrated_editorial_available():
+                        paired_literal = "\n\n".join(passages[i - 1] for i in covered)
+                        if existing_text[-1].meta.get("layout", {}).get("text") != paired_literal:
+                            corrected, corrected_meta = await pipe.catalog_page(
+                                f"page:{reading_number}",
+                                pair_action,
+                                mode="reading",
+                                value=paired_literal,
+                                passages=covered,
+                            )
+                            corrected_meta.pop("art_bytes", None)
+                            corrected_meta.pop("workflow", None)
+                            _store(
+                                db,
+                                project,
+                                "page_image",
+                                corrected,
+                                language=language,
+                                role="com_texto",
+                                page=reading_number,
+                                name=contract.filename(
+                                    language,
+                                    f"PAGINA_{reading_number:02d}_COM_TEXTO",
+                                    profile["locales"][language]["title"],
+                                ),
+                                **corrected_meta,
+                            )
+                    elif backgrounds and existing_text:
                         from app.workers import editorial_render
 
                         background = storage.get_bytes(backgrounds[-1].storage_key)
@@ -1307,6 +1334,7 @@ async def page(db, job, project):
                     "book_design",
                     "page_role",
                     "passages",
+                    "integrated_text",
                 }
             }
         else:
@@ -1351,7 +1379,12 @@ async def page(db, job, project):
                 page=number,
             )
         title = profile["locales"][language]["title"]
-        for role, data in (("sem_texto", art), ("com_texto", rendered)):
+        outputs = (
+            (("com_texto", rendered),)
+            if page_metadata.get("integrated_text")
+            else (("sem_texto", art), ("com_texto", rendered))
+        )
+        for role, data in outputs:
             _store(
                 db,
                 project,

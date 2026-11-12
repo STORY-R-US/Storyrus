@@ -271,9 +271,9 @@ class Pipeline:
             "01_CAPA"
             if name.startswith("cover")
             else "02_LIVRO_ABERTO"
-            if name.startswith(("preview:", "spread"))
+            if name == "preview" or name.startswith(("preview:", "spread"))
             else "03_LEITURA"
-            if name == "reading"
+            if name == "reading" or name.startswith("reading:integrated")
             else None
         )
         return self.project.book_profile.get("editorial_revisions", {}).get(role, {})
@@ -374,9 +374,9 @@ class Pipeline:
         )
         # Current layouts solve placement locally. A genuine quality rejection
         # must not buy another image automatically.
-        if self.designed or name.endswith(":art"):
+        if self.designed or name.endswith((":art", ":integrated")):
             maximum = 1
-        elif name in {"spread", "reading"}:
+        elif name in {"spread", "reading", "reading:integrated"}:
             # A mockup quality/composition failure must not buy another template
             # automatically. A new user retry is the explicit boundary for another
             # paid image-generation attempt.
@@ -872,6 +872,10 @@ class Pipeline:
         )
 
     async def art(self, name, action, *, title=False, value=None):
+        if self.integrated_editorial_available():
+            return await self.integrated_editorial_scene(
+                name, action, role="cover" if title else "page", text=value or ""
+            )
         if self.designed:
             try:
                 render.text(
@@ -1911,6 +1915,10 @@ class Pipeline:
 
     async def catalog_page(self, name, action, *, mode, value="", passages=None):
         """Construct the page role prescribed by the selected complete catalog book."""
+        if self.integrated_editorial_available():
+            return await self.integrated_editorial_scene(
+                name, action, role=mode + "_page", text=value, passages=passages
+            )
         design = self.design
         if not design:
             raise ProviderError(
@@ -2046,6 +2054,10 @@ class Pipeline:
         return data, {**meta, "art_bytes": raw}
 
     async def catalog_spread(self, name, left, right, actions):
+        if self.integrated_editorial_available():
+            return await self.integrated_editorial_scene(
+                name, actions, role="open_book", text={"left": left, "right": right}
+            )
         mode = self.design["interior"]["mode"]
         if self.design["id"] == "family" or self.design.get("preview_interior"):
             interior = book_design.preview_interior(self.design)
@@ -2085,6 +2097,338 @@ class Pipeline:
             )
         return await self.mockup("spread", [first, second])
 
+    def integrated_editorial_available(self):
+        """Freeze the workflow before the first image; never migrate paid source art."""
+        if self.demo:
+            return False
+        frozen = self.profile.get("scene_workflow")
+        if frozen:
+            return frozen == "integrated-v1"
+        if self.profile.get("generation_outcomes_unknown"):
+            return False
+        existing = self.db.scalar(
+            select(Asset.id)
+            .where(
+                Asset.project_id == self.project.id,
+                Asset.kind.in_(
+                    ["editorial_source", "editorial_candidate", "cover", "page_image", "in_hand"]
+                ),
+            )
+            .limit(1)
+        )
+        if existing:
+            return False
+        jobs = self.db.scalars(select(Job).where(Job.project_id == self.project.id)).all()
+        if any((job.result or {}).get("editorial_tasks") for job in jobs):
+            return False
+        # Persist before any provider call, including a crash before its response.
+        contract.update(self.project, scene_workflow="integrated-v1")
+        self.db.commit()
+        self.profile = self.project.book_profile
+        return True
+
+    async def integrated_editorial_scene(self, name, action, *, role, text, passages=None):
+        """One finished image with literal copy, saved before mandatory review."""
+        spread = role == "open_book"
+        title = role == "cover"
+        if spread and self.design:
+            mode = book_design.preview_interior(self.design)["mode"]
+            if mode != "two_scenes":
+                passage = text["left"] + "\n\n" + text["right"]
+                text = {
+                    "left": passage if mode == "text_left" else "",
+                    "right": passage if mode == "text_right" else "",
+                }
+        design_role = (
+            "cover"
+            if title
+            else "open_book"
+            if spread
+            else role
+            if role.endswith("_page")
+            else "preview_page"
+        )
+        reference_role = "cover" if title else "page"
+        reference = (
+            book_design.reference(self.design, reference_role)
+            if self.design
+            else visual_reference.load(reference_role, self.project.style, self.reference_theme)
+        )
+        continuity = self.cover_continuity if not title else None
+        references = (
+            self.photos[1:]
+            + ([continuity] if continuity else [])
+            + ([reference] if reference else [])
+        )
+        prompt = (
+            book_design.prompt(self.design, design_role, action, integrated=True)
+            if self.design
+            else "Create a premium illustrated children's book in the requested visual style. "
+        )
+        prompt += (
+            "\nINTEGRATED ART AND LETTERING: compose the finished image, scenery, characters and "
+            "EXACT literal text together. Lettering belongs to the scene from the start. "
+            "Original photographs define facial identity, age, skin, hair and headwear only; "
+            "create a new rich illustrated setting for the requested theme, not the photo backdrop. "
+            "Preserve every authorized person's identity, natural anatomy and the approved story "
+            "wardrobe. Keep faces, hair, hats, hands and important action clear of ALL lettering. "
+            "Frame people smaller and arrange the scene around the text before drawing; never "
+            "solve overlap by shrinking text into a corner, stretching sides, blurring strips, "
+            "adding seams, a dark band or a separate panel. Keep continuous natural scenery. "
+            "Use specific foreground, middle-ground and distant details with coherent materials, "
+            "light, depth, contact shadows and believable gestures. No plastic skin or generic "
+            "empty backdrop. Match the selected catalog's own finish and layout. "
+        )
+        if spread:
+            prompt += (
+                "ONE complete photograph of an open hardback on a coherent surface, two equal "
+                "square facing pages with plausible gutter, binding and paper. No montage or "
+                "isolated panels. Keep the left and right literal passages on their correct pages, "
+                "following the selected interior layout. Different coherent actions on illustrated "
+                "pages; preserve identities and story continuity. No cover title on the interior. "
+            )
+        elif title:
+            prompt += (
+                "ONE flat square front cover for printing, full bleed, no physical mockup or spine. "
+                "Large prominent title at the top, naturally balanced across two lines where it fits "
+                "the literal title and catalog design. Keep the complete head well below the title. "
+                "Use catalog-matching lettering and gold accents only when that model calls for them. "
+            )
+        else:
+            prompt += (
+                "ONE flat square print-ready interior page, full bleed, no book mockup, spine, "
+                "frame or cover title. Render only the literal passage assigned to this page. "
+            )
+            if role == "reading_page":
+                prompt += "This catalog uses a quiet reading page with discreet thematic edge details; no people or narrative scene inside its reading area. "
+            elif role == "illustration_page":
+                prompt += "This is the illustration-only page of the selected model: no text or reserved text strip. "
+        prompt += f"References 1 through {len(self.photos)} are ORIGINAL identity photos. "
+        if continuity:
+            prompt += f"Reference {len(self.photos) + 1} is this project's approved cover, defining character and story continuity, not text to copy onto pages. "
+        if reference:
+            prompt += f"Reference {len(self.photos) + int(bool(continuity)) + 1} is ONLY the catalog finish/layout: never copy its cast, title, story props or words. "
+        prompt += json.dumps(
+            {
+                "literal_text": text,
+                "language": self.language,
+                "action": action,
+                "continuity": self.base["continuity"],
+                "authorized_cast": self.base["cast_contract"],
+                "requested_adjustment": self.revision_for(name).get("adjustment", ""),
+                "text_rule": "Use every literal word exactly once, preserving accents, case and punctuation. Do not translate, paraphrase or add words.",
+            },
+            ensure_ascii=False,
+        )
+        inputs = {
+            "role": role,
+            "action": action,
+            "text": text,
+            "cover": render.digest(continuity) if continuity else None,
+            "scene_contract": 1,
+        }
+
+        async def generate(_attempt):
+            result = (
+                await self.master._pkg()
+                .get_image_provider()
+                .generate_scene(
+                    prompt=prompt,
+                    character_ref=self.photos[0],
+                    photo=self.photos[0],
+                    extra_refs=references,
+                    style=self.design["finish"]
+                    if self.design
+                    else contract.art_direction(self.project.style),
+                    landscape=spread,
+                )
+            )
+            self.account(result, name)
+            return result.image_bytes, {
+                "operation": "generate_integrated_editorial",
+                "scene_role": role,
+            }
+
+        raw, source = await self.stage(name + ":integrated", inputs, generate)
+
+        async def validate(_attempt):
+            if not spread:
+                render.square(raw)
+            prefix = "LIVRO_ABERTO" if spread else "CAPA_PLANA" if title else "PAGINA_INTERNA"
+            qa = await self.review(
+                raw,
+                prefix + ": Finished integrated artwork and literal lettering. Compare ORIGINAL "
+                "photos for identity, age, hair and headwear; preserve approved story clothing. "
+                "Reject malformed anatomy, stretched scenery, seams, bands or text covering faces, "
+                "hair, hats, hands or action. Read EVERY word and reject changed, missing, added, "
+                "clipped or unreadable text. Lettering must be large and comfortable to read, "
+                "with the cover title prominently at the top. For interiors no cover title. "
+                "The selected catalog controls the interior role: illustration-only pages have "
+                "no text; quiet reading pages need no narrative scene. For an open book, verify "
+                "two equal square pages, coherent binding and the correct passage on each side. "
+                "Literal text and role: "
+                + json.dumps(
+                    {
+                        "role": role,
+                        "text": text,
+                        "interior_layout": book_design.preview_interior(self.design)
+                        if spread and self.design
+                        else (self.design or {}).get("interior"),
+                    },
+                    ensure_ascii=False,
+                ),
+                cover=continuity,
+                mandatory=True,
+                technical={
+                    "method": "integrated generation; exact copy and identity require visual review"
+                },
+            )
+            return raw, {
+                "validation": qa,
+                "presentation": "integrated_editorial",
+                "scene_role": role,
+                "art_key": source["storage_key"],
+                "art_sha256": render.digest(raw),
+                "integrated_text": True,
+                "layout": {"text": text, "method": "integrated"},
+                "page_role": role,
+                "passages": passages or [],
+                **(
+                    {"book_design": {"id": self.design["id"], "sha256": self.design["sha256"]}}
+                    if self.design
+                    else {}
+                ),
+            }
+
+        data, meta = await self.stage(
+            name + ":integrated:checked", inputs, validate, billable=False
+        )
+        return data, {**meta, **({"art_bytes": raw} if not spread else {})}
+
+    def integrated_reading_available(self):
+        """Do not migrate a purchased or uncertain legacy template on resume."""
+        if self.demo:
+            return False
+        guards = self.profile.get("generation_outcomes_unknown") or {}
+        if any(item.get("stage") == "reading:integrated" for item in guards.values()):
+            return True
+        if any(item.get("stage") in {"reading", "reading:template"} for item in guards.values()):
+            return False
+        sources = self.db.scalars(
+            select(Asset).where(
+                Asset.project_id == self.project.id, Asset.kind == "editorial_source"
+            )
+        ).all()
+        if any((asset.meta or {}).get("stage") == "reading:template" for asset in sources):
+            return False
+        jobs = self.db.scalars(select(Job).where(Job.project_id == self.project.id)).all()
+        return not any(
+            "reading:template" in ((job.result or {}).get("editorial_tasks") or {}) for job in jobs
+        )
+
+    async def integrated_reading(self, cover):
+        """Persist the complete scene before review; retries reuse that same image."""
+        title = self.profile["locales"][self.language]["title"]
+        reference = (
+            book_design.reference(self.design, "holding")
+            if self.design
+            else visual_reference.load("holding", self.project.style, self.reference_theme)
+            if self.designed
+            else None
+        )
+        direction = (
+            book_design.prompt(
+                self.design, "holding", "Create the finished reading photograph.", integrated=True
+            )
+            if self.design
+            else "Create a finished natural editorial reading photograph."
+        )
+        size = 15 if self.project.book_size == "P" else 20
+        prompt = direction + (
+            f"\nINTEGRATED FINAL SCENE: reference images 1 through {len(self.photos)} are the "
+            "ORIGINAL identity photographs. Preserve each person's facial features, age, skin, "
+            "hair and headwear; never substitute a catalog face or the painted face on the book. "
+            f"Reference {len(self.photos) + 1} is the EXACT FINISHED PROJECT COVER. Print that "
+            "cover on the physical book, preserving its artwork, title, spelling, accents, "
+            "line breaks, lettering and proportions. Do not redesign, translate or add text. "
+            "Create the person, room, hands, lighting and printed book TOGETHER in one image. "
+            "No placeholder colors, chroma-key planes, blank cover or later pasted panel. "
+            f"Show a real square {size}x{size} cm hardback, slightly open, at a readable gentle "
+            "three-quarter angle. Both rigid boards connect through a plausible spine and hinge; "
+            "layered page edges, contact shadows and natural fingers support its weight at the "
+            "outer edges. Keep the printed title fully visible, sharp and readable. No stretched "
+            "cover, floating book, extra fingers or fingers covering the title or printed faces. "
+            "Medium-wide composition: whole head, hair/headwear, torso, forearms and lap visible. "
+            "Use natural facial expression and anatomically credible hands. A coherent welcoming "
+            "room with window daylight, textured upholstery, a few meaningful objects and spatial "
+            "depth; details belong naturally to the scene, never decorative pasted strips. "
+            "The external people and room remain photographic even when the printed cover is "
+            "cartoon. The person's casual clothing may differ from the story costume. "
+        )
+        if reference:
+            prompt += (
+                f"Reference {len(self.photos) + 2} is ONLY the catalog's photographic finish and "
+                "physical book presentation. Never copy its people, printed text or cover art. "
+            )
+        prompt += json.dumps(
+            {
+                "literal_title": title,
+                "language": self.language,
+                "authorized_cast": self.base["cast_contract"],
+                "identity_manifest": self.base["reference_manifest"],
+                "printed_story_continuity": self.base["continuity"],
+                "requested_adjustment": self.revision_for("reading").get("adjustment", ""),
+            },
+            ensure_ascii=False,
+        )
+
+        async def generate(_attempt):
+            result = (
+                await self.master._pkg()
+                .get_image_provider()
+                .generate_scene(
+                    prompt=prompt,
+                    character_ref=self.photos[0],
+                    photo=self.photos[0],
+                    extra_refs=self.photos[1:] + [cover] + ([reference] if reference else []),
+                    reference_role="cover",
+                    style="fotografia editorial natural",
+                    landscape=False,
+                )
+            )
+            self.account(result, "reading")
+            return result.image_bytes, {"operation": "generate_integrated_reading"}
+
+        raw, source = await self.stage(
+            "reading:integrated",
+            {"cover_sha256": render.digest(cover), "scene_contract": 1},
+            generate,
+        )
+        qa = await self.review(
+            raw,
+            "LEITURA: inspect the complete integrated photograph against ORIGINAL identity "
+            "photos and EXACT_COVER. Reject changed identity, age, hair/headwear, malformed "
+            "hands, implausible binding, stretched cover, colored placeholders, pasted seams "
+            "or unreadable/changed text. Compare every title word, accent and line break with "
+            "EXACT_COVER; do not approve uncertain lettering. The printed artwork and its "
+            "proportions must match EXACT_COVER. People outside the book must be photographic, "
+            "even for cartoon books. A natural casual outfit outside the book is allowed. "
+            "The book must have physical thickness, connected boards, natural finger contact "
+            "and consistent perspective, light and shadows. Literal title: "
+            + json.dumps(title, ensure_ascii=False),
+            cover=cover,
+            technical={
+                "method": "integrated generation; identity and literal text require visual review"
+            },
+            mandatory=True,
+        )
+        return raw, {
+            "validation": qa,
+            "presentation": "integrated_reading",
+            "source_key": source["storage_key"],
+            "cover_sha256": render.digest(cover),
+        }
+
     async def mockup(self, name, artworks, *, cover=None):
         if name == "spread":
 
@@ -2114,7 +2458,11 @@ class Pipeline:
                 billable=False,
             )
 
+        integrated = name == "reading" and self.integrated_reading_available()
+
         async def build(attempt):
+            if integrated:
+                return await self.integrated_reading(artworks[0])
             reading = len(artworks) == 1
             folded = None
             prompt = (
@@ -2332,7 +2680,7 @@ class Pipeline:
         try:
             return await self.stage(name, inputs, build)
         except ProviderError as exc:
-            if name != "reading":
+            if name != "reading" or integrated:
                 raise
             failure = str(exc).lower()
             reason = (
@@ -2449,7 +2797,7 @@ async def preview(db, job, project):
         project, preview_ready_at=None, preview_approved_at=None, stage="preview_generating"
     )
     locale = project.book_profile["locales"][pipe.language]
-    if pipe.designed:
+    if pipe.designed and not pipe.integrated_editorial_available():
         # Check ALL known copy before purchasing the first illustration or mockup.
         # A later overflowing page must not waste a successfully purchased cover.
         try:
@@ -2487,7 +2835,7 @@ async def preview(db, job, project):
             title=True,
             value=locale["title"],
         )
-    if pipe.designed and flat_meta.get("art_key"):
+    if (pipe.designed or flat_meta.get("integrated_text")) and flat_meta.get("art_key"):
         pipe.cover_continuity = storage.get_bytes(flat_meta["art_key"])
     cover = render.front(flat, profile=project.book_profile)
     role = "01_CAPA"
@@ -2527,7 +2875,17 @@ async def preview(db, job, project):
                 )
                 continue
             actions = project.book_profile.get("preview_actions", {}).get(pipe.language, {})
-            if pipe.design:
+            if pipe.integrated_editorial_available():
+                data, meta = await pipe.integrated_editorial_scene(
+                    "preview",
+                    [
+                        actions.get("left") or locale["left"],
+                        actions.get("right") or locale["right"],
+                    ],
+                    role="open_book",
+                    text={"left": locale["left"], "right": locale["right"]},
+                )
+            elif pipe.design:
                 data, meta = await pipe.catalog_spread(
                     "preview",
                     locale["left"],
