@@ -16,6 +16,7 @@ from app.services import (
     editorial_profile,
     editorial_review,
     purchase_flow,
+    scene_composition,
     spend_guard,
     visual_reference,
 )
@@ -993,7 +994,7 @@ class Pipeline:
                     "ONLY natural background. Place the entire head and hair BELOW y=280, "
                     "with the main person and action in the lower three quarters. Show the "
                     "same person at natural proportions. Change camera framing and pose, "
-                    "preserve identity and clothing. No lettering, banner or artificial panel."
+                    "preserve identity and the requested story wardrobe. No lettering, banner or artificial panel."
                 )
             prompt += (
                 "\nFINAL OUTPUT: ONE continuous generated scene only. Reference images are "
@@ -1122,7 +1123,7 @@ class Pipeline:
             if title and not (self.design and self.design.get("version") == 4):
                 prompt += "\nSINGLE FRONT COVER ONLY: one continuous square front face, no open book, spread, central gutter, diptych or two facing pages."
                 prompt += (
-                    "\nRECOMPOSE THE SCENE: original photos define identity and clothing only. "
+                    "\nRECOMPOSE THE SCENE: original photos define identity only. Use the requested story wardrobe. "
                     "Change pose, framing and setting to depict the requested activity. "
                     "Do not reproduce a selfie, pasted photograph, rectangular portrait, "
                     "white frame, separate paper panel, drop-shadow inset or background from the source photo. "
@@ -1206,6 +1207,16 @@ class Pipeline:
                 self.design and self.design.get("version") == 4
             ):
                 prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
+            composition_guide = None
+            if title:
+                composition_guide, geometry = scene_composition.cover_guide(
+                    safe_region, alignment=self.alignment(True)
+                )
+                # Before the optional catalog image, so that the catalog remains
+                # the LAST style reference and original photos remain first.
+                prompt += scene_composition.direction(
+                    geometry, reference_number=len(self.photos) + len(self.refs) + 1
+                )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
             else:
@@ -1251,6 +1262,7 @@ class Pipeline:
                         extra_refs=self.photos[1:]
                         + self.refs
                         + ([self.cover_continuity] if not title and self.cover_continuity else [])
+                        + ([composition_guide] if composition_guide else [])
                         + ([visual_master] if visual_master else []),
                         style=(
                             self.policy["visual"]["artDirection"]
@@ -1479,6 +1491,9 @@ class Pipeline:
                 "composition_sha256": render.digest(candidate),
                 "text_region": region,
                 "operation": operation,
+                "camera_guide": geometry
+                if composition_guide and operation == "generate_flat_art" and not self.demo
+                else None,
                 "source_sha256": source_sha256,
                 "page_composition": page_composition,
                 "local_reading_layout": local_layout,

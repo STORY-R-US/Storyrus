@@ -880,7 +880,8 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
         assert book_design.reference(design, role) not in references
         assert "COMPLETE CATALOG BOOK DESIGN" in call["prompt"]
         assert "AUTHORIZED CAST" in call["prompt"]
-    assert calls[0]["extra_refs"] == []
+    assert len(calls[0]["extra_refs"]) == 1  # abstract layout guide, never example cast
+    assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
     assert "SINGLE FRONT COVER ONLY" in calls[0]["prompt"]
     assert '"solo": true' in calls[0]["prompt"]
     assert not (project.purchase_flow or {}).get("preview_approved_at")
@@ -2436,6 +2437,10 @@ async def test_current_preview_checks_cover_and_source_art_without_extra_image_c
     assert sum(check["prompt"].startswith("CAPA_PLANA:") for check in reviewed) == 1
     assert "desenha uma flor" in generated[0]["prompt"]
     assert "MANDATORY COVER FRAMING" in generated[0]["prompt"]
+    assert "COMPOSITION DIAGRAM" in generated[0]["prompt"]
+    assert generated[0]["photo"] == _png()
+    assert generated[0]["extra_refs"]
+    assert "COMPOSITION DIAGRAM" not in generated[1]["prompt"]
     assert "RECOMPOSE THE SCENE" in generated[0]["prompt"]
     assert "cast_contract" in reviewed[0]["full_image_prompt"]
     assert job.cost_credits == 0 and not job.cost_usd
@@ -3085,7 +3090,9 @@ async def test_visual_master_is_not_attached_to_project_art(
     await _run(studio, "preview", {"cover_only": True}, key="master-style-only")
     assert len(calls) == 1
     assert calls[0]["photo"] == _png()
-    assert calls[0]["extra_refs"] == []
+    assert len(calls[0]["extra_refs"]) == 1
+    assert all(reference not in masters.values() for reference in calls[0]["extra_refs"])
+    assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
     assert "PROJECT-ONLY REFERENCES" in calls[0]["prompt"]
     _, db, pid, _ = studio
     project = db.get(Project, uuid.UUID(pid))
@@ -3173,7 +3180,8 @@ async def test_new_cover_uses_catalog_finish_and_keeps_project_photo(
     await _run(studio, "preview", {"cover_only": True}, key="catalog-first-cover")
     assert len(calls) == 1
     assert calls[0]["photo"] == _png()
-    assert calls[0]["extra_refs"] == []
+    assert len(calls[0]["extra_refs"]) == 1
+    assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
     assert "PROJECT-ONLY REFERENCES" in calls[0]["prompt"]
     assert visual_reference.catalog_family(style, title) == family
 
@@ -3196,6 +3204,9 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
     design = book_design.resolve(project.book_profile)
     assert design["id"] == model
     assert book_design.reference(design, "cover") in calls[0]["extra_refs"]
+    assert calls[0]["extra_refs"][-1] == book_design.reference(design, "cover")
+    assert "COMPOSITION DIAGRAM" in calls[0]["prompt"]
+    assert len(calls[0]["extra_refs"]) >= 2
     assert project.book_profile["cover_calibration"]["flat_meta"]["layout"]["text"] == design[
         "title_templates"
     ]["pt-BR"].replace(design["example_name"] or "\0", project.child_name)
