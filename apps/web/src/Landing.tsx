@@ -7,6 +7,7 @@ import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/l
 import { SiteBackNav } from "./SiteBackNav";
 import { localizedExample } from "./localizedExamples";
 import coverBounds from "./coverBounds.json";
+import { catalogModel, catalogModelId, unavailableCatalogCopy } from "./catalogModel";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -941,6 +942,7 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
+  if (opts.catalogI != null) q.set("modelo", catalogModelId(opts.catalogI, opts.modo === "cartoon"));
   return studioEntryHref(`/app?${q.toString()}`);
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
@@ -2419,7 +2421,7 @@ export function CatalogBookCard({
     page: pageCopy.page,
     photo: pageCopy.photo,
   };
-  const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
+  const bookHref = book.catalogI != null ? `/livro/${book.catalogI}${modo === "cartoon" ? "?modo=cartoon" : ""}` : null;
   const linked = linkBook && bookHref != null;
   const notes = (
     <div className="cat-notes">
@@ -2465,7 +2467,10 @@ export function CatalogBookCard({
       </div>
     </div>
   );
-  const go = (
+  const selectedModel = book.catalogI != null ? catalogModel(catalogModelId(book.catalogI, modo === "cartoon")) : undefined;
+  const go = book.catalogI != null && !selectedModel?.available ? (
+    <p role="status" className="muted" data-testid="catalog-model-unavailable">{unavailableCatalogCopy(lang)}</p>
+  ) : (
     <Link
       to={personalizeHref({
         theme: book.theme,
@@ -2485,6 +2490,7 @@ export function CatalogBookCard({
   );
   if (layout === "page") {
     const series =
+      modo === "cartoon" && selectedModel ? (["cover", "page", "holding"] as const).filter((role) => Boolean(selectedModel.sources[role])).map((role) => ({key: role === "holding" ? "photo" as const : role, src: exUrl(selectedModel.sources[role])})) :
       book.catalogI != null
         ? catalogSeriesShots(book.catalogI, lang)
         : [{ key: "cover" as const, src: book.img }];

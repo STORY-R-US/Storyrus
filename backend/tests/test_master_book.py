@@ -3176,3 +3176,34 @@ async def test_new_cover_uses_catalog_finish_and_keeps_project_photo(
     assert calls[0]["extra_refs"] == []
     assert "PROJECT-ONLY REFERENCES" in calls[0]["prompt"]
     assert visual_reference.catalog_family(style, title) == family
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "model", ["catalog-realistic-0", "catalog-realistic-1", "catalog-realistic-6"]
+)
+async def test_selected_individual_catalog_profile_reaches_cover_and_interior_provider(
+    reference_studio, model
+):
+    from app.services import book_design
+
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    await _run(studio, "preview", {"catalog_design_id": model, "cover_only": True})
+    project = db.get(Project, uuid.UUID(pid))
+    design = book_design.resolve(project.book_profile)
+    assert design["id"] == model
+    assert book_design.reference(design, "cover") in calls[0]["extra_refs"]
+    assert project.book_profile["cover_calibration"]["flat_meta"]["layout"]["text"] == design[
+        "title_templates"
+    ]["pt-BR"].replace(design["example_name"] or "\0", project.child_name)
+    assert "SELECTED CATALOG COVER" in calls[0]["prompt"]
+    assert "PROJECT-ONLY REFERENCES: all attached" not in calls[0]["prompt"]
+    approval = project.book_profile["cover_calibration"]["sha256"]
+    await _run(
+        studio, "preview", {"approved_cover_sha256": approval}, key="continue-specific-catalog"
+    )
+    assert book_design.reference(design, "page") in calls[1]["extra_refs"]
+    assert book_design.reference(design, "page") in calls[2]["extra_refs"]
+    assert design["finish"] in calls[1]["prompt"]
+    assert not (project.purchase_flow or {}).get("preview_approved_at")

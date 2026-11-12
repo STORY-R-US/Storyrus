@@ -203,6 +203,10 @@ def text(
     typography = policy["typography"]
     filename = typography.get("titleFontFile" if title else "bodyFontFile", "Nunito-Medium.ttf")
     font_path = editorial_profile._root(profile["editorial"]["version"]) / "fonts" / filename
+    if typography.get("titleFontPackage" if title else "bodyFontPackage") == "catalog-v1":
+        from app.services import book_design
+
+        font_path = book_design.ROOT / "fonts/catalog-v1" / filename
     try:
         manifest = json.loads((font_path.parent / "manifest.json").read_text(encoding="utf-8"))
         font_bytes = font_path.read_bytes()

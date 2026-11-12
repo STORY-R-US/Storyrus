@@ -757,3 +757,26 @@ describe("Prévia automática", () => {
     expect(assets.in_hand_url).toMatch(/in-hand/);
   });
 });
+
+describe("Studio — perfil específico do Catálogo", () => {
+  it("preserva o perfil e o título personalizado ao escolher outro tema", async () => {
+    window.history.replaceState({}, "", "/app?modelo=catalog-realistic-0&tema=sport&campos=nome");
+    const user = userEvent.setup();
+    const preview = vi.spyOn(api, "startPreview");
+    render(<Studio />);
+    await openBook(user);
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "João");
+    expect(screen.getByLabelText(/título do livro/i)).toHaveValue("João, O Grande Goleiro Do Chile");
+    expect(screen.getByLabelText(/título do livro/i)).toHaveAttribute("readonly");
+    const theme = screen.getByLabelText(/insira o tema desejado/i);
+    await user.clear(theme);
+    await user.type(theme, "Aventura no espaço");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", {type:"image/jpeg"}));
+    await user.click(screen.getByRole("button", {name:/^masculino$/i}));
+    await user.click(screen.getByRole("checkbox", {name:/responsável legal/i}));
+    await user.click(screen.getByRole("button", {name:/gerar o livro/i}));
+    await screen.findByTestId("studio-order-sent");
+    expect(preview).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({catalog_design_id:"catalog-realistic-0"}));
+  });
+});

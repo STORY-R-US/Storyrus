@@ -9,6 +9,8 @@ import { siteTitle } from "./pageMeta";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import { themePreset } from "./studioPreset";
+import { catalogModel, unavailableCatalogCopy } from "./catalogModel";
+import { CatalogDesignSamples } from "./studio/CatalogBookDesign";
 import {
   ageLimit,
   castFromQuery,
@@ -269,6 +271,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [themeText, setThemeText] = useState("");
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
+  const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
   const [bookSize, setBookSize] = useState<"M" | "P">("M");
   const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
   const [extraNames, setExtraNames] = useState("");
@@ -353,6 +356,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setStoryDraft(p.story_text || ""); setPhotoNotes(p.purchase_flow?.photo_notes || "");
       setChildName(p.child_name || ""); setChildAge(String(p.child_age ?? ""));
       setStoryOutfit(p.book_profile?.costume || "");
+      if (p.book_profile?.book_design?.id?.startsWith("catalog-")) setSelectedCatalogId(p.book_profile.book_design.id);
       setChildWay(p.child_trait || p.book_profile?.trait || "");
       setChildLikes(p.child_interest || p.book_profile?.interest || "");
       if (p.book_profile?.gender === "f" || p.book_profile?.gender === "m") setGender(p.book_profile.gender);
@@ -369,9 +373,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (presetApplied.current || isDemo) return;
     const q = new URLSearchParams(window.location.search);
     const tema = q.get("tema");
-    const titulo = q.get("titulo");
+    const requestedModel = q.get("modelo");
+    const selectedModel = catalogModel(requestedModel);
+    setSelectedCatalogId(requestedModel);
+    const titulo = selectedModel?.titles[lang] || q.get("titulo");
     const historia = q.get("historia");
-    const heroi = q.get("heroi");
+    const heroi = selectedModel?.example_name || q.get("heroi");
     if (!tema && !titulo && !historia) return;
     presetApplied.current = true;
     if (tema) setTemaId(tema);
@@ -380,7 +387,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (capa === "soft" || capa === "hard") setCoverType(capa);
     if (q.get("modo") === "cartoon") setArtMode("cartoon");
     const onlyTheme = q.get("campos") === "tema" || q.get("campos") === "nome";
-    if (q.get("campos") === "nome") setOnlyName(true);
+    if (q.get("campos") === "nome") setOnlyName(!requestedModel);
+    if (selectedModel) setArtMode(selectedModel.style === "cartoon" ? "cartoon" : "realista");
     const cast = tema || titulo || historia ? castFromQuery(q) : emptyCast();
     setCastWho(cast.who);
     setGender(cast.gender ?? "f");
@@ -445,6 +453,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const companion = alsoName.trim();
     const cm = bookSize === "P" ? "15×15 cm" : "20×20 cm";
     const look =
+      selectedCatalogId ? `Padrão visual do exemplar selecionado do Catálogo: ${catalogModel(selectedCatalogId)?.titles[lang] || selectedCatalogId}. Preserve esse perfil; o tema escolhido pelo responsável define a história.` :
       artMode === "cartoon"
         ? "Estilo cartoon premium, traços desenhados, formas arredondadas, sem anime nem chibi."
         : "Realismo editorial premium no padrão Meu Pai, Meu Herói: rostos naturais, cabelo fio a fio, luz quente, cores luminosas equilibradas, cenário detalhado e íris na proporção da foto, sem cartoon ou aquarela.";
@@ -474,7 +483,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       (companion ? `Também entra ${companion}. ` : "") +
       format
     );
-  }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText]);
+  }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText, selectedCatalogId]);
 
   const previewChainActive = jobs.some(
     (j) =>
@@ -566,6 +575,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   function formReady(agreed = mediaConsent) {
     if (isDemo) return false;
+    if (selectedCatalogId && !catalogModel(selectedCatalogId)?.available) { setError(unavailableCatalogCopy(lang)); return false; }
     const next: Partial<Record<FieldKey, true>> = {};
     if (!childName.trim()) next.name = true;
     if (childAge.trim() === "") next.age = true;
@@ -608,6 +618,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       const languages = [...new Set([language, ...bookLanguages])];
       const fingerprint = JSON.stringify({
         title: bookTitle,
+        catalogModel: selectedCatalogId,
         gender,
         languages,
         themeDescription: themeText.trim() || bookTitle,
@@ -702,7 +713,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       const brief = getStoryBrief().trim();
       await api.startPreview(p.id, {
         brief: brief.slice(0, 2000) || undefined,
-        catalog_design_id: p.book_profile?.version === 1 ? "auto" : undefined,
+        catalog_design_id: selectedCatalogId || (p.book_profile?.version === 1 ? "auto" : undefined),
       });
       try {
         setJobs(await api.listJobs(p.id));
@@ -1613,6 +1624,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               aria-label={t.bookTitle}
               disabled={fieldsLocked}
               value={bookTitle}
+              readOnly={Boolean(selectedCatalogId)}
               onChange={(e) => {
                 titleTouched.current = true;
                 setBookTitle(e.target.value);
@@ -1659,6 +1671,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
 
+          {selectedCatalogId && catalogModel(selectedCatalogId) && <section className="studio-chosen" data-testid="studio-selected-catalog-model">
+            <p>{lang === "pt" ? "Modelo do Catálogo" : lang === "en" ? "Catalog model" : "Modelo del Catálogo"}: <strong>{catalogModel(selectedCatalogId)!.titles[lang]}</strong></p>
+            {!catalogModel(selectedCatalogId)!.available ? <p role="alert">{unavailableCatalogCopy(lang)}</p> : <CatalogDesignSamples model={{name: catalogModel(selectedCatalogId)!.titles[lang], sources: catalogModel(selectedCatalogId)!.sources}} lang={lang} />}
+          </section>}
           <h3 className="studio-section-title"><span>02</span>{studioDesignCopy(lang).details}</h3>
           <div className="studio-choices">
             <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
@@ -1695,8 +1711,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     type="button"
                     className={artMode === choice ? "studio-pick is-on" : "studio-pick"}
                     aria-pressed={artMode === choice}
-                    disabled={fieldsLocked}
-                    onClick={() => setArtMode(choice)}
+                    disabled={fieldsLocked || Boolean(selectedCatalogId)}
+                    onClick={() => { if (!selectedCatalogId) setArtMode(choice); }}
                   >
                     {choice === "cartoon" ? t.artCartoon : t.artRealistic}
                   </button>

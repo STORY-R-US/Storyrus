@@ -1,0 +1,1280 @@
+{
+  "catalog-realistic-0": {
+    "id": "catalog-realistic-0",
+    "catalog_index": 0,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Martin, O Grande Goleiro Do Chile",
+      "en": "Martin, The Great Goalkeeper Of Chile",
+      "es": "Martin, El Gran Arquero De Chile"
+    },
+    "example_name": "Martin",
+    "sources": {
+      "cover": "capa-martin-goleiro.jpg",
+      "page": "pagina-martin-goleiro.jpg",
+      "holding": "foto-martin-goleiro.jpg"
+    }
+  },
+  "catalog-realistic-1": {
+    "id": "catalog-realistic-1",
+    "catalog_index": 1,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Emilia E Os Primeiros Passos Da Bailarina",
+      "en": "Emilia And The Ballerina's First Steps",
+      "es": "Emilia Y Los Primeros Pasos De La Bailarina"
+    },
+    "example_name": "Emilia",
+    "sources": {
+      "cover": "capa-emilia-bailarina.jpg",
+      "page": "pagina-emilia-bailarina.jpg",
+      "holding": "foto-emilia-bailarina.jpg"
+    }
+  },
+  "catalog-realistic-2": {
+    "id": "catalog-realistic-2",
+    "catalog_index": 2,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Antonio E Sua Bicicleta",
+      "en": "Antonio And His Bicycle",
+      "es": "Antonio Y Su Bicicleta"
+    },
+    "example_name": "Antonio",
+    "sources": {
+      "cover": "capa-antonio-bicicleta.jpg",
+      "page": "pagina-antonio-bicicleta.jpg",
+      "holding": "foto-antonio-bicicleta.jpg"
+    }
+  },
+  "catalog-realistic-5": {
+    "id": "catalog-realistic-5",
+    "catalog_index": 5,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Nicolas, Meu Primeiro Amor",
+      "en": "Nicolas, My First Love",
+      "es": "Nicolas, Mi Primer Amor"
+    },
+    "example_name": "Nicolas",
+    "sources": {
+      "cover": "capa-nicolas-maefilho.png",
+      "page": "pagina-nicolas-maefilho.jpg",
+      "holding": "foto-nicolas-maefilho.jpg"
+    }
+  },
+  "catalog-cartoon-5": {
+    "id": "catalog-cartoon-5",
+    "catalog_index": 5,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Nicolas, Meu Primeiro Amor",
+      "en": "Nicolas, My First Love",
+      "es": "Nicolas, Mi Primer Amor"
+    },
+    "example_name": "Nicolas",
+    "sources": {
+      "cover": "cartoon-capa-nicolas.jpg",
+      "page": "cartoon-pagina-nicolas.jpg",
+      "holding": "cartoon-foto-nicolas.jpg"
+    }
+  },
+  "catalog-realistic-6": {
+    "id": "catalog-realistic-6",
+    "catalog_index": 6,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "O Amor De Mãe",
+      "en": "A Mother's Love",
+      "es": "El Amor De Mamá"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-amordemae.png",
+      "page": "pagina-amordemae.png",
+      "holding": "foto-amordemae.jpg"
+    }
+  },
+  "catalog-cartoon-6": {
+    "id": "catalog-cartoon-6",
+    "catalog_index": 6,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "O Amor De Mãe",
+      "en": "A Mother's Love",
+      "es": "El Amor De Mamá"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-amordemae.jpg",
+      "page": "cartoon-pagina-amordemae.jpg",
+      "holding": "cartoon-foto-amordemae.jpg"
+    }
+  },
+  "catalog-realistic-7": {
+    "id": "catalog-realistic-7",
+    "catalog_index": 7,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Mamãe, Papai E Matteo",
+      "en": "Mommy, Daddy And Matteo",
+      "es": "Mamá, Papá Y Matteo"
+    },
+    "example_name": "Matteo",
+    "sources": {
+      "cover": "capa-mamaepapaimatteo.png",
+      "page": "pagina-mamaepapaimatteo.jpg",
+      "holding": ""
+    }
+  },
+  "catalog-cartoon-7": {
+    "id": "catalog-cartoon-7",
+    "catalog_index": 7,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Mamãe, Papai E Matteo",
+      "en": "Mommy, Daddy And Matteo",
+      "es": "Mamá, Papá Y Matteo"
+    },
+    "example_name": "Matteo",
+    "sources": {
+      "cover": "cartoon-capa-matteo.jpg",
+      "page": "cartoon-pagina-matteo.jpg",
+      "holding": "cartoon-foto-matteo.jpg"
+    }
+  },
+  "catalog-realistic-8": {
+    "id": "catalog-realistic-8",
+    "catalog_index": 8,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor De Bisavó",
+      "en": "A Great-Grandmother's Love",
+      "es": "Amor De Bisabuela"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-amordebisavo.png",
+      "page": "pagina-amordebisavo.jpg",
+      "holding": "foto-amordebisavo.jpg"
+    }
+  },
+  "catalog-cartoon-8": {
+    "id": "catalog-cartoon-8",
+    "catalog_index": 8,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor De Bisavó",
+      "en": "A Great-Grandmother's Love",
+      "es": "Amor De Bisabuela"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-bisavo.jpg",
+      "page": "cartoon-pagina-bisavo.jpg",
+      "holding": "cartoon-foto-bisavo.jpg"
+    }
+  },
+  "catalog-realistic-9": {
+    "id": "catalog-realistic-9",
+    "catalog_index": 9,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Natal Com A Meme E O Tata",
+      "en": "Christmas With Tata And Meme",
+      "es": "Navidad Con Tata Y Meme"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-natalmemetata.png",
+      "page": "pagina-natalmemetata.jpg",
+      "holding": "foto-natalmemetata.jpg"
+    }
+  },
+  "catalog-realistic-10": {
+    "id": "catalog-realistic-10",
+    "catalog_index": 10,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Nano E Suas Aventuras",
+      "en": "Nano And His Adventures",
+      "es": "Nano Y Sus Aventuras"
+    },
+    "example_name": "Nano",
+    "sources": {
+      "cover": "capa-nanoaventuras.png",
+      "page": "pagina-nanoaventuras.jpg",
+      "holding": "foto-nanoaventuras.jpg"
+    }
+  },
+  "catalog-realistic-11": {
+    "id": "catalog-realistic-11",
+    "catalog_index": 11,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Maya, Minha Cachorra Carinhosa",
+      "en": "Maya, My Loving Dog",
+      "es": "Maya, Mi Perrita Cariñosa"
+    },
+    "example_name": "Maya",
+    "sources": {
+      "cover": "capa-maya-cachorra-pt.jpg",
+      "page": "pagina-maya-cachorra-pt.jpg",
+      "holding": "foto-maya-cachorra-pt.jpg"
+    }
+  },
+  "catalog-cartoon-11": {
+    "id": "catalog-cartoon-11",
+    "catalog_index": 11,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Maya, Minha Cachorra Carinhosa",
+      "en": "Maya, My Loving Dog",
+      "es": "Maya, Mi Perrita Cariñosa"
+    },
+    "example_name": "Maya",
+    "sources": {
+      "cover": "cartoon-capa-maya.jpg",
+      "page": "cartoon-pagina-maya.jpg",
+      "holding": "cartoon-foto-maya.jpg"
+    }
+  },
+  "catalog-realistic-12": {
+    "id": "catalog-realistic-12",
+    "catalog_index": 12,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Mako, Meu Amigo Fiel",
+      "en": "Mako, My Loyal Friend",
+      "es": "Mako, Mi Amigo Fiel"
+    },
+    "example_name": "Mako",
+    "sources": {
+      "cover": "capa-mako-amigofiel.png",
+      "page": "pagina-mako-amigofiel.jpg",
+      "holding": "foto-mako-amigofiel.jpg"
+    }
+  },
+  "catalog-cartoon-12": {
+    "id": "catalog-cartoon-12",
+    "catalog_index": 12,
+    "style": "cartoon",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Mako, Meu Amigo Fiel",
+      "en": "Mako, My Loyal Friend",
+      "es": "Mako, Mi Amigo Fiel"
+    },
+    "example_name": "Mako",
+    "sources": {
+      "cover": "cartoon-capa-mako.png",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-14": {
+    "id": "catalog-realistic-14",
+    "catalog_index": 14,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Raquel E Papai: Aventuras Para Sempre",
+      "en": "Raquel And Dad: Adventures Forever",
+      "es": "Raquel Y Papá: Aventuras Para Siempre"
+    },
+    "example_name": "Raquel",
+    "sources": {
+      "cover": "capa-raquel-papai.png",
+      "page": "pagina-raquel-papai.png",
+      "holding": "foto-raquel-papai.png"
+    }
+  },
+  "catalog-realistic-15": {
+    "id": "catalog-realistic-15",
+    "catalog_index": 15,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Rebeca, A Pequena Grande Heroína",
+      "en": "Rebeca, The Little Great Heroine",
+      "es": "Rebeca, La Pequeña Gran Heroína"
+    },
+    "example_name": "Rebeca",
+    "sources": {
+      "cover": "capa-rebeca.png",
+      "page": "pagina-rebeca.png",
+      "holding": "foto-rebeca.png"
+    }
+  },
+  "catalog-realistic-18": {
+    "id": "catalog-realistic-18",
+    "catalog_index": 18,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Noé Na Terra Dos Dinossauros",
+      "en": "Noé In The Land Of Dinosaurs",
+      "es": "Noé En La Tierra De Los Dinosaurios"
+    },
+    "example_name": "Noé",
+    "sources": {
+      "cover": "capa-noe.png",
+      "page": "pagina-noe.png",
+      "holding": "foto-noe.png"
+    }
+  },
+  "catalog-realistic-19": {
+    "id": "catalog-realistic-19",
+    "catalog_index": 19,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor De Tia",
+      "en": "An Aunt's Love",
+      "es": "El Amor De La Tía"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-amordetia.png",
+      "page": "pagina-amordetia.png",
+      "holding": "foto-amordetia.png"
+    }
+  },
+  "catalog-cartoon-19": {
+    "id": "catalog-cartoon-19",
+    "catalog_index": 19,
+    "style": "cartoon",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Amor De Tia",
+      "en": "An Aunt's Love",
+      "es": "El Amor De La Tía"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-amordetia.png",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-20": {
+    "id": "catalog-realistic-20",
+    "catalog_index": 20,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Davi, O Menino Pastor",
+      "en": "David, The Shepherd Boy",
+      "es": "David, El Niño Pastor"
+    },
+    "example_name": "Davi",
+    "sources": {
+      "cover": "capa-davi-pastor.png",
+      "page": "pagina-davi-pastor.png",
+      "holding": "foto-davi-pastor.png"
+    }
+  },
+  "catalog-cartoon-20": {
+    "id": "catalog-cartoon-20",
+    "catalog_index": 20,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Davi, O Menino Pastor",
+      "en": "David, The Shepherd Boy",
+      "es": "David, El Niño Pastor"
+    },
+    "example_name": "Davi",
+    "sources": {
+      "cover": "cartoon-capa-davi.png",
+      "page": "cartoon-pagina-davi.jpg",
+      "holding": "cartoon-foto-davi.jpg"
+    }
+  },
+  "catalog-realistic-21": {
+    "id": "catalog-realistic-21",
+    "catalog_index": 21,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Pai, Meu Herói",
+      "en": "My Dad, My Hero",
+      "es": "Mi Papá, Mi Héroe"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-meupai-heroi.png",
+      "page": "pagina-meupai-heroi.png",
+      "holding": "foto-meupai-heroi.png"
+    }
+  },
+  "catalog-realistic-22": {
+    "id": "catalog-realistic-22",
+    "catalog_index": 22,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Enzo, Meu Primo Predileto",
+      "en": "Enzo, My Favorite Cousin",
+      "es": "Enzo, Mi Primo Favorito"
+    },
+    "example_name": "Enzo",
+    "sources": {
+      "cover": "capa-enzo-primo.png",
+      "page": "pagina-enzo-primo.png",
+      "holding": "foto-enzo-primo.png"
+    }
+  },
+  "catalog-cartoon-22": {
+    "id": "catalog-cartoon-22",
+    "catalog_index": 22,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Enzo, Meu Primo Predileto",
+      "en": "Enzo, My Favorite Cousin",
+      "es": "Enzo, Mi Primo Favorito"
+    },
+    "example_name": "Enzo",
+    "sources": {
+      "cover": "cartoon-capa-enzo.jpg",
+      "page": "cartoon-pagina-enzo.jpg",
+      "holding": "cartoon-foto-enzo.jpg"
+    }
+  },
+  "catalog-realistic-23": {
+    "id": "catalog-realistic-23",
+    "catalog_index": 23,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Lucas E Seu Amigo Max",
+      "en": "Lucas And His Friend Max",
+      "es": "Lucas Y Su Amigo Max"
+    },
+    "example_name": "Lucas",
+    "sources": {
+      "cover": "capa-lucas-max.png",
+      "page": "pagina-lucas-max.png",
+      "holding": "foto-lucas-max.png"
+    }
+  },
+  "catalog-cartoon-23": {
+    "id": "catalog-cartoon-23",
+    "catalog_index": 23,
+    "style": "cartoon",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Lucas E Seu Amigo Max",
+      "en": "Lucas And His Friend Max",
+      "es": "Lucas Y Su Amigo Max"
+    },
+    "example_name": "Lucas",
+    "sources": {
+      "cover": "cartoon-capa-lucas.png",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-24": {
+    "id": "catalog-realistic-24",
+    "catalog_index": 24,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Esther E Os Superpoderes Da Higiene",
+      "en": "Esther And The Superpowers Of Hygiene",
+      "es": "Esther Y Los Superpoderes De La Higiene"
+    },
+    "example_name": "Esther",
+    "sources": {
+      "cover": "capa-esther-higiene.png",
+      "page": "pagina-esther-higiene.png",
+      "holding": "foto-esther-higiene.png"
+    }
+  },
+  "catalog-realistic-25": {
+    "id": "catalog-realistic-25",
+    "catalog_index": 25,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Pequeno Construtor, Grande Empreendedor",
+      "en": "Little Builder, Big Entrepreneur",
+      "es": "Pequeño Constructor, Gran Emprendedor"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-construtor.png",
+      "page": "pagina-construtor.png",
+      "holding": "foto-construtor.png"
+    }
+  },
+  "catalog-realistic-26": {
+    "id": "catalog-realistic-26",
+    "catalog_index": 26,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Herói Favorito, O Bombeiro",
+      "en": "My Favorite Hero, The Firefighter",
+      "es": "Mi Héroe Favorito, El Bombero"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-heroi-bombeiro.png",
+      "page": "pagina-heroi-bombeiro.png",
+      "holding": "foto-heroi-bombeiro.png"
+    }
+  },
+  "catalog-realistic-27": {
+    "id": "catalog-realistic-27",
+    "catalog_index": 27,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Herói Favorito, O Policial",
+      "en": "My Favorite Hero, The Police Officer",
+      "es": "Mi Héroe Favorito, El Policía"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-heroi-policia.png",
+      "page": "pagina-heroi-policia.png",
+      "holding": "foto-heroi-policia.png"
+    }
+  },
+  "catalog-realistic-28": {
+    "id": "catalog-realistic-28",
+    "catalog_index": 28,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Herói Favorito, A Aranha",
+      "en": "My Favorite Hero, The Spider",
+      "es": "Mi Héroe Favorito, La Araña"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-heroi-aranha.png",
+      "page": "pagina-heroi-aranha.png",
+      "holding": "foto-heroi-aranha.png"
+    }
+  },
+  "catalog-realistic-29": {
+    "id": "catalog-realistic-29",
+    "catalog_index": 29,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tia Especial, Não Existe Igual",
+      "en": "A Special Aunt, One Of A Kind",
+      "es": "Una Tía Especial, No Hay Otra Igual"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-tia-especial.png",
+      "page": "pagina-tia-especial.png",
+      "holding": "foto-tia-especial.png"
+    }
+  },
+  "catalog-realistic-30": {
+    "id": "catalog-realistic-30",
+    "catalog_index": 30,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor De Avô, Meu Porto Seguro",
+      "en": "Grandpa's Love, My Safe Harbor",
+      "es": "El Amor Del Abuelo, Mi Puerto Seguro"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-amor-de-avo.png",
+      "page": "pagina-amor-de-avo.png",
+      "holding": "foto-amor-de-avo.png"
+    }
+  },
+  "catalog-cartoon-30": {
+    "id": "catalog-cartoon-30",
+    "catalog_index": 30,
+    "style": "cartoon",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Amor De Avô, Meu Porto Seguro",
+      "en": "Grandpa's Love, My Safe Harbor",
+      "es": "El Amor Del Abuelo, Mi Puerto Seguro"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-avo.png",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-31": {
+    "id": "catalog-realistic-31",
+    "catalog_index": 31,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Páscoa",
+      "en": "Happy Easter",
+      "es": "Feliz Pascua"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-pascoa.png",
+      "page": "pagina-pascoa.png",
+      "holding": "foto-pascoa.png"
+    }
+  },
+  "catalog-realistic-33": {
+    "id": "catalog-realistic-33",
+    "catalog_index": 33,
+    "style": "realistic",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Minha Grande Aventura",
+      "en": "My Great Adventure",
+      "es": "Mi Gran Aventura"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-cartoon-33": {
+    "id": "catalog-cartoon-33",
+    "catalog_index": 33,
+    "style": "cartoon",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Minha Grande Aventura",
+      "en": "My Great Adventure",
+      "es": "Mi Gran Aventura"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-aventura.png",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-34": {
+    "id": "catalog-realistic-34",
+    "catalog_index": 34,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Bruno Em Uma Aventura Animal",
+      "en": "Bruno On An Animal Adventure",
+      "es": "Bruno En Una Aventura Animal"
+    },
+    "example_name": "Bruno",
+    "sources": {
+      "cover": "capa-bruno-animais.png",
+      "page": "pagina-bruno-animais.jpg",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-35": {
+    "id": "catalog-realistic-35",
+    "catalog_index": 35,
+    "style": "realistic",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Aprendendo Economia Com O Gael",
+      "en": "Learning Savings With Gael",
+      "es": "Aprendiendo Economía Con Gael"
+    },
+    "example_name": "Gael",
+    "sources": {
+      "cover": "",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-36": {
+    "id": "catalog-realistic-36",
+    "catalog_index": 36,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Maria Jesus E A Disciplina No Hockey Na Grama",
+      "en": "Maria Jesus And Discipline In Field Hockey",
+      "es": "Maria Jesus Y La Disciplina En El Hockey Sobre Césped"
+    },
+    "example_name": "Maria Jesus",
+    "sources": {
+      "cover": "capa-mariajesus-hockey.png",
+      "page": "pagina-mariajesus-hockey.png",
+      "holding": "foto-mariajesus-hockey.jpg"
+    }
+  },
+  "catalog-realistic-37": {
+    "id": "catalog-realistic-37",
+    "catalog_index": 37,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Quatro Gerações De Amor, Nosso Maior Valor",
+      "en": "Four Generations Of Love, Our Greatest Treasure",
+      "es": "Cuatro Generaciones De Amor, Nuestro Mayor Tesoro"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-quatro-geracoes.jpg",
+      "page": "pagina-quatro-geracoes.jpg",
+      "holding": "foto-quatro-geracoes.jpg"
+    }
+  },
+  "catalog-realistic-38": {
+    "id": "catalog-realistic-38",
+    "catalog_index": 38,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amem-se Sinceramente Uns Aos Outros",
+      "en": "Love One Another Sincerely",
+      "es": "Ámense Sinceramente Unos A Otros"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-pedro-amem-se.png",
+      "page": "pagina-pedro-amem-se.jpg",
+      "holding": "foto-pedro-amem-se.jpg"
+    }
+  },
+  "catalog-cartoon-38": {
+    "id": "catalog-cartoon-38",
+    "catalog_index": 38,
+    "style": "cartoon",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Amem-se Sinceramente Uns Aos Outros",
+      "en": "Love One Another Sincerely",
+      "es": "Ámense Sinceramente Unos A Otros"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-pedro-amem-se.png",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-39": {
+    "id": "catalog-realistic-39",
+    "catalog_index": 39,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meus Sobrinhos, Minha Alegria",
+      "en": "My Nephews, My Joy",
+      "es": "Mis Sobrinos, Mi Alegría"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-meus-sobrinhos.png",
+      "page": "pagina-meus-sobrinhos.jpg",
+      "holding": "foto-meus-sobrinhos.jpg"
+    }
+  },
+  "catalog-cartoon-39": {
+    "id": "catalog-cartoon-39",
+    "catalog_index": 39,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meus Sobrinhos, Minha Alegria",
+      "en": "My Nephews, My Joy",
+      "es": "Mis Sobrinos, Mi Alegría"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-meus-sobrinhos.png",
+      "page": "cartoon-pagina-meus-sobrinhos.jpg",
+      "holding": "cartoon-foto-meus-sobrinhos.jpg"
+    }
+  },
+  "catalog-realistic-40": {
+    "id": "catalog-realistic-40",
+    "catalog_index": 40,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tio Favorito E Sem Igual",
+      "en": "Favorite Uncle, One Of A Kind",
+      "es": "Tío Favorito Y Sin Igual"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-tio-favorito.png",
+      "page": "pagina-tio-favorito.jpg",
+      "holding": "foto-tio-favorito.jpg"
+    }
+  },
+  "catalog-cartoon-40": {
+    "id": "catalog-cartoon-40",
+    "catalog_index": 40,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tio Favorito E Sem Igual",
+      "en": "Favorite Uncle, One Of A Kind",
+      "es": "Tío Favorito Y Sin Igual"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "cartoon-capa-tio-favorito.png",
+      "page": "cartoon-pagina-tio-favorito.jpg",
+      "holding": "cartoon-foto-tio-favorito.jpg"
+    }
+  },
+  "catalog-realistic-41": {
+    "id": "catalog-realistic-41",
+    "catalog_index": 41,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Aniversário, Grace",
+      "en": "Happy Birthday, Grace",
+      "es": "Feliz Cumpleaños, Grace"
+    },
+    "example_name": "Grace",
+    "sources": {
+      "cover": "capa-grace-aniversario.png",
+      "page": "pagina-grace-aniversario.jpg",
+      "holding": "foto-grace-aniversario.jpg"
+    }
+  },
+  "catalog-cartoon-41": {
+    "id": "catalog-cartoon-41",
+    "catalog_index": 41,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Aniversário, Grace",
+      "en": "Happy Birthday, Grace",
+      "es": "Feliz Cumpleaños, Grace"
+    },
+    "example_name": "Grace",
+    "sources": {
+      "cover": "cartoon-capa-grace-aniversario.png",
+      "page": "cartoon-pagina-grace-aniversario.jpg",
+      "holding": "cartoon-foto-grace-aniversario.jpg"
+    }
+  },
+  "catalog-realistic-42": {
+    "id": "catalog-realistic-42",
+    "catalog_index": 42,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Aprendendo A Andar Com A Grace",
+      "en": "Learning To Walk With Grace",
+      "es": "Aprendiendo A Caminar Con Grace"
+    },
+    "example_name": "Grace",
+    "sources": {
+      "cover": "capa-grace-andar.png",
+      "page": "pagina-grace-andar.jpg",
+      "holding": "foto-grace-andar.jpg"
+    }
+  },
+  "catalog-cartoon-42": {
+    "id": "catalog-cartoon-42",
+    "catalog_index": 42,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Aprendendo A Andar Com A Grace",
+      "en": "Learning To Walk With Grace",
+      "es": "Aprendiendo A Caminar Con Grace"
+    },
+    "example_name": "Grace",
+    "sources": {
+      "cover": "cartoon-capa-grace-andar.png",
+      "page": "cartoon-pagina-grace-andar.jpg",
+      "holding": "cartoon-foto-grace-andar.jpg"
+    }
+  },
+  "catalog-realistic-43": {
+    "id": "catalog-realistic-43",
+    "catalog_index": 43,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Maria E Os Segredos Do Fundo Do Mar",
+      "en": "Maria And The Secrets Of The Deep Sea",
+      "es": "Maria Y Los Secretos Del Fondo Del Mar"
+    },
+    "example_name": "Maria",
+    "sources": {
+      "cover": "capa-maria-fundo-do-mar.png",
+      "page": "pagina-maria-fundo-do-mar.jpg",
+      "holding": "foto-maria-fundo-do-mar.jpg"
+    }
+  },
+  "catalog-realistic-44": {
+    "id": "catalog-realistic-44",
+    "catalog_index": 44,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Mamãe E Eu, Presente Que Deus Me Deu",
+      "en": "Mommy And Me, A Gift God Gave To Me",
+      "es": "Mamá Y Yo, El Regalo Que Dios Me Dio"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-mamae-e-eu.png",
+      "page": "pagina-mamae-e-eu.jpg",
+      "holding": "foto-mamae-e-eu.jpg"
+    }
+  },
+  "catalog-realistic-45": {
+    "id": "catalog-realistic-45",
+    "catalog_index": 45,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Natal A Todos",
+      "en": "Merry Christmas To All",
+      "es": "Feliz Navidad A Todos"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-feliz-natal.png",
+      "page": "pagina-feliz-natal.jpg",
+      "holding": "foto-feliz-natal.jpg"
+    }
+  },
+  "catalog-realistic-46": {
+    "id": "catalog-realistic-46",
+    "catalog_index": 46,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Vovô, Com Você A Vida É Sempre Mais Leve E Feliz",
+      "en": "Grandpa, With You Life Is Always Lighter And Happier",
+      "es": "Abuelo, Contigo La Vida Siempre Es Más Ligera Y Feliz"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-vovo-vida-leve.png",
+      "page": "pagina-vovo-vida-leve.jpg",
+      "holding": "foto-vovo-vida-leve.jpg"
+    }
+  },
+  "catalog-realistic-47": {
+    "id": "catalog-realistic-47",
+    "catalog_index": 47,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tomé Duvidou, Mas Jesus O Abraçou E Guardou O Seu Coração",
+      "en": "Thomas Doubted, But Jesus Embraced Him And Guarded His Heart",
+      "es": "Tomás Dudó, Pero Jesús Lo Abrazó Y Guardó Su Corazón"
+    },
+    "example_name": "Tomé",
+    "sources": {
+      "cover": "capa-tome-jesus.png",
+      "page": "pagina-tome-jesus.jpg",
+      "holding": "foto-tome-jesus.jpg"
+    }
+  },
+  "catalog-realistic-49": {
+    "id": "catalog-realistic-49",
+    "catalog_index": 49,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Ana Em Uma Aventura Pelo Espaço",
+      "en": "Ana On An Adventure Through Space",
+      "es": "Ana En Una Aventura Por El Espacio"
+    },
+    "example_name": "Ana",
+    "sources": {
+      "cover": "capa-ana-espaco.png",
+      "page": "pagina-ana-espaco.jpg",
+      "holding": "foto-ana-espaco.jpg"
+    }
+  },
+  "catalog-realistic-51": {
+    "id": "catalog-realistic-51",
+    "catalog_index": 51,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz 90 Anos, Nonna",
+      "en": "Happy 90th Birthday, Nonna",
+      "es": "Felices 90 Años, Nonna"
+    },
+    "example_name": "Nonna",
+    "sources": {
+      "cover": "capa-nonna-90-anos.png",
+      "page": "pagina-nonna-90-anos.jpg",
+      "holding": "foto-nonna-90-anos.jpg"
+    }
+  },
+  "catalog-realistic-52": {
+    "id": "catalog-realistic-52",
+    "catalog_index": 52,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor De Vovô É Igual A Motor Bem Cuidado",
+      "en": "A Grandpa's Love Is Like A Well-Kept Engine",
+      "es": "El Amor Del Abuelo Es Como Un Motor Bien Cuidado"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-amor-vovo-motor.png",
+      "page": "pagina-amor-vovo-motor.jpg",
+      "holding": "foto-amor-vovo-motor.jpg"
+    }
+  },
+  "catalog-realistic-53": {
+    "id": "catalog-realistic-53",
+    "catalog_index": 53,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Brilho Que Fascina, Alma De Bailarina",
+      "en": "A Glow That Captivates, A Dancer At Heart",
+      "es": "Un Brillo Que Fascina, Alma De Bailarina"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-brilho-bailarina.png",
+      "page": "pagina-brilho-bailarina.jpg",
+      "holding": "foto-brilho-bailarina.jpg"
+    }
+  },
+  "catalog-realistic-54": {
+    "id": "catalog-realistic-54",
+    "catalog_index": 54,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor Que Cresce E Me Enobrece",
+      "en": "A Love That Grows And Ennobles Me",
+      "es": "Un Amor Que Crece Y Me Ennoblece"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-amor-que-cresce.jpg",
+      "page": "pagina-amor-que-cresce.jpg",
+      "holding": "foto-amor-que-cresce.jpg"
+    }
+  },
+  "catalog-realistic-55": {
+    "id": "catalog-realistic-55",
+    "catalog_index": 55,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Aniversário, Matteo!",
+      "en": "Happy Birthday, Matteo!",
+      "es": "¡Feliz Cumpleaños, Matteo!"
+    },
+    "example_name": "Matteo",
+    "sources": {
+      "cover": "capa-matteo-nas-nuvens.png",
+      "page": "pagina-matteo-nas-nuvens.jpg",
+      "holding": "foto-matteo-nas-nuvens.jpg"
+    }
+  },
+  "catalog-realistic-56": {
+    "id": "catalog-realistic-56",
+    "catalog_index": 56,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Vovó, Sua Doçura Faz Da Vida Uma Aventura",
+      "en": "Grandma, Your Sweetness Turns Life Into An Adventure",
+      "es": "Abuela, Tu Dulzura Convierte La Vida En Una Aventura"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-vovo-docura.jpg",
+      "page": "pagina-vovo-docura.jpg",
+      "holding": "foto-vovo-docura.jpg"
+    }
+  },
+  "catalog-realistic-57": {
+    "id": "catalog-realistic-57",
+    "catalog_index": 57,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Matteo, Força No Motor, Gigante O Trator",
+      "en": "Matteo, Mighty Motor, Giant Tractor",
+      "es": "Matteo, Motor Potente, Tractor Gigante"
+    },
+    "example_name": "Matteo",
+    "sources": {
+      "cover": "capa-matteo-trator.jpg",
+      "page": "pagina-matteo-trator.jpg",
+      "holding": "foto-matteo-trator.jpg"
+    }
+  },
+  "catalog-realistic-58": {
+    "id": "catalog-realistic-58",
+    "catalog_index": 58,
+    "style": "realistic",
+    "available": false,
+    "reason": "missing_interior_reference",
+    "titles": {
+      "pt": "Livro Teste",
+      "en": "Test Book",
+      "es": "Libro De Prueba"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-livro-teste.jpg",
+      "page": "",
+      "holding": ""
+    }
+  },
+  "catalog-realistic-59": {
+    "id": "catalog-realistic-59",
+    "catalog_index": 59,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Natal, Família!",
+      "en": "Merry Christmas, Family!",
+      "es": "¡Feliz Navidad, Familia!"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-feliz-natal-familia.png",
+      "page": "pagina-feliz-natal-familia.png",
+      "holding": "foto-feliz-natal-familia.png"
+    }
+  },
+  "catalog-realistic-60": {
+    "id": "catalog-realistic-60",
+    "catalog_index": 60,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro",
+      "en": "Dinosaur Secrets, Enzo, From Past To Future",
+      "es": "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro"
+    },
+    "example_name": "Enzo",
+    "sources": {
+      "cover": "capa-enzo-dinossauro.png",
+      "page": "pagina-enzo-dinossauro.png",
+      "holding": "foto-enzo-dinossauro.png"
+    }
+  },
+  "catalog-realistic-61": {
+    "id": "catalog-realistic-61",
+    "catalog_index": 61,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Pai e Filha: Uma Dupla que Brilha",
+      "en": "Dad and Daughter: A Pair That Shines",
+      "es": "Papá e Hija: Un Equipo que Brilla"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "capa-pai-e-filha.png",
+      "page": "pagina-pai-e-filha.png",
+      "holding": "foto-pai-e-filha.png"
+    }
+  }
+}

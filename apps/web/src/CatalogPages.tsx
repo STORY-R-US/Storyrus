@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
+import { catalogModel, catalogModelId } from "./catalogModel";
 import { bookPageMeta, categoryPageMeta, staticPageMeta, usePageMeta } from "./pageMeta";
 import { useResolvedLang, type Lang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
@@ -224,7 +225,11 @@ export function BookPage() {
   const [lang, setLang] = useSiteLang();
   const params = useParams();
   const index = Number(params.indice);
-  const book = Number.isInteger(index) ? catalogEntry(lang, index) : null;
+  const { search } = useLocation();
+  const cartoon = new URLSearchParams(search).get("modo") === "cartoon";
+  const entry = Number.isInteger(index) ? catalogEntry(lang, index) : null;
+  const model = cartoon ? catalogModel(catalogModelId(index, true)) : undefined;
+  const book = entry && (!cartoon || model) ? {...entry, img: model ? `/exemplos/${model.sources.cover}` : entry.img} : null;
   usePageMeta(
     book
       ? bookPageMeta({ index, title: book.t, description: book.story || book.t })
@@ -238,7 +243,7 @@ export function BookPage() {
       <main className="ksection book-page" id="catalogo">
         <SiteBackNav />
         <div className="book-page-card">
-          <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" />
+          <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" modo={cartoon ? "cartoon" : "realista"} />
         </div>
       </main>
     </div>

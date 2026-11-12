@@ -18,23 +18,31 @@ def _signature(value):
     ).hexdigest()
 
 
-@lru_cache(maxsize=3)
+@lru_cache(maxsize=4)
 def definitions(version=1):
-    if version not in {1, 2, 3}:
+    if version not in {1, 2, 3, 4}:
         raise HTTPException(409, "Versão do padrão visual indisponível")
     return json.loads((ROOT / f"book-designs-v{version}.json").read_text(encoding="utf-8"))
 
 
 def reference(design, stage):
     role = stage if stage in {"cover", "holding"} else "page"
+    if design.get("reference_files"):
+        return (ROOT / design["reference_files"][role]).read_bytes()
     family = design["reference_set"]
     suffix = "png" if family == "adventure" else "jpg"
     return (ROOT / "catalog" / f"{family}-{role}.{suffix}").read_bytes()
 
 
 def snapshot(model_id, *, version=None):
-    version = version if version is not None else 3 if model_id == "adventure" else 1
+    if version is None:
+        version = 4 if model_id.startswith("catalog-") else 3 if model_id == "adventure" else 1
     data = definitions(version)
+    if model_id in data.get("unavailable", {}):
+        raise HTTPException(
+            409,
+            "Este modelo está indisponível: cadastre a referência do miolo antes de personalizar",
+        )
     if model_id not in data["models"]:
         raise HTTPException(400, "Escolha um padrão do Catálogo disponível")
     model = json.loads(json.dumps(data["models"][model_id]))
@@ -70,6 +78,26 @@ def select(project, requested):
         # Changing the design invalidates the old cover decision, not the user's text.
         book_profile.update(
             project, book_design=design, cover_calibration=None, visual_master_preset=None
+        )
+    if design.get("title_templates") and project.book_profile.get("stage") == "ficha":
+        titles = {
+            language: literal.replace(design.get("example_name") or "\0", project.child_name or "")
+            for language, literal in design["title_templates"].items()
+        }
+        supplied = {
+            language: {**values, "title": titles[language]} if language in titles else values
+            for language, values in project.book_profile.get("supplied_locales", {}).items()
+        }
+        for language, title in titles.items():
+            supplied[language] = {**supplied.get(language, {}), "title": title}
+        book_profile.update(
+            project,
+            title=titles.get(project.language or "pt-BR"),
+            supplied_locales=supplied,
+            locales={
+                language: {**values, "title": titles[language]} if language in titles else values
+                for language, values in project.book_profile.get("locales", {}).items()
+            },
         )
     return design
 

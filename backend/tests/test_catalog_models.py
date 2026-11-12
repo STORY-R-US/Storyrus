@@ -1,0 +1,95 @@
+import io
+import json
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+from fastapi import HTTPException
+from PIL import Image
+
+from app.schemas import PreviewRequestIn
+from app.services import book_design, editorial_profile
+from app.workers import editorial_render as render
+
+MODELS = book_design.definitions(4)["models"]
+
+
+@pytest.mark.parametrize("model", list(MODELS))
+def test_each_available_catalog_book_has_its_own_frozen_references_and_layout(model):
+    design = book_design.snapshot(model)
+    assert design["version"] == 4
+    assert book_design.resolve({"book_design": design}) == design
+    assert design["catalog_index"] == int(model.rsplit("-", 1)[1])
+    for role in ("cover", "page", "holding"):
+        with Image.open(io.BytesIO(book_design.reference(design, role))) as image:
+            image.verify()
+    assert design["reference_sha256"]["cover"] != design["reference_sha256"]["page"]
+    profile = {"editorial": editorial_profile.snapshot(), "book_design": design}
+    title = design["title_templates"]["pt-BR"].replace(design.get("example_name") or "\0", "João")
+    _, layout = render.text(
+        render.encode(Image.new("RGB", (1024, 1024), "ivory")),
+        title,
+        profile,
+        title=True,
+        measure_only=True,
+    )
+    assert layout["text"] == title
+    assert layout["region"] == design["cover"]["region"]
+
+
+@pytest.mark.parametrize(
+    "model", ["catalog-realistic-0", "catalog-realistic-1", "catalog-realistic-6"]
+)
+def test_catalog_title_changes_only_name_while_theme_remains_free(model):
+    project = SimpleNamespace(
+        book_profile={"stage": "ficha"},
+        style="realistic",
+        theme="Aventura espacial",
+        child_name="João",
+        language="pt-BR",
+    )
+    selected = book_design.select(project, model)
+    expected = selected["title_templates"]["pt-BR"].replace(
+        selected["example_name"] or "\0", "João"
+    )
+    assert project.book_profile["title"] == expected
+    assert project.theme == "Aventura espacial"
+    assert project.book_profile["supplied_locales"]["en"]["title"] == selected["title_templates"][
+        "en"
+    ].replace(selected["example_name"] or "\0", "João")
+    assert book_design.select(project, "auto") == selected
+
+
+@pytest.mark.parametrize("model", list(book_design.definitions(4)["unavailable"]))
+def test_missing_interior_is_blocked_before_generation(model):
+    assert PreviewRequestIn(catalog_design_id=model).catalog_design_id == model
+    with pytest.raises(HTTPException) as err:
+        book_design.snapshot(model)
+    assert err.value.status_code == 409
+    assert "miolo" in err.value.detail
+
+
+def test_catalog_registry_matches_frontend_availability_and_reference_sources():
+    web = json.loads(
+        (Path(__file__).parents[2] / "apps/web/src/catalogModels.json").read_text(encoding="utf8")
+    )
+    assert set(MODELS) == {k for k, v in web.items() if v["available"]}
+    assert set(book_design.definitions(4)["unavailable"]) == {
+        k for k, v in web.items() if not v["available"]
+    }
+    for key, design in MODELS.items():
+        assert design["sources"] == web[key]["sources"]
+
+
+def test_exact_selected_models_are_distinct_and_generic_default_is_unchanged():
+    mother = book_design.snapshot("catalog-realistic-6")
+    emilia = book_design.snapshot("catalog-realistic-1")
+    martin = book_design.snapshot("catalog-realistic-0")
+    assert mother["interior"]["mode"] == "text_right"
+    assert emilia["typography"]["titleFontFile"] == "BreeSerif-Regular.ttf"
+    assert martin["typography"]["titleColor"] != mother["typography"]["titleColor"]
+    assert book_design.snapshot("adventure")["version"] == 3
+    for model in (mother, emilia, martin):
+        prompt = book_design.prompt(model, "cover", "João observa estrelas")
+        assert "João observa estrelas" in prompt
+        assert "The user may change the story theme" in prompt

@@ -491,13 +491,23 @@ class Pipeline:
                     "method": "technical_integrity_only",
                 }
         self.guard()
-        if getattr(self, "design", None) and self.design.get("version") == 3:
+        if getattr(self, "design", None) and self.design.get("version") in {3, 4}:
             scenery_check = (
                 " Cenário contínuo de ponta a ponta: reprove laterais esticadas, espelhadas, "
                 "faixas borradas, texturas repetidas, emendas e objetos deformados. "
                 "Estrelas e traços dourados editoriais junto ao título são permitidos, "
                 "desde que fora de rostos, cabelos, gorros, mãos e ação."
             )
+            if self.design.get("version") == 3 and (
+                prompt.startswith("CAPA_PLANA:")
+                or (technical or {}).get("typography", {}).get("weight") == 900
+            ):
+                scenery_check += (
+                    " Enquadramento obrigatório de capa: cabeça completa incluindo gorro ocupa "
+                    "aproximadamente 20–24% da altura. Reprove close de retrato, rosto ampliado "
+                    "ou corte que elimine a atividade e o primeiro plano. Deve haver cenário "
+                    "significativo dos dois lados do protagonista e espaço para a ação."
+                )
             prompt += scenery_check
             if full_image_prompt:
                 full_image_prompt += scenery_check
@@ -557,7 +567,12 @@ class Pipeline:
                 photos=self.photos,
                 cover=cover,
                 prompt=prompt,
-                style_refs=self.refs,
+                style_refs=self.refs
+                + (
+                    [book_design.reference(self.design, "cover")]
+                    if getattr(self, "design", None) and self.design.get("version") == 4
+                    else []
+                ),
                 full_image_prompt=full_image_prompt,
                 inspection_region=(technical or {})
                 .get("typography", {})
@@ -1059,7 +1074,9 @@ class Pipeline:
                     ensure_ascii=False,
                 )
             visual_master = (
-                None
+                book_design.reference(self.design, "cover" if title else "page")
+                if self.design and self.design.get("version") == 4
+                else None
                 if self.project_only_references
                 else book_design.reference(self.design, "cover" if title else "page")
                 if self.design
@@ -1094,7 +1111,7 @@ class Pipeline:
             prompt += "\nAUTHORIZED CAST: " + json.dumps(
                 self.base["cast_contract"], ensure_ascii=False
             )
-            if title:
+            if title and not (self.design and self.design.get("version") == 4):
                 prompt += "\nSINGLE FRONT COVER ONLY: one continuous square front face, no open book, spread, central gutter, diptych or two facing pages."
                 prompt += (
                     "\nRECOMPOSE THE SCENE: original photos define identity and clothing only. "
@@ -1141,7 +1158,29 @@ class Pipeline:
                     "Do not draw any title or lettering at this art stage; the server composes "
                     "the exact project title into the reserved scenery afterward."
                 )
-            if not title:
+            if title and self.design and self.design.get("version") == 4:
+                prompt += (
+                    "\nSELECTED CATALOG COVER: this exact model defines the composition and finish. "
+                    + self.design["cover"]["scene_direction"]
+                    + " Exact reserved title rectangle: "
+                    + json.dumps(safe_region)
+                    + ". Reposition the real project people naturally outside it; never cover "
+                    "faces, hair, hats, hands or the requested activity. Original project photos "
+                    "alone define identities; the last catalog image defines layout and finish only. "
+                    "No copied sample text, logos, inset portraits or additional example people."
+                )
+            if (
+                not title
+                and self.design
+                and self.design.get("version") == 4
+                and self.design["interior"]["region"][1] > 0.5
+            ):
+                prompt += (
+                    "\nSELECTED FOOTER PAGE LAYOUT: reserve the measured lower reading area "
+                    + json.dumps(safe_region)
+                    + f" as quiet light scenery. Keep every face, head, hat, hand and narrative action ABOVE y={safe_region[1] - 0.06:.3f}. Follow this model's lower-text layout; never place the subject below the footer or obscure it with text."
+                )
+            elif not title:
                 prompt += (
                     "\nFINAL INTERIOR FRAMING: reserve the measured reading rectangle "
                     + json.dumps(safe_region)
@@ -1155,7 +1194,9 @@ class Pipeline:
                     "behind the text and around the activity, with no horizontal visual division. "
                     "Do not draw text, blank panels, banners or artificial strips."
                 )
-            if self.project_only_references:
+            if self.project_only_references and not (
+                self.design and self.design.get("version") == 4
+            ):
                 prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
             if self.demo:
                 raw = self.master._offline_png(name, palette=((235, 243, 250), (255, 250, 242)))
@@ -1205,7 +1246,11 @@ class Pipeline:
                         + ([visual_master] if visual_master else []),
                         style=(
                             self.policy["visual"]["artDirection"]
-                            if self.designed and self.project.style != "cartoon"
+                            if self.designed
+                            and (
+                                self.project.style != "cartoon"
+                                or (self.design and self.design.get("version") == 4)
+                            )
                             else contract.art_direction(self.project.style)
                         ),
                     )
@@ -1634,7 +1679,7 @@ class Pipeline:
                 else "One prominent full-page story illustration with the project's cast and the requested action. No reserved reading strip, no letters and no printed words. "
             )
             prompt += (
-                "All attached images are original project photos or this project's approved cover. They alone define identity, wardrobe, palette and continuity. No catalog people, scenery or story props may be copied. AUTHORIZED CAST: "
+                "Original project photos and this project's approved cover alone define identity and continuity. A final selected catalog image, when present, is a STYLE AND PAGE-STRUCTURE reference only. Never copy its people, words or story props; use the user's requested theme. AUTHORIZED CAST: "
                 + json.dumps(self.base["cast_contract"], ensure_ascii=False)
             )
             if self.demo:
@@ -1649,7 +1694,12 @@ class Pipeline:
                         character_ref=self.photos[0],
                         photo=self.photos[0],
                         extra_refs=self.photos[1:]
-                        + ([self.cover_continuity] if self.cover_continuity else []),
+                        + ([self.cover_continuity] if self.cover_continuity else [])
+                        + (
+                            [book_design.reference(design, "page")]
+                            if design.get("version") == 4
+                            else []
+                        ),
                         style=design["finish"],
                     )
                 )
@@ -1860,7 +1910,9 @@ class Pipeline:
                 self.base["cast_contract"] if reading else {"people": "none"}, ensure_ascii=False
             )
             template_reference = (
-                None
+                book_design.reference(self.design, "holding" if reading else "page")
+                if self.design and self.design.get("version") == 4
+                else None
                 if self.project_only_references
                 else book_design.reference(self.design, "holding" if reading else "page")
                 if self.design
