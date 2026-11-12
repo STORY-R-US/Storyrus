@@ -790,7 +790,7 @@ class Pipeline:
                 ),
             )
             self.account(result, "Expansão do cenário da capa")
-            output = scene_composition.preserve_expansion_core(result.image_bytes, seed, mask)
+            output = scene_composition.validate_expansion_output(result.image_bytes, seed, mask)
             return output, {
                 "source_sha256": render.digest(raw),
                 "transform": transform,
@@ -803,7 +803,7 @@ class Pipeline:
                 "source_sha256": render.digest(raw),
                 "title_region": region,
                 "transform": transform,
-                "contract": 1,
+                "contract": 2,
             },
             expand,
         )
@@ -1294,26 +1294,38 @@ class Pipeline:
                 provider = self.master._pkg().get_image_provider()
                 # Persist purchased pixels before QA. Layout retries and later jobs
                 # with identical inputs must not purchase the same illustration again.
-                source_context = [
+                legacy_context = [
                     self.base,
                     name,
                     prompt,
                     self.revision_for(name).get("art_revision"),
                 ]
+                # Wording changes deployed between attempts must not purchase a new
+                # scene. Only the actual scene inputs or an explicit art revision do.
+                source_context = [
+                    self.base,
+                    name,
+                    action,
+                    plan,
+                    self.revision_for(name).get("art_revision"),
+                ]
                 candidate_key = (
                     f"editorial/{self.project.id}/{signature(source_context)}.candidate.png"
+                )
+                legacy_key = (
+                    f"editorial/{self.project.id}/{signature(legacy_context)}.candidate.png"
                 )
                 cached_candidate = self.db.scalar(
                     select(Asset).where(
                         Asset.project_id == self.project.id,
                         Asset.kind == "editorial_candidate",
-                        Asset.storage_key == candidate_key,
+                        Asset.storage_key.in_([candidate_key, legacy_key]),
                     )
                 )
                 recovered = self.rejected_cover_source(name, action, plan) if title else None
                 if cached_candidate:
                     try:
-                        raw = storage.get_bytes(candidate_key)
+                        raw = storage.get_bytes(cached_candidate.storage_key)
                     except Exception as exc:
                         # A missing purchased asset is not permission to buy another.
                         raise ProviderError(

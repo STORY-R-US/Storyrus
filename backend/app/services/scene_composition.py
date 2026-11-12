@@ -111,13 +111,17 @@ def expansion_canvas(data, title_bottom, head_height, protected=()):
     )
 
 
-def preserve_expansion_core(output, seed, mask):
+def validate_expansion_output(output, seed, mask):
+    """Keep the continuous provider output for mandatory identity/scene review.
+
+    A mask is guidance, not a guarantee of fixed pixel coordinates. Pasting the
+    seed rectangle back can duplicate a person or break scenery that moved.
+    """
     result = Image.open(io.BytesIO(output)).convert("RGB")
     original = Image.open(io.BytesIO(seed)).convert("RGB")
     alpha = Image.open(io.BytesIO(mask)).getchannel("A")
     if result.size != original.size or alpha.size != result.size:
         raise ValueError("Expanded scene dimensions changed")
-    result.paste(original, (0, 0), alpha)
     buffer = io.BytesIO()
     result.save(buffer, "PNG")
     return buffer.getvalue()

@@ -43,7 +43,7 @@ def test_invalid_title_geometry_never_reaches_generation(region):
         scene_composition.cover_guide(region, alignment="center")
 
 
-def test_expansion_preserves_person_pixels_and_never_stretches_source():
+def test_expansion_never_stretches_source_or_pastes_a_rectangle_over_shifted_output():
     source = Image.new("RGB", (1024, 1024), "red")
     buffer = io.BytesIO()
     source.save(buffer, "PNG")
@@ -60,11 +60,11 @@ def test_expansion_preserves_person_pixels_and_never_stretches_source():
     buffer = io.BytesIO()
     generated.save(buffer, "PNG")
     final = Image.open(
-        io.BytesIO(scene_composition.preserve_expansion_core(buffer.getvalue(), seed, mask))
+        io.BytesIO(scene_composition.validate_expansion_output(buffer.getvalue(), seed, mask))
     )
     assert final.getpixel((512, 50)) == (0, 0, 255)
-    assert final.getpixel((512, 700)) == (255, 0, 0)
-    assert final.getpixel((transform["left"], transform["top"])) == (255, 0, 0)
+    assert final.getpixel((512, 700)) == (0, 0, 255)
+    assert final.getpixel((transform["left"], transform["top"])) == (0, 0, 255)
 
 
 @pytest.mark.parametrize("bad", ["missing", "duplicate", "invalid", "conflicting"])

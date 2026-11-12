@@ -2920,6 +2920,31 @@ async def test_invalid_or_inconsistent_review_never_approves_or_regenerates(
 
 
 @pytest.mark.asyncio
+async def test_saved_scene_survives_prompt_update_after_inconclusive_review(
+    reference_studio, monkeypatch
+):
+    from app.services import scene_composition
+
+    studio, calls, _ = reference_studio
+    text_class = type(handlers.get_text_provider())
+    original = text_class.validate_editorial_preview
+
+    async def invalid(self, **kwargs):
+        return TextResult(text="not-json", cost_usd=0)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", invalid)
+    await _run(studio, "preview", {"cover_only": True}, key="before-deploy", expected="FAILED")
+    assert len(calls) == 1
+    direction = scene_composition.direction
+    monkeypatch.setattr(
+        scene_composition, "direction", lambda *a, **kw: direction(*a, **kw) + " Improved wording."
+    )
+    monkeypatch.setattr(text_class, "validate_editorial_preview", original)
+    await _run(studio, "preview", {"cover_only": True}, key="after-deploy")
+    assert len(calls) == 1
+
+
+@pytest.mark.asyncio
 async def test_corrupt_candidate_blocks_retry_without_purchasing_replacement(
     reference_studio, monkeypatch
 ):
