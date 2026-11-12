@@ -228,7 +228,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes(localizedExample("capa-nicolas-maefilho.jpg", "pt")))).toBe(false);
     expect(srcs.some((src) => src.includes(localizedExample("capa-matteo-aniversario.png", "pt")))).toBe(false);
     expect(srcs.some((src) => src.includes(localizedExample("capa-matteo-nas-nuvens.png", "pt")))).toBe(true);
-    expect(imgs).toHaveLength(52);
+    expect(imgs).toHaveLength(53);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(true);
     expect(srcs.some((src) => src.includes(localizedExample("capa-feliz-natal-familia.png", "pt")))).toBe(true);
@@ -256,8 +256,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(52);
-    expect(cards).toHaveLength(52);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(53);
+    expect(cards).toHaveLength(53);
     expect(cards.some((card) => card.textContent?.includes("Livro Teste"))).toBe(false);
     expect(within(catalog).getByText(/nano e suas aventuras/i)).toBeInTheDocument();
     expect(within(catalog).getByText(/feliz natal, família/i)).toBeInTheDocument();
@@ -406,7 +406,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-title");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(51);
+    expect(personalize).toHaveLength(52);
     expect(screen.getAllByTestId("catalog-model-unavailable")).toHaveLength(1);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
@@ -802,7 +802,7 @@ describe("Landing — CTAs e links", () => {
     hover(/^família$/i);
     expect(bookLinks().length).toBeGreaterThan(4);
     expect(bookLinks()).toContain("/livro/61");
-    expect(within(panel).queryByRole("link", { name: /^casamento$/i })).not.toBeInTheDocument();
+    expect(within(panel).getByRole("link", { name: /^casamento$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu-casamento");
     expect(within(panel).getByRole("link", { name: /hora de dormir/i })).toHaveAttribute("href", "/catalogo#educativo-rotina_dormir");
     hover(/hora de dormir/i);
     expect(bookLinks()).toContain("/livro/65");
@@ -821,7 +821,7 @@ describe("Landing — CTAs e links", () => {
           expect(shown.length, `${lang}: ${link.textContent}`).toBeGreaterThan(0);
           shown.forEach((book) => books.add(book.getAttribute("href")!));
         }
-        expect(books.size).toBe(variant === "photo" ? 57 : 27);
+        expect(books.size).toBe(variant === "photo" ? 58 : 28);
         if (variant === "photo") expect(books.has("/livro/31")).toBe(true);
         else expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
       }
@@ -890,7 +890,7 @@ describe("Landing — CTAs e links", () => {
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(27);
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(28);
     expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-pedro-amem-se.png", "pt")));
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
@@ -1084,6 +1084,7 @@ describe("Classificação editorial do catálogo", () => {
       expect(shelf("educativo", "compartilhar_revezar")).toContain(64);
       expect(shelf("educativo", "rotina_dormir")).toContain(65);
       expect(shelf("educativo", "literacia_emocional")).toContain(66);
+      expect(shelf("voce-e-eu", "casamento")).toContain(67);
       expect(shelf("voce-e-eu", "tio_tia")).toEqual(expect.arrayContaining([19, 29, 39, 40].filter((index) => catalogEntry(lang, index))));
       expect(shelf("voce-e-eu", "family_love")).toContain(9);
       expect(shelf("voce-e-eu", "pets")).toEqual(expect.arrayContaining([10, 28]));
@@ -1096,7 +1097,7 @@ describe("Classificação editorial do catálogo", () => {
       expect(shelf("ocasioes", "birthday")).not.toContain(13);
       if (catalogEntry(lang, 3)) expect(shelf("educativo", "alfabetizacao_inicial")).toContain(3);
       const all = new Set(sections.flatMap((s) => s.books.map((b) => b.catalogI)));
-      for (let index = 0; index <= 66; index++) {
+      for (let index = 0; index <= 67; index++) {
         if (catalogEntry(lang, index) && index !== 33) expect(all.has(index), `livro ${index}`).toBe(true);
       }
       for (const section of sections) {

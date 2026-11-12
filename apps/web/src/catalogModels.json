@@ -1546,5 +1546,51 @@
       "page": "cartoon-pagina-theo-sentimentos-v1-pt.webp",
       "holding": "cartoon-foto-theo-sentimentos-v1-pt.webp"
     }
+  },
+  "catalog-realistic-67": {
+    "id": "catalog-realistic-67",
+    "catalog_index": 67,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Clara e Miguel, Nosso Sim para Sempre",
+      "en": "Clara and Miguel, Our Forever Yes",
+      "es": "Clara y Miguel, Nuestro Sí para Siempre"
+    },
+    "example_name": "Clara e Miguel",
+    "sources": {
+      "cover": "covers/realistic-capa-clara-miguel-casamento-v1-pt.webp",
+      "page": "realistic-pagina-clara-miguel-casamento-v1-pt.webp",
+      "holding": "realistic-foto-clara-miguel-casamento-v1-pt.webp"
+    },
+    "example_names": {
+      "pt": "Clara e Miguel",
+      "en": "Clara and Miguel",
+      "es": "Clara y Miguel"
+    }
+  },
+  "catalog-cartoon-67": {
+    "id": "catalog-cartoon-67",
+    "catalog_index": 67,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Clara e Miguel, Nosso Sim para Sempre",
+      "en": "Clara and Miguel, Our Forever Yes",
+      "es": "Clara y Miguel, Nuestro Sí para Siempre"
+    },
+    "example_name": "Clara e Miguel",
+    "sources": {
+      "cover": "covers/cartoon-capa-clara-miguel-casamento-v1-pt.webp",
+      "page": "cartoon-pagina-clara-miguel-casamento-v1-pt.webp",
+      "holding": "cartoon-foto-clara-miguel-casamento-v1-pt.webp"
+    },
+    "example_names": {
+      "pt": "Clara e Miguel",
+      "en": "Clara and Miguel",
+      "es": "Clara y Miguel"
+    }
   }
 }

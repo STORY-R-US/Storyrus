@@ -2,7 +2,8 @@ import definitions from "./catalogModels.json";
 export type CatalogModel = {
   id: string; catalog_index: number; style: string; available: boolean;
   reason: string | null; titles: Record<"pt" | "en" | "es", string>;
-  example_name: string; sources: { cover: string; page: string; holding: string };
+  example_name: string; example_names?: Partial<Record<"pt" | "en" | "es", string>>;
+  sources: { cover: string; page: string; holding: string };
 };
 const models = definitions as Record<string, CatalogModel>;
 export function catalogModel(id: string | null | undefined): CatalogModel | undefined {

@@ -379,7 +379,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setSelectedCatalogId(requestedModel);
     const titulo = selectedModel?.titles[lang] || q.get("titulo");
     const historia = q.get("historia");
-    const heroi = selectedModel?.example_name || q.get("heroi");
+    const heroi = selectedModel?.example_names?.[lang] || selectedModel?.example_name || q.get("heroi");
     if (!tema && !titulo && !historia) return;
     presetApplied.current = true;
     if (tema) setTemaId(tema);

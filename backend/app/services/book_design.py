@@ -81,7 +81,12 @@ def select(project, requested):
         )
     if design.get("title_templates") and project.book_profile.get("stage") == "ficha":
         titles = {
-            language: literal.replace(design.get("example_name") or "\0", project.child_name or "")
+            language: literal.replace(
+                (design.get("example_names") or {}).get(language)
+                or design.get("example_name")
+                or "\0",
+                project.child_name or "",
+            )
             for language, literal in design["title_templates"].items()
         }
         # The catalog supplies an initial suggestion, never a lock on user copy.

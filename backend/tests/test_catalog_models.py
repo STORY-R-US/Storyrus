@@ -81,7 +81,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         assert design["sources"] == web[key]["sources"]
 
 
-@pytest.mark.parametrize("index", [9, 10, 18, 21, 60, 62, 63, 64, 65, 66])
+@pytest.mark.parametrize("index", [9, 10, 18, 21, 60, 62, 63, 64, 65, 66, 67])
 def test_new_cartoon_interiors_have_square_pages_and_valid_narrative_font(index):
     design = book_design.snapshot(f"catalog-cartoon-{index}")
     assert design["style"] == "cartoon"
@@ -146,3 +146,25 @@ def test_custom_club_title_survives_catalog_selection_and_retry():
             == project.book_profile["title"]
         )
     assert project.book_profile["book_design"]["id"] == "catalog-realistic-0"
+
+
+@pytest.mark.parametrize("style", ["realistic", "cartoon"])
+@pytest.mark.parametrize("language", ["pt-BR", "en", "es"])
+def test_couple_names_replace_localized_examples_in_every_title(style, language):
+    project = SimpleNamespace(
+        book_profile={"stage": "ficha"}, style=style, theme="casamento",
+        child_name="Ana & Pedro", language=language,
+    )
+    book_design.select(project, f"catalog-{style}-67")
+    expected = {
+        "pt-BR": "Ana & Pedro, Nosso Sim para Sempre",
+        "en": "Ana & Pedro, Our Forever Yes",
+        "es": "Ana & Pedro, Nuestro Sí para Siempre",
+    }
+    assert project.book_profile["title"] == expected[language]
+    assert {key: value["title"] for key, value in project.book_profile["supplied_locales"].items()} == expected
+    book_design.select(project, "auto")
+    assert project.book_profile["title"] == expected[language]
+    project.book_profile["title"] = "Ana & Pedro: Our Story"
+    book_design.select(project, f"catalog-{style}-67")
+    assert all(value["title"] == "Ana & Pedro: Our Story" for value in project.book_profile["supplied_locales"].values())

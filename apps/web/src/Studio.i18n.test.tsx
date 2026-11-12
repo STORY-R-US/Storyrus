@@ -35,6 +35,28 @@ function ebookJob(): Job {
 }
 
 describe("Studio i18n", () => {
+  for (const [lang, nameLabel, titleLabel, suffix] of [
+    ["pt", /nome do protagonista/i, /título do livro/i, "Nosso Sim para Sempre"],
+    ["en", /protagonist's name/i, /book title/i, "Our Forever Yes"],
+    ["es", /nombre del protagonista/i, /título del libro/i, "Nuestro Sí para Siempre"],
+  ] as const) {
+    it(`substitui os dois nomes do casamento em ${lang} e preserva o título editado`, async () => {
+      localStorage.setItem(LANG_STORAGE_KEY, lang);
+      window.history.replaceState({}, "", "/app?modelo=catalog-realistic-67&tema=casamento&campos=nome");
+      const user = userEvent.setup();
+      render(<Studio />);
+      const name = await screen.findByLabelText(nameLabel);
+      const title = screen.getByLabelText(titleLabel);
+      await user.type(name, "Ana & Pedro");
+      expect(title).toHaveValue(`Ana & Pedro, ${suffix}`);
+      await user.clear(title);
+      await user.type(title, "Our Special Story");
+      await user.clear(name);
+      await user.type(name, "Ana & Paulo");
+      expect(title).toHaveValue("Our Special Story");
+    });
+  }
+
   it("carrega inglês a partir do lang da landing (localStorage)", async () => {
     localStorage.setItem(LANG_STORAGE_KEY, "en");
     render(<Studio />);
