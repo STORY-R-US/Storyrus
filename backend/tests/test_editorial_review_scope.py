@@ -51,3 +51,36 @@ async def test_user_visual_review_does_not_accept_corrupt_image():
     pipe.designed = True
     with pytest.raises(UnidentifiedImageError):
         await pipe.review(b"not a PNG", "CAPA_PLANA: title")
+
+
+@pytest.mark.asyncio
+async def test_full_scene_review_uses_story_wardrobe_not_photo_clothes():
+    captured = []
+
+    async def validate(**kwargs):
+        captured.append(kwargs)
+        return TextResult(
+            text=json.dumps({"valid": True, "issues": [], "limitations": []}), cost_usd=0
+        )
+
+    pipe = object.__new__(Pipeline)
+    pipe.demo = False
+    pipe.guard = lambda: None
+    pipe.account = lambda *args: None
+    pipe.profile = {
+        "editorial": editorial_profile.snapshot(),
+        "costume": "camisa verde e sandálias",
+    }
+    pipe.policy = editorial_profile.policy(pipe.profile)
+    pipe.base = {"reference_manifest": []}
+    pipe.photos = []
+    pipe.refs = []
+    pipe.master = SimpleNamespace(
+        _pkg=lambda: SimpleNamespace(
+            get_text_provider=lambda: SimpleNamespace(validate_editorial_preview=validate)
+        )
+    )
+    await pipe.review(b"image", "ARTE_BASE: scene", full_image_prompt="ARTE_BASE: full scene")
+    assert "camisa verde e sandálias" in captured[0]["prompt"]
+    assert "camisa verde e sandálias" in captured[0]["full_image_prompt"]
+    assert "prevalece sobre roupas das fotos" in captured[0]["full_image_prompt"]
