@@ -635,6 +635,8 @@ describe("Prévia automática", () => {
     expect(await screen.findByText(/500: Erro interno/i)).toBeInTheDocument();
     expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-retry-preview")).toBeInTheDocument();
+    await user.click(screen.getByTestId("studio-retry-preview"));
+    expect(api.startPreview).toHaveBeenLastCalledWith(expect.any(String), expect.objectContaining({ cover_only: true }));
     expect(new URLSearchParams(window.location.search).get("projeto")).toBeTruthy();
     expect(new URLSearchParams(window.location.search).has("project")).toBe(false);
   });

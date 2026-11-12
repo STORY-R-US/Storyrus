@@ -797,6 +797,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const brief = getStoryBrief().trim();
       await api.startPreview(project.id, {
+        cover_only: !project.purchase_flow?.preview_approved_at,
         brief: brief.slice(0, 2000) || undefined,
         catalog_design_id:
           project.book_profile?.version === 1
