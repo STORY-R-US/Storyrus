@@ -64,10 +64,14 @@ def direction(geometry, *, reference_number):
     )
 
 
-def expansion_canvas(data, title_bottom, head_height, protected=()):
+def expansion_canvas(data, title_bottom, head_height, protected=(), *, reserve="top"):
     """Uniformly reduce saved art; transparent surroundings are the ONLY new scene."""
     source = Image.open(io.BytesIO(data)).convert("RGBA")
-    if source.width != source.height or not 0 < head_height <= 1:
+    if (
+        source.width != source.height
+        or not 0 < head_height <= 1
+        or reserve not in {"top", "bottom"}
+    ):
         raise ValueError("Invalid source geometry")
     size = source.width
     scale = min(0.64, 1 - title_bottom - 0.08, 0.24 / head_height)
@@ -75,6 +79,8 @@ def expansion_canvas(data, title_bottom, head_height, protected=()):
         raise ValueError("Insufficient room for natural scene expansion")
     side = round(size * scale)
     left, top = (size - side) // 2, size - side
+    if reserve == "bottom":
+        top = 0
     seed = Image.new("RGBA", source.size)
     seed.paste(source.resize((side, side), Image.Resampling.LANCZOS), (left, top))
     # A narrow transition at the scenery edges; the face/body core stays exact.
@@ -83,7 +89,12 @@ def expansion_canvas(data, title_bottom, head_height, protected=()):
     feather = max(1, round(size * 0.012))
     for offset in range(feather + 1):
         draw.rectangle(
-            (left + offset, top + offset, left + side - 1 - offset, size - 1),
+            (
+                left + offset,
+                top + offset if reserve == "top" else 0,
+                left + side - 1 - offset,
+                size - 1 if reserve == "top" else side - 1 - offset,
+            ),
             fill=round(255 * offset / feather),
         )
     for box in protected:

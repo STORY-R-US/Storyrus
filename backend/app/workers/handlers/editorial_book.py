@@ -473,7 +473,9 @@ class Pipeline:
                     ) from exc
         raise ProviderError(f"Etapa {name} esgotou as tentativas deste trabalho", transient=False)
 
-    async def review(self, data, prompt, *, cover=None, technical=None, full_image_prompt=None):
+    async def review(
+        self, data, prompt, *, cover=None, technical=None, full_image_prompt=None, mandatory=False
+    ):
         self.last_review_scope = None
         self.last_review_issues = []
         if self.demo:
@@ -489,7 +491,7 @@ class Pipeline:
                 if image.format != "PNG":
                     raise ValueError("Preview must be a valid PNG")
                 image.verify()
-            if not prompt.startswith(("ARTE_BASE:", "CAPA_PLANA:")):
+            if not mandatory and not prompt.startswith(("ARTE_BASE:", "CAPA_PLANA:")):
                 return {
                     "status": "awaiting_user_review",
                     "reviewer": "user",
@@ -737,8 +739,8 @@ class Pipeline:
             ) from exc
         return regions, obstacles
 
-    async def expand_cover_scene(self, raw, value, name, action, region):
-        """One journaled expansion, only after a complete map proved no title room."""
+    async def expand_reading_scene(self, raw, value, name, action, region, *, title):
+        """One journaled expansion per scene, followed by full protection/visual review."""
         key = self.reading_layout_key(raw, value, name)
         mapped = self.db.scalar(
             select(Asset).where(
@@ -757,15 +759,17 @@ class Pipeline:
         heads = [item["region"] for item in report["protected_regions"] if item["kind"] == "head"]
         if report.get("protection_complete") is not True or not heads:
             raise ProviderError("BOOK_LAYOUT_UNSAFE: cabeça completa não confirmada")
+        footer = not title and region[1] >= 0.5
         seed, mask, transform = scene_composition.expansion_canvas(
             raw,
-            region[3],
+            1 - region[1] if footer else region[3],
             max(box[3] - box[1] for box in heads),
             protected=[
                 item["region"]
                 for item in report["protected_regions"]
                 if item["kind"] in {"head", "face", "hair", "hat", "accessory", "hand"}
             ],
+            reserve="bottom" if footer else "top",
         )
 
         async def expand(_attempt):
@@ -780,16 +784,23 @@ class Pipeline:
                     "scene matching the existing illustration, lighting, perspective and story. "
                     "The saved person and action have already been scaled and positioned correctly. "
                     "Do not move, enlarge or redraw them. Do not add any people, faces or bodies. "
-                    f"Above y={region[3] + 0.04:.3f} show ONLY quiet natural sky or distant scenery "
-                    "for the large title, no goalposts, limbs, objects or lettering there. "
-                    "Continue grass, field, stadium or other theme-appropriate surroundings seamlessly "
-                    "at the sides and above the existing scene. Keep any goal crossbar below the title "
-                    "reserve. No frame, rectangular inset, blank band, repeated edges or blurred strips. "
+                    + (
+                        f"Below y={region[1] - 0.04:.3f} "
+                        if footer
+                        else f"Above y={region[3] + 0.04:.3f} "
+                    )
+                    + "show ONLY quiet natural theme-appropriate scenery for the measured text, "
+                    "no heads, hair, hats, accessories, limbs, important objects or lettering there. "
+                    "Continue the same environment seamlessly on every expanded edge, matching "
+                    "perspective, materials, light and the selected illustration style. "
+                    "No frame, rectangular inset, blank band, repeated edges or blurred strips. "
                     "No title, text, stars or symbols; the server overlays those later. Story: "
                     + json.dumps(action, ensure_ascii=False)
                 ),
             )
-            self.account(result, "Expansão do cenário da capa")
+            self.account(
+                result, "Expansão do cenário da capa" if title else "Expansão do cenário da página"
+            )
             output = scene_composition.validate_expansion_output(result.image_bytes, seed, mask)
             return output, {
                 "source_sha256": render.digest(raw),
@@ -798,12 +809,13 @@ class Pipeline:
             }
 
         return await self.stage(
-            "cover:expand",
+            name + ":expand",
             {
                 "source_sha256": render.digest(raw),
                 "title_region": region,
                 "transform": transform,
-                "contract": 2,
+                "contract": 2 if title else 3,
+                **({"reserve": "bottom" if footer else "top"} if not title else {}),
             },
             expand,
         )
@@ -1435,23 +1447,30 @@ class Pipeline:
             obstacles = None
             expansion = None
             if (
-                title
-                and not self.demo
-                and self.profile.get("natural_cover_framing") == 1
-                and self.text_region(True)[0] < 0.25
+                not self.demo
+                and (
+                    (
+                        title
+                        and self.profile.get("natural_cover_framing") == 1
+                        and self.text_region(True)[0] < 0.25
+                    )
+                    or (not title and self.designed)
+                )
                 and hasattr(self.master._pkg().get_image_provider(), "expand_scene")
             ):
                 try:
                     regions, obstacles = await self.repair_reading_layout(
-                        raw, value, name, action, region, title=True
+                        raw, value, name, action, region, title=title
                     )
                 except ProviderError as exc:
                     if not str(exc).startswith("BOOK_LAYOUT_UNSAFE"):
                         raise
-                    raw, expansion = await self.expand_cover_scene(raw, value, name, action, region)
+                    raw, expansion = await self.expand_reading_scene(
+                        raw, value, name, action, region, title=title
+                    )
                     self.last_art = raw
                     regions, obstacles = await self.repair_reading_layout(
-                        raw, value, name, action, region, title=True
+                        raw, value, name, action, region, title=title
                     )
                     source_sha256 = render.digest(raw)
                     operation = "expand_saved_scene"
@@ -1556,6 +1575,7 @@ class Pipeline:
                             else "Posição adaptativa: use as regiões de linha verificadas na tipografia técnica. A posição do Catálogo é uma preferência; preserve todas as áreas protegidas da arte real."
                         ),
                         technical={"typography": layout},
+                        mandatory=bool(expansion),
                     )
                     break
                 except VisualReviewError as exc:
@@ -1680,6 +1700,7 @@ class Pipeline:
                             + json.dumps(value, ensure_ascii=False)
                             + ". Somente esse texto, nas regiões de linha da tipografia técnica. Sem obstruir pessoas, gorros ou ação. Posição adaptativa permitida para proteger a cena; sem tarjas ou alteração da arte.",
                             technical={"typography": layout},
+                            mandatory=bool(meta.get("scene_expansion")),
                         )
                     break
                 except (render.TextLayoutError, VisualReviewError) as exc:

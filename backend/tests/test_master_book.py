@@ -3333,3 +3333,112 @@ async def test_natural_cover_expands_once_and_resume_never_rebuys_art(
     assert len(expanded) == 1
     assert "mask" in expanded[0] and "canvas" in expanded[0]
     assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("safe", [True, False])
+@pytest.mark.parametrize("feature", ["face", "hair", "hat"])
+async def test_interior_expansion_is_scoped_to_page_and_reused_after_resume(
+    reference_studio, monkeypatch, safe, feature
+):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, calls, control = reference_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    expanded = []
+
+    async def expand(self, **kwargs):
+        expanded.append(kwargs)
+        if safe:
+            control["protected_regions"] = [
+                {"kind": "head", "region": [0.35, 0.60, 0.65, 0.84]},
+                {"kind": feature, "region": [0.35, 0.58, 0.65, 0.84]},
+            ]
+        return ImageResult(_png(), cost_usd=0)
+
+    monkeypatch.setattr(type(handlers.get_image_provider()), "expand_scene", expand, raising=False)
+    for page in ("preview:left", "page:2"):
+        control["protected_regions"] = [
+            {"kind": "head", "region": [0, 0, 1, 0.6]},
+            {"kind": feature, "region": [0, 0, 1, 0.6]},
+            {"kind": "body", "region": [0, 0.6, 1, 1]},
+        ]
+        for attempt in range(2):
+            job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+            db.add(job)
+            db.commit()
+            pipe = Pipeline(db, job, project, [_png()])
+            if safe:
+                _, meta = await pipe.art(page, "Lia observa o mar", value="Lia observa o mar.")
+                assert meta["validation"]["status"] == "valid"
+            else:
+                with pytest.raises(ProviderError, match="BOOK_LAYOUT_UNSAFE"):
+                    await pipe.art(page, "Lia observa o mar", value="Lia observa o mar.")
+            assert job.cost_credits == 0
+    assert len(calls) == 2
+    assert len(expanded) == 2
+    assert all("hair, hats" in entry["prompt"] for entry in expanded)
+
+
+@pytest.mark.asyncio
+async def test_incomplete_interior_map_never_buys_an_expansion(reference_studio, monkeypatch):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, calls, control = reference_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    control["protection_complete"] = False
+    expanded = []
+
+    async def expand(self, **kwargs):
+        expanded.append(kwargs)
+        raise AssertionError("An inconclusive map must not authorize expansion")
+
+    monkeypatch.setattr(type(handlers.get_image_provider()), "expand_scene", expand, raising=False)
+    for _ in range(2):
+        job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+        db.add(job)
+        db.commit()
+        with pytest.raises(ProviderError, match="BOOK_LAYOUT_UNSAFE"):
+            await Pipeline(db, job, project, [_png()]).art("page:1", "Lia", value="Lia sorri.")
+    assert len(calls) == 1 and expanded == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("crowded", [False, True])
+async def test_interior_never_expands_safe_art_or_rebuys_rejected_expansion(
+    reference_studio, monkeypatch, crowded
+):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    studio, calls, control = reference_studio
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    safe_regions = [{"kind": "head", "region": [0.35, 0.60, 0.65, 0.84]}]
+    control["protected_regions"] = (
+        [{"kind": "head", "region": [0, 0, 1, 0.6]}, {"kind": "body", "region": [0, 0.6, 1, 1]}]
+        if crowded
+        else safe_regions
+    )
+    expanded = []
+
+    async def expand(self, **kwargs):
+        expanded.append(kwargs)
+        control["protected_regions"] = safe_regions
+        control["reject"] = True  # Identity/continuity failures remain blocking.
+        return ImageResult(_png(), cost_usd=0)
+
+    monkeypatch.setattr(type(handlers.get_image_provider()), "expand_scene", expand, raising=False)
+    for _ in range(2):
+        job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+        db.add(job)
+        db.commit()
+        pipe = Pipeline(db, job, project, [_png()])
+        if crowded:
+            with pytest.raises(ProviderError, match="BOOK_ART_REJECTED"):
+                await pipe.art("page:1", "Lia", value="Lia sorri.")
+        else:
+            await pipe.art("page:1", "Lia", value="Lia sorri.")
+    assert len(calls) == 1
+    assert len(expanded) == int(crowded)

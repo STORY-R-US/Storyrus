@@ -99,3 +99,20 @@ def test_crop_reviews_keep_every_rejection_instead_of_approving_the_other_lines(
     report = editorial_review.parse_crop_report(json.dumps({"results": rows}), 7)
     assert report["valid"] is False
     assert report["issues"] == ["Line 1: Visible hair", "Line 7: Visible face"]
+
+
+@pytest.mark.parametrize("reserve", ["top", "bottom"])
+def test_expansion_reserves_natural_text_space_above_or_below_source(reserve):
+    source = Image.new("RGB", (1024, 1024), "red")
+    buffer = io.BytesIO()
+    source.save(buffer, "PNG")
+    seed, mask, transform = scene_composition.expansion_canvas(
+        buffer.getvalue(), 0.3, 0.3, reserve=reserve
+    )
+    image = Image.open(io.BytesIO(seed))
+    alpha = Image.open(io.BytesIO(mask)).getchannel("A")
+    text_y = 50 if reserve == "top" else 974
+    assert image.getpixel((512, text_y))[3] == 0
+    assert alpha.getpixel((512, text_y)) == 0
+    assert transform["top"] == (1024 - transform["side"] if reserve == "top" else 0)
+    assert image.getpixel((512, transform["top"] + transform["side"] // 2)) == (255, 0, 0, 255)
