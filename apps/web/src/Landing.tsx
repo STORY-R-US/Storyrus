@@ -2427,6 +2427,11 @@ export function CatalogBookCard({
   };
   const bookHref = book.catalogI != null ? `/livro/${book.catalogI}${modo === "cartoon" ? "?modo=cartoon" : ""}` : null;
   const linked = linkBook && bookHref != null;
+  // Measure the other translations with CSS so only genuinely long titles
+  // reserve extra lines, without changing height when the language changes.
+  const otherTitles = (["pt", "en", "es"] as const)
+    .filter((locale) => locale !== lang)
+    .map((locale) => book.catalogI != null ? I18N[locale].catalog[book.catalogI]?.t ?? book.t : book.t);
   const notes = (
     <div className="cat-notes">
       <div className="cat-notes-sizes">
@@ -2534,7 +2539,9 @@ export function CatalogBookCard({
         </div>
       </div>
       <div className="cat-body">
-        <h3 title={book.t}>{linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : book.t}</h3>
+        <h3 className="cat-title" title={book.t} data-title-a={otherTitles[0]} data-title-b={otherTitles[1]}>
+          {linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : <span>{book.t}</span>}
+        </h3>
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
         {notes}

@@ -3344,7 +3344,12 @@ img.ex-tab-cover {
 }
 .kid:not(.studio-app) .khead-links .kbtn { width: 70px; box-sizing: border-box; }
 .kid:not(.studio-app) .khead-links .kbtn:last-child { width: 104px; }
-#catalogo .cat-card:not(.book-sheet) .cat-body h3 { min-height: 3lh; }
+#catalogo .cat-card:not(.book-sheet) .cat-body h3 { min-height: 2lh; margin-bottom: 4px; }
+#catalogo .cat-title { display: grid; }
+#catalogo .cat-title > *, #catalogo .cat-title::before, #catalogo .cat-title::after { grid-area: 1 / 1; }
+#catalogo .cat-title::before, #catalogo .cat-title::after { visibility: hidden; pointer-events: none; }
+#catalogo .cat-title::before { content: attr(data-title-a); }
+#catalogo .cat-title::after { content: attr(data-title-b); }
 #catalogo .cat-card:not(.book-sheet) .cat-notes { margin-top: 4px; }
 #catalogo .cat-card:not(.book-sheet) .cat-note-grid { container-type: inline-size; }
 #catalogo .cat-card:not(.book-sheet) .cat-note-grid p { min-height: 3lh; }
