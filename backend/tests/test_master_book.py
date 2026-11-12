@@ -3653,7 +3653,60 @@ async def test_preparation_still_rejects_unreadable_text_without_retry_loop(stud
     monkeypatch.setattr(settings, "offline_fallback", False)
     monkeypatch.setattr(settings, "skip_openai", False)
     monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
-    with pytest.raises(ProviderError, match="BOOK_TEXT_INVALID") as failure:
+    with pytest.raises(ProviderError, match="BOOK_GENERATED_CONTENT_INVALID") as failure:
         await _prepare(db, job, project, [_png()])
     assert failure.value.transient is False
     assert not project.book_profile.get("locales")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("supplied", [False, True])
+async def test_generated_line_breaks_reflow_locally_but_user_text_is_not_rewritten(
+    studio, monkeypatch, supplied
+):
+    from app.services import book_design, editorial_profile
+    from app.workers.handlers.master_book import _prepare
+
+    _, db, pid, _ = studio
+    p = db.get(Project, uuid.UUID(pid))
+    words = "Lia descobre uma flor no jardim e observa as cores com cuidado depois volta para casa contente para contar sua descoberta".split()
+    literal = "\n".join(words)
+    book_profile.update(
+        p,
+        editorial=editorial_profile.snapshot("2026-11-05.3"),
+        book_design=book_design.snapshot("adventure"),
+        languages=["pt-BR"],
+        locales={},
+        title="Lia",
+        supplied_locales={"pt-BR": {"left": literal}} if supplied else {},
+    )
+    job = Job(project_id=p.id, type="EBOOK", status="RUNNING", cost_usd=0)
+    db.add(job)
+    db.commit()
+    calls = []
+
+    class Text:
+        async def prepare_book_profile(self, **kwargs):
+            calls.append(1)
+            content = {
+                "visual_identity": "Original identity",
+                "costume": "Blue shirt",
+                "palette": "Blue",
+                "locales": {
+                    "pt": {"title": None, "left": words, "right": "Uma descoberta.\nUma alegria."}
+                },
+            }
+            return TextResult("```JSON\n" + json.dumps(content) + "\n```", cost_usd=0)
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    if supplied:
+        with pytest.raises(ProviderError, match="BOOK_TEXT_INVALID"):
+            await _prepare(db, job, p, [_png()])
+        assert p.book_profile["supplied_locales"]["pt-BR"]["left"] == literal
+    else:
+        await _prepare(db, job, p, [_png()])
+        assert p.book_profile["locales"]["pt-BR"]["left"] == " ".join(words)
+        await _prepare(db, job, p, [_png()])
+    assert len(calls) == 1

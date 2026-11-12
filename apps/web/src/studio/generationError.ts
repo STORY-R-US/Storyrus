@@ -12,6 +12,7 @@ export function generationError(t: StudioCopy, message?: string | null, job?: Jo
       job?.result?.last_provider_error?.request_id;
     return `${t.previewGenerationOutcomeUnknown}${requestId ? ` ${t.previewRequestId}: ${requestId}` : ""}`;
   }
+  if (/BOOK_GENERATED_CONTENT_INVALID|BOOK_STORAGE_TEMPORARY/.test(message || "")) return t.previewInternalCreationFailed;
   if (/BOOK_LAYOUT_UNSAFE/.test(message || "")) return t.previewNoSafeTextArea;
   if (/BOOK_TEXT_INVALID|Os versos gerados precisam ser mais curtos|Cada verso gerado precisa ter de 2 a 4 linhas/.test(message || "")) return t.previewBookTextInvalid;
   if (/BOOK_REVIEW_INVALID/.test(message || "")) return t.previewBookReviewInvalid;

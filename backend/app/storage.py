@@ -199,3 +199,39 @@ def get_bytes(key: str) -> bytes:
         return path.read_bytes()
     obj = client.get_object(Bucket=settings.storage_bucket, Key=key)
     return obj["Body"].read()
+
+
+def is_transient_error(exc):
+    """Only transport/service interruptions; never missing objects or credentials."""
+    import httpx
+    from botocore.exceptions import (
+        ClientError,
+        ConnectionClosedError,
+        ConnectTimeoutError,
+        EndpointConnectionError,
+        ReadTimeoutError,
+    )
+
+    if isinstance(
+        exc,
+        (
+            TimeoutError,
+            ConnectionError,
+            httpx.RequestError,
+            ConnectionClosedError,
+            ConnectTimeoutError,
+            EndpointConnectionError,
+            ReadTimeoutError,
+        ),
+    ):
+        return True
+    if isinstance(exc, ClientError):
+        code = exc.response.get("Error", {}).get("Code")
+        status = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+        return status in {429, 500, 502, 503, 504} or code in {
+            "SlowDown",
+            "RequestTimeout",
+            "InternalError",
+            "ServiceUnavailable",
+        }
+    return False

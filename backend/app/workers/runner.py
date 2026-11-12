@@ -60,7 +60,9 @@ def is_transient_exception(exc: BaseException) -> bool:
     """
     if isinstance(exc, ProviderError):
         return bool(exc.transient and exc.retry_safe)
-    if isinstance(exc, (TimeoutError, ConnectionError)):
+    from app import storage
+
+    if storage.is_transient_error(exc):
         return True
     if isinstance(exc, httpx.RequestError):
         return True

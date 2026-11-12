@@ -4,8 +4,14 @@ import { studioCopy } from "./i18n";
 
 describe.each(["pt", "en", "es"] as const)("book failures in %s", (lang) => {
   const copy = studioCopy(lang);
+  it("explains internal failures in the selected language", () => {
+    const message = generationError(copy, "BOOK_GENERATED_CONTENT_INVALID");
+    expect(message).toContain({ pt: "Uma etapa interna", en: "An internal creation step", es: "una etapa interna" }[lang]);
+  });
   it.each([
     ["BOOK_LAYOUT_UNSAFE", "previewNoSafeTextArea"],
+    ["BOOK_GENERATED_CONTENT_INVALID", "previewInternalCreationFailed"],
+    ["BOOK_STORAGE_TEMPORARY", "previewInternalCreationFailed"],
     ["BOOK_TEXT_INVALID", "previewBookTextInvalid"],
     ["Os versos gerados precisam ser mais curtos para manter a leitura confortável", "previewBookTextInvalid"],
     ["BOOK_REVIEW_INVALID", "previewBookReviewInvalid"],
