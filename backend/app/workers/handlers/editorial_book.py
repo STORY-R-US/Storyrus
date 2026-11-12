@@ -498,6 +498,13 @@ class Pipeline:
                     "method": "technical_integrity_only",
                 }
         self.guard()
+        if full_image_prompt:
+            full_image_prompt += (
+                " Figurino obrigatório da história (prevalece sobre roupas das fotos): "
+                + json.dumps(self.profile.get("costume", ""), ensure_ascii=False)
+                + ". Avalie proporções apenas na imagem OUTPUT inteira, nunca ampliando "
+                "o recorte da reserva de texto para medir personagens."
+            )
         if getattr(self, "design", None) and self.design.get("version") in {3, 4}:
             scenery_check = (
                 " Cenário contínuo de ponta a ponta: reprove laterais esticadas, espelhadas, "
