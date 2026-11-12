@@ -16,6 +16,10 @@ from app.main import app
 from app.models import Asset, AssetKind, Job, Project
 from app.services import book_profile
 from app.workers import book_render, handlers, runner
+from app.workers.handlers.editorial_book import Pipeline
+
+INTEGRATED_WORKFLOW = Pipeline.integrated_editorial_available
+INTEGRATED_READING = Pipeline.integrated_reading_available
 
 
 def test_reference_layout_keeps_literal_copy_with_real_heavy_fonts_and_separate_title_block():
@@ -147,6 +151,7 @@ def composed_studio(studio, monkeypatch):
     # This fixture exercises the retained legacy template/composition contract.
     # Integrated generation, mandatory review and resume have their own tests.
     monkeypatch.setattr(Pipeline, "integrated_reading_available", lambda self: False)
+    monkeypatch.setattr(Pipeline, "integrated_editorial_available", lambda self: False)
 
     monkeypatch.setattr(editorial_profile, "CURRENT_VERSION", "2026-11-05.1")
     client, db, pid, store = studio
@@ -170,7 +175,12 @@ def composed_studio(studio, monkeypatch):
     class Images:
         async def generate_scene(self, **kwargs):
             calls.append(kwargs)
-            assert kwargs["photo"] == (None if kwargs.get("landscape") else _png())
+            assert kwargs["photo"] == (
+                None
+                if kwargs.get("landscape")
+                and "INTEGRATED ART AND LETTERING" not in kwargs["prompt"]
+                else _png()
+            )
             if control["fail_reading"] and "Protagonista original segura" in kwargs["prompt"]:
                 raise ProviderError("interrupção controlada", transient=False)
             if control.get("holding_template") and "#ff00ff" in kwargs["prompt"]:
@@ -340,6 +350,61 @@ def reference_studio(composed_studio):
     )
     db.commit()
     return studio, calls, control
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("model", ["family", "adventure", "cartoon"])
+async def test_complete_integrated_preview_and_print_pages(reference_studio, monkeypatch, model):
+    from app.printkit.service import get_print_order
+    from app.services import book_design
+
+    studio, calls, _ = reference_studio
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, book_design=book_design.snapshot(model))
+    db.commit()
+    monkeypatch.setattr(Pipeline, "integrated_editorial_available", INTEGRATED_WORKFLOW)
+    monkeypatch.setattr(Pipeline, "integrated_reading_available", INTEGRATED_READING)
+    await _run(studio, "preview", key="all-integrated")
+    assert len(calls) == 3  # cover, complete open book, reading photograph
+    assert "INTEGRATED ART AND LETTERING" in calls[0]["prompt"]
+    assert "INTEGRATED ART AND LETTERING" in calls[1]["prompt"]
+    assert "INTEGRATED FINAL SCENE" in calls[2]["prompt"]
+    assert project.book_profile["scene_workflow"] == "integrated-v1"
+    await _run(studio, "preview", key="all-integrated-resume")
+    assert len(calls) == 3
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    get_print_order(db, project.id).payment_status = "paid"
+    project.character_ref = {"storage_key": "test-avatar"}
+    store["test-avatar"] = _png()
+    project.character_approved_at = project.created_at
+    passages = [f"Lia observa a flor {i:02d}." for i in range(1, 17)]
+    story = "Título: Lia\n\n" + "\n\n".join(
+        f"Página {i}:\n{passage}" for i, passage in enumerate(passages, 1)
+    )
+    book_profile.update(project, stage="avatar_approved", stories={"pt-BR": story})
+    db.commit()
+    for number in (1, 2):
+        await _run(studio, "pages/next", {"page": number}, key=f"integrated-page-{number}")
+    assert len(calls) == 5
+    pages = client.get(f"/v1/projects/{pid}/assets").json()["page_versions"]
+    assert all(p["role"] == "com_texto" for p in pages)
+    assert len(pages) == 2
+    combined = "\n".join(p["layout"]["text"] for p in pages)
+    assert all(combined.count(passage) == 1 for passage in passages[:2])
+    if model == "family":
+        revised = story.replace(passages[1], "Lia rega a flor com carinho.")
+        book_profile.update(project, stories={"pt-BR": revised})
+        db.commit()
+        await _run(studio, "pages/next", {"page": 2}, key="integrated-paired-edit")
+        reading = db.scalars(
+            select(Asset).where(Asset.project_id == project.id, Asset.kind == "page_image")
+        ).all()
+        latest = [
+            a for a in reading if a.meta.get("role") == "com_texto" and a.meta.get("page") == 1
+        ][-1]
+        assert "Lia rega a flor com carinho." in latest.meta["layout"]["text"]
+        assert latest.meta["integrated_text"] is True
 
 
 @pytest.mark.asyncio

@@ -1,26 +1,39 @@
-# Cena de leitura integrada
+# Fluxo editorial integrado
 
-Novas cenas de livro segurado são geradas como uma fotografia completa, usando
-as fotos originais para identidade, a capa final para arte/texto e o exemplar do
-Catálogo exclusivamente para acabamento e apresentação física. A pessoa e o
-ambiente externos permanecem fotográficos mesmo nos livros Cartoon.
+Novos projetos congelam scene_workflow=integrated-v1 antes da primeira imagem.
+Capa, prévia do livro aberto, páginas para impressão e livro segurado usam a
+composição integrada de arte, pessoas, cenário e texto literal. A prévia completa
+usa três imagens: capa, livro aberto e leitura. Não compra duas páginas separadas
+para depois montar o livro aberto.
 
-Não há superfície rosa, detecção de quadrilátero nem colagem posterior nesse
-caminho. A revisão visual é obrigatória, inclusive nos modelos do Catálogo:
-confere identidade, título literal, arte impressa, proporções, mãos e encadernação.
-Isso reduz os defeitos da montagem anterior, mas não torna uma geração infalível
-nem garante equivalência visual sem avaliar uma geração real autorizada.
+As fotos originais definem identidade. A capa final define continuidade nas cenas
+seguintes; o exemplar do Catálogo define acabamento e layout, nunca as pessoas ou
+os nomes. A prévia respeita o layout próprio do exemplar, incluindo modelos com
+uma página de leitura e outra de ilustração. O livro completo preserva todos os
+versos uma vez nas páginas correspondentes. O PDF usa as páginas finais planas;
+não recorta páginas da fotografia do livro aberto nem reaplica texto por cima de
+uma imagem que já contém letras. Não apresenta essas páginas como “sem texto”.
 
-A imagem original da cena é persistida antes da revisão. Uma retomada, inclusive
-em outro trabalho, reaproveita esse resultado. Resultado de provedor desconhecido
-bloqueia nova compra. Reprovação não provoca regeneração automática nem substitui
-silenciosamente a pessoa por uma foto apenas do livro.
+Na leitura, pessoa, ambiente, mãos e capa impressa nascem na mesma fotografia.
+Não há superfície rosa, localização de quadrilátero ou colagem posterior. Pessoas
+externas permanecem fotográficas mesmo nos livros Cartoon. A capa plana para
+impressão recebe apenas a apresentação física local na primeira imagem da prévia.
 
-Cenas finais já salvas continuam no mesmo cache. Projetos com template antigo
-salvo, iniciado ou com resultado desconhecido mantêm o caminho anterior para não
-comprar outra cena durante uma retomada. Esta mudança não regenera livros existentes,
-não altera a cobrança do cliente e não muda a composição das páginas ou capa plana.
+Todas as novas cenas passam por revisão obrigatória de texto literal, identidade,
+anatomia, proporções, continuidade do cenário e sobreposição de letras. A revisão
+considera o layout específico do Catálogo. A imagem é salva antes dessa revisão;
+reprovação não causa regeneração automática e não publica conteúdo de contingência.
+Retomadas reaproveitam a mesma imagem; resultado desconhecido bloqueia recompra.
 
-Validação automatizada usa fornecedores simulados e bloqueia chamadas reais à
-OpenAI. Cobre três idiomas, múltiplas fotos, modelos família/aventura/Cartoon,
-reprovação de texto, retomada e resultado desconhecido sem recompra.
+Projetos com artes salvas, etapas antigas iniciadas ou resultado desconhecido
+mantêm o caminho anterior. Uma atualização não migra nem regenera imagens pagas.
+A cena de leitura integrada também pode ser usada em projetos anteriores quando
+nenhum template antigo foi comprado/iniciado. Pedidos, pagamentos e exigência de
+aprovação da prévia continuam no fluxo existente.
+
+Testes usam fornecedores simulados e bloqueiam chamadas reais à OpenAI. Cobrem
+três idiomas, múltiplas fotos, modelos família/aventura/Cartoon, prévia completa,
+páginas de impressão, reprovação, retomada e proteção de projetos antigos.
+Não demonstram equivalência estética nem ausência absoluta de falhas: o modelo
+de imagem do chat não é exposto, e a qualidade visual real requer a avaliação de
+uma criação real autorizada. Esta publicação não inclui gerações pagas de teste.

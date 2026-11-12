@@ -155,9 +155,13 @@ def prompt(design, role, action, *, text_region=None, integrated=False):
         cover_direction = (
             "AMOR DE BISAVÓ COVER COMPOSITION: compose the title as an integral part of "
             "the finished cover image, in the upper-right natural scenery, with harmonious "
-            "color, contrast and generous breathing room. The server adds the exact approved "
-            "title after illustration; do not draw lettering in this art stage. Reserve the "
-            "entire measured text_region plus a clear margin as quiet continuous scenery. "
+            "color, contrast and generous breathing room. "
+            + (
+                "Render the exact approved title together with the finished illustration. Reserve the "
+                if integrated
+                else "The server adds the exact approved title after illustration; do not draw lettering in this art stage. Reserve the "
+            )
+            + "entire measured text_region plus a clear margin as quiet continuous scenery. "
             "Keep EVERY character completely outside this title area, including hair, face, "
             "body, clothing, arms and hands. Reframe or reposition the characters naturally "
             "on the left and below the title area rather than placing text over them. "
