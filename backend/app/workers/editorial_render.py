@@ -427,6 +427,28 @@ def title_area_evidence(data, layout):
     }
 
 
+def protected_kind(value):
+    """Canonicalize explicit equivalent labels, never infer an unknown region."""
+    if not isinstance(value, str):
+        return None
+    return {
+        "heads": "head",
+        "faces": "face",
+        "hairs": "hair",
+        "hats": "hat",
+        "accessories": "accessory",
+        "hands": "hand",
+        "bodies": "body",
+        "actions": "action",
+        "objects": "object",
+    }.get(value, value)
+
+
+def normalize_protected_regions(value):
+    protected_regions(value)
+    return [{**item, "kind": protected_kind(item["kind"])} for item in value]
+
+
 def protected_regions(value):
     """Validate observed full-scene obstacles before using their geometry."""
     if not isinstance(value, list) or not 1 <= len(value) <= 64:
@@ -436,7 +458,7 @@ def protected_regions(value):
         if (
             not isinstance(item, dict)
             or not isinstance(item.get("kind"), str)
-            or item.get("kind")
+            or protected_kind(item.get("kind"))
             not in {
                 "head",
                 "face",

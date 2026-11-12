@@ -696,6 +696,9 @@ class Pipeline:
         try:
             if not isinstance(observed, dict) or observed.get("protection_complete") is not True:
                 raise render.TextLayoutError("Áreas protegidas inconclusivas")
+            observed["protected_regions"] = render.normalize_protected_regions(
+                observed.get("protected_regions")
+            )
             obstacles = render.protected_regions(observed.get("protected_regions"))
         except render.TextLayoutError as exc:
             raise ProviderError(
@@ -755,7 +758,9 @@ class Pipeline:
         if render.digest(body) != (mapped.meta or {}).get("sha256"):
             raise ProviderError("BOOK_ART_UNAVAILABLE: mapa da arte inválido")
         report = json.loads(body)
-        render.protected_regions(report.get("protected_regions"))
+        report["protected_regions"] = render.normalize_protected_regions(
+            report.get("protected_regions")
+        )
         heads = [item["region"] for item in report["protected_regions"] if item["kind"] == "head"]
         if report.get("protection_complete") is not True or not heads:
             raise ProviderError("BOOK_LAYOUT_UNSAFE: cabeça completa não confirmada")

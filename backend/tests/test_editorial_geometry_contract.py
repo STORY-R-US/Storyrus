@@ -215,3 +215,31 @@ def test_valid_provider_image_normalizes_to_png_without_changing_decoded_pixels(
     normalized = render.normalize_art(raw)
     assert normalized.startswith(b"\x89PNG\r\n\x1a\n")
     assert render.square(normalized).tobytes() == render.square(raw).tobytes()
+
+
+@pytest.mark.parametrize(
+    "plural,singular",
+    [
+        ("heads", "head"),
+        ("faces", "face"),
+        ("hairs", "hair"),
+        ("hats", "hat"),
+        ("hands", "hand"),
+        ("bodies", "body"),
+        ("accessories", "accessory"),
+        ("objects", "object"),
+        ("actions", "action"),
+    ],
+)
+def test_equivalent_plural_labels_preserve_all_protection_coordinates(plural, singular):
+    source = [{"kind": plural, "region": [0.1, 0.2, 0.4, 0.6]}]
+    normalized = render.normalize_protected_regions(source)
+    assert normalized == [{"kind": singular, "region": [0.1, 0.2, 0.4, 0.6]}]
+    assert source[0]["kind"] == plural
+    assert render.protected_regions(source) == render.protected_regions(normalized)
+
+
+@pytest.mark.parametrize("kind", ["unknown", "hands and face", "", None, ["hand"]])
+def test_normalizing_labels_never_ignores_unrecognized_regions(kind):
+    with pytest.raises(render.TextLayoutError):
+        render.normalize_protected_regions([{"kind": kind, "region": [0.1, 0.2, 0.4, 0.6]}])
