@@ -119,7 +119,7 @@ def enqueue_job(
     last_operational: OperationalError | None = None
     for attempt in range(2):
         try:
-            return _enqueue_job_once(
+            job = _enqueue_job_once(
                 db,
                 user=user,
                 project=project,
@@ -128,6 +128,12 @@ def enqueue_job(
                 payload=safe_payload,
                 completing_job=completing_job,
             )
+            if job.project_id != project.id or job.type != job_type.value:
+                raise HTTPException(
+                    status.HTTP_409_CONFLICT,
+                    "Esta chave de tentativa pertence a outro projeto ou etapa.",
+                )
+            return job
         except OperationalError as exc:
             last_operational = exc
             db.rollback()
@@ -265,6 +271,15 @@ def _refreshed_job(db: Session, job: Job, idempotency_key: str | None) -> Job:
 
 def mark_failed_and_refund(db: Session, job: Job, error: str) -> None:
     """Estado FAILED definitivo + estorno de creditos (compensacao)."""
+    # Serialize failure/reclaim paths: two workers must not refund one debit twice
+    # or replace the final result of a job another worker already completed.
+    with db.no_autoflush:
+        saved_status = db.scalar(select(Job.status).where(Job.id == job.id).with_for_update())
+    if saved_status is None or saved_status in {JobStatus.FAILED.value, JobStatus.DONE.value}:
+        if saved_status is not None:
+            db.refresh(job)
+        db.commit()
+        return
     project = db.get(Project, job.project_id)
     job.status = JobStatus.FAILED.value
     job.error = error[:2000]

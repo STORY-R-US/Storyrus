@@ -3207,3 +3207,30 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
     assert book_design.reference(design, "page") in calls[2]["extra_refs"]
     assert design["finish"] in calls[1]["prompt"]
     assert not (project.purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("kind", ["face", "hair", "hat", "accessory", "hand"])
+async def test_partial_head_map_is_not_permission_to_overlay_title(
+    reference_studio, monkeypatch, kind
+):
+    studio, calls, control = reference_studio
+    client, db, pid, _ = studio
+    control["protected_regions"] = [{"kind": kind, "region": [0.3, 0.2, 0.5, 0.4]}]
+    reviews = []
+
+    async def reject(self, **kwargs):
+        reviews.append(kwargs)
+        return TextResult(
+            text='{"valid":false,"issues":["head accessory in title"],"limitations":[]}',
+            cost_usd=0,
+            meta={"review_scope": "text_reserve"},
+        )
+
+    monkeypatch.setattr(type(handlers.get_text_provider()), "validate_editorial_preview", reject)
+    for key in ("partial-head-first", "partial-head-resume"):
+        failed = await _run(studio, "preview", {"cover_only": True}, key=key, expected="FAILED")
+        assert "BOOK_LAYOUT_UNSAFE" in failed.error
+    assert len(calls) == 1 and len(reviews) == 1 and control["layout_repair_calls"] == 1
+    assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")

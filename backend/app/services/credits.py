@@ -20,7 +20,8 @@ class InsufficientCreditsError(Exception):
 
 
 def _lock_user(db: Session, user_id: uuid.UUID) -> User:
-    stmt = select(User).where(User.id == user_id)
+    # A row lock alone does not refresh a balance already in the identity map.
+    stmt = select(User).where(User.id == user_id).execution_options(populate_existing=True)
     if db.bind.dialect.name == "postgresql":
         stmt = stmt.with_for_update()
     user = db.scalar(stmt)

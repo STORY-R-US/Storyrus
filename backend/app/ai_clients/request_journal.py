@@ -83,17 +83,29 @@ class RequestJournal:
             select(Project.id).where(Project.id == self.job.project_id).with_for_update()
         ).first()
         rows = self.db.execute(
-            select(Job.id, Job.result).where(Job.project_id == self.job.project_id)
+            select(Job.id, Job.result)
+            .where(Job.project_id == self.job.project_id)
+            .order_by(Job.created_at.desc(), Job.id.desc())
         ).all()
         completed = None
+        payload = (self.job.result or {}).get("payload") or {}
+        explicit_new_image = (
+            operation.startswith("openai:image")
+            and payload.get("image")
+            and not payload.get("title_refresh")
+        )
         for job_id, result in rows:
-            for saved_key, entry in ((result or {}).get("paid_requests") or {}).items():
+            for entry in ((result or {}).get("paid_requests") or {}).values():
                 if entry.get("fingerprint") != fingerprint:
                     continue
                 if entry.get("state") in {"started", "unknown"}:
                     self.db.commit()
                     raise _unknown(entry)
-                if job_id == self.job.id and saved_key == key and entry.get("state") == "done":
+                if (
+                    completed is None
+                    and entry.get("state") == "done"
+                    and (job_id == self.job.id or not explicit_new_image)
+                ):
                     completed = entry
         if completed:
             self.db.commit()
@@ -110,8 +122,14 @@ class RequestJournal:
                         cost_usd=0,
                         meta=meta,
                     )
-                else:
+                elif body["kind"] == "text":
                     output = TextResult(body["text"], cost_usd=0, meta=meta)
+                else:
+                    raise ValueError("unknown provider cache kind")
+                # A new retry job must inherit the receipt as well as the output.
+                # Otherwise a crash between provider completion and stage storage
+                # can buy the exact same result again in the next job.
+                self._save(key, completed)
                 return key, completed, output
             except Exception as exc:
                 # An unavailable cache is not permission to purchase another output.

@@ -433,16 +433,22 @@ def protected_regions(value):
         raise TextLayoutError("Mapa de áreas protegidas ausente ou inválido.")
     boxes = []
     for item in value:
-        if not isinstance(item, dict) or item.get("kind") not in {
-            "head",
-            "face",
-            "hair",
-            "hat",
-            "hand",
-            "body",
-            "action",
-            "object",
-        }:
+        if (
+            not isinstance(item, dict)
+            or not isinstance(item.get("kind"), str)
+            or item.get("kind")
+            not in {
+                "head",
+                "face",
+                "hair",
+                "hat",
+                "accessory",
+                "hand",
+                "body",
+                "action",
+                "object",
+            }
+        ):
             raise TextLayoutError("Área protegida sem identificação válida.")
         box = item.get("region")
         if (
@@ -469,11 +475,14 @@ def _intersection(a, b):
 
 
 def layout_overlaps(layout, boxes):
-    return any(
-        _intersection(line, box) > 0
-        for line in layout.get("ink_regions_with_margin", [layout["ink_region_with_margin"]])
-        for box in boxes
-    )
+    lines = layout.get("ink_regions_with_margin")
+    if lines is None:
+        lines = [layout.get("ink_region_with_margin")]
+    if not isinstance(lines, list) or not lines:
+        raise TextLayoutError("Regiões de texto ausentes ou inválidas.")
+    for line in lines:
+        validate_inspection_region(line)
+    return any(_intersection(line, box) > 0 for line in lines for box in boxes)
 
 
 def reading_region_candidates(

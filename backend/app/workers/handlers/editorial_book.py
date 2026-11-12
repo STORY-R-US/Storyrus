@@ -341,6 +341,10 @@ class Pipeline:
         self.last_operation = None
         previous = (self.job.result or {}).get("editorial_tasks", {}).get(name, {})
         attempts = previous.get("attempts", 0) if previous.get("input_key") == key else 0
+        if attempts and previous.get("state") == "running":
+            # Resume the interrupted attempt, not a new visual attempt. Paid calls
+            # are recovered by the durable journal (or blocked if still unknown).
+            attempts -= 1
         maximum = 1 + min(
             2,
             max(
@@ -707,6 +711,10 @@ class Pipeline:
                 )
             )
             self.db.commit()
+        if not any(item["kind"] == "head" for item in observed["protected_regions"]):
+            raise ProviderError(
+                "BOOK_LAYOUT_UNSAFE: mapa sem a cabeça completa dos personagens; a arte original está salva"
+            )
         try:
             suggested = render.validate_region(observed.get("text_region"))
         except ValueError:

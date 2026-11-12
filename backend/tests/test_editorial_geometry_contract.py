@@ -79,11 +79,59 @@ def test_no_safe_space_is_an_actionable_local_failure(monkeypatch):
         [{"kind": "hat", "region": [0, 0, 2, 1]}],
         [{"kind": "hat", "region": [0.7, 0, 0.2, 1]}],
         [{"kind": "text", "region": [0, 0, 1, 1]}],
+        [{"kind": [], "region": [0, 0, 1, 1]}],
+        [{"kind": {}, "region": [0, 0, 1, 1]}],
     ],
 )
 def test_invalid_protection_map_never_becomes_clearance(value):
     with pytest.raises(render.TextLayoutError):
         render.protected_regions(value)
+
+
+@pytest.mark.parametrize("lines", [[], [None], [[0, 0, float("nan"), 1]], [[0, 0, 2, 1]]])
+def test_invalid_ink_geometry_cannot_pass_protected_area_check(lines):
+    with pytest.raises(render.TextLayoutError):
+        render.layout_overlaps({"ink_regions_with_margin": lines}, [[0.3, 0, 0.7, 0.6]])
+
+
+def test_line_geometry_does_not_require_an_enclosing_rectangle():
+    layout = {"ink_regions_with_margin": [[0.1, 0.1, 0.9, 0.2]]}
+    assert render.layout_overlaps(layout, [[0.3, 0, 0.7, 0.6]])
+    assert not render.layout_overlaps(layout, [[0.3, 0.3, 0.7, 0.6]])
+
+
+@pytest.mark.parametrize("kind", ["hair", "hat", "accessory"])
+@pytest.mark.parametrize("side", ["left", "right", "both"])
+def test_hair_accessories_profiles_and_multiple_people_keep_original_pixels(
+    monkeypatch, kind, side
+):
+    profile = {"editorial": editorial_profile.snapshot("2026-11-05.3")}
+    source = Image.new("RGB", (512, 512), "#bfe3ef")
+    draw = ImageDraw.Draw(source)
+    # Hair / a bow / a broad hat extends beyond the narrow profile-face box.
+    regions = []
+    for edge in ["left", "right"] if side == "both" else [side]:
+        x0, x1 = (0.01, 0.25) if edge == "left" else (0.75, 0.99)
+        regions.extend(
+            [
+                {"kind": "head", "region": [x0, 0.12, x1, 0.65]},
+                {"kind": kind, "region": [x0, 0.02, x1, 0.3]},
+            ]
+        )
+    for item in regions:
+        draw.rectangle(tuple(round(v * 512) for v in item["region"]), fill="#364370")
+    raw = render.encode(source)
+    monkeypatch.setattr(render, "protected_heads", lambda _: [])
+    protected = render.protected_regions(regions)
+    choices = render.reading_region_candidates(
+        raw, "Lia e o mar", profile, [0.06, 0.055, 0.94, 0.31], title=True, obstacles=protected
+    )
+    for region in choices:
+        output, layout = render.text(raw, "Lia e o mar", profile, title=True, region=region)
+        assert not render.layout_overlaps(layout, protected)
+        for item in regions:
+            box = tuple(round(v * 512) for v in item["region"])
+            assert render.square(output).crop(box).tobytes() == source.crop(box).tobytes()
 
 
 @pytest.mark.parametrize(

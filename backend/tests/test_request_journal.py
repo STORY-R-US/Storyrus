@@ -65,6 +65,145 @@ class Provider:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("image", [False, True])
+@pytest.mark.parametrize("old_status", ["RUNNING", "FAILED", "DONE"])
+async def test_new_job_recovers_completed_paid_result(setup, image, old_status):
+    db, job, _ = setup
+    provider = Provider(db, job, image=image)
+    with request_journal(db, job):
+        original = await provider.generate(prompt="same")
+    job.status = old_status
+    other = Job(project_id=job.project_id, type="EBOOK", status="RUNNING")
+    db.add(other)
+    db.commit()
+    provider.job = other
+    with request_journal(db, other):
+        recovered = await provider.generate(prompt="same")
+    assert provider.calls == 1
+    assert recovered.cost_usd == 0 and recovered.meta["reused"] is True
+    assert recovered.meta["request_id"] == original.meta["request_id"]
+    assert list(other.result["paid_requests"].values())[0]["state"] == "done"
+    assert len(db.scalars(select(Asset)).all()) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("corruption", ["missing", "checksum", "invalid_json", "unknown_kind"])
+async def test_new_job_never_repurchases_unreadable_receipt(setup, corruption):
+    import hashlib
+
+    db, job, objects = setup
+    provider = Provider(db, job)
+    with request_journal(db, job):
+        await provider.generate(prompt="same")
+    entries = dict(job.result["paid_requests"])
+    key, entry = next(iter(entries.items()))
+    if corruption == "missing":
+        objects.clear()
+    else:
+        raw = (
+            b"corrupt"
+            if corruption != "unknown_kind"
+            else b'{"kind":"invalid","meta":{},"text":"x"}'
+        )
+        objects[entry["storage_key"]] = raw
+        if corruption != "checksum":
+            entries[key] = {**entry, "sha256": hashlib.sha256(raw).hexdigest()}
+            job.result = {**job.result, "paid_requests": entries}
+    other = Job(project_id=job.project_id, type="EBOOK", status="RUNNING")
+    db.add(other)
+    db.commit()
+    with request_journal(db, other):
+        with pytest.raises(ProviderError, match="GENERATION_OUTCOME_UNKNOWN"):
+            await provider.generate(prompt="same")
+    assert provider.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_storage_failure_after_provider_response_never_sends_again(setup, monkeypatch):
+    db, job, _ = setup
+    provider = Provider(db, job, image=True)
+
+    def unavailable(*args):
+        raise OSError("storage unavailable after paid response")
+
+    monkeypatch.setattr("app.storage.put_bytes", unavailable)
+    with request_journal(db, job):
+        with pytest.raises(OSError):
+            await provider.generate(prompt="same")
+    other = Job(project_id=job.project_id, type="EBOOK", status="RUNNING")
+    db.add(other)
+    db.commit()
+    with request_journal(db, other):
+        with pytest.raises(ProviderError, match="GENERATION_OUTCOME_UNKNOWN"):
+            await provider.generate(prompt="same")
+    assert provider.calls == 1
+
+
+@pytest.mark.parametrize("title_refresh", [False, True])
+def test_explicit_image_revision_is_distinct_from_title_only_retry(setup, title_refresh):
+    from app.ai_clients.request_journal import RequestJournal
+
+    db, job, _ = setup
+    journal = RequestJournal(db, job)
+    key, entry, _ = journal.begin("openai:image_json", "same")
+    journal.finish(key, entry, ImageResult(b"original", cost_usd=0.04))
+    other = Job(
+        project_id=job.project_id,
+        type="EBOOK",
+        status="RUNNING",
+        result={"payload": {"image": "01_CAPA", "title_refresh": title_refresh}},
+    )
+    db.add(other)
+    db.commit()
+    _, _, output = RequestJournal(db, other).begin("openai:image_json", "same")
+    assert (output is not None) == title_refresh
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("new_job", [False, True])
+async def test_interrupted_editorial_stage_resumes_paid_output(setup, monkeypatch, new_job):
+    from app.workers.handlers.editorial_book import Pipeline
+
+    db, job, _ = setup
+    provider = Provider(db, job, image=True)
+    pipe = object.__new__(Pipeline)
+    pipe.db, pipe.job = db, job
+    pipe.project = db.get(Project, job.project_id)
+    pipe.base = {}
+    pipe.profile = {"editorial": {}}
+    pipe.designed = True
+    pipe.policy = {"production": {"retryPolicy": {"proposedDefaultMaxRetriesAfterFirstAttempt": 0}}}
+    pipe.revision_for = lambda name: {}
+    pipe.guard = lambda **kwargs: None
+    monkeypatch.setattr(
+        "app.workers.handlers.editorial_book.require_photo_authorization", lambda *args: None
+    )
+    interrupted = True
+
+    async def build(attempt):
+        result = await provider.generate(prompt="same")
+        if interrupted:
+            raise RuntimeError("worker stopped after provider receipt")
+        return result.image_bytes, {}
+
+    with request_journal(db, job):
+        with pytest.raises(RuntimeError):
+            await pipe.stage("cover:art", {}, build)
+    assert job.result["editorial_tasks"]["cover:art"]["state"] == "running"
+    interrupted = False
+    if new_job:
+        job.status = "FAILED"
+        other = Job(project_id=job.project_id, type="EBOOK", status="RUNNING")
+        db.add(other)
+        db.commit()
+        pipe.job = provider.job = other
+    with request_journal(db, pipe.job):
+        raw, _ = await pipe.stage("cover:art", {}, build)
+    assert raw == b"image-bytes" and provider.calls == 1
+    assert pipe.job.result["editorial_tasks"]["cover:art"]["state"] == "passed"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("image", [False, True])
 async def test_completed_output_survives_worker_restart_without_another_charge(setup, image):
     db, job, _ = setup
     provider = Provider(db, job, image=image)
