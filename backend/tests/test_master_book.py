@@ -168,6 +168,8 @@ def composed_studio(studio, monkeypatch):
             assert kwargs["photo"] == (None if kwargs.get("landscape") else _png())
             if control["fail_reading"] and "Protagonista original segura" in kwargs["prompt"]:
                 raise ProviderError("interrupção controlada", transient=False)
+            if control.get("holding_template") and "#ff00ff" in kwargs["prompt"]:
+                return ImageResult(control["holding_template"], cost_usd=0)
             if control.get("source_art"):
                 return ImageResult(control["source_art"], cost_usd=0)
             image = Image.new("RGB", (1024, 1024), (min(len(calls) * 20, 240), 120, 160))
@@ -3059,6 +3061,43 @@ async def test_retry_reuses_matching_generated_template_without_new_image_charge
         client.get(f"/v1/projects/{pid}/assets").json()["in_hand_presentation"]
         == "book_only_fallback"
     )
+
+
+@pytest.mark.asyncio
+async def test_new_compositor_reuses_folded_template_without_paid_calls(
+    reference_studio, monkeypatch
+):
+    from test_holding_composition import folded_fixture
+
+    from app.workers import editorial_render as render
+    from app.workers.handlers import editorial_book
+
+    studio, calls, control = reference_studio
+    control["holding_template"] = render.encode(folded_fixture(1024))
+    first = await _run(studio, "preview", key="folded-first")
+    assert first.status == "DONE", first.error
+    before = len(calls)
+    assert before == 4
+    original_signature = editorial_book.signature
+
+    def next_contract(value):
+        if isinstance(value, list) and len(value) == 3 and value[1] == "reading":
+            value = [value[0], value[1], {**value[2], "next_local_contract": True}]
+        return original_signature(value)
+
+    monkeypatch.setattr(editorial_book, "signature", next_contract)
+    second = await _run(studio, "preview", key="folded-recompose")
+    assert second.status == "DONE", second.error
+    assert len(calls) == before
+    assert second.result["editorial_tasks"]["reading:template"]["resumed"] is True
+    _, db, pid, _ = studio
+    active = [
+        a
+        for a in db.scalars(select(Asset).where(Asset.project_id == uuid.UUID(pid)))
+        if a.meta.get("workflow") == 1 and a.meta.get("role") == "03_LEITURA"
+    ]
+    assert len(active) == 1
+    assert active[0].meta["composition"]["binding_finish"] == "separate_navy_reverse_and_spine"
 
 
 @pytest.mark.asyncio

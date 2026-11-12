@@ -1988,6 +1988,7 @@ class Pipeline:
 
         async def build(attempt):
             reading = len(artworks) == 1
+            folded = None
             prompt = (
                 "Uma cena fotográfica natural, ambiente acolhedor. "
                 + (
@@ -2134,8 +2135,12 @@ class Pipeline:
                 )
                 geometry_source = "keyed_pixels"
                 keying_fallback_reason = None
+                folded = render.keyed_folded_cover(raw) if reading else None
                 try:
-                    geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
+                    if folded is not None:
+                        raw, geometry, visible_masks = folded
+                    else:
+                        geometry, visible_masks = render.keyed_surfaces(raw, len(artworks))
                 except ValueError as keying_error:
                     # Reuse the already-generated photo. Vision measures its
                     # actual print planes only when pixel keying cannot do so;
@@ -2161,7 +2166,7 @@ class Pipeline:
                 artworks,
                 geometry,
                 visible_masks=visible_masks,
-                physical_book=reading and self.designed,
+                physical_book=reading and self.designed and folded is None,
                 geometry_source=geometry_source,
             )
             expected = {
@@ -2180,7 +2185,10 @@ class Pipeline:
             )
             return data, {
                 "validation": qa,
-                "composition": provenance,
+                "composition": {
+                    **provenance,
+                    **({"binding_finish": "separate_navy_reverse_and_spine"} if folded else {}),
+                },
                 "geometry": geometry,
                 "surface_detection": {
                     "method": geometry_source,
@@ -2195,7 +2203,7 @@ class Pipeline:
 
         inputs = {
             "sources": [render.digest(p) for p in artworks],
-            "surface_contract": 9 if name == "reading" else 6,
+            "surface_contract": 11 if name == "reading" else 6,
         }
         try:
             return await self.stage(name, inputs, build)

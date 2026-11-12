@@ -822,6 +822,88 @@ def quad(points):
     return result
 
 
+def keyed_folded_cover(data):
+    """Separate two marked boards at an observed hinge, without any provider call.
+
+    The upper concave corner and lower hinge tip identify a book opened toward
+    its reader. Only the right board receives the front cover. The reverse and
+    spine receive a neutral navy binding; unmarked hands remain pixel-identical.
+    Return None for a single plane, never approximate a folded book by its hull.
+    """
+    original = np.array(Image.open(io.BytesIO(data)).convert("RGB"))
+    h, w = original.shape[:2]
+    hsv = cv2.cvtColor(original, cv2.COLOR_RGB2HSV)
+    marker = cv2.inRange(hsv, (135, 65, 35), (175, 255, 255))
+    contours, _ = cv2.findContours(marker, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+    contour = max(contours, key=cv2.contourArea)
+    if cv2.contourArea(contour) < h * w * 0.035:
+        return None
+    polygon = cv2.approxPolyDP(contour, cv2.arcLength(contour, True) * 0.01, True)
+    points = polygon.reshape(-1, 2).astype(np.float32)
+    lo, hi = points.min(axis=0), points.max(axis=0)
+    span = hi - lo
+    hinges = []
+    for i, point in enumerate(points):
+        before, after = points[i - 1], points[(i + 1) % len(points)]
+        if (
+            lo[0] + span[0] * 0.25 < point[0] < hi[0] - span[0] * 0.25
+            and point[1] < lo[1] + span[1] * 0.4
+            and min(point[1] - before[1], point[1] - after[1]) > span[1] * 0.07
+            and min(before[0], after[0]) < point[0] < max(before[0], after[0])
+        ):
+            hinges.append((i, point))
+    if not hinges:
+        return None
+    if len(hinges) != 1:
+        raise ValueError("Lombada ambígua: montagem preservada para ajuste sem regeneração")
+    i, top = hinges[0]
+    direction = 1 if points[(i + 1) % len(points), 0] > top[0] else -1
+    right = points[(i + direction) % len(points)]
+    outer = points[(i + 2 * direction) % len(points)]
+    bottom_index = int(np.argmax(points[:, 1]))
+    bottom = points[bottom_index]
+    lower = points[(bottom_index - direction) % len(points)]
+    # Extrapolate only rigid board edges hidden behind the fingers. Their
+    # observed segments must be long enough to constrain the missing corner.
+    if (
+        np.linalg.norm(outer - right) < span[1] * 0.2
+        or lower[0] - bottom[0] < span[0] * 0.12
+        or not lo[0] + span[0] * 0.25 < bottom[0] < hi[0] - span[0] * 0.25
+    ):
+        raise ValueError("Bordas da capa insuficientes para montar sem deformação")
+    edge, base = outer - right, lower - bottom
+    matrix = np.column_stack((edge, -base))
+    if abs(np.linalg.det(matrix)) < 1:
+        raise ValueError("Bordas da capa incompatíveis")
+    distance = np.linalg.solve(matrix, bottom - right)[0]
+    corner = right + distance * edge
+    surface = np.array([top, right, corner, bottom]) / [w - 1, h - 1]
+    quad(surface.tolist())
+    if not 0.5 < distance < 4:
+        raise ValueError("Perspectiva da capa não confirmada")
+    component = np.zeros((h, w), np.uint8)
+    cv2.drawContours(component, [contour], -1, 255, cv2.FILLED)
+    neighborhood = cv2.dilate(component, np.ones((3, 3), np.uint8))
+    visible = cv2.inRange(hsv, (135, 15, 35), (175, 255, 255)) & neighborhood
+    yy, xx = np.indices((h, w))
+    hinge_x = top[0] + (yy - top[1]) * (bottom[0] - top[0]) / (bottom[1] - top[1])
+    front = visible.copy()
+    front[xx < hinge_x] = 0
+    back = (visible > 0) & (front == 0)
+    # Retain the original illumination and hinge shadows, remove registration
+    # hue on the reverse instead of duplicating/distorting the cover artwork.
+    light = hsv[:, :, 2].astype(np.float32) / 255
+    neutral = np.clip(light[..., None] * np.array([25, 48, 76]), 0, 255).astype(np.uint8)
+    original[back] = neutral[back]
+    return (
+        encode(Image.fromarray(original)),
+        {"valid": True, "issues": [], "surfaces": [surface.tolist()], "occlusions": []},
+        [front],
+    )
+
+
 def keyed_surfaces(data, count):
     """Measure marked print planes from pixels, rather than guessing vision coordinates."""
     original = np.array(Image.open(io.BytesIO(data)).convert("RGB"))
@@ -944,6 +1026,13 @@ def mockup(
         art = np.array(square(bound_cover(raw) if physical_book and len(artworks) == 1 else raw))
         ah, aw = art.shape[:2]
         target = quad(surface) * np.array([w - 1, h - 1], dtype=np.float32)
+        if len(artworks) == 1:
+            horizontal = np.linalg.norm(target[1] - target[0]) + np.linalg.norm(
+                target[2] - target[3]
+            )
+            vertical = np.linalg.norm(target[3] - target[0]) + np.linalg.norm(target[2] - target[1])
+            if horizontal / max(1, vertical) > 1.65:
+                raise ValueError("Capa quadrada deformada: superfície atravessa as duas capas")
         source = np.array([[0, 0], [aw - 1, 0], [aw - 1, ah - 1], [0, ah - 1]], dtype=np.float32)
         matrix = cv2.getPerspectiveTransform(source, target.astype(np.float32))
         warped = cv2.warpPerspective(
@@ -986,6 +1075,21 @@ def mockup(
     if np.count_nonzero((foreground > 0) & (cover_masks > 0)) > np.count_nonzero(cover_masks) * 0.4:
         raise ValueError("Livro excessivamente oculto para conferir a capa")
     output[foreground > 0] = original[foreground > 0]
+    # Check the original registration pixels, not arbitrary pink in the artwork.
+    # A vision rectangle can be convex yet cover only a strip of the real book.
+    if len(artworks) == 1:
+        hsv = cv2.cvtColor(original, cv2.COLOR_RGB2HSV)
+        marker = cv2.inRange(hsv, (135, 65, 35), (175, 255, 255))
+        contours, _ = cv2.findContours(marker, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            component = np.zeros((h, w), np.uint8)
+            cv2.drawContours(component, [max(contours, key=cv2.contourArea)], -1, 255, cv2.FILLED)
+            marked = (marker > 0) & (component > 0)
+            uncovered = marked & ((cover_masks == 0) | (foreground > 0))
+            if np.count_nonzero(uncovered) > max(8, np.count_nonzero(marked) * 0.005):
+                raise ValueError(
+                    "Marcação rosa exposta: montagem não cobre toda a superfície do livro"
+                )
     geometry_source = geometry_source or ("keyed_pixels" if visible_masks is not None else "manual")
     method = {
         "keyed_pixels": "keyed_perspective_composition",
