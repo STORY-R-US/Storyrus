@@ -384,14 +384,19 @@ async def test_complete_integrated_preview_and_print_pages(reference_studio, mon
     )
     book_profile.update(project, stage="avatar_approved", stories={"pt-BR": story})
     db.commit()
-    for number in (1, 2):
+    page_count = 16 if model == "adventure" else 2
+    for number in range(1, page_count + 1):
         await _run(studio, "pages/next", {"page": number}, key=f"integrated-page-{number}")
-    assert len(calls) == 5
+    assert len(calls) == 3 + page_count + (1 if page_count == 16 else 0)  # back cover
     pages = client.get(f"/v1/projects/{pid}/assets").json()["page_versions"]
     assert all(p["role"] == "com_texto" for p in pages)
-    assert len(pages) == 2
+    assert len(pages) == page_count
     combined = "\n".join(p["layout"]["text"] for p in pages)
-    assert all(combined.count(passage) == 1 for passage in passages[:2])
+    assert all(combined.count(passage) == 1 for passage in passages[:page_count])
+    if page_count == 16:
+        db.refresh(project)
+        pdf = PdfReader(io.BytesIO(store[project.ebook_url]))
+        assert len(pdf.pages) == 18  # cover, sixteen integrated pages, back cover
     if model == "family":
         revised = story.replace(passages[1], "Lia rega a flor com carinho.")
         book_profile.update(project, stories={"pt-BR": revised})
