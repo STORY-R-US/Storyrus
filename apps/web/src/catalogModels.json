@@ -1402,5 +1402,41 @@
       "page": "cartoon-pagina-sofia-princesa-v1-pt.webp",
       "holding": "cartoon-foto-sofia-princesa-v1-pt.webp"
     }
+  },
+  "catalog-realistic-63": {
+    "id": "catalog-realistic-63",
+    "catalog_index": 63,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Lia e o Jardim das Cores",
+      "en": "Lia and the Garden of Colors",
+      "es": "Lia y el Jardín de los Colores"
+    },
+    "example_name": "Lia",
+    "sources": {
+      "cover": "covers/realistic-capa-lia-cores-v1-pt.webp",
+      "page": "realistic-pagina-lia-cores-v1-pt.webp",
+      "holding": "realistic-foto-lia-cores-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-63": {
+    "id": "catalog-cartoon-63",
+    "catalog_index": 63,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Lia e o Jardim das Cores",
+      "en": "Lia and the Garden of Colors",
+      "es": "Lia y el Jardín de los Colores"
+    },
+    "example_name": "Lia",
+    "sources": {
+      "cover": "covers/cartoon-capa-lia-cores-v1-pt.webp",
+      "page": "cartoon-pagina-lia-cores-v1-pt.webp",
+      "holding": "cartoon-foto-lia-cores-v1-pt.webp"
+    }
   }
 }
