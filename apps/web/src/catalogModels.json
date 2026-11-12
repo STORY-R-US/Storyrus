@@ -1628,5 +1628,23 @@
       "page": "cartoon-pagina-emilia-bailarina-v1-pt.webp",
       "holding": "cartoon-foto-emilia-bailarina-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-2": {
+    "id": "catalog-cartoon-2",
+    "catalog_index": 2,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Antonio E Sua Bicicleta",
+      "en": "Antonio And His Bicycle",
+      "es": "Antonio Y Su Bicicleta"
+    },
+    "example_name": "Antonio",
+    "sources": {
+      "cover": "covers/cartoon-capa-antonio-bicicleta-v1-pt.webp",
+      "page": "cartoon-pagina-antonio-bicicleta-v1-pt.webp",
+      "holding": "cartoon-foto-antonio-bicicleta-v1-pt.webp"
+    }
   }
 }

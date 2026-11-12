@@ -5855,6 +5855,78 @@
         "page": "catalog_models/cartoon-1-page.webp",
         "holding": "catalog_models/cartoon-1-holding.webp"
       }
+    },
+    "catalog-cartoon-2": {
+      "name": "Antonio E Sua Bicicleta",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-antonio-bicicleta-v1-pt.webp",
+        "page": "cartoon-pagina-antonio-bicicleta-v1-pt.webp",
+        "holding": "cartoon-foto-antonio-bicicleta-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.2,
+          0.04,
+          0.86,
+          0.23
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.08,
+        "long_font_ratio": 0.055,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "text_left",
+        "region": [
+          0.18,
+          0.11,
+          0.93,
+          0.48
+        ],
+        "alignment": "left",
+        "font_ratio": 0.04,
+        "description": "Two equal square pages, physical spread 2:1. Left page has narrative in naturally clear sky above thematic props; right page shows the same recognizable animated protagonist performing the story action. Keep face, hands and central gutter free of text."
+      },
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
+      "visual": {
+        "finish": "amor_de_bisavo_cartoon",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 3,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people, animals and environment remain photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 2,
+      "title_templates": {
+        "pt-BR": "Antonio E Sua Bicicleta",
+        "en": "Antonio And His Bicycle",
+        "es": "Antonio Y Su Bicicleta"
+      },
+      "example_name": "Antonio",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-2-cover.webp",
+        "page": "catalog_models/cartoon-2-page.webp",
+        "holding": "catalog_models/cartoon-2-holding.webp"
+      }
     }
   },
   "unavailable": {
