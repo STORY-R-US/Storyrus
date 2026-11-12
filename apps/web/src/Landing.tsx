@@ -6,6 +6,7 @@ import { api, clerkWillProvideSession, getToken, refreshSessionToken, subscribeC
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
 import { localizedExample } from "./localizedExamples";
+import coverBounds from "./coverBounds.json";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -2318,6 +2319,23 @@ const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: st
   es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
 };
 /** Galeria manual da página do livro: capa, página e foto disponíveis. */
+function coverImageStyle(file: string): CSSProperties | undefined {
+  // Fit the visible cover, excluding transparent padding baked into the asset.
+  const bounds = (coverBounds as Record<string, number[]>)[file];
+  if (!bounds) return undefined;
+  const [width, height, x, y, visibleWidth, visibleHeight] = bounds;
+  return {
+    width: `${100 * width / visibleWidth}%`,
+    height: `${100 * height / visibleHeight}%`,
+    left: `${-100 * x / visibleWidth}%`,
+    top: `${-100 * y / visibleHeight}%`,
+    right: "auto",
+    bottom: "auto",
+    margin: 0,
+    objectFit: "fill",
+  };
+}
+
 function BookImageGallery({
   shots,
   alt,
@@ -2340,7 +2358,7 @@ function BookImageGallery({
       <figure className={`book-series-shot is-${current.key}`} data-testid={`book-series-${current.key}`}>
         <div className="book-series-frame">
           <div className="cat-book" data-size={current.key === "cover" ? size : "M"}>
-            <img src={exUrl(current.src)} alt={`${alt} — ${shotLabel(current.key)}`} loading="lazy" />
+            <img src={exUrl(current.src)} style={current.key === "cover" ? coverImageStyle(current.src) : undefined} alt={`${alt} — ${shotLabel(current.key)}`} loading="lazy" />
           </div>
           {multi ? (
             <>
@@ -2494,7 +2512,7 @@ export function CatalogBookCard({
     <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
         <div className="cat-book" data-size={size}>
-          <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
+          <img src={exUrl(book.img)} style={coverImageStyle(book.img)} alt={book.t} loading="lazy" />
           {linked ? <Link to={bookHref} className="cat-book-link" aria-label={book.t} /> : null}
         </div>
       </div>

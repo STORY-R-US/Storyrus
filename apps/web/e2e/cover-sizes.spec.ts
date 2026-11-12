@@ -1,5 +1,54 @@
 import { expect, test } from "@playwright/test";
 
+for (const [route, count] of [["/", 48], ["/cartoon", 17]] as const) {
+for (const lang of ["pt", "en", "es"]) {
+  test(`visible cover artwork fills the frame in ${lang} on ${route}`, async ({ page }) => {
+    await page.addInitScript(value => localStorage.setItem("lang", value), lang);
+    await page.route("**/health", r => r.fulfill({ json: { status: "ok" } }));
+    await page.goto(route);
+    await expect(page.locator("#catalogo .cat-card")).toHaveCount(count);
+    const gaps = await page.locator("#catalogo .cat-card .cat-book img").evaluateAll(async images => {
+      return Promise.all(images.map(async element => {
+        const image = element as HTMLImageElement;
+        // Decode even lazy images: check artwork pixels, not just equal DOM boxes.
+        const bitmap = await createImageBitmap(await (await fetch(image.src)).blob());
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const context = canvas.getContext("2d")!;
+        context.drawImage(bitmap, 0, 0);
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        const columns = new Uint32Array(canvas.width);
+        const rows = new Uint32Array(canvas.height);
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            if (pixels[(y * canvas.width + x) * 4 + 3] > 128) {
+              columns[x]++; rows[y]++;
+            }
+          }
+        }
+        const x0 = columns.findIndex(n => n > canvas.height / 2);
+        const y0 = rows.findIndex(n => n > canvas.width / 2);
+        const x1 = columns.findLastIndex(n => n > canvas.height / 2) + 1;
+        const y1 = rows.findLastIndex(n => n > canvas.width / 2) + 1;
+        const rect = image.getBoundingClientRect();
+        const frame = image.parentElement!.getBoundingClientRect();
+        return { src: image.src, gaps: [
+          rect.left + x0 / canvas.width * rect.width - frame.left,
+          rect.top + y0 / canvas.height * rect.height - frame.top,
+          frame.right - rect.left - x1 / canvas.width * rect.width,
+          frame.bottom - rect.top - y1 / canvas.height * rect.height,
+        ] };
+      }));
+    });
+    expect(gaps).toHaveLength(count);
+    for (const cover of gaps) {
+      for (const gap of cover.gaps) expect(Math.abs(gap), cover.src).toBeLessThan(1);
+    }
+  });
+}
+}
+
 for (const width of [390, 1280]) {
   test(`uniform covers and working P/M at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });

@@ -1,0 +1,938 @@
+{
+  "capa-abigail-en.png": [
+    724,
+    724,
+    34,
+    32,
+    658,
+    654
+  ],
+  "capa-abigail-es.png": [
+    724,
+    724,
+    51,
+    32,
+    641,
+    655
+  ],
+  "capa-abigail.png": [
+    724,
+    724,
+    32,
+    31,
+    661,
+    657
+  ],
+  "capa-amor-de-avo-en.png": [
+    1254,
+    1254,
+    33,
+    39,
+    1184,
+    1182
+  ],
+  "capa-amor-de-avo.png": [
+    1254,
+    1254,
+    33,
+    39,
+    1184,
+    1183
+  ],
+  "capa-amordebisavo.png": [
+    684,
+    690,
+    3,
+    3,
+    678,
+    684
+  ],
+  "capa-amordemae-en.png": [
+    650,
+    623,
+    3,
+    3,
+    644,
+    617
+  ],
+  "capa-amordemae-es.png": [
+    650,
+    623,
+    3,
+    3,
+    644,
+    617
+  ],
+  "capa-amordemae.png": [
+    659,
+    623,
+    3,
+    3,
+    653,
+    617
+  ],
+  "capa-brilho-bailarina-en.png": [
+    1254,
+    1254,
+    25,
+    27,
+    1194,
+    1196
+  ],
+  "capa-brilho-bailarina-es.png": [
+    1254,
+    1254,
+    24,
+    11,
+    1216,
+    1217
+  ],
+  "capa-brilho-bailarina.png": [
+    1254,
+    1254,
+    39,
+    40,
+    1178,
+    1170
+  ],
+  "capa-bruno-animais-en.png": [
+    724,
+    724,
+    11,
+    4,
+    704,
+    714
+  ],
+  "capa-bruno-animais-es.png": [
+    724,
+    724,
+    11,
+    4,
+    704,
+    714
+  ],
+  "capa-bruno-animais.png": [
+    724,
+    724,
+    12,
+    4,
+    703,
+    714
+  ],
+  "capa-construtor.png": [
+    1254,
+    1254,
+    40,
+    47,
+    1181,
+    1160
+  ],
+  "capa-cristobal-esporte.png": [
+    724,
+    724,
+    42,
+    15,
+    642,
+    692
+  ],
+  "capa-enzo-dinossauro-en.png": [
+    1254,
+    1254,
+    45,
+    39,
+    1157,
+    1171
+  ],
+  "capa-enzo-dinossauro-es.png": [
+    1254,
+    1254,
+    45,
+    40,
+    1158,
+    1170
+  ],
+  "capa-enzo-dinossauro.png": [
+    1254,
+    1254,
+    45,
+    40,
+    1158,
+    1169
+  ],
+  "capa-ester-en.png": [
+    668,
+    670,
+    3,
+    3,
+    662,
+    664
+  ],
+  "capa-ester-es.png": [
+    669,
+    670,
+    3,
+    3,
+    663,
+    664
+  ],
+  "capa-ester.png": [
+    668,
+    667,
+    3,
+    3,
+    662,
+    661
+  ],
+  "capa-esther-higiene.png": [
+    1254,
+    1254,
+    52,
+    47,
+    1153,
+    1150
+  ],
+  "capa-gael-en.png": [
+    1448,
+    1086,
+    31,
+    227,
+    1119,
+    737
+  ],
+  "capa-gael-es.png": [
+    1448,
+    1086,
+    29,
+    233,
+    1065,
+    734
+  ],
+  "capa-grace-andar-en.png": [
+    1254,
+    1254,
+    32,
+    40,
+    1190,
+    1168
+  ],
+  "capa-grace-andar-es.png": [
+    1254,
+    1254,
+    32,
+    40,
+    1190,
+    1184
+  ],
+  "capa-grace-andar.png": [
+    1254,
+    1254,
+    38,
+    38,
+    1179,
+    1179
+  ],
+  "capa-grace-aniversario-en.png": [
+    1254,
+    1254,
+    39,
+    38,
+    1182,
+    1180
+  ],
+  "capa-grace-aniversario-es.png": [
+    1254,
+    1254,
+    39,
+    38,
+    1182,
+    1180
+  ],
+  "capa-grace-aniversario.png": [
+    1254,
+    1254,
+    39,
+    38,
+    1182,
+    1180
+  ],
+  "capa-heroi-aranha-en.png": [
+    1254,
+    1254,
+    4,
+    4,
+    1246,
+    1246
+  ],
+  "capa-heroi-aranha-es.png": [
+    1254,
+    1254,
+    4,
+    4,
+    1246,
+    1246
+  ],
+  "capa-heroi-aranha.png": [
+    1254,
+    1254,
+    4,
+    4,
+    1246,
+    1246
+  ],
+  "capa-heroi-bombeiro-en.png": [
+    1254,
+    1254,
+    40,
+    88,
+    1139,
+    1149
+  ],
+  "capa-heroi-bombeiro-es.png": [
+    1254,
+    1254,
+    40,
+    75,
+    1139,
+    1162
+  ],
+  "capa-heroi-bombeiro.png": [
+    1254,
+    1254,
+    40,
+    75,
+    1139,
+    1161
+  ],
+  "capa-heroi-policia-en.png": [
+    1254,
+    1254,
+    16,
+    97,
+    1224,
+    1136
+  ],
+  "capa-heroi-policia-es.png": [
+    1254,
+    1254,
+    16,
+    100,
+    1224,
+    1133
+  ],
+  "capa-heroi-policia.png": [
+    1254,
+    1254,
+    16,
+    98,
+    1220,
+    1138
+  ],
+  "capa-lucas-max.png": [
+    1254,
+    1254,
+    28,
+    23,
+    1199,
+    1201
+  ],
+  "capa-mako-amigofiel-en.png": [
+    724,
+    717,
+    29,
+    29,
+    686,
+    659
+  ],
+  "capa-mako-amigofiel-es.png": [
+    721,
+    720,
+    48,
+    24,
+    622,
+    666
+  ],
+  "capa-mako-amigofiel.png": [
+    724,
+    724,
+    20,
+    34,
+    686,
+    634
+  ],
+  "capa-mariajesus-hockey-en.png": [
+    1254,
+    1254,
+    39,
+    17,
+    1176,
+    1232
+  ],
+  "capa-mariajesus-hockey-es.png": [
+    1254,
+    1254,
+    15,
+    0,
+    1228,
+    1250
+  ],
+  "capa-mariajesus-hockey.png": [
+    1254,
+    1254,
+    22,
+    1,
+    1209,
+    1247
+  ],
+  "capa-matteo-rancho-en.png": [
+    1448,
+    1086,
+    50,
+    242,
+    998,
+    722
+  ],
+  "capa-matteo-rancho-es.png": [
+    1448,
+    1086,
+    29,
+    235,
+    1272,
+    728
+  ],
+  "capa-meus-sobrinhos-en.png": [
+    1254,
+    1254,
+    31,
+    32,
+    1195,
+    1189
+  ],
+  "capa-meus-sobrinhos-es.png": [
+    1254,
+    1254,
+    30,
+    31,
+    1196,
+    1190
+  ],
+  "capa-meus-sobrinhos.png": [
+    1254,
+    1254,
+    32,
+    33,
+    1194,
+    1188
+  ],
+  "capa-miriam-en.png": [
+    724,
+    724,
+    16,
+    0,
+    692,
+    698
+  ],
+  "capa-miriam-es.png": [
+    724,
+    724,
+    16,
+    38,
+    692,
+    660
+  ],
+  "capa-miriam.png": [
+    724,
+    724,
+    16,
+    38,
+    692,
+    660
+  ],
+  "capa-nanoaventuras-en.png": [
+    586,
+    622,
+    4,
+    3,
+    579,
+    615
+  ],
+  "capa-nanoaventuras-es.png": [
+    644,
+    634,
+    6,
+    6,
+    630,
+    623
+  ],
+  "capa-nanoaventuras.png": [
+    675,
+    660,
+    21,
+    7,
+    650,
+    646
+  ],
+  "capa-natalmemetata-en.png": [
+    1254,
+    1254,
+    16,
+    51,
+    1216,
+    1167
+  ],
+  "capa-natalmemetata-es.png": [
+    1254,
+    1254,
+    34,
+    2,
+    1195,
+    1252
+  ],
+  "capa-natalmemetata.png": [
+    1254,
+    1254,
+    10,
+    31,
+    1242,
+    1207
+  ],
+  "capa-nicolas-maefilho.png": [
+    1254,
+    1254,
+    20,
+    4,
+    1213,
+    1246
+  ],
+  "capa-noe-en.png": [
+    724,
+    724,
+    21,
+    120,
+    685,
+    587
+  ],
+  "capa-noe-es.png": [
+    724,
+    724,
+    28,
+    67,
+    668,
+    629
+  ],
+  "capa-noe.png": [
+    724,
+    724,
+    23,
+    23,
+    677,
+    675
+  ],
+  "capa-pascoa-en.png": [
+    1254,
+    1254,
+    97,
+    72,
+    1064,
+    1098
+  ],
+  "capa-pascoa-es.png": [
+    1254,
+    1254,
+    97,
+    72,
+    1065,
+    1098
+  ],
+  "capa-pascoa.png": [
+    1254,
+    1254,
+    97,
+    72,
+    1064,
+    1098
+  ],
+  "capa-pedro-amem-se-en.png": [
+    1254,
+    1254,
+    37,
+    37,
+    1180,
+    1180
+  ],
+  "capa-pedro-amem-se-es.png": [
+    1254,
+    1254,
+    37,
+    37,
+    1180,
+    1180
+  ],
+  "capa-pedro-amem-se.png": [
+    1254,
+    1254,
+    37,
+    37,
+    1180,
+    1180
+  ],
+  "capa-raquel-papai-en.png": [
+    724,
+    724,
+    15,
+    17,
+    693,
+    687
+  ],
+  "capa-raquel-papai-es.png": [
+    724,
+    724,
+    15,
+    17,
+    693,
+    687
+  ],
+  "capa-raquel-papai.png": [
+    724,
+    724,
+    15,
+    17,
+    693,
+    687
+  ],
+  "capa-rebeca-en.png": [
+    724,
+    724,
+    36,
+    25,
+    656,
+    663
+  ],
+  "capa-rebeca-es.png": [
+    724,
+    724,
+    36,
+    24,
+    656,
+    664
+  ],
+  "capa-rebeca.png": [
+    724,
+    724,
+    36,
+    25,
+    656,
+    663
+  ],
+  "capa-sofia-alfabeto.png": [
+    724,
+    724,
+    74,
+    59,
+    575,
+    600
+  ],
+  "capa-tia-especial-en.png": [
+    1254,
+    1254,
+    30,
+    19,
+    1197,
+    1207
+  ],
+  "capa-tia-especial-es.png": [
+    1254,
+    1254,
+    30,
+    19,
+    1197,
+    1207
+  ],
+  "capa-tia-especial.png": [
+    1254,
+    1254,
+    30,
+    19,
+    1197,
+    1207
+  ],
+  "capa-tio-favorito-en.png": [
+    1254,
+    1254,
+    38,
+    38,
+    1179,
+    1179
+  ],
+  "capa-tio-favorito-es.png": [
+    1254,
+    1254,
+    38,
+    38,
+    1179,
+    1179
+  ],
+  "capa-tio-favorito.png": [
+    1254,
+    1254,
+    38,
+    38,
+    1179,
+    1179
+  ],
+  "cartoon-capa-amordetia.png": [
+    1254,
+    1254,
+    31,
+    63,
+    1077,
+    1050
+  ],
+  "cartoon-capa-aventura-en.png": [
+    1254,
+    1254,
+    77,
+    83,
+    1101,
+    1097
+  ],
+  "cartoon-capa-aventura-es.png": [
+    1254,
+    1254,
+    88,
+    84,
+    1082,
+    1080
+  ],
+  "cartoon-capa-aventura.png": [
+    1254,
+    1254,
+    91,
+    71,
+    1075,
+    1101
+  ],
+  "cartoon-capa-lucas.png": [
+    1254,
+    1254,
+    46,
+    51,
+    1167,
+    1170
+  ],
+  "cartoon-capa-mako.png": [
+    1254,
+    1254,
+    72,
+    55,
+    1118,
+    1143
+  ],
+  "localized/capa-amor-de-avo-png-es.webp": [
+    1254,
+    1254,
+    0,
+    43,
+    1254,
+    1211
+  ],
+  "localized/capa-construtor-png-en.webp": [
+    1254,
+    1254,
+    41,
+    51,
+    1176,
+    1174
+  ],
+  "localized/capa-construtor-png-es.webp": [
+    1254,
+    1254,
+    47,
+    50,
+    1170,
+    1153
+  ],
+  "localized/capa-esther-higiene-png-en.webp": [
+    1254,
+    1254,
+    53,
+    47,
+    1151,
+    1149
+  ],
+  "localized/capa-esther-higiene-png-es.webp": [
+    1254,
+    1254,
+    53,
+    47,
+    1151,
+    1149
+  ],
+  "localized/capa-grace-andar-png-en.webp": [
+    1254,
+    1254,
+    58,
+    52,
+    1142,
+    1173
+  ],
+  "localized/capa-grace-andar-png-es.webp": [
+    1254,
+    1254,
+    58,
+    53,
+    1152,
+    1166
+  ],
+  "localized/capa-lucas-max-png-en.webp": [
+    1254,
+    1254,
+    30,
+    24,
+    1196,
+    1199
+  ],
+  "localized/capa-lucas-max-png-es.webp": [
+    1254,
+    1254,
+    30,
+    24,
+    1196,
+    1199
+  ],
+  "localized/capa-mako-amigofiel-png-en.webp": [
+    1254,
+    1254,
+    35,
+    58,
+    1187,
+    1099
+  ],
+  "localized/capa-mako-amigofiel-png-es.webp": [
+    1254,
+    1254,
+    35,
+    58,
+    1187,
+    1099
+  ],
+  "localized/capa-nanoaventuras-png-en.webp": [
+    1254,
+    1254,
+    42,
+    15,
+    1202,
+    1198
+  ],
+  "localized/capa-nanoaventuras-png-es.webp": [
+    1254,
+    1254,
+    42,
+    16,
+    1202,
+    1196
+  ],
+  "localized/capa-natalmemetata-png-en.webp": [
+    1254,
+    1254,
+    12,
+    32,
+    1239,
+    1204
+  ],
+  "localized/capa-natalmemetata-png-es.webp": [
+    1254,
+    1254,
+    12,
+    32,
+    1239,
+    1203
+  ],
+  "localized/capa-noe-en.webp": [
+    1254,
+    1254,
+    38,
+    38,
+    1176,
+    1172
+  ],
+  "localized/capa-noe-png-es.webp": [
+    1254,
+    1254,
+    39,
+    38,
+    1175,
+    1172
+  ],
+  "localized/capa-raquel-papai-png-en.webp": [
+    1254,
+    1254,
+    26,
+    28,
+    1220,
+    1193
+  ],
+  "localized/capa-raquel-papai-png-es.webp": [
+    1254,
+    1254,
+    25,
+    28,
+    1223,
+    1193
+  ],
+  "localized/capa-rebeca-png-en.webp": [
+    1254,
+    1254,
+    62,
+    42,
+    1138,
+    1149
+  ],
+  "localized/capa-rebeca-png-es.webp": [
+    1254,
+    1254,
+    62,
+    41,
+    1139,
+    1150
+  ],
+  "localized/cartoon-capa-amordetia-png-en.webp": [
+    1254,
+    1254,
+    8,
+    2,
+    1238,
+    1240
+  ],
+  "localized/cartoon-capa-amordetia-png-es.webp": [
+    1254,
+    1254,
+    8,
+    2,
+    1238,
+    1239
+  ],
+  "localized/cartoon-capa-aventura-png-en.webp": [
+    1254,
+    1254,
+    91,
+    71,
+    1075,
+    1101
+  ],
+  "localized/cartoon-capa-lucas-png-en.webp": [
+    1254,
+    1254,
+    0,
+    51,
+    1254,
+    1203
+  ],
+  "localized/cartoon-capa-lucas-png-es.webp": [
+    1254,
+    1254,
+    0,
+    48,
+    1254,
+    1206
+  ]
+}
