@@ -284,9 +284,22 @@ class Pipeline:
             # Recompose typography locally after a layout fix, retaining purchased raw art.
             inputs = {**inputs, "text_layout_revision": render.TEXT_LAYOUT_REVISION}
         revision = self.revision_for(name)
+        legacy_key = None
         if revision:
             if not name.endswith(":art"):
                 inputs = {**inputs, "requested_revision": revision}
+                if "source_asset_id" in revision:
+                    # Provenance is not a visual input. Adding it during a worker
+                    # restart must not buy an identical expansion/composition.
+                    legacy_key = (
+                        f"editorial/{self.project.id}/{signature([self.base, name, inputs])}.png"
+                    )
+                    inputs = {
+                        **inputs,
+                        "requested_revision": {
+                            k: v for k, v in revision.items() if k != "source_asset_id"
+                        },
+                    }
             elif revision.get("art_revision"):
                 inputs = {
                     **inputs,
@@ -297,6 +310,10 @@ class Pipeline:
                 }
         key = f"editorial/{self.project.id}/{signature([self.base, name, inputs])}.png"
         cached = self.cached(key)
+        if not cached and legacy_key:
+            cached = self.cached(legacy_key)
+            if cached:
+                key = legacy_key
         if (
             not cached
             and self.designed
