@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import assets from "./localizedExamples.json";
+import coverFormats from "./coverFormats.json";
 import { localizedExample } from "./localizedExamples";
 import { Landing, catalogEntry, catalogSections } from "./Landing";
 
@@ -18,19 +19,39 @@ beforeAll(() => {
   Object.defineProperty(HTMLMediaElement.prototype, "pause", { configurable: true, value: vi.fn() });
 });
 const canonical = (src: string) => {
-  const file = src.split("/exemplos/")[1];
+  const displayed = src.split("/exemplos/")[1];
+  const file = Object.entries(coverFormats).find(([, value]) => value === displayed)?.[0] ?? displayed;
   return entries.find(([, versions]) => Object.values(versions).includes(file))?.[0] ?? file;
 };
 
 describe("approved PT images in all languages", () => {
-  it("uses available translations and the PT master for pending artwork", () => {
+  it("uses the standard book format for every cover and language", () => {
+    for (const [master] of entries.filter(([name]) => /^(cartoon-)?capa-/.test(name) && name !== "capa-livro-teste.jpg")) {
+      for (const lang of ["pt", "en", "es"] as const) {
+        const displayed = localizedExample(master, lang);
+        if (master === "capa-meupai-heroi.png" && lang === "pt") {
+          expect(displayed).toBe(master);
+        } else {
+          expect(displayed, `${master}: ${lang}`).toMatch(/^covers\//);
+        }
+      }
+    }
+  });
+
+  it("has both translations and valid display assets for every PT master", () => {
     for (const [master, versions] of entries) {
       expect(existsSync(resolve("public/exemplos", master)), master).toBe(true);
       for (const lang of ["en", "es"] as const) {
+        expect(versions[lang], `${master}: missing ${lang} artwork`).not.toBe("");
         const file = localizedExample(master, lang);
-        expect(file).toBe(versions[lang] || master);
+        const original = versions[lang] || master;
+        expect(file).toBe((coverFormats as Record<string, string>)[original] || original);
         expect(existsSync(resolve("public/exemplos", file)), `${master}: ${lang}`).toBe(true);
       }
+    }
+    for (const [original, formatted] of Object.entries(coverFormats)) {
+      expect(existsSync(resolve("public/exemplos", original)), original).toBe(true);
+      expect(existsSync(resolve("public/exemplos", formatted)), formatted).toBe(true);
     }
   });
 

@@ -563,4 +563,6 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 # Reviewed localizations of the approved PT website illustrations.
 !apps/web/public/exemplos/localized/
 !apps/web/public/exemplos/localized/**
+!apps/web/public/exemplos/covers/
+!apps/web/public/exemplos/covers/**
 /outputs/idiomas-audit/

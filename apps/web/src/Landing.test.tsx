@@ -595,16 +595,16 @@ describe("Landing — menu mobile e abas do hero", () => {
     await user.click(screen.getByTestId("landing-lang-es"));
     const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
     expect(heroImgs).toHaveLength(108); // same 18 book trios, with the carousel loop copy
-    expect(heroImgs.some((src) => src.includes("capa-meupai-heroi-es"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes(localizedExample("capa-meupai-heroi.png", "es")))).toBe(true);
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-lucas-max.png", "es")))).toBe(true);
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-esther-higiene.png", "es")))).toBe(true);
-    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi-es"));
+    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-meupai-heroi.png", "es")));
 
     expect(carousel).toHaveAttribute("aria-label", expect.stringMatching(/carrusel de libros/i));
     expect(screen.queryByText(/^carrusel de libros$/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi-es"));
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi-es"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi-es"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-meupai-heroi.png", "es")));
     const videos = document.getElementById("videos") as HTMLElement;
     expect(within(videos).getByRole("heading", { name: /mi papá, mi héroe/i })).toBeInTheDocument();
     const passo = document.getElementById("passo") as HTMLElement;
@@ -941,7 +941,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(cartoonComo).queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
     expect(cartoonComo.querySelector(".howex-card figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
     for (const file of ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"]) {
-      expect(cartoonComo.querySelector(`img[src*="${file}"]`)).toBeTruthy();
+      expect(cartoonComo.querySelector(`img[src*="${localizedExample(file, "pt")}"]`)).toBeTruthy();
     }
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
