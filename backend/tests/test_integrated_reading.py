@@ -77,6 +77,10 @@ async def test_integrated_scene_uses_original_faces_finished_cover_and_literal_t
     assert f"Reference {photos + 2}" in args["prompt"]
     assert title in args["prompt"]
     assert "#ff00ff" not in args["prompt"]
+    assert "ONE FRONT BOARD" in args["prompt"]
+    assert "separate rear board" in args["prompt"]
+    assert "eye spacing" in args["prompt"]
+    assert "wraps across two boards" in pipe.review.call_args.args[1]
     assert args["style"] == "fotografia editorial natural"
     assert data == b"complete-scene"
     assert meta["presentation"] == "integrated_reading"
@@ -148,7 +152,7 @@ async def test_catalog_reading_has_no_contradictory_marker_instructions(monkeypa
     args = provider.generate_scene.call_args.kwargs
     assert "COMPLETE CATALOG BOOK DESIGN" in args["prompt"]
     assert "carries the temporary marker" not in args["prompt"]
-    assert "Render the approved cover directly" in args["prompt"]
+    assert "Render the entire approved cover on ONE FRONT BOARD only" in args["prompt"]
     assert args["extra_refs"][-1] == b"selected-model"
 
 
@@ -214,3 +218,12 @@ def test_reading_raw_and_final_share_the_requested_revision():
     )
     assert pipe.revision_for("reading:integrated") == pipe.revision_for("reading")
     assert pipe.revision_for("reading:template") == {}  # preserve legacy cache keys
+
+
+def test_lettering_contract_preserves_catalog_override(monkeypatch):
+    pipe, _, _ = pipeline(monkeypatch)
+    assert "heavy rounded sans-serif" in pipe.integrated_lettering_contract()
+    pipe.design = {"typography": {"titleFont": "catalog-specific-font"}}
+    contract = pipe.integrated_lettering_contract()
+    assert "catalog-specific-font" in contract
+    assert "takes precedence" in contract

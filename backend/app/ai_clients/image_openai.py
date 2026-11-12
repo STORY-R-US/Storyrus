@@ -1,4 +1,4 @@
-"""ImageProvider: OpenAI GPT Image (gpt-image-1).
+"""ImageProvider: OpenAI GPT Image.
 
 Avatar, cena, realistic e refine_* usam a Images API (generations/edits).
 Sem Gemini, Fal ou PuLID neste caminho.
@@ -147,6 +147,14 @@ class OpenAIImageProvider:
         self._timeout = timeout if timeout is not None else settings.openai_timeout_s
         self._model = model or settings.openai_image_model
 
+    def _image_options(self, *, edit: bool = False) -> dict[str, str]:
+        options = {"quality": settings.openai_image_quality}
+        if self._model in {"gpt-image-2.6-sunburst", "gpt-image-2.6-flare"}:
+            options["complexity"] = "high"
+        if edit and self._model in {"gpt-image-1", "gpt-image-1.5"}:
+            options["input_fidelity"] = "high"
+        return options
+
     def _headers(self, client_request_id: str) -> dict[str, str]:
         if not self._api_key:
             raise ProviderError("OPENAI_API_KEY ausente", transient=False)
@@ -161,7 +169,7 @@ class OpenAIImageProvider:
             "model": self._model,
             "prompt": prompt,
             "size": size,
-            "quality": settings.openai_image_quality,
+            **self._image_options(),
         }
         update_span(metadata={"provider": "openai", "model": self._model, "mode": "generate"})
         return await self._post_json("/images/generations", body)
@@ -184,10 +192,8 @@ class OpenAIImageProvider:
             "model": self._model,
             "prompt": prompt,
             "size": size,
-            "quality": settings.openai_image_quality,
+            **self._image_options(edit=True),
         }
-        if self._model in {"gpt-image-1", "gpt-image-1.5"}:
-            data["input_fidelity"] = "high"
         update_span(
             metadata={
                 "provider": "openai",
@@ -456,10 +462,8 @@ class OpenAIImageProvider:
             "model": self._model,
             "prompt": prompt,
             "size": "1024x1024",
-            "quality": settings.openai_image_quality,
+            **self._image_options(edit=True),
         }
-        if self._model in {"gpt-image-1", "gpt-image-1.5"}:
-            data["input_fidelity"] = "high"
         return await self._post_multipart(
             "/images/edits",
             data=data,
