@@ -193,8 +193,10 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   8: "cartoon-capa-bisavo.jpg",
   11: "cartoon-capa-maya.jpg",
   12: "cartoon-capa-mako.png",
+  18: "covers/cartoon-capa-noe-v1-pt.webp",
   19: "cartoon-capa-amordetia.png",
   20: "cartoon-capa-davi.png",
+  21: "covers/cartoon-capa-meupai-heroi-v1-pt.webp",
   22: "cartoon-capa-enzo.jpg",
   23: "cartoon-capa-lucas.png",
   30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
@@ -204,6 +206,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   40: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
   41: { pt: "cartoon-capa-grace-aniversario.png", en: "cartoon-capa-grace-aniversario-en.png", es: "cartoon-capa-grace-aniversario-es.png" },
   42: { pt: "cartoon-capa-grace-andar.png", en: "cartoon-capa-grace-andar-en.png", es: "cartoon-capa-grace-andar-es.png" },
+  60: "covers/cartoon-capa-enzo-dinossauro-v1-pt.webp",
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [

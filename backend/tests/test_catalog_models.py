@@ -81,6 +81,26 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         assert design["sources"] == web[key]["sources"]
 
 
+@pytest.mark.parametrize("index", [18, 21, 60])
+def test_new_cartoon_interiors_have_square_pages_and_valid_narrative_font(index):
+    design = book_design.snapshot(f"catalog-cartoon-{index}")
+    assert design["style"] == "cartoon"
+    assert design["interior"]["mode"] == "two_scenes"
+    with Image.open(io.BytesIO(book_design.reference(design, "page"))) as image:
+        assert image.width / image.height == pytest.approx(2, abs=0.01)
+    with Image.open(io.BytesIO(book_design.reference(design, "cover"))) as image:
+        assert image.width == image.height
+    profile = {"editorial": editorial_profile.snapshot(), "book_design": design}
+    _, layout = render.text(
+        render.encode(Image.new("RGB", (1024, 1024), "ivory")),
+        "Cada aventura traz carinho e atenção.",
+        profile,
+        title=False,
+        measure_only=True,
+    )
+    assert layout["text"] == "Cada aventura traz carinho e atenção."
+
+
 def test_exact_selected_models_are_distinct_and_generic_default_is_unchanged():
     mother = book_design.snapshot("catalog-realistic-6")
     emilia = book_design.snapshot("catalog-realistic-1")

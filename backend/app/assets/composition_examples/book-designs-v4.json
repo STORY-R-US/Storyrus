@@ -4477,6 +4477,222 @@
         "page": "catalog_models/realistic-61-page.jpg",
         "holding": "catalog_models/realistic-61-holding.jpg"
       }
+    },
+    "catalog-cartoon-18": {
+      "name": "Noé Na Terra Dos Dinossauros",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-noe-v1-pt.webp",
+        "page": "cartoon-pagina-noe-v1-pt.webp",
+        "holding": "cartoon-foto-noe-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Premium soft 3D Cartoon picture book matching this selected reference: expressive recognizable faces, rounded sculpted forms, softly shaded materials and detailed illustrated scenery. Cover and interior remain clearly illustrated; never use photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user may change the story theme: adapt actions and props while retaining this visual finish, title hierarchy and page structure. The approved project cover locks the same faces and ages for the interior. Never copy reference names, people or literal paragraphs.",
+      "visual": {
+        "finish": "catalog_specific_18",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#061A45",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 2,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 18,
+      "title_templates": {
+        "pt-BR": "Noé Na Terra Dos Dinossauros",
+        "en": "Noé In The Land Of Dinosaurs",
+        "es": "Noé En La Tierra De Los Dinosaurios"
+      },
+      "example_name": "Noé",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-18-cover.webp",
+        "page": "catalog_models/cartoon-18-page.webp",
+        "holding": "catalog_models/cartoon-18-holding.webp"
+      }
+    },
+    "catalog-cartoon-60": {
+      "name": "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-enzo-dinossauro-v1-pt.webp",
+        "page": "cartoon-pagina-enzo-dinossauro-v1-pt.webp",
+        "holding": "cartoon-foto-enzo-dinossauro-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Premium soft 3D Cartoon picture book matching this selected reference: expressive recognizable faces, rounded sculpted forms, softly shaded materials and detailed illustrated scenery. Cover and interior remain clearly illustrated; never use photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user may change the story theme: adapt actions and props while retaining this visual finish, title hierarchy and page structure. The approved project cover locks the same faces and ages for the interior. Never copy reference names, people or literal paragraphs.",
+      "visual": {
+        "finish": "catalog_specific_60",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#061A45",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 2,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 60,
+      "title_templates": {
+        "pt-BR": "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro",
+        "en": "Dinosaur Secrets, Enzo, From Past To Future",
+        "es": "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro"
+      },
+      "example_name": "Enzo",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-60-cover.webp",
+        "page": "catalog_models/cartoon-60-page.webp",
+        "holding": "catalog_models/cartoon-60-holding.webp"
+      }
+    },
+    "catalog-cartoon-21": {
+      "name": "Meu Pai, Meu Herói",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-meupai-heroi-v1-pt.webp",
+        "page": "cartoon-pagina-meupai-heroi-v1-pt.webp",
+        "holding": "cartoon-foto-meupai-heroi-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.045,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.095,
+        "long_font_ratio": 0.065,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Compose a complete medium-wide narrative scene with detailed foreground, middle ground and background in this selected visual style. The entire head including hair or hat occupies about 20–24 percent of cover height; preserve space for meaningful activity and scenery on both sides. No portrait crop, enlarged face, cut-off hat, artificial bands, repeated textures, stretched edge fill or blurred extensions. Reserve the measured title region as continuous natural scenery. Do not draw lettering, logos, captions or sample text."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Premium soft 3D Cartoon picture book matching this selected reference: expressive recognizable faces, rounded sculpted forms, softly shaded materials and detailed illustrated scenery. Cover and interior remain clearly illustrated; never use photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user may change the story theme: adapt actions and props while retaining this visual finish, title hierarchy and page structure. The approved project cover locks the same faces and ages for the interior. Never copy reference names, people or literal paragraphs.",
+      "visual": {
+        "finish": "catalog_specific_21",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#061A45",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 2,
+        "titleGoldOrnaments": true,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 21,
+      "title_templates": {
+        "pt-BR": "Meu Pai, Meu Herói",
+        "en": "My Dad, My Hero",
+        "es": "Mi Papá, Mi Héroe"
+      },
+      "example_name": "",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-21-cover.webp",
+        "page": "catalog_models/cartoon-21-page.webp",
+        "holding": "catalog_models/cartoon-21-holding.webp"
+      }
     }
   },
   "unavailable": {

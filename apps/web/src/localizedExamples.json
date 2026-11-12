@@ -818,5 +818,41 @@
   "cartoon-pagina-maya.jpg": {
     "en": "localized/cartoon-pagina-maya-jpg-en.webp",
     "es": "localized/cartoon-pagina-maya-jpg-es.webp"
+  },
+  "covers/cartoon-capa-noe-v1-pt.webp": {
+    "en": "covers/cartoon-capa-noe-v1-en.webp",
+    "es": "covers/cartoon-capa-noe-v1-es.webp"
+  },
+  "cartoon-pagina-noe-v1-pt.webp": {
+    "en": "cartoon-pagina-noe-v1-en.webp",
+    "es": "cartoon-pagina-noe-v1-es.webp"
+  },
+  "cartoon-foto-noe-v1-pt.webp": {
+    "en": "cartoon-foto-noe-v1-en.webp",
+    "es": "cartoon-foto-noe-v1-es.webp"
+  },
+  "covers/cartoon-capa-enzo-dinossauro-v1-pt.webp": {
+    "en": "covers/cartoon-capa-enzo-dinossauro-v1-en.webp",
+    "es": "covers/cartoon-capa-enzo-dinossauro-v1-es.webp"
+  },
+  "cartoon-pagina-enzo-dinossauro-v1-pt.webp": {
+    "en": "cartoon-pagina-enzo-dinossauro-v1-en.webp",
+    "es": "cartoon-pagina-enzo-dinossauro-v1-es.webp"
+  },
+  "cartoon-foto-enzo-dinossauro-v1-pt.webp": {
+    "en": "cartoon-foto-enzo-dinossauro-v1-en.webp",
+    "es": "cartoon-foto-enzo-dinossauro-v1-es.webp"
+  },
+  "covers/cartoon-capa-meupai-heroi-v1-pt.webp": {
+    "en": "covers/cartoon-capa-meupai-heroi-v1-en.webp",
+    "es": "covers/cartoon-capa-meupai-heroi-v1-es.webp"
+  },
+  "cartoon-pagina-meupai-heroi-v1-pt.webp": {
+    "en": "cartoon-pagina-meupai-heroi-v1-en.webp",
+    "es": "cartoon-pagina-meupai-heroi-v1-es.webp"
+  },
+  "cartoon-foto-meupai-heroi-v1-pt.webp": {
+    "en": "cartoon-foto-meupai-heroi-v1-en.webp",
+    "es": "cartoon-foto-meupai-heroi-v1-es.webp"
   }
 }

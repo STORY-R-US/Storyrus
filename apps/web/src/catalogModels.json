@@ -1276,5 +1276,59 @@
       "page": "pagina-pai-e-filha.png",
       "holding": "foto-pai-e-filha.png"
     }
+  },
+  "catalog-cartoon-18": {
+    "id": "catalog-cartoon-18",
+    "catalog_index": 18,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Noé Na Terra Dos Dinossauros",
+      "en": "Noé In The Land Of Dinosaurs",
+      "es": "Noé En La Tierra De Los Dinosaurios"
+    },
+    "example_name": "Noé",
+    "sources": {
+      "cover": "covers/cartoon-capa-noe-v1-pt.webp",
+      "page": "cartoon-pagina-noe-v1-pt.webp",
+      "holding": "cartoon-foto-noe-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-60": {
+    "id": "catalog-cartoon-60",
+    "catalog_index": 60,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro",
+      "en": "Dinosaur Secrets, Enzo, From Past To Future",
+      "es": "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro"
+    },
+    "example_name": "Enzo",
+    "sources": {
+      "cover": "covers/cartoon-capa-enzo-dinossauro-v1-pt.webp",
+      "page": "cartoon-pagina-enzo-dinossauro-v1-pt.webp",
+      "holding": "cartoon-foto-enzo-dinossauro-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-21": {
+    "id": "catalog-cartoon-21",
+    "catalog_index": 21,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Pai, Meu Herói",
+      "en": "My Dad, My Hero",
+      "es": "Mi Papá, Mi Héroe"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-meupai-heroi-v1-pt.webp",
+      "page": "cartoon-pagina-meupai-heroi-v1-pt.webp",
+      "holding": "cartoon-foto-meupai-heroi-v1-pt.webp"
+    }
   }
 }

@@ -35,7 +35,13 @@ for (const lang of ["pt", "en", "es"]) {
         await page.getByTestId("landing-menu").click();
         await page.locator(".kmobile-cat-toggle").first().click();
       } else await page.locator(".kcats .kcat-btn").first().hover();
-      await expect(panel.locator('a[href*="-dinosaurs"]')).toHaveCount(0);
+      const cartoonDinosaurs = panel.locator('a[href="/catalogo?modo=cartoon#aventuras-dinosaurs"]').first();
+      await expect(cartoonDinosaurs).toBeVisible();
+      if (mobile) await cartoonDinosaurs.locator("..").getByRole("button").click();
+      else await cartoonDinosaurs.hover();
+      const cartoonFeats = mobile ? cartoonDinosaurs.locator("../..").locator(".kmobile-feats") : page.getByTestId("landing-cat-feats");
+      await expect(cartoonFeats.locator(".kcat-feat")).toHaveCount(2);
+      for (const id of [18, 60]) await expect(cartoonFeats.locator(`a[href="/livro/${id}?modo=cartoon"]`)).toBeVisible();
       const adventure = panel.locator('a[href="/catalogo?modo=cartoon#aventuras-adventure"]').first();
       await adventure.click();
       await expect(page.getByTestId("catalog-category")).toHaveValue("aventuras-adventure");
