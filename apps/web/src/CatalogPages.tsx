@@ -145,15 +145,16 @@ export function CatalogPage() {
   const [lang, setLang] = useSiteLang();
   usePageMeta(staticPageMeta("/catalogo", lang));
   const copy = catalogPageCopy(lang);
-  const sections = catalogSections(lang);
-  const { hash } = useLocation();
+  const { hash, search } = useLocation();
+  const cartoon = new URLSearchParams(search).get("modo") === "cartoon";
+  const sections = catalogSections(lang, cartoon ? "cartoon" : "photo");
   return (
     <div className="kid">
       <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
         <CatalogBrowser books={sections.flatMap((section) => section.books)} sections={sections} hash={hash} lang={lang}
-          renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} />} />
+          renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} modo={cartoon ? "cartoon" : "realista"} />} />
       </main>
     </div>
   );

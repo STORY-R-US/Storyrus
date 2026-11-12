@@ -803,41 +803,6 @@ const NAV_CAT_META = [
     ],
   },
 ] as const;
-/** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
-const MENU_BOOKS: Record<string, readonly number[]> = {
-  adventure: [33, 2, 25],
-  dinosaurs: [18, 60],
-  underwater: [43],
-  space: [49],
-  princess: [53, 1],
-  superhero: [15, 26, 27],
-  sport: [0, 4, 36],
-  mothers_day: [5, 6, 44],
-  fathers_day: [21, 14, 61],
-  grandparents_love: [8, 37, 51],
-  grandfather_love: [30, 46, 52],
-  dia_do_idoso: [8, 30, 37, 46, 51, 52],
-  family_love: [7, 29, 39, 40, 42],
-  recem_nascidos: [42],
-  pets: [11, 12, 23, 28, 10],
-  dia_da_mulher: [6, 5, 8, 19],
-  dia_da_familia: [7, 19, 21],
-  tio_tia: [19, 29, 39, 40],
-  christmas: [9, 45, 59],
-  birthday: [41, 55, 51],
-  easter: [31],
-  animais_sons: [34],
-  economia: [35],
-  higiene_desfralde: [24],
-  biblico: [20, 38, 47],
-};
-function catalogSectionId(theme: string | null | undefined): string {
-  if (!theme) return "aventuras";
-  for (const [id, themes] of Object.entries(CATALOG_SECTION_THEMES)) {
-    if ((themes as readonly string[]).includes(theme)) return id;
-  }
-  return "aventuras";
-}
 function themeFromHref(href: string): string | null {
   // Links podem ser /app?tema=… ou /cadastro?next=%2Fapp%3Ftema%3D…
   let target = href;
@@ -2552,11 +2517,12 @@ export function CatalogBookCard({
     </div>
   );
 }
-function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
+function toCatalogCard(lang: Lang, index: number, variant: "photo" | "cartoon" = "photo"): CatalogCardBook | null {
+  if (variant === "cartoon" && !CARTOON_COVER[index]) return null;
   if (HIDDEN_BOOK_INDEXES.has(index)) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
-  const img = catalogCoverFile(index, lang, "photo");
+  const img = catalogCoverFile(index, lang, variant);
   if (!book || !theme || !coverForLang(index, "pt")) return null;
   return {
     t: book.t,
@@ -2648,7 +2614,7 @@ export function catalogEntry(lang: Lang, index: number) {
   const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
   return { ...card, sectionId: section?.id ?? "aventuras" };
 }
-export function catalogSections(lang: Lang): CatalogSection[] {
+export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "photo"): CatalogSection[] {
   const names = I18N[lang].cats;
   const sections: CatalogSection[] = NAV_CAT_META.map((meta, i) => {
     const catCopy = names[i];
@@ -2658,8 +2624,8 @@ export function catalogSections(lang: Lang): CatalogSection[] {
       if (!theme || !sectionThemes.includes(theme)) return [];
       const books = sortCatalogBooks(
         CATALOG_THEMES.flatMap((_bookTheme, index) => {
-          if (!belongsToCatalogTheme(index, theme) || isCartoonOnlyCover(index)) return [];
-          const card = toCatalogCard(lang, index);
+          if (!belongsToCatalogTheme(index, theme) || (variant === "photo" && isCartoonOnlyCover(index))) return [];
+          const card = toCatalogCard(lang, index, variant);
           if (!card) return [];
           return [card];
         }),
@@ -2673,15 +2639,15 @@ export function catalogSections(lang: Lang): CatalogSection[] {
     });
     if (meta.id === "voce-e-eu") {
       const books = sortCatalogBooks([19, 29, 39, 40].flatMap((index) => {
-        const card = toCatalogCard(lang, index);
+        const card = toCatalogCard(lang, index, variant);
         return card ? [card] : [];
       }));
-      const cousin = toCatalogCard(lang, 22);
+      const cousin = toCatalogCard(lang, 22, variant);
       if (cousin) subs.push({ id: "irmaos_primos", name: catCopy?.subs[5] ?? "Irmãos e Primos", books: [cousin] });
       if (books.length) subs.push({ id: "tio_tia", name: lang === "en" ? "Aunts and Uncles" : lang === "es" ? "Tíos y Tías" : "Tios e Tias", books });
     }
     if (meta.id === "educativo") {
-      const card = toCatalogCard(lang, 3);
+      const card = toCatalogCard(lang, 3, variant);
       if (card) subs.push({ id: "alfabetizacao_inicial", name: lang === "en" ? "Alphabet" : lang === "es" ? "Alfabeto" : "Alfabetização", books: [card] });
     }
     return {
@@ -2794,64 +2760,22 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const heroPages = heroStrip.flatMap((book) => book.shots);
   const heroReferencePages = heroStrip.flatMap((book) => book.references);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
-  const navCats = t.cats.map((cat, i) => ({
-    ...cat,
-    id: NAV_CAT_META[i].id,
-    color: NAV_CAT_META[i].color,
-    subs: cat.subs.flatMap((label, j) => {
-      const meta = NAV_CAT_META[i].subs[j];
-      const when = "when" in meta ? meta.when : undefined;
-      if (when && !occasionDue(when, new Date())) return [];
-      const theme = themeFromHref(meta.href);
-      const books = theme ? MENU_BOOKS[theme] ?? [] : [];
-      const rawOnly = books.length === 1 ? books[0] : undefined;
-      const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
-      const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
-      // Tema e capa em destaque abrem o catálogo da categoria, não a ficha do livro.
-      const href = `/catalogo#${NAV_CAT_META[i].id}`;
-      return [{
-        label,
-        href,
-        theme: bookTheme ?? theme,
-        due: when ? nextOccasionDate(when, new Date()) : null,
-      }];
-    }).sort((a, b) => {
-      if (a.due && b.due) return a.due.getTime() - b.due.getTime();
-      if (a.due) return -1;
-      if (b.due) return 1;
-      return 0;
-    }),
-    feats: cat.feats.flatMap((label, j) => {
-      const meta = NAV_CAT_META[i].feats[j];
-      if (HIDDEN_BOOK_INDEXES.has(meta.catalogI)) return [];
-      if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
-      const img = catalogCoverFile(meta.catalogI, lang, variant);
-      if (!catalogCoverFile(meta.catalogI, "pt", variant)) return [];
-      return [{
-        label,
-        href: `/catalogo#${NAV_CAT_META[i].id}`,
-        img,
-      }];
-    }).slice(0, 4),
-  }));
-  const voceEeuCount = navCats.find((cat) => cat.id === "voce-e-eu")?.subs.length ?? 0;
-  const menuCats = navCats.map((cat) => {
-    if (cat.id !== "ocasioes" || cat.subs.length <= voceEeuCount) return cat;
-    const open = cat.subs.filter((sub) => !sub.due);
-    const dated = cat.subs.filter((sub) => sub.due);
-    const room = Math.max(voceEeuCount - open.length, 0);
-    return { ...cat, subs: [...dated.slice(0, room), ...open].slice(0, voceEeuCount) };
+  // Navigation and catalog share the same inventory and editorial categories.
+  const catalogBase = variant === "cartoon" ? "/catalogo?modo=cartoon" : "/catalogo";
+  const menuBook = (book: CatalogCardBook) => ({
+    label: book.t,
+    href: `/livro/${book.catalogI}${variant === "cartoon" ? "?modo=cartoon" : ""}`,
+    img: book.img,
   });
-  const shownCats = menuCats;
-  const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
-    if (HIDDEN_BOOK_INDEXES.has(i)) return [];
-    if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
-    if (variant !== "cartoon" && isCartoonOnlyCover(i)) return [];
-    const book = t.catalog[i];
-    const img = catalogCoverFile(i, lang, variant);
-    if (!book || !catalogCoverFile(i, "pt", variant)) return [];
-    return [{ label: book.t, href: `/catalogo#${catalogSectionId(theme)}`, img }];
-  }).slice(0, 4);
+  const shownCats = catalogSections(lang, variant).filter((section) => section.books.length).map((section) => ({
+    ...section,
+    subs: section.subs.map((sub) => ({
+      label: sub.name,
+      href: `${catalogBase}#${section.id}-${sub.id}`,
+      books: sub.books.map(menuBook),
+    })),
+    feats: section.books.slice(0, 4).map(menuBook),
+  }));
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
@@ -3011,7 +2935,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   onMouseLeave={() => { setOpenCat(null); setSubHover(null); setFeatCat(null); }}
                 >
                   <Link
-                    to="/catalogo"
+                    to={catalogBase}
                     className="kcat-btn"
                     style={{ "--cat": "#9b8cff" } as CSSProperties}
                     onClick={closeNav}
@@ -3031,7 +2955,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             setSubHover((cur) => (cur?.cat === i ? cur : null));
                           }}
                         >
-                          <Link to={`/catalogo#${cat.id}`} className="kcat-group-name is-chip" onClick={closeNav}>
+                          <Link to={`${catalogBase}#${cat.id}`} className="kcat-group-name is-chip" onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
                           </Link>
@@ -3054,9 +2978,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                       {(() => {
                         const hoverCat = subHover ? shownCats[subHover.cat] : featCat != null ? shownCats[featCat] : null;
                         const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
-                        const activeTheme = activeSub?.theme ?? (activeSub ? themeFromHref(activeSub.href) : null);
-                        const shown = (activeTheme ? menuBooks(activeTheme) : hoverCat?.feats ?? []).slice(0, 4);
-                        const allHref = hoverCat ? `/catalogo#${hoverCat.id}` : "/catalogo";
+                        const shown = activeSub?.books ?? hoverCat?.feats ?? [];
+                        const allHref = activeSub?.href ?? (hoverCat ? `${catalogBase}#${hoverCat.id}` : catalogBase);
                         return (
                           <>
                             {shown.map((feat) => (
@@ -3067,7 +2990,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                                 <span>{feat.label}</span>
                               </Link>
                             ))}
-                            {activeTheme && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
+                            {activeSub && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
                             <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
                           </>
                         );
@@ -3201,7 +3124,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             {shownCats.map((cat, i) => (
               <div key={cat.id} className={`kmobile-cat${mobileCat === i ? " open" : ""}`} style={{ "--group": cat.color } as CSSProperties}>
                 <div className="kmobile-cat-btn">
-                  <Link to={`/catalogo#${cat.id}`} onClick={closeNav}>
+                  <Link to={`${catalogBase}#${cat.id}`} onClick={closeNav}>
                     <span className="kcat-dot" style={{ background: cat.color }} />
                     {cat.name}
                   </Link>
@@ -3236,7 +3159,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     {cat.subs.map((sub, j) => {
                       const subName = sub.label.split(" · ")[0];
                       const subOpen = mobileSub?.cat === i && mobileSub.sub === j;
-                      const subBooks = sub.theme ? menuBooks(sub.theme) : [];
+                      const subBooks = sub.books;
                       return (
                         <div key={sub.label} className={`kmobile-sub${subOpen ? " on" : ""}`}>
                           <div className="kmobile-sub-row">
@@ -3271,7 +3194,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </div>
               </div>
             ))}
-            <Link to="/catalogo" className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
+            <Link to={catalogBase} className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
           </div>
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>

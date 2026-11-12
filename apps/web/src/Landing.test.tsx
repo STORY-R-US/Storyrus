@@ -513,18 +513,18 @@ describe("Landing — menu mobile e abas do hero", () => {
     const featLinks = within(feats).getAllByRole("link");
     expect(featLinks.length).toBeGreaterThan(0);
     featLinks.forEach((link) => {
-      expect(link.getAttribute("href")).toMatch(/^\/catalogo#/);
+      expect(link.getAttribute("href")).toMatch(/^\/livro\/\d+/);
     });
 
     await user.click(within(siteMenu).getByRole("button", { name: /^dinossauros$/i }));
     const noe = within(siteMenu).getByRole("link", { name: /noé/i });
-    expect(noe).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(noe).toHaveAttribute("href", "/livro/18");
     expect(noe.querySelector("img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-noe.png", "pt")));
 
     await user.click(within(siteMenu).getByRole("button", { name: /^você e eu$/i }));
     await user.click(within(siteMenu).getByRole("button", { name: /^vovô e eu$/i }));
     const avo = within(siteMenu).getByRole("link", { name: /amor de avô/i });
-    expect(avo).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    expect(avo).toHaveAttribute("href", "/livro/30");
     expect(avo.querySelector("img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-amor-de-avo.png", "pt")));
   });
 
@@ -774,122 +774,56 @@ describe("Landing — CTAs e links", () => {
     }
   });
 
-  it("mostra os livros do tema ao passar o mouse no submenu", () => {
-    // O menu lista as ocasiões cuja próxima data ainda cai neste ano. Trava o
-    // relógio antes do Dia das Crianças (12/10) para o cenário ser determinístico.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 8, 20));
+  it("mostra todos os livros do tema e liga cada capa à ficha correta", async () => {
     renderLanding();
+    await screen.findByTestId("landing-hero-title");
     const panel = document.querySelector("#cat-panel") as HTMLElement;
-    const nav = document.querySelector(".kcats") as HTMLElement;
-    expect(within(nav).getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
-    expect(within(nav).queryByRole("button", { name: /^aventuras$/i })).not.toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: /^como funciona$/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: /^vídeos$/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: /^avaliações$/i })).toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
-    expect([...nav.querySelectorAll(".kcat-btn")].map((el) => el.textContent?.trim())).toEqual([
-      "Livros",
-      "Como Funciona",
-      "Passo a Passo",
-      "Livros Cartoon",
-      "Vídeos",
-      "Avaliações",
-    ]);
-    expect(screen.queryByText(/^carrossel de livros$/i)).not.toBeInTheDocument();
-    const subs = panel.querySelector(".kcat-subs") as HTMLElement;
-    const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
-    expect(princesas).toHaveAttribute("href", "/catalogo#aventuras");
-    expect(within(panel).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/catalogo#aventuras");
-    const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
-    expect(biblico.parentElement?.querySelector("a")).toBe(biblico);
-    expect(biblico).toHaveAttribute("href", "/catalogo#educativo");
-    expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
-    expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    expect(within(panel).getByRole("link", { name: /^temáticas$/i })).toHaveAttribute("href", "/catalogo#aventuras");
-    expect(within(panel).queryByRole("link", { name: /^transporte$/i })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /^transportes$/i })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /^ano novo$/i })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /^alfabetização$/i })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /^matemática$/i })).not.toBeInTheDocument();
-    expect(within(panel).queryByRole("link", { name: /^vestir-se$/i })).not.toBeInTheDocument();
-    expect(within(panel).getByRole("link", { name: /^aniversário$/i })).toBeInTheDocument();
-    expect(within(panel).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
-    expect(within(panel).getByRole("link", { name: /^compartilhar$/i })).toBeInTheDocument();
-    const groupNameEls = [...panel.querySelectorAll(".kcat-group-name")];
-    const groupNames = groupNameEls.map((el) => el.textContent ?? "");
-    expect(groupNames).toHaveLength(4);
-    expect(groupNameEls.every((el) => el.classList.contains("is-chip"))).toBe(true);
-    expect(groupNames.join(" ")).not.toMatch(/sentimentos/i);
-    fireEvent.mouseEnter(princesas);
     const feats = screen.getByTestId("landing-cat-feats");
-    expect(within(feats).getByRole("link", { name: /emilia/i })).toHaveAttribute("href", "/catalogo#aventuras");
-    expect(within(feats).queryByRole("link", { name: /nano/i })).not.toBeInTheDocument();
+    const hover = (name: RegExp) => fireEvent.mouseEnter(within(panel).getByRole("link", { name }));
+    const bookLinks = () => [...feats.querySelectorAll(".kcat-feat")].map((link) => link.getAttribute("href"));
 
-    fireEvent.mouseEnter(within(subs).getByRole("link", { name: /^esportes$/i }));
-    expect(within(feats).getByRole("link", { name: /martin/i })).toBeInTheDocument();
-    expect(within(feats).queryByRole("link", { name: /cristobal/i })).not.toBeInTheDocument();
-    expect(within(feats).queryByRole("link", { name: /emilia/i })).not.toBeInTheDocument();
-
-    const youLinks = [...panel.querySelectorAll(".kcat-group")[1].querySelectorAll(".kcat-subs a")].map((link) => link.textContent);
-    expect(youLinks).toContain("Recém-nascidos");
-    expect(youLinks).toContain("Vovó e Eu");
-    expect(youLinks[youLinks.indexOf("Vovó e Eu") + 1]).toBe("Vovô e Eu");
-    expect(youLinks).not.toContain("Vovó e Vovô");
-    expect(youLinks[youLinks.indexOf("Pets") - 1]).toBe("Casamento");
-    const recem = within(panel).getByRole("link", { name: /^recém-nascidos$/i });
-    expect(recem).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    const vovo = within(panel).getByRole("link", { name: /^vovó e eu$/i });
-    expect(vovo).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    fireEvent.mouseEnter(vovo);
-    expect(within(feats).getByRole("link", { name: /amor de bisavó/i })).toBeInTheDocument();
-    expect(within(feats).queryByRole("link", { name: /amor de avô/i })).not.toBeInTheDocument();
-    const vovoH = within(panel).getByRole("link", { name: /^vovô e eu$/i });
-    expect(vovoH).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    fireEvent.mouseEnter(vovoH);
-    expect(within(feats).getByRole("link", { name: /amor de avô/i })).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    fireEvent.mouseEnter(within(subs).getByRole("link", { name: /^dinossauros$/i }));
-    expect(within(feats).getByRole("link", { name: /noé/i })).toHaveAttribute("href", "/catalogo#aventuras");
-    const casamento = within(panel).getByRole("link", { name: /^casamento$/i });
-    expect(casamento).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    const pets = within(panel).getByRole("link", { name: /^pets$/i });
-    expect(pets).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    fireEvent.mouseEnter(pets);
-    expect(within(feats).getByRole("link", { name: /maya/i })).toBeInTheDocument();
-    expect(within(feats).getByRole("link", { name: /mako/i })).toBeInTheDocument();
-    expect(within(feats).getByRole("link", { name: /lucas/i })).toBeInTheDocument();
-    expect(within(feats).getByRole("link", { name: /aranha/i })).toBeInTheDocument();
-
-    const occasions = panel.querySelectorAll(".kcat-group")[2] as HTMLElement;
-    expect(occasions.querySelector(".kcat-group-name")).toHaveTextContent(/ocasiões especiais/i);
-    const occasionLabels = [...occasions.querySelectorAll(".kcat-subs a")].map((link) => link.textContent ?? "");
-    expect(occasionLabels.some((label) => /crianças/i.test(label))).toBe(true);
-    expect(occasionLabels.some((label) => /natal/i.test(label))).toBe(true);
-    expect(occasionLabels.some((label) => /aniversário/i.test(label))).toBe(true);
-    expect(occasionLabels.some((label) => /mães|pais|avós|maio|agosto|janeiro/i.test(label))).toBe(false);
-    expect(occasions.querySelector("li.is-lead")).toBeNull();
-    fireEvent.mouseEnter(occasions);
-    const occasionFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
-    expect(occasionFeats).toHaveLength(4);
-    expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /aniversário especial de ester/i })).not.toBeInTheDocument();
-    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /^aniversário$/i }));
-    const birthdayLinks = within(feats).getAllByRole("link").map((link) => link.textContent ?? "");
-    expect(birthdayLinks.some((label) => /feliz aniversário, grace/i.test(label))).toBe(true);
-    expect(birthdayLinks.some((label) => /feliz aniversário, matteo(?!!)/i.test(label))).toBe(false);
-    expect(birthdayLinks.some((label) => /feliz 90 anos, nonna/i.test(label))).toBe(true);
-    expect(birthdayLinks.some((label) => /feliz aniversário, matteo!/i.test(label))).toBe(true);
-    expect(birthdayLinks.some((label) => /ester/i.test(label))).toBe(false);
-    const educativo = panel.querySelectorAll(".kcat-group")[3] as HTMLElement;
-    fireEvent.mouseEnter(educativo);
-    const eduFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
-    expect(eduFeats).toHaveLength(3);
-    expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /alfabeto/i })).not.toBeInTheDocument();
-    const childrensDay = within(panel).queryByRole("link", { name: /dia das crianças/i });
-    if (childrensDay) {
-      fireEvent.mouseEnter(childrensDay);
-      expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
-    }
+    const dinosaurs = within(panel).getByRole("link", { name: /^dinossauros$/i });
+    expect(dinosaurs).toHaveAttribute("href", "/catalogo#aventuras-dinosaurs");
+    hover(/^dinossauros$/i);
+    expect(bookLinks().sort()).toEqual(["/livro/18", "/livro/60"]);
+    expect(within(feats).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/catalogo#aventuras-dinosaurs");
+    hover(/^aventura$/i);
+    expect(bookLinks()).toContain("/livro/57");
+    hover(/^esportes$/i);
+    expect(bookLinks()).toEqual(expect.arrayContaining(["/livro/0", "/livro/1", "/livro/36", "/livro/53"]));
+    expect(within(panel).queryByRole("link", { name: /^princesas$/i })).not.toBeInTheDocument();
+    hover(/^vovó e eu$/i);
+    expect(bookLinks()).toContain("/livro/56");
+    hover(/^irmãos e primos$/i);
+    expect(bookLinks()).toEqual(["/livro/22"]);
+    hover(/^tios e tias$/i);
+    expect(bookLinks()).toHaveLength(4);
+    hover(/^família$/i);
+    expect(bookLinks().length).toBeGreaterThan(4);
+    expect(bookLinks()).toContain("/livro/61");
+    expect(within(panel).queryByRole("link", { name: /^casamento$/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /hora de dormir/i })).not.toBeInTheDocument();
   });
+
+  for (const variant of ["photo", "cartoon"] as const) {
+    it(`mantém todos os livros acessíveis no menu ${variant} nos três idiomas`, () => {
+      render(<MemoryRouter><Landing variant={variant} /></MemoryRouter>);
+      for (const lang of ["pt", "en", "es"] as const) {
+        fireEvent.click(screen.getByTestId(`landing-lang-${lang}`));
+        const links = [...document.querySelectorAll("#cat-panel .kcat-subs a")];
+        const books = new Set<string>();
+        for (const link of links) {
+          fireEvent.mouseEnter(link);
+          const shown = [...screen.getByTestId("landing-cat-feats").querySelectorAll(".kcat-feat")];
+          expect(shown.length, `${lang}: ${link.textContent}`).toBeGreaterThan(0);
+          shown.forEach((book) => books.add(book.getAttribute("href")!));
+        }
+        expect(books.size).toBe(variant === "photo" ? 52 : 17);
+        if (variant === "photo") expect(books.has("/livro/31")).toBe(true);
+        else expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
+      }
+    });
+  }
 
   it("mostra só a data que ainda cai neste ano", () => {
     const oct2 = new Date(2026, 9, 2);
@@ -925,14 +859,15 @@ describe("Landing — CTAs e links", () => {
     expect(cartoonGroups).toEqual(["Temáticas", "Você e Eu", "Ocasiões Especiais", "Educativo"]);
     const cartoonPanel = document.querySelector("#cat-panel") as HTMLElement;
     const cartoonVovo = within(cartoonPanel).getByRole("link", { name: /^vovô e eu$/i });
-    expect(cartoonVovo).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    expect(cartoonVovo).toHaveAttribute("href", "/catalogo?modo=cartoon#voce-e-eu-grandfather_love");
     fireEvent.mouseEnter(cartoonVovo);
     const cartoonAvo = within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /amor de avô/i });
-    expect(cartoonAvo).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    expect(cartoonAvo).toHaveAttribute("href", "/livro/30?modo=cartoon");
     expect(cartoonAvo.querySelector("img")).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-avo.png", "pt")));
     const cartoonEducativo = document.querySelectorAll("#cat-panel .kcat-group")[3] as HTMLElement;
-    expect(within(cartoonEducativo).getByRole("link", { name: /^sentimentos$/i })).toBeInTheDocument();
-    expect(within(cartoonEducativo).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
+    expect(within(cartoonEducativo).queryByRole("link", { name: /^sentimentos$/i })).not.toBeInTheDocument();
+    expect(within(cartoonEducativo).queryByRole("link", { name: /hora de dormir/i })).not.toBeInTheDocument();
+    expect(within(cartoonPanel).queryByRole("link", { name: /^dinossauros$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /dicas para a foto perfeita/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/você envia a foto/i)).not.toBeInTheDocument();
     const cartoonComo = document.getElementById("como") as HTMLElement;

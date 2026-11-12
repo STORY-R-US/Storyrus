@@ -344,6 +344,7 @@ a.kcat-btn:active {
   object-position: center;
   display: block;
 }
+.kcat-panel .kcat-feat-cover { width: 100%; max-width: 140px; align-self: center; }
 .kcat-feat-title.cover-title { inset: 0; }
 .kcat-feat-title .cover-name { font-size: 11cqw; }
 .kcat-feat-title .cover-story { font-size: 14cqw; }
