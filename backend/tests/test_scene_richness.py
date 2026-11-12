@@ -69,3 +69,25 @@ def test_custom_theme_is_not_replaced_with_a_catalog_story():
     assert contract["family"] == "custom"
     assert contract["current_action"] == "modelar argila"
     assert "customer's theme" in contract["conditional_material_cues"]
+
+
+@pytest.mark.parametrize("role", ["cover", "illustration", "expansion"])
+def test_naturalism_preserves_identity_age_and_physical_scene_without_forcing_finish(role):
+    output = scene_richness.direction(
+        theme="aeroclube",
+        action="Os primos brincam no avião parado",
+        role=role,
+        design={"id": "cartoon", "finish": "gentle cartoon"},
+        text_region=[0.1, 0.05, 0.9, 0.3],
+    )
+    contract = json.loads(output.split(": ", 1)[1])
+    assert contract["family"] == "aviation"
+    assert contract["finish"] == "gentle cartoon"
+    naturalism = contract["naturalism"]
+    assert "not instructions for the new scene" in naturalism["identity_scope"]
+    assert "never clone" in naturalism["identity_scope"]
+    assert "age-appropriate" in naturalism["anatomy"]
+    assert "do not force photorealism" in naturalism["anatomy"]
+    assert "supporting surface" in naturalism["physical_support"]
+    assert "one coherent lighting direction" in naturalism["light_and_depth"]
+    assert "do not add cast or change the story" in naturalism["environment"]

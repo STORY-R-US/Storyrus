@@ -8,10 +8,14 @@ import json
 import re
 import unicodedata
 
-VERSION = "thematic-scenery-1"
+VERSION = "thematic-scenery-2"
 
 # Examples are conditional material cues, not a compulsory shopping list.
 FAMILIES = {
+    "aviation": (
+        "aviacao aeroclube aviao avioes aviation airplane aeroplane aircraft",
+        "coherent aircraft geometry, grounded landing gear, plausible cockpit controls, hangar structure and layered airfield terrain; only when this action actually involves aircraft",
+    ),
     "football": (
         "futebol football soccer goleiro goalkeeper",
         "field markings following perspective, grass variation, distant stands and goal-net depth",
@@ -141,6 +145,14 @@ def direction(*, theme, action, role, design=None, text_region=None):
                 else "Build a coherent foreground, action plane and distant background within the selected catalog layout. Include a few distinct relevant environmental details, not merely sharpening. Use natural scale, perspective, contact shadows and depth of field; keep the protagonist recognizable and the scene readable, not crowded."
             ),
             "conditional_material_cues": cues,
+            "naturalism": {
+                "staging": "When characters are present, use spontaneous but readable gestures, natural gaze toward the current activity or companion and subtle expression appropriate to the story. Do not give everyone identical fixed smiles or repeat the same cover pose on every page. Vary camera angle and blocking only when justified by the exact stanza, without altering cast, wardrobe or the requested action.",
+                "identity_scope": "Reference photos define likeness, age and each requested person's distinguishing features. Their pose, camera crop, location and furniture are not instructions for the new scene, even if mentioned in an identity description. Preserve distinct faces; never clone one face onto companions.",
+                "anatomy": "When people are present, use age-appropriate head-to-body proportions, limb lengths and joint positions. Young children must not acquire adult shoulders or muscular arms. Preserve natural skin texture and expression within the selected photographic or illustrated finish; do not force photorealism onto cartoon models.",
+                "physical_support": "Every sitting or standing person needs a plausible supporting surface and visible contact appropriate to the pose. Hands must meet the object they use with a natural grip; feet and clothing must not fuse into objects. Arrange the activity and camera to fit the scene instead of stretching bodies or equipment.",
+                "light_and_depth": "Use one coherent lighting direction, consistent contact shadows, horizon and perspective across people and scenery. Separate foreground, action and distant background by natural scale and material detail, not pasted silhouettes, halos, heavy blur or glossy plastic skin.",
+                "environment": "Keep a small number of well-formed, theme-relevant objects with believable size and construction. Richness comes from coherent materials and spatial relationships, not extra clutter. Respect the requested action and existing text-safe regions; do not add cast or change the story to satisfy these details.",
+            },
             "continuity": "Choose only cues that fit this actual location and action. Keep approved wardrobe, palette, materials and recurring setting consistent across pages. Do not transplant an outdoor scene into an indoor room or repeat the same props on every page. The customer's theme overrides the example book's subject; never import its characters or story objects.",
             "protection": "Keep the entire measured text region and its breathing margin quiet. No detail, face, hair, hat, hands or essential action may intersect lettering. Preserve whole heads including hair and hats, original identity and body proportions. Reframe the whole scene naturally when necessary; never shrink only a face. No stretched, mirrored, tiled or blurred side extensions, seams, banners or pasted portraits.",
             "restraint": "Examples are optional, never mandatory. Omit any detail that conflicts with the action, selected finish, text safety or established continuity. No additional cast, animals, logos or generated lettering. Richness must remain part of the same scene, not sticker decoration.",

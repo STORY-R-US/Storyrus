@@ -675,6 +675,15 @@ class OpenAITextProvider:
                 "Sem acompanhantes informados, a história e as cenas mostram apenas o protagonista; "
                 "não acrescente criança, parente, amigo, ajudante ou animal."
             )
+        system += (
+            "\nSEPARAÇÃO ENTRE IDENTIDADE E CENA: visual_identity descreve somente os traços "
+            "visíveis que identificam cada personagem autorizado: rosto, pele, olhos, cabelo "
+            "e proporções compatíveis com a idade. Não inclua pose, enquadramento, mobiliário, "
+            "localização, iluminação nem atividade da foto nesse campo. Não deduza saúde ou "
+            "personalidade. Roupas pertencem somente a costume; o pedido explícito prevalece "
+            "sobre a roupa da foto. A atividade e o cenário vêm do tema e dos versos, não do "
+            "fundo da fotografia. Preserve os nomes e características distintos de cada pessoa."
+        )
         return await self._complete(system=system, user=content, max_tokens=2200, json_mode=True)
 
     async def locate_book_surfaces(self, *, data, count):
@@ -742,6 +751,12 @@ class OpenAITextProvider:
                 "Margins for text >=0.04. "
                 "Plan action, cast and naturally quiet reading area together. Never invent "
                 "cast, age, clothes or rewrite text. Prefer an upper centered cover title. "
+                "When NO scene image is attached, stage the supplied action with physically "
+                "plausible body support, joint positions, hand-object contact and gaze toward "
+                "the activity or companion. Do not reuse a reference-photo pose or background "
+                "merely because it appears in an older identity description. Choose a camera "
+                "angle appropriate to this moment instead of duplicating the cover tableau. "
+                "Keep the same cast, wardrobe and story; variation must serve this exact stanza. "
                 "Internal pages show ONLY their stanza, no headings; vary the text block "
                 "position with the action; obey typography.bodyAlignment and coverAlignment in "
                 "the supplied policy. Reserve enough space for the font weight and width ratios "

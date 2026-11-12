@@ -259,6 +259,8 @@ async def test_prepare_book_profile_sends_photo(client):
     assert "maiúsculas, acentos e pontuação" in guidance
     assert "2 a 4 linhas curtas" in guidance
     assert "Evite moralismo" in guidance
+    assert "SEPARAÇÃO ENTRE IDENTIDADE E CENA" in guidance
+    assert "Não inclua pose, enquadramento" in guidance
     parts = payload["messages"][1]["content"]
     assert parts[0]["type"] == "image_url"
     assert parts[0]["image_url"]["url"].startswith("data:image/jpeg;base64,")
@@ -290,6 +292,8 @@ async def test_editorial_profile_creates_theme_title_and_limits_cast(client):
     assert "criativo e específico" in guidance
     assert "Pessoas no fundo das fotos não são acompanhantes" in guidance
     assert "apenas o protagonista" in guidance
+    assert "SEPARAÇÃO ENTRE IDENTIDADE E CENA" in guidance
+    assert "Roupas pertencem somente a costume" in guidance
     assert json.loads(result.text) == expected
 
 
