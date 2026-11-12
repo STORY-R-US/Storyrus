@@ -79,7 +79,7 @@ for (const width of [390, 1440]) {
 }
 
 for (const lang of ["pt", "en", "es"]) {
-  test(`tablet header, hero action, search and empty category in ${lang}`, async ({ page }) => {
+  test(`tablet header, hero action, search and category results in ${lang}`, async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 900 });
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
     await page.goto("/");
@@ -103,6 +103,8 @@ for (const lang of ["pt", "en", "es"]) {
     await page.getByTestId("catalog-search").fill("zzzz-no-book");
     await expect(page.getByTestId("landing-catalog-card")).toHaveCount(0);
     await page.goto("/catalogo/sentimentos");
+    await expect(page.locator(".cat-book-link[href='/livro/64']")).toBeVisible();
+    await page.getByTestId("catalog-search").fill("zzzz-no-book");
     await expect(page.locator(".catalog-actions a[href='/catalogo']")).toBeVisible();
     await expect(page.locator(".catalog-actions a[href='/app']")).toBeVisible();
     await page.goto("/app?exemplo=dinosaurs");
