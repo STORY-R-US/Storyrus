@@ -53,6 +53,8 @@ async def test_editorial_review_separates_output_from_references_and_crops_measu
     assert "rectangle must be clear" not in full_request[0]["content"]
     assert "anatomy" in full_request[0]["content"]
     assert "identity" in full_request[0]["content"]
+    assert "permits photographic lighting" in full_request[0]["content"]
+    assert "unless that style was requested" in full_request[0]["content"]
 
 
 @pytest.mark.asyncio
