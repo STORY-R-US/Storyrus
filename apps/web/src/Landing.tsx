@@ -2469,7 +2469,7 @@ export function CatalogBookCard({
   );
   const selectedModel = book.catalogI != null ? catalogModel(catalogModelId(book.catalogI, modo === "cartoon")) : undefined;
   const go = book.catalogI != null && !selectedModel?.available ? (
-    <p role="status" className="muted" data-testid="catalog-model-unavailable">{unavailableCatalogCopy(lang)}</p>
+    <p className="muted" data-testid="catalog-model-unavailable">{unavailableCatalogCopy(lang)}</p>
   ) : (
     <Link
       to={personalizeHref({
