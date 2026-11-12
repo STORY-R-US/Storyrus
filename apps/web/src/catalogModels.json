@@ -1592,5 +1592,23 @@
       "en": "Clara and Miguel",
       "es": "Clara y Miguel"
     }
+  },
+  "catalog-cartoon-0": {
+    "id": "catalog-cartoon-0",
+    "catalog_index": 0,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Martin, O Grande Goleiro Do Chile",
+      "en": "Martin, The Great Goalkeeper Of Chile",
+      "es": "Martin, El Gran Arquero De Chile"
+    },
+    "example_name": "Martin",
+    "sources": {
+      "cover": "covers/cartoon-capa-martin-goleiro-v1-pt.webp",
+      "page": "cartoon-pagina-martin-goleiro-v1-pt.webp",
+      "holding": "cartoon-foto-martin-goleiro-v1-pt.webp"
+    }
   }
 }
