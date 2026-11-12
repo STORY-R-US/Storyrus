@@ -72,7 +72,7 @@ describe("approved PT images in all languages", () => {
     it(`keeps the same ordered books and scenes on the ${variant} page`, async () => {
       localStorage.setItem("lang", "pt");
       const { container } = render(<MemoryRouter><Landing variant={variant} /></MemoryRouter>);
-      await screen.findByTestId("landing-hero-cta");
+      await screen.findByTestId("landing-hero-title");
       while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
       const read = () => ({
         books: [...container.querySelectorAll("#catalogo .cat-book-link")].map((a) => a.getAttribute("href")),
