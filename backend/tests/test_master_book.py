@@ -3101,8 +3101,9 @@ async def test_new_compositor_reuses_folded_template_without_paid_calls(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("theme", ["futebol", "bale"])
 async def test_local_scenery_reuses_observed_map_and_never_buys_another_image(
-    reference_studio, monkeypatch
+    reference_studio, monkeypatch, theme
 ):
     from test_local_scene_details import scene
 
@@ -3113,6 +3114,7 @@ async def test_local_scenery_reuses_observed_map_and_never_buys_another_image(
     _, db, pid, store = studio
     project = db.get(Project, uuid.UUID(pid))
     project.theme = "futebol"
+    book_profile.update(project, theme_description=theme)
     db.commit()
     control["source_art"] = render.encode(scene(1024))
     original_stage = editorial_book.Pipeline.stage
@@ -3136,11 +3138,15 @@ async def test_local_scenery_reuses_observed_map_and_never_buys_another_image(
     monkeypatch.setattr(editorial_book.Pipeline, "stage", observed_stage)
     first = await _run(studio, "preview", {"cover_only": True}, key="local-scenery-first")
     assert first.status == "DONE", first.error
-    assert len(calls) == 1 and local_calls == ["cover:details"]
+    assert len(calls) == 1
+    assert local_calls == (["cover:details"] if theme == "futebol" else [])
     proof = project.book_profile["cover_calibration"]
     before = store[proof["flat_key"]]
-    assert proof["flat_meta"]["local_scene_details"]["added"]
-    assert proof["flat_meta"]["validation"]["status"] == "awaiting_user_review"
+    if theme == "futebol":
+        assert proof["flat_meta"]["local_scene_details"]["added"]
+        assert proof["flat_meta"]["validation"]["status"] == "awaiting_user_review"
+    else:
+        assert "local_scene_details" not in proof["flat_meta"]
     second = await _run(studio, "preview", {"cover_only": True}, key="local-scenery-retry")
     assert second.status == "DONE", second.error
     assert len(calls) == 1
@@ -3300,16 +3306,21 @@ async def test_new_cover_uses_catalog_finish_and_keeps_project_photo(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "model", ["catalog-realistic-0", "catalog-realistic-1", "catalog-realistic-6"]
+    "model,theme",
+    [
+        ("catalog-realistic-0", "bale"),
+        ("catalog-realistic-1", "praia"),
+        ("catalog-realistic-6", "espaco"),
+    ],
 )
 async def test_selected_individual_catalog_profile_reaches_cover_and_interior_provider(
-    reference_studio, model
+    reference_studio, monkeypatch, model, theme
 ):
     from app.services import book_design
 
     studio, calls, _ = reference_studio
     client, db, pid, _ = studio
-    book_profile.update(db.get(Project, uuid.UUID(pid)), title="")
+    book_profile.update(db.get(Project, uuid.UUID(pid)), title="", theme_description=theme)
     db.commit()
     await _run(studio, "preview", {"catalog_design_id": model, "cover_only": True})
     project = db.get(Project, uuid.UUID(pid))
@@ -3324,6 +3335,15 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
     ]["pt-BR"].replace(design["example_name"] or "\0", project.child_name)
     assert "SELECTED CATALOG COVER" in calls[0]["prompt"]
     assert "PROJECT-ONLY REFERENCES: all attached" not in calls[0]["prompt"]
+    from app.services import scene_richness
+
+    before = len(calls)
+    # A deployment of richer direction must not invalidate purchased scenes.
+    monkeypatch.setattr(scene_richness, "VERSION", "next-scenery-revision")
+    retry = await _run(studio, "preview", {"cover_only": True}, key="resume-rich-catalog")
+    assert retry.status == "DONE", retry.error
+    assert len(calls) == before
+    assert retry.cost_credits == 0
     approval = project.book_profile["cover_calibration"]["sha256"]
     await _run(
         studio, "preview", {"approved_cover_sha256": approval}, key="continue-specific-catalog"
@@ -3331,6 +3351,9 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
     assert book_design.reference(design, "page") in calls[1]["extra_refs"]
     assert book_design.reference(design, "page") in calls[2]["extra_refs"]
     assert design["finish"] in calls[1]["prompt"]
+    for call in calls[:3]:
+        assert "THEMATIC SCENERY CONTRACT" in call["prompt"]
+        assert f'"family": "{scene_richness.family(theme)}"' in call["prompt"]
     assert not (project.purchase_flow or {}).get("preview_approved_at")
 
 

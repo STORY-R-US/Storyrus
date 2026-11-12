@@ -801,6 +801,7 @@ class Pipeline:
                     "No frame, rectangular inset, blank band, repeated edges or blurred strips. "
                     "No title, text, stars or symbols; the server overlays those later. Story: "
                     + json.dumps(action, ensure_ascii=False)
+                    + self.scenery_direction(action, "expansion", region)
                 ),
             )
             self.account(
@@ -823,6 +824,19 @@ class Pipeline:
                 **({"reserve": "bottom" if footer else "top"} if not title else {}),
             },
             expand,
+        )
+
+    def scenery_direction(self, action, role, text_region=None):
+        from app.services import scene_richness
+
+        # The customer's explicit theme wins over the catalog's example title.
+        theme = self.profile.get("theme_description") or self.project.theme
+        return scene_richness.direction(
+            theme=theme,
+            action=action,
+            role=role,
+            design=self.design,
+            text_region=text_region,
         )
 
     async def art(self, name, action, *, title=False, value=None):
@@ -1295,6 +1309,9 @@ class Pipeline:
                 self.design and self.design.get("version") == 4
             ):
                 prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
+            prompt += self.scenery_direction(
+                action, "cover" if title else "illustration", safe_region
+            )
             composition_guide = None
             if title:
                 composition_guide, geometry = scene_composition.cover_guide(
@@ -1775,15 +1792,7 @@ class Pipeline:
         from app.workers import local_scene_details
 
         observed_layout = composed_meta.get("local_reading_layout") or {}
-        scene_theme = " ".join(
-            str(v or "")
-            for v in (
-                self.project.theme,
-                self.profile.get("theme_description"),
-                self.profile.get("locales", {}).get(self.language, {}).get("title"),
-                action,
-            )
-        )
+        scene_theme = self.profile.get("theme_description") or self.project.theme or ""
         if (
             not self.demo
             and observed_layout.get("source_sha256") == render.digest(raw)
@@ -1825,6 +1834,7 @@ class Pipeline:
                     "contract": local_scene_details.VERSION,
                     "theme": scene_theme,
                     "protected": observed_layout["protected_regions"],
+                    "accent": (self.design or {}).get("typography", {}).get("titleColor"),
                 },
                 enrich_local,
                 billable=False,
@@ -1895,6 +1905,9 @@ class Pipeline:
             prompt += (
                 "Original project photos and this project's approved cover alone define identity and continuity. A final selected catalog image, when present, is a STYLE AND PAGE-STRUCTURE reference only. Never copy its people, words or story props; use the user's requested theme. AUTHORIZED CAST: "
                 + json.dumps(self.base["cast_contract"], ensure_ascii=False)
+            )
+            prompt += self.scenery_direction(
+                art_action, mode, region if mode == "reading" else None
             )
             if self.demo:
                 raw = self.master._offline_png(name, palette=((248, 242, 229), (225, 236, 220)))
