@@ -1610,5 +1610,23 @@
       "page": "cartoon-pagina-martin-goleiro-v1-pt.webp",
       "holding": "cartoon-foto-martin-goleiro-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-1": {
+    "id": "catalog-cartoon-1",
+    "catalog_index": 1,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Emilia E Os Primeiros Passos Da Bailarina",
+      "en": "Emilia And The Ballerina's First Steps",
+      "es": "Emilia Y Los Primeros Pasos De La Bailarina"
+    },
+    "example_name": "Emilia",
+    "sources": {
+      "cover": "covers/cartoon-capa-emilia-bailarina-v1-pt.webp",
+      "page": "cartoon-pagina-emilia-bailarina-v1-pt.webp",
+      "holding": "cartoon-foto-emilia-bailarina-v1-pt.webp"
+    }
   }
 }
