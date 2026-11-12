@@ -1474,5 +1474,41 @@
       "page": "cartoon-pagina-bento-compartilhar-v1-pt.webp",
       "holding": "cartoon-foto-bento-compartilhar-v1-pt.webp"
     }
+  },
+  "catalog-realistic-65": {
+    "id": "catalog-realistic-65",
+    "catalog_index": 65,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Boa Noite, Lua! Boa Noite, Nina!",
+      "en": "Good Night, Moon! Good Night, Nina!",
+      "es": "¡Buenas Noches, Luna! ¡Buenas Noches, Nina!"
+    },
+    "example_name": "Nina",
+    "sources": {
+      "cover": "covers/realistic-capa-nina-boa-noite-v1-pt.webp",
+      "page": "realistic-pagina-nina-boa-noite-v1-pt.webp",
+      "holding": "realistic-foto-nina-boa-noite-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-65": {
+    "id": "catalog-cartoon-65",
+    "catalog_index": 65,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Boa Noite, Lua! Boa Noite, Nina!",
+      "en": "Good Night, Moon! Good Night, Nina!",
+      "es": "¡Buenas Noches, Luna! ¡Buenas Noches, Nina!"
+    },
+    "example_name": "Nina",
+    "sources": {
+      "cover": "covers/cartoon-capa-nina-boa-noite-v1-pt.webp",
+      "page": "cartoon-pagina-nina-boa-noite-v1-pt.webp",
+      "holding": "cartoon-foto-nina-boa-noite-v1-pt.webp"
+    }
   }
 }
