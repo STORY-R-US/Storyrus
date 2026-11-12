@@ -3,8 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.workers.handlers.editorial_book import Pipeline, signature
 from app import storage
+from app.workers.handlers.editorial_book import Pipeline, signature
 
 
 @pytest.mark.asyncio
