@@ -41,10 +41,17 @@ def reference() -> bytes:
 def inputs(prompt: str, images: list[bytes], style: str) -> tuple[str, list[bytes]]:
     if not applies(style):
         return prompt, images
+    if "COMPLETE CATALOG BOOK DESIGN" in prompt:
+        # The caller supplies the selected model and may append saved art to edit.
+        # An unrelated generic cover would change both style and LAST-image roles.
+        return prompt, images
     note = (
         " ULTIMA IMAGEM: referencia de ESTILO Amor de Bisavo, nunca identidade. "
         "As imagens anteriores conservam os papeis indicados na tarefa. "
         "Nao copie pessoas, texto, nomes, figurino ou objetos da ultima imagem. "
         "Esta direcao Cartoon prevalece sobre instrucoes antigas de rosto fotografico. "
     )
+    # Keep edit targets stable when a generic style guide is appended.
+    prompt = prompt.replace("LAST ATTACHED IMAGE", f"IMAGE {len(images)}")
+    prompt = prompt.replace("ÚLTIMA REFERÊNCIA", f"IMAGEM {len(images)}")
     return prompt + "\n" + DIRECTION + note, [*images, reference()]

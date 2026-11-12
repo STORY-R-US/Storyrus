@@ -1218,10 +1218,6 @@ class Pipeline:
                 )
             visual_master = (
                 book_design.reference(self.design, "cover" if title else "page")
-                if self.design and self.design.get("version") == 4
-                else None
-                if self.project_only_references
-                else book_design.reference(self.design, "cover" if title else "page")
                 if self.design
                 else (
                     visual_reference.load(
@@ -1232,14 +1228,21 @@ class Pipeline:
                 )
             )
             if visual_master:
+                master_number = (
+                    len(self.photos)
+                    + len(self.refs)
+                    + int(not title and bool(self.cover_continuity))
+                    + int(title)
+                    + 1
+                )
                 prompt += (
-                    "\nLAST ATTACHED IMAGE is the selected catalog design only, never a cast photo. "
+                    f"\nIMAGE {master_number} is the selected catalog design only, never a cast photo. "
                     "Use its composition and the finish prescribed above. Original project photos "
                     "define identity; any approved project cover defines this book's continuity. "
                     "Never copy the example words or draw its physical binding on this flat artwork."
                     if self.design
                     else (
-                        "\nLAST ATTACHED IMAGE = VISUAL MASTER, for composition, finish and visual identity "
+                        f"\nIMAGE {master_number} = VISUAL MASTER, for composition, finish and visual identity "
                         "of the book series ONLY. Match its lifelike faces integrated in softly illustrated "
                         "surroundings, rich coordinated color and full-page scene. It is NOT a cast photo. "
                         "Do NOT copy its face, person, name, words, computer, flowers or props unless "
@@ -1337,9 +1340,7 @@ class Pipeline:
                     "behind the text and around the activity, with no horizontal visual division. "
                     "Do not draw text, blank panels, banners or artificial strips."
                 )
-            if self.project_only_references and not (
-                self.design and self.design.get("version") == 4
-            ):
+            if self.project_only_references and not visual_master:
                 prompt += "\nPROJECT-ONLY REFERENCES: all attached images belong to this project. The catalog supplies written layout and finish rules only; its example people, vehicles and story objects are not references for this scene."
             prompt += self.scenery_direction(
                 action, "cover" if title else "illustration", safe_region
@@ -1981,11 +1982,7 @@ class Pipeline:
                         photo=self.photos[0],
                         extra_refs=self.photos[1:]
                         + ([self.cover_continuity] if self.cover_continuity else [])
-                        + (
-                            [book_design.reference(design, "page")]
-                            if design.get("version") == 4
-                            else []
-                        ),
+                        + ([book_design.reference(design, "page")]),
                         style=design["finish"],
                     )
                 )
@@ -2198,10 +2195,6 @@ class Pipeline:
             )
             template_reference = (
                 book_design.reference(self.design, "holding" if reading else "page")
-                if self.design and self.design.get("version") == 4
-                else None
-                if self.project_only_references
-                else book_design.reference(self.design, "holding" if reading else "page")
                 if self.design
                 else (
                     visual_reference.load(

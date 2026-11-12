@@ -27,6 +27,8 @@ test("ordem da vitrine", async ({ page }) => {
   await expect(links).toHaveCount(12);
   while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
   await expect(links).toHaveCount(49);
+  await expect(catalog.locator('.cat-book-link[href="/livro/62"]')).toHaveCount(1);
+  await expect(catalog.locator('.cat-book-link[href="/livro/63"]')).toHaveCount(1);
   expect((await links.evaluateAll((items) => items.map((item) => item.getAttribute("href")))).slice(0, 12)).toEqual([25, 26, 27, 21, 30, 22, 20, 38, 47, 0, 36, 53].map((id) => `/livro/${id}`));
 });
 
