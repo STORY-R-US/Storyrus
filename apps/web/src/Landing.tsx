@@ -2390,7 +2390,7 @@ export function CatalogBookCard({
   layout?: "card" | "page";
 }) {
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
-  const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
+  const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice("M"));
   const copy = FORMAT_COPY[lang];
   const pageCopy = BOOK_PAGE_COPY[lang];
   const flipLabels = {

@@ -3277,3 +3277,19 @@ img.ex-tab-cover {
   opacity: 0.65;
   cursor: wait;
 }
+
+/* Equal square covers; P/M changes only the preview, keeping the card stable. */
+#catalogo .cat-card:not(.book-sheet) .cat-book img {
+  object-fit: fill;
+}
+#catalogo .cat-book {
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform .18s ease;
+}
+#catalogo .cat-book[data-size="P"] {
+  transform: scale(.75);
+}
+@media (prefers-reduced-motion: reduce) {
+  #catalogo .cat-book { transition: none; }
+}
