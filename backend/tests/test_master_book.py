@@ -3551,3 +3551,109 @@ async def test_interior_never_expands_safe_art_or_rebuys_rejected_expansion(
             await pipe.art("page:1", "Lia", value="Lia sorri.")
     assert len(calls) == 1
     assert len(expanded) == int(crowded)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("language", ["pt-BR", "en", "es"])
+@pytest.mark.parametrize("model", ["adventure", "catalog-realistic-0"])
+async def test_preparation_accepts_readable_wrapped_verses_and_reuses_prepared_text(
+    studio, monkeypatch, language, model
+):
+    from app.services import book_design, editorial_profile
+    from app.workers import editorial_render as render
+    from app.workers.handlers.master_book import _prepare
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    project.language = language
+    literal = {
+        "pt-BR": "Lia e sua prima passeiam pelo jardim,\nElas descobrem novas flores pelo caminho.\nUma pequena surpresa começa a aparecer,\nAs duas param para olhar e aprender.",
+        "en": "Lia and her cousin explore the garden,\nThey find new flowers along the winding path.\nA little surprise begins to appear,\nThey stop together to look and learn.",
+        "es": "Lia y su prima pasean por el jardín,\nDescubren nuevas flores por el camino.\nUna pequeña sorpresa comienza a aparecer,\nLas dos se detienen para mirar y aprender.",
+    }[language]
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot("2026-11-05.3"),
+        book_design=book_design.snapshot(model),
+        languages=[language],
+        locales={},
+        title="Lia",
+        supplied_locales={},
+    )
+    job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+    db.add(job)
+    db.commit()
+    calls = []
+
+    class Text:
+        async def prepare_book_profile(self, **kwargs):
+            calls.append(kwargs)
+            return TextResult(
+                json.dumps(
+                    {
+                        "visual_identity": "Original photo identity",
+                        "costume": "Blue shirt",
+                        "palette": "Blue and cream",
+                        "trait": "",
+                        "interest": "",
+                        "animal": "",
+                        "locales": {language: {"title": "Lia", "left": literal, "right": literal}},
+                    }
+                ),
+                cost_usd=0,
+            )
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    await _prepare(db, job, project, [_png()])
+    assert project.book_profile["locales"][language]["left"] == literal
+    render.validate_preview_copy(project.book_profile, project.book_profile["locales"][language])
+    await _prepare(db, job, project, [_png()])
+    assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_preparation_still_rejects_unreadable_text_without_retry_loop(studio, monkeypatch):
+    from app.services import book_design, editorial_profile
+    from app.workers.handlers.master_book import _prepare
+
+    _, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(
+        project,
+        editorial=editorial_profile.snapshot("2026-11-05.3"),
+        book_design=book_design.snapshot("adventure"),
+        languages=["pt-BR"],
+        locales={},
+        title="Lia",
+        supplied_locales={},
+    )
+    job = Job(project_id=project.id, type="EBOOK", status="RUNNING", cost_usd=0)
+    db.add(job)
+    db.commit()
+
+    class Text:
+        async def prepare_book_profile(self, **kwargs):
+            return TextResult(
+                json.dumps(
+                    {
+                        "locales": {
+                            "pt-BR": {
+                                "title": "Lia",
+                                "left": "Uma longa aventura. " * 500,
+                                "right": "Uma surpresa.\nVamos descobrir.",
+                            }
+                        }
+                    }
+                ),
+                cost_usd=0,
+            )
+
+    monkeypatch.setattr(settings, "offline_fallback", False)
+    monkeypatch.setattr(settings, "skip_openai", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda: Text())
+    with pytest.raises(ProviderError, match="BOOK_TEXT_INVALID") as failure:
+        await _prepare(db, job, project, [_png()])
+    assert failure.value.transient is False
+    assert not project.book_profile.get("locales")

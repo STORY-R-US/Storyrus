@@ -329,39 +329,25 @@ async def _prepare(db, job, project, photos):
                 raise ProviderError(
                     "Textos localizados incompletos; tente novamente", transient=True
                 )
-            supplied = profile.get("supplied_locales", {}).get(lang, {})
-            for key in ("left", "right"):
-                if key in supplied:
-                    continue
-                line_count = sum(bool(line.strip()) for line in locale[key].splitlines())
-                if not 2 <= line_count <= 4:
-                    raise ProviderError(
-                        "Cada verso gerado precisa ter de 2 a 4 linhas; tente novamente",
-                        transient=True,
-                    )
-                if editorial_profile.composed(profile) and editorial_profile.policy(profile).get(
-                    "referenceComposition"
-                ):
-                    from app.workers import editorial_render
-
-                    try:
-                        _, layout = editorial_render.text(
-                            _offline_png("text fit", palette=((255, 255, 255), (255, 255, 255))),
-                            locale[key],
-                            profile,
-                        )
-                        if len(layout["lines"]) > 4:
-                            raise ValueError("Versos longos")
-                    except ValueError as exc:
-                        raise ProviderError(
-                            "Os versos gerados precisam ser mais curtos para manter a leitura confortável",
-                            transient=True,
-                        ) from exc
         # Existing supplied texts always win; only absent fields may be composed.
         for lang, locale in profile.get("supplied_locales", {}).items():
             for key, value in locale.items():
                 if isinstance(value, str) and value:
                     prepared["locales"][lang][key] = value
+        if editorial_profile.composed(profile):
+            from app.workers import editorial_render
+
+            # Validate the real catalog layout, including paired reading pages.
+            # Four authored verses may legitimately wrap onto five or six lines.
+            # The renderer already enforces minimum readable font size and bounds.
+            for lang in profile["languages"]:
+                locale = dict(prepared["locales"][lang])
+                if lang == project.language and profile.get("title"):
+                    locale["title"] = profile["title"]
+                try:
+                    editorial_render.validate_preview_copy(profile, locale)
+                except editorial_render.TextLayoutError as exc:
+                    raise ProviderError(f"BOOK_TEXT_INVALID: {exc}", transient=False) from exc
     if profile.get("costume"):
         prepared["costume"] = profile["costume"]
     if editorial_profile.composed(profile) and not (

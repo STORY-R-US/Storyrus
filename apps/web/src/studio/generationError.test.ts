@@ -7,6 +7,7 @@ describe.each(["pt", "en", "es"] as const)("book failures in %s", (lang) => {
   it.each([
     ["BOOK_LAYOUT_UNSAFE", "previewNoSafeTextArea"],
     ["BOOK_TEXT_INVALID", "previewBookTextInvalid"],
+    ["Os versos gerados precisam ser mais curtos para manter a leitura confortável", "previewBookTextInvalid"],
     ["BOOK_REVIEW_INVALID", "previewBookReviewInvalid"],
     ["BOOK_ART_REJECTED", "previewBookArtRejected"],
     ["BOOK_ART_UNAVAILABLE", "previewBookArtUnavailable"],
