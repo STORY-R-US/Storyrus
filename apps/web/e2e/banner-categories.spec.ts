@@ -45,7 +45,11 @@ for (const lang of ["pt", "en", "es"]) {
       const adventure = panel.locator('a[href="/catalogo?modo=cartoon#aventuras-adventure"]').first();
       await adventure.click();
       await expect(page.getByTestId("catalog-category")).toHaveValue("aventuras-adventure");
-      await expect(page.getByTestId("landing-catalog-card")).toHaveCount(2);
+      const adventureBooks = [2, 10, 14, 33];
+      await expect(page.getByTestId("landing-catalog-card")).toHaveCount(adventureBooks.length);
+      for (const id of adventureBooks) {
+        await expect(page.locator(`a.cat-book-link[href="/livro/${id}?modo=cartoon"]`)).toBeVisible();
+      }
       await expect(page.locator('a.cat-book-link[href="/livro/33?modo=cartoon"]')).toHaveAttribute("href", "/livro/33?modo=cartoon");
       await page.locator('a.cat-book-link[href="/livro/33?modo=cartoon"]').click();
       await expect(page.getByTestId("book-series-cover")).toBeVisible();

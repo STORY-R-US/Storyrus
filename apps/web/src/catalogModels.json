@@ -1646,5 +1646,23 @@
       "page": "cartoon-pagina-antonio-bicicleta-v1-pt.webp",
       "holding": "cartoon-foto-antonio-bicicleta-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-14": {
+    "id": "catalog-cartoon-14",
+    "catalog_index": 14,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Raquel E Papai: Aventuras Para Sempre",
+      "en": "Raquel And Dad: Adventures Forever",
+      "es": "Raquel Y Papá: Aventuras Para Siempre"
+    },
+    "example_name": "Raquel",
+    "sources": {
+      "cover": "covers/cartoon-capa-raquel-papai-v1-pt.webp",
+      "page": "cartoon-pagina-raquel-papai-v1-pt.webp",
+      "holding": "cartoon-foto-raquel-papai-v1-pt.webp"
+    }
   }
 }
