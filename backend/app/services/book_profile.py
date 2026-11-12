@@ -205,6 +205,7 @@ def initial_profile(body) -> dict:
     profile = {
         "version": VERSION,
         "stage": "ficha",
+        "natural_cover_framing": 1,
         "title": body.title or "",
         "gender": body.gender,
         "languages": [body.language or "pt-BR"],

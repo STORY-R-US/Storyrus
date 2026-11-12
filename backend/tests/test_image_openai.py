@@ -171,6 +171,22 @@ async def test_refine_scene_uses_edits():
 
 
 @pytest.mark.asyncio
+async def test_scene_expansion_sends_mask_separately_and_purchases_one_output():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"expanded"))]
+    result = await oai.OpenAIImageProvider().expand_scene(
+        canvas=b"seed", mask=b"mask", prompt="Only fill surroundings"
+    )
+    assert result.image_bytes == b"expanded"
+    assert len(_FakeAsyncClient.calls) == 1
+    call = _FakeAsyncClient.calls[0]
+    assert [(name, part[1]) for name, part in call["files"]] == [
+        ("image", b"seed"),
+        ("mask", b"mask"),
+    ]
+    assert call["data"]["input_fidelity"] == "high"
+
+
+@pytest.mark.asyncio
 async def test_ambiguous_503_fails_without_repeating_billable_request():
     _FakeAsyncClient.script = [
         _FakeResponse(503, text="busy"),

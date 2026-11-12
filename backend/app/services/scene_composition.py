@@ -62,3 +62,62 @@ def direction(geometry, *, reference_number):
         "Move the camera and stage the action to fit; do not enlarge the head. "
         + json.dumps(geometry)
     )
+
+
+def expansion_canvas(data, title_bottom, head_height, protected=()):
+    """Uniformly reduce saved art; transparent surroundings are the ONLY new scene."""
+    source = Image.open(io.BytesIO(data)).convert("RGBA")
+    if source.width != source.height or not 0 < head_height <= 1:
+        raise ValueError("Invalid source geometry")
+    size = source.width
+    scale = min(0.64, 1 - title_bottom - 0.08, 0.24 / head_height)
+    if not 0.20 <= scale <= 0.64:
+        raise ValueError("Insufficient room for natural scene expansion")
+    side = round(size * scale)
+    left, top = (size - side) // 2, size - side
+    seed = Image.new("RGBA", source.size)
+    seed.paste(source.resize((side, side), Image.Resampling.LANCZOS), (left, top))
+    # A narrow transition at the scenery edges; the face/body core stays exact.
+    alpha = Image.new("L", source.size)
+    draw = ImageDraw.Draw(alpha)
+    feather = max(1, round(size * 0.012))
+    for offset in range(feather + 1):
+        draw.rectangle(
+            (left + offset, top + offset, left + side - 1 - offset, size - 1),
+            fill=round(255 * offset / feather),
+        )
+    for box in protected:
+        draw.rectangle(
+            (
+                left + round(box[0] * side),
+                top + round(box[1] * side),
+                min(size - 1, left + round(box[2] * side)),
+                min(size - 1, top + round(box[3] * side)),
+            ),
+            fill=255,
+        )
+    mask = Image.new("RGBA", source.size, (0, 0, 0, 0))
+    mask.putalpha(alpha)
+
+    def encode(image):
+        buffer = io.BytesIO()
+        image.save(buffer, "PNG")
+        return buffer.getvalue()
+
+    return (
+        encode(seed),
+        encode(mask),
+        {"scale": side / size, "left": left, "top": top, "side": side},
+    )
+
+
+def preserve_expansion_core(output, seed, mask):
+    result = Image.open(io.BytesIO(output)).convert("RGB")
+    original = Image.open(io.BytesIO(seed)).convert("RGB")
+    alpha = Image.open(io.BytesIO(mask)).getchannel("A")
+    if result.size != original.size or alpha.size != result.size:
+        raise ValueError("Expanded scene dimensions changed")
+    result.paste(original, (0, 0), alpha)
+    buffer = io.BytesIO()
+    result.save(buffer, "PNG")
+    return buffer.getvalue()

@@ -48,6 +48,37 @@ def approved(report):
     return report["valid"] is True and report["issues"] == []
 
 
+def parse_crop_report(text, expected_lines):
+    """Accept complete per-line evidence without discarding any rejection."""
+    try:
+        value = json.loads(text)
+    except (ValueError, TypeError):
+        return parse_report(text)
+    if not isinstance(value, dict) or "results" not in value:
+        return parse_report(text)
+    rows = value["results"]
+    if (
+        set(value) != {"results"}
+        or not isinstance(rows, list)
+        or len(rows) != expected_lines
+        or any(not isinstance(row, dict) or type(row.get("line")) is not int for row in rows)
+        or sorted(row["line"] for row in rows) != list(range(1, expected_lines + 1))
+    ):
+        raise ProviderError("BOOK_REVIEW_INVALID: revisão por linha incompleta")
+    reports = [parse_report(json.dumps(row)) for row in rows]
+    return {
+        "valid": all(approved(report) for report in reports),
+        "issues": [
+            f"Line {row['line']}: {issue}"
+            for row, report in zip(rows, reports, strict=True)
+            for issue in report["issues"]
+        ],
+        "limitations": list(
+            dict.fromkeys(note for report in reports for note in report["limitations"])
+        ),
+    }
+
+
 def overlap_only(report):
     return bool(
         report["issues"] and report.get("issue_codes") == ["TEXT_OVERLAP"] * len(report["issues"])

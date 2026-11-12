@@ -866,7 +866,10 @@ class OpenAITextProvider:
                     max_tokens=600,
                     json_mode=True,
                 )
-                reserve_report = editorial_review.parse_report(reserve_result.text)
+                reserve_report = editorial_review.parse_crop_report(
+                    reserve_result.text, len(regions)
+                )
+                reserve_result.text = json.dumps(reserve_report)
                 if not editorial_review.approved(reserve_report):
                     reserve_result.meta = {**reserve_result.meta, "review_scope": "text_reserve"}
                     return reserve_result

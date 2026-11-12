@@ -437,6 +437,25 @@ class OpenAIImageProvider:
         images = [character_ref] + extras
         return await self._generate_with_refs(text, images, size=settings.openai_image_size_square)
 
+    async def expand_scene(self, *, canvas: bytes, mask: bytes, prompt: str) -> ImageResult:
+        """Fill the transparent surroundings of already purchased, scaled artwork."""
+        data = {
+            "model": self._model,
+            "prompt": prompt,
+            "size": "1024x1024",
+            "quality": settings.openai_image_quality,
+        }
+        if self._model in {"gpt-image-1", "gpt-image-1.5"}:
+            data["input_fidelity"] = "high"
+        return await self._post_multipart(
+            "/images/edits",
+            data=data,
+            files=[
+                ("image", ("scene.png", canvas, "image/png")),
+                ("mask", ("mask.png", mask, "image/png")),
+            ],
+        )
+
     async def generate_realistic(
         self, *, photo: bytes, prompt: str, negative: str = "", style: str = "realistic"
     ) -> ImageResult:

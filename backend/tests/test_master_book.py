@@ -726,6 +726,7 @@ def studio(auth_client, monkeypatch):
     legacy = db.get(Project, uuid.UUID(pid))
     profile = dict(legacy.book_profile)
     profile.pop("editorial", None)
+    profile.pop("natural_cover_framing", None)  # frozen legacy books; new framing tested below
     profile["languages"] = ["pt-BR"]
     legacy.book_profile = profile
     db.commit()
@@ -3272,3 +3273,38 @@ async def test_catalog_custom_title_reaches_cover_and_resume_without_rebuying_ar
     assert rejected.status_code == 409
     db.refresh(project)
     assert project.book_profile["title"] == literal
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("safe_after_expansion", [True, False])
+async def test_natural_cover_expands_once_and_resume_never_rebuys_art(
+    reference_studio, monkeypatch, safe_after_expansion
+):
+    from app.services import book_design
+
+    studio, calls, control = reference_studio
+    _, db, pid, _ = studio
+    p = db.get(Project, uuid.UUID(pid))
+    book_profile.update(p, book_design=book_design.snapshot("adventure"), natural_cover_framing=1)
+    db.commit()
+    control["protected_regions"] = [
+        {"kind": "head", "region": [0, 0, 1, 0.6]},
+        {"kind": "body", "region": [0, 0.6, 1, 1]},
+    ]
+    expanded = []
+    image_class = type(handlers.get_image_provider())
+
+    async def expand(self, **kwargs):
+        expanded.append(kwargs)
+        if safe_after_expansion:
+            control["protected_regions"] = [{"kind": "head", "region": [0.35, 0.60, 0.65, 0.84]}]
+        return ImageResult(_png(), cost_usd=0)
+
+    monkeypatch.setattr(image_class, "expand_scene", expand, raising=False)
+    expected = "DONE" if safe_after_expansion else "FAILED"
+    for key in ("framing-first", "framing-resume"):
+        await _run(studio, "preview", {"cover_only": True}, key=key, expected=expected)
+    assert len(calls) == 1
+    assert len(expanded) == 1
+    assert "mask" in expanded[0] and "canvas" in expanded[0]
+    assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")

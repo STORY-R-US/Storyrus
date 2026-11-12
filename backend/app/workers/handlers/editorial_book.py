@@ -737,6 +737,77 @@ class Pipeline:
             ) from exc
         return regions, obstacles
 
+    async def expand_cover_scene(self, raw, value, name, action, region):
+        """One journaled expansion, only after a complete map proved no title room."""
+        key = self.reading_layout_key(raw, value, name)
+        mapped = self.db.scalar(
+            select(Asset).where(
+                Asset.project_id == self.project.id,
+                Asset.kind == "editorial_layout_map",
+                Asset.storage_key == key,
+            )
+        )
+        if not mapped:
+            raise ProviderError("BOOK_LAYOUT_UNSAFE: mapa completo necessário para reenquadrar")
+        body = storage.get_bytes(key)
+        if render.digest(body) != (mapped.meta or {}).get("sha256"):
+            raise ProviderError("BOOK_ART_UNAVAILABLE: mapa da arte inválido")
+        report = json.loads(body)
+        render.protected_regions(report.get("protected_regions"))
+        heads = [item["region"] for item in report["protected_regions"] if item["kind"] == "head"]
+        if report.get("protection_complete") is not True or not heads:
+            raise ProviderError("BOOK_LAYOUT_UNSAFE: cabeça completa não confirmada")
+        seed, mask, transform = scene_composition.expansion_canvas(
+            raw,
+            region[3],
+            max(box[3] - box[1] for box in heads),
+            protected=[
+                item["region"]
+                for item in report["protected_regions"]
+                if item["kind"] in {"head", "face", "hair", "hat", "accessory", "hand"}
+            ],
+        )
+
+        async def expand(_attempt):
+            provider = self.master._pkg().get_image_provider()
+            if not hasattr(provider, "expand_scene"):
+                raise ProviderError("Expansão de cenário indisponível neste provedor")
+            result = await provider.expand_scene(
+                canvas=seed,
+                mask=mask,
+                prompt=(
+                    "Expand ONLY the transparent masked surroundings into one continuous rich natural "
+                    "scene matching the existing illustration, lighting, perspective and story. "
+                    "The saved person and action have already been scaled and positioned correctly. "
+                    "Do not move, enlarge or redraw them. Do not add any people, faces or bodies. "
+                    f"Above y={region[3] + 0.04:.3f} show ONLY quiet natural sky or distant scenery "
+                    "for the large title, no goalposts, limbs, objects or lettering there. "
+                    "Continue grass, field, stadium or other theme-appropriate surroundings seamlessly "
+                    "at the sides and above the existing scene. Keep any goal crossbar below the title "
+                    "reserve. No frame, rectangular inset, blank band, repeated edges or blurred strips. "
+                    "No title, text, stars or symbols; the server overlays those later. Story: "
+                    + json.dumps(action, ensure_ascii=False)
+                ),
+            )
+            self.account(result, "Expansão do cenário da capa")
+            output = scene_composition.preserve_expansion_core(result.image_bytes, seed, mask)
+            return output, {
+                "source_sha256": render.digest(raw),
+                "transform": transform,
+                "operation": "masked_scene_expansion",
+            }
+
+        return await self.stage(
+            "cover:expand",
+            {
+                "source_sha256": render.digest(raw),
+                "title_region": region,
+                "transform": transform,
+                "contract": 1,
+            },
+            expand,
+        )
+
     async def art(self, name, action, *, title=False, value=None):
         if self.designed:
             try:
@@ -1350,6 +1421,28 @@ class Pipeline:
             local_layout = None
             regions = [region]
             obstacles = None
+            expansion = None
+            if (
+                title
+                and not self.demo
+                and self.profile.get("natural_cover_framing") == 1
+                and self.text_region(True)[0] < 0.25
+                and hasattr(self.master._pkg().get_image_provider(), "expand_scene")
+            ):
+                try:
+                    regions, obstacles = await self.repair_reading_layout(
+                        raw, value, name, action, region, title=True
+                    )
+                except ProviderError as exc:
+                    if not str(exc).startswith("BOOK_LAYOUT_UNSAFE"):
+                        raise
+                    raw, expansion = await self.expand_cover_scene(raw, value, name, action, region)
+                    self.last_art = raw
+                    regions, obstacles = await self.repair_reading_layout(
+                        raw, value, name, action, region, title=True
+                    )
+                    source_sha256 = render.digest(raw)
+                    operation = "expand_saved_scene"
             map_key = self.reading_layout_key(raw, value, name)
             existing_map = (
                 self.db.scalar(
@@ -1496,6 +1589,7 @@ class Pipeline:
                 else None,
                 "source_sha256": source_sha256,
                 "page_composition": page_composition,
+                "scene_expansion": expansion,
                 "local_reading_layout": local_layout,
                 "composition_guide_sha256": composition_examples.signature(),
                 "references": self.base["photos"],
