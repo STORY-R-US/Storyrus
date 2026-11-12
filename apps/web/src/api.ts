@@ -675,7 +675,7 @@ export const api = {
     return resp.blob();
   },
   /** Three separate previews, then explicit approval in the Studio. */
-  startPreview(id: string, body: { brief?: string; image?: string; language?: string; adjustment?: string; cover_only?: boolean; approved_cover_sha256?: string; catalog_design_id?: string } = {}): Promise<JobAccepted> {
+  startPreview(id: string, body: { brief?: string; draft_title?: string; image?: string; language?: string; adjustment?: string; cover_only?: boolean; approved_cover_sha256?: string; catalog_design_id?: string } = {}): Promise<JobAccepted> {
     const step = "preview";
     const cacheKey = stepCacheKey(id, step);
     const inFlight = stepInFlight.get(cacheKey);

@@ -209,7 +209,16 @@ def start_preview(
         book_profile.validate_ficha(project, photos)
         payload = {preview_chain.PREVIEW_FLAG: True, "master_preview": True}
         if body:
-            payload.update(body.model_dump(exclude_none=True, exclude={"brief"}))
+            payload.update(body.model_dump(exclude_none=True, exclude={"brief", "draft_title"}))
+        if body and body.draft_title is not None:
+            literal = body.draft_title.strip()
+            if not literal:
+                raise HTTPException(422, "Preencha o título do livro.")
+            if project.book_profile.get("stage") != "ficha":
+                if literal != project.book_profile.get("title"):
+                    raise HTTPException(409, "Use a revisão da prévia para alterar este título.")
+            else:
+                book_profile.apply_title(project, literal)
         if body and body.catalog_design_id:
             from app.services import book_design
 

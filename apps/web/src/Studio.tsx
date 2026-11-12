@@ -346,6 +346,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     void Promise.all([api.getProject(id), api.getAssets(id), api.listJobs(id)]).then(([p, a, j]) => {
       if (cancelled) return;
       setProject(p); setAssets(a); setJobs(j);
+      titleTouched.current = true;
       const previewStarted = j.some(
         (job) =>
           Boolean(job.result?.payload?.preview_chain),
@@ -712,6 +713,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setPhotoNotes("");
       const brief = getStoryBrief().trim();
       await api.startPreview(p.id, {
+        draft_title: bookTitle.trim() || undefined,
         brief: brief.slice(0, 2000) || undefined,
         catalog_design_id: selectedCatalogId || (p.book_profile?.version === 1 ? "auto" : undefined),
       });
@@ -808,6 +810,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const brief = getStoryBrief().trim();
       await api.startPreview(project.id, {
+        draft_title: !project.book_profile?.stage || project.book_profile.stage === "ficha" ? bookTitle.trim() || undefined : undefined,
         cover_only: !project.purchase_flow?.preview_approved_at,
         brief: brief.slice(0, 2000) || undefined,
         catalog_design_id:
@@ -854,6 +857,16 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     projectUrl.searchParams.delete("project");
     window.history.replaceState({}, "", `${projectUrl.pathname}${projectUrl.search}${projectUrl.hash}`);
     draftRef.current = null;
+    setSelectedCatalogId(null);
+    setOnlyName(false);
+    setTemaId("");
+    setStoryOutfit(""); setChildWay(""); setChildLikes("");
+    setAlsoName(""); setAlsoWho(null); setAlsoGender(null);
+    setCastWho("child"); setGender("f"); setAskGender(true);
+    setArtMode("realista"); setBookLanguages([]);
+    titlePreset.current = null;
+    alsoHero.current = null;
+    presetApplied.current = true;
     setProject(null);
     setAssets(null);
     setPhotos((cur) => {
@@ -1152,7 +1165,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             )}
             {showPreviewRetry && (
               <>
-              {project?.book_profile && <PreviewCopyRecovery key={project.id} project={project} lang={lang} onSaved={setProject} />}
+              {project?.book_profile && <PreviewCopyRecovery key={project.id} project={project} lang={lang} onSaved={(saved) => { setProject(saved); setBookTitle(saved.book_profile?.title || ""); }} />}
               <button
                 type="button"
                 className="kbtn kbtn-primary studio-create"
@@ -1624,7 +1637,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               aria-label={t.bookTitle}
               disabled={fieldsLocked}
               value={bookTitle}
-              readOnly={Boolean(selectedCatalogId)}
               onChange={(e) => {
                 titleTouched.current = true;
                 setBookTitle(e.target.value);
@@ -1673,6 +1685,16 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {selectedCatalogId && catalogModel(selectedCatalogId) && <section className="studio-chosen" data-testid="studio-selected-catalog-model">
             <p>{lang === "pt" ? "Modelo do Catálogo" : lang === "en" ? "Catalog model" : "Modelo del Catálogo"}: <strong>{catalogModel(selectedCatalogId)!.titles[lang]}</strong></p>
+            <p className="muted">{lang === "pt" ? "O modelo define o visual. Você pode mudar o título inteiro e o tema." : lang === "en" ? "The model defines the visual style. You can change the full title and theme." : "El modelo define el estilo visual. Puedes cambiar el título completo y el tema."}</p>
+            <button type="button" className="kbtn kbtn-soft" disabled={busy || previewChainActive} data-testid="studio-leave-catalog" onClick={() => {
+              if (project) { resetProject(); return; }
+              setSelectedCatalogId(null); setOnlyName(false); setTemaId("");
+              titlePreset.current = null; alsoHero.current = null; presetApplied.current = true;
+              window.history.replaceState({}, "", "/app");
+            }}>{project
+              ? (lang === "pt" ? "Desistir deste modelo e começar outro livro" : lang === "en" ? "Leave this model and start another book" : "Dejar este modelo y empezar otro libro")
+              : (lang === "pt" ? "Sair deste modelo e criar livremente" : lang === "en" ? "Leave this model and create freely" : "Salir de este modelo y crear libremente")}</button>
+            {project && <p className="muted">{lang === "pt" ? "O projeto atual continua salvo na sua conta. Esta opção abre uma nova criação livre." : lang === "en" ? "Your current project stays saved in your account. This opens a new free creation." : "El proyecto actual sigue guardado en tu cuenta. Esta opción abre una nueva creación libre."}</p>}
             {!catalogModel(selectedCatalogId)!.available ? <p role="alert">{unavailableCatalogCopy(lang)}</p> : <CatalogDesignSamples model={{name: catalogModel(selectedCatalogId)!.titles[lang], sources: catalogModel(selectedCatalogId)!.sources}} lang={lang} />}
           </section>}
           <h3 className="studio-section-title"><span>02</span>{studioDesignCopy(lang).details}</h3>

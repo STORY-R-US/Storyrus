@@ -356,6 +356,7 @@ class StoryPageUndoIn(BaseModel):
 
 
 class PreviewRequestIn(BaseModel):
+    draft_title: str | None = Field(default=None, min_length=1, max_length=120)
     catalog_design_id: str | None = Field(
         default=None,
         pattern=r"^(auto|family|adventure|cartoon|catalog-(realistic|cartoon)-[0-9]{1,3})$",

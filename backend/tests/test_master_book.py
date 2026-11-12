@@ -3189,6 +3189,8 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
 
     studio, calls, _ = reference_studio
     client, db, pid, _ = studio
+    book_profile.update(db.get(Project, uuid.UUID(pid)), title="")
+    db.commit()
     await _run(studio, "preview", {"catalog_design_id": model, "cover_only": True})
     project = db.get(Project, uuid.UUID(pid))
     design = book_design.resolve(project.book_profile)
@@ -3234,3 +3236,28 @@ async def test_partial_head_map_is_not_permission_to_overlay_title(
     assert len(calls) == 1 and len(reviews) == 1 and control["layout_repair_calls"] == 1
     assert client.get(f"/v1/projects/{pid}/assets").json()["previews"] == []
     assert not (db.get(Project, uuid.UUID(pid)).purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+async def test_catalog_custom_title_reaches_cover_and_resume_without_rebuying_art(reference_studio):
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    literal = "João, goleiro do Palmeiras"
+    request = {
+        "catalog_design_id": "catalog-realistic-0",
+        "draft_title": literal,
+        "cover_only": True,
+    }
+    await _run(studio, "preview", request, key="palmeiras-first")
+    await _run(studio, "preview", request, key="palmeiras-resume")
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["title"] == literal
+    assert project.book_profile["cover_calibration"]["flat_meta"]["layout"]["text"] == literal
+    assert len(calls) == 1
+    # An existing cover cannot be silently retitled through a draft-only field.
+    rejected = client.post(
+        f"/v1/projects/{pid}/preview", json={**request, "draft_title": "Outro título"}
+    )
+    assert rejected.status_code == 409
+    db.refresh(project)
+    assert project.book_profile["title"] == literal

@@ -84,6 +84,14 @@ def select(project, requested):
             language: literal.replace(design.get("example_name") or "\0", project.child_name or "")
             for language, literal in design["title_templates"].items()
         }
+        # The catalog supplies an initial suggestion, never a lock on user copy.
+        literal = (project.book_profile.get("title") or "").strip()
+        language = project.language or "pt-BR"
+        if literal and literal not in {
+            titles.get(language),
+            design["title_templates"].get(language),
+        }:
+            titles = {language: literal for language in titles}
         supplied = {
             language: {**values, "title": titles[language]} if language in titles else values
             for language, values in project.book_profile.get("supplied_locales", {}).items()

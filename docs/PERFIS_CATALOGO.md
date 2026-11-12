@@ -1,6 +1,6 @@
 # Perfis do Catálogo
 
-Cada seleção usa um perfil próprio e imutável com capa, miolo, tipografia, paleta e referências. Sem seleção, o padrão realista é Meu Pai, Meu Herói (adventure v3). O tema é editável; o título mantém o formato do exemplar e substitui apenas o nome cadastrado.
+Cada seleção usa um perfil próprio e imutável com capa, miolo, tipografia, paleta e referências. Sem seleção, o padrão realista é Meu Pai, Meu Herói (adventure v3). O tema e o título inteiro são editáveis. O título do exemplar é uma sugestão inicial que adapta o nome, até o cliente editar o campo. O Estúdio permite sair do modelo para criar livremente; projetos já salvos são preservados na conta.
 
 Não se promete igualdade pixel a pixel de ilustrações novas; as pessoas vêm apenas das fotos autorizadas do projeto. Não há migração automática dos livros aprovados. O modelo de IA e as regras de cobrança e aprovação permanecem os mesmos.
 

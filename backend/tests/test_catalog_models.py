@@ -93,3 +93,21 @@ def test_exact_selected_models_are_distinct_and_generic_default_is_unchanged():
         prompt = book_design.prompt(model, "cover", "João observa estrelas")
         assert "João observa estrelas" in prompt
         assert "The user may change the story theme" in prompt
+
+
+def test_custom_club_title_survives_catalog_selection_and_retry():
+    project = SimpleNamespace(
+        book_profile={"stage": "ficha", "title": "João, goleiro do Palmeiras"},
+        style="realistic",
+        theme="Futebol",
+        child_name="João",
+        language="pt-BR",
+    )
+    for model in ("catalog-realistic-0", "catalog-realistic-0", "auto"):
+        book_design.select(project, model)
+        assert project.book_profile["title"] == "João, goleiro do Palmeiras"
+        assert (
+            project.book_profile["supplied_locales"]["pt-BR"]["title"]
+            == project.book_profile["title"]
+        )
+    assert project.book_profile["book_design"]["id"] == "catalog-realistic-0"

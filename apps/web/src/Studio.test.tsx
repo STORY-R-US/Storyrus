@@ -768,7 +768,8 @@ describe("Studio — perfil específico do Catálogo", () => {
     await openBook(user);
     await user.type(screen.getByLabelText(/nome do protagonista/i), "João");
     expect(screen.getByLabelText(/título do livro/i)).toHaveValue("João, O Grande Goleiro Do Chile");
-    expect(screen.getByLabelText(/título do livro/i)).toHaveAttribute("readonly");
+    await user.clear(screen.getByLabelText(/título do livro/i));
+    await user.type(screen.getByLabelText(/título do livro/i), "João, goleiro do Palmeiras");
     const theme = screen.getByLabelText(/insira o tema desejado/i);
     await user.clear(theme);
     await user.type(theme, "Aventura no espaço");
@@ -779,7 +780,47 @@ describe("Studio — perfil específico do Catálogo", () => {
     await user.click(screen.getByRole("button", {name:/gerar o livro/i}));
     await screen.findByTestId("studio-order-sent");
     if (failFirst) await user.click(await screen.findByTestId("studio-retry-preview"));
-    expect(preview).toHaveBeenLastCalledWith(expect.any(String), expect.objectContaining({catalog_design_id:"catalog-realistic-0"}));
+    expect(preview).toHaveBeenLastCalledWith(expect.any(String), expect.objectContaining({catalog_design_id:"catalog-realistic-0", draft_title:"João, goleiro do Palmeiras"}));
     expect(window.location.search).toContain("modelo=catalog-realistic-0");
   });
+});
+
+
+it("sai do modelo sem apagar os dados ainda não enviados", async () => {
+  window.history.replaceState({}, "", "/app?modelo=catalog-realistic-0&campos=nome");
+  const user = userEvent.setup();
+  const preview = vi.spyOn(api, "startPreview");
+  render(<Studio />);
+  await openBook(user);
+  await user.type(screen.getByLabelText(/nome do protagonista/i), "Lia");
+  const title = screen.getByLabelText(/título do livro/i);
+  await user.clear(title);
+  await user.type(title, "Lia, goleira do Palmeiras");
+  await user.click(screen.getByTestId("studio-leave-catalog"));
+  expect(screen.queryByTestId("studio-selected-catalog-model")).not.toBeInTheDocument();
+  expect(title).toHaveValue("Lia, goleira do Palmeiras");
+  await user.type(screen.getByLabelText(/nome do protagonista/i), " Maria");
+  expect(title).toHaveValue("Lia, goleira do Palmeiras");
+  expect(window.location.search).toBe("");
+  expect(preview).not.toHaveBeenCalled();
+});
+
+it("desiste de um rascunho salvo sem carregar o modelo no próximo livro", async () => {
+  const p = {id:"saved-catalog",status:"CREATED",style:"realistic",child_name:"João",language:"pt-BR",created_at:"2026-11-12",story_text:null,ebook_url:null,video_url:null,
+    book_profile:{version:1,stage:"ficha",title:"João, goleiro do Palmeiras",gender:"m",languages:["pt-BR"],current_page:0,book_design:{id:"catalog-realistic-0",name:"Martin",style:"realistic",sources:{cover:"",page:"",holding:""}}}};
+  vi.spyOn(api,"getProject").mockResolvedValue(p);
+  vi.spyOn(api,"listJobs").mockResolvedValue([]);
+  vi.spyOn(api,"getAssets").mockResolvedValue({character_url:null,realistic_url:null,extra_characters:[],page_images:[],ebook_url:null,video_url:null,narrated_video_url:null});
+  const preview = vi.spyOn(api,"startPreview");
+  window.history.replaceState({}, "", "/app?projeto=saved-catalog&modelo=catalog-realistic-0");
+  const user=userEvent.setup();
+  render(<Studio />);
+  await screen.findByDisplayValue("João, goleiro do Palmeiras");
+  await user.click(screen.getByTestId("studio-leave-catalog"));
+  expect(screen.queryByTestId("studio-selected-catalog-model")).not.toBeInTheDocument();
+  expect(screen.getByLabelText(/título do livro/i)).toHaveValue("");
+  await user.type(screen.getByLabelText(/nome do protagonista/i),"Ana");
+  expect(screen.getByLabelText(/título do livro/i)).toHaveValue("");
+  expect(window.location.search).toBe("");
+  expect(preview).not.toHaveBeenCalled();
 });
