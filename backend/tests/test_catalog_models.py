@@ -152,8 +152,11 @@ def test_custom_club_title_survives_catalog_selection_and_retry():
 @pytest.mark.parametrize("language", ["pt-BR", "en", "es"])
 def test_couple_names_replace_localized_examples_in_every_title(style, language):
     project = SimpleNamespace(
-        book_profile={"stage": "ficha"}, style=style, theme="casamento",
-        child_name="Ana & Pedro", language=language,
+        book_profile={"stage": "ficha"},
+        style=style,
+        theme="casamento",
+        child_name="Ana & Pedro",
+        language=language,
     )
     book_design.select(project, f"catalog-{style}-67")
     expected = {
@@ -162,9 +165,14 @@ def test_couple_names_replace_localized_examples_in_every_title(style, language)
         "es": "Ana & Pedro, Nuestro Sí para Siempre",
     }
     assert project.book_profile["title"] == expected[language]
-    assert {key: value["title"] for key, value in project.book_profile["supplied_locales"].items()} == expected
+    assert {
+        key: value["title"] for key, value in project.book_profile["supplied_locales"].items()
+    } == expected
     book_design.select(project, "auto")
     assert project.book_profile["title"] == expected[language]
     project.book_profile["title"] = "Ana & Pedro: Our Story"
     book_design.select(project, f"catalog-{style}-67")
-    assert all(value["title"] == "Ana & Pedro: Our Story" for value in project.book_profile["supplied_locales"].values())
+    assert all(
+        value["title"] == "Ana & Pedro: Our Story"
+        for value in project.book_profile["supplied_locales"].values()
+    )
