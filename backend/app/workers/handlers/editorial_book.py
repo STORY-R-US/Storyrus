@@ -2127,6 +2127,20 @@ class Pipeline:
         self.profile = self.project.book_profile
         return True
 
+    def integrated_lettering_contract(self):
+        typography = (self.design or {}).get("typography", {})
+        return (
+            "LETTERING CONTRACT: match the selected catalog's letter shapes, weight and spacing. "
+            "For the default Meu Pai, Meu Heroi style use heavy rounded sans-serif children's "
+            "lettering, Nunito ExtraBold-like, with soft terminals and generous counters; "
+            "never substitute thin Roman serif, calligraphy or a formal fantasy-book typeface. "
+            "A princess or dragon theme changes the scenery, not the selected lettering. "
+            "The selected catalog's explicit typography takes precedence over this default. "
+            "Use the same letter family across cover and interior, with comfortable body weight. "
+            "Reject lettering that changes this family or the approved cover's printed glyphs. "
+            "Selected typography: " + json.dumps(typography, ensure_ascii=False) + " "
+        )
+
     async def integrated_editorial_scene(self, name, action, *, role, text, passages=None):
         """One finished image with literal copy, saved before mandatory review."""
         spread = role == "open_book"
@@ -2169,6 +2183,9 @@ class Pipeline:
             "\nINTEGRATED ART AND LETTERING: compose the finished image, scenery, characters and "
             "EXACT literal text together. Lettering belongs to the scene from the start. "
             "Original photographs define facial identity, age, skin, hair and headwear only; "
+            "preserve eye spacing, eyebrows, nose, mouth, smile, jaw shape and hairline. "
+            "Photo identity outranks any stylized face in a cover or catalog reference. "
+            "Never replace the person with a generic beautiful child or smooth away their features. "
             "create a new rich illustrated setting for the requested theme, not the photo backdrop. "
             "Preserve every authorized person's identity, natural anatomy and the approved story "
             "wardrobe. Keep faces, hair, hats, hands and important action clear of ALL lettering. "
@@ -2203,6 +2220,7 @@ class Pipeline:
                 prompt += "This catalog uses a quiet reading page with discreet thematic edge details; no people or narrative scene inside its reading area. "
             elif role == "illustration_page":
                 prompt += "This is the illustration-only page of the selected model: no text or reserved text strip. "
+        prompt += self.integrated_lettering_contract()
         prompt += f"References 1 through {len(self.photos)} are ORIGINAL identity photos. "
         if continuity:
             prompt += f"Reference {len(self.photos) + 1} is this project's approved cover, defining character and story continuity, not text to copy onto pages. "
@@ -2267,6 +2285,7 @@ class Pipeline:
                 "no text; quiet reading pages need no narrative scene. For an open book, verify "
                 "two equal square pages, coherent binding and the correct passage on each side. "
                 "Literal text and role: "
+                + self.integrated_lettering_contract()
                 + json.dumps(
                     {
                         "role": role,
@@ -2348,9 +2367,17 @@ class Pipeline:
             f"\nINTEGRATED FINAL SCENE: reference images 1 through {len(self.photos)} are the "
             "ORIGINAL identity photographs. Preserve each person's facial features, age, skin, "
             "hair and headwear; never substitute a catalog face or the painted face on the book. "
+            "Match eye spacing, eyebrows, nose, mouth, smile, jaw and hairline from the photo, "
+            "without beauty filters, aging or generic replacement features. "
             f"Reference {len(self.photos) + 1} is the EXACT FINISHED PROJECT COVER. Print that "
-            "cover on the physical book, preserving its artwork, title, spelling, accents, "
+            "cover ONLY on ONE FRONT BOARD, preserving its artwork, title, spelling, accents, "
             "line breaks, lettering and proportions. Do not redesign, translate or add text. "
+            "The entire square cover fits within the four corners of that single front board. "
+            "The separate rear board uses complementary plain bookcloth, with NO title, "
+            "NO duplicated people and NO part of the front illustration. The spine separates "
+            "the two boards: never stretch, split or wrap the cover across the spine or both faces. "
+            "Orient the FRONT board toward the camera, dominant and completely visible; "
+            "only a narrow portion of the separate back board needs to be visible. "
             "Create the person, room, hands, lighting and printed book TOGETHER in one image. "
             "No placeholder colors, chroma-key planes, blank cover or later pasted panel. "
             f"Show a real square {size}x{size} cm hardback, slightly open, at a readable gentle "
@@ -2411,7 +2438,11 @@ class Pipeline:
             "hands, implausible binding, stretched cover, colored placeholders, pasted seams "
             "or unreadable/changed text. Compare every title word, accent and line break with "
             "EXACT_COVER; do not approve uncertain lettering. The printed artwork and its "
-            "proportions must match EXACT_COVER. People outside the book must be photographic, "
+            "proportions must match EXACT_COVER on ONE FRONT BOARD only. Reject a cover that "
+            "wraps across two boards, crosses the spine, repeats on the back, or loses part "
+            "of its art/title at the hinge. The rear board is separate complementary bookcloth. "
+            "Reject changed letter shapes, serif substitution or changed facial proportions. "
+            "People outside the book must be photographic, "
             "even for cartoon books. A natural casual outfit outside the book is allowed. "
             "The book must have physical thickness, connected boards, natural finger contact "
             "and consistent perspective, light and shadows. Literal title: "

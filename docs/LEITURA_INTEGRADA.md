@@ -37,3 +37,29 @@ páginas de impressão, reprovação, retomada e proteção de projetos antigos.
 Não demonstram equivalência estética nem ausência absoluta de falhas: o modelo
 de imagem do chat não é exposto, e a qualidade visual real requer a avaliação de
 uma criação real autorizada. Esta publicação não inclui gerações pagas de teste.
+
+
+## Fidelidade de imagem — novembro de 2026
+
+Novas chamadas usam `gpt-image-2.6-sunburst`, qualidade `high` e complexidade
+`high`. As fotos originais seguem sem reamostragem e antes das referências de
+capa e Catálogo. O parâmetro legado `input_fidelity` permanece restrito aos
+modelos 1/1.5; não há troca automática de modelo após falha. Configurar também
+`OPENAI_IMAGE_MODEL=gpt-image-2.6-sunburst` no serviço existente do Render,
+pois a variável explícita prevalece sobre o padrão do código.
+
+O contrato editorial mantém a letra arredondada sem serifa do padrão Meu Pai,
+Meu Herói, respeitando a tipografia própria de cada modelo escolhido. O tema
+não escolhe outra fonte. Na leitura, a capa inteira pertence somente à frente;
+contracapa em material complementar separado e lombada sem repetição da arte.
+A revisão obrigatória verifica identidade, letras e distribuição entre faces.
+
+Nenhuma versão de cache foi alterada: imagens compradas continuam reutilizáveis.
+Esta mudança não regenera livros anteriores. Testes simulados verificam chamadas,
+referências e retomadas; não comprovam equivalência visual com o chat nem identidade
+perfeita. Uma comparação visual com o modelo novo exige geração real autorizada.
+O modelo interno do chat não é conhecido; não se afirma que seja o mesmo.
+
+Referências técnicas verificadas:
+- https://developers.openai.com/api/docs/models/gpt-image-2.6-sunburst
+- https://developers.openai.com/api/docs/guides/image-generation#gpt-image-26

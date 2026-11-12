@@ -301,3 +301,26 @@ async def test_rehearsal_returns_generic_image_without_calling_openai(monkeypatc
     assert result.cost_usd == 0
     assert result.image_bytes.startswith(b"\x89PNG")
     assert _FakeAsyncClient.calls == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("operation", ["generate", "edit", "expand"])
+@pytest.mark.parametrize("model", ["gpt-image-2.6-sunburst", "gpt-image-2.6-flare"])
+async def test_current_models_send_supported_options_once_without_reencoding(model, operation):
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload())]
+    provider = oai.OpenAIImageProvider(model=model)
+    if operation == "generate":
+        await provider._generate_text("scene", size="1024x1024")
+    elif operation == "edit":
+        await provider._generate_with_refs("scene", [b"original", b"cover"], size="1024x1024")
+    else:
+        await provider.expand_scene(canvas=b"original", mask=b"mask", prompt="scene")
+    assert len(_FakeAsyncClient.calls) == 1
+    call = _FakeAsyncClient.calls[0]
+    body = call.get("json", call.get("data"))
+    assert body["model"] == model
+    assert body["quality"] == "high"
+    assert body["complexity"] == "high"
+    assert "input_fidelity" not in body
+    if operation != "generate":
+        assert call["files"][0][1][1] == b"original"
