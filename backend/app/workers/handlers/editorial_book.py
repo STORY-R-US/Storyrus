@@ -491,6 +491,16 @@ class Pipeline:
                     "method": "technical_integrity_only",
                 }
         self.guard()
+        if getattr(self, "design", None) and self.design.get("version") == 3:
+            scenery_check = (
+                " Cenário contínuo de ponta a ponta: reprove laterais esticadas, espelhadas, "
+                "faixas borradas, texturas repetidas, emendas e objetos deformados. "
+                "Estrelas e traços dourados editoriais junto ao título são permitidos, "
+                "desde que fora de rostos, cabelos, gorros, mãos e ação."
+            )
+            prompt += scenery_check
+            if full_image_prompt:
+                full_image_prompt += scenery_check
         template = (
             editorial_profile._root(self.profile["editorial"]["version"])
             / "prompts/03_REVISAO_VISUAL.txt"

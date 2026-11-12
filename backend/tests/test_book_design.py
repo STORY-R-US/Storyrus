@@ -35,13 +35,14 @@ def test_new_realistic_books_use_the_meu_pai_heroi_standard_for_every_theme(them
     project = SimpleNamespace(book_profile={}, style="realistic", theme=theme)
     selected = book_design.select(project, "auto")
     assert selected["id"] == "adventure"
-    assert selected["version"] == 2
+    assert selected["version"] == 3
     assert selected["visual"]["finish"] == "premium_photographic_editorial_realism"
     assert book_design.preview_interior(selected)["alignment"] == "left"
 
 
-def test_existing_frozen_adventure_design_still_resolves_without_migration():
-    original = book_design.snapshot("adventure", version=1)
+@pytest.mark.parametrize("version", [1, 2])
+def test_existing_frozen_adventure_design_still_resolves_without_migration(version):
+    original = book_design.snapshot("adventure", version=version)
     assert book_design.resolve({"book_design": original}) == original
     assert original != book_design.snapshot("adventure")
     project = SimpleNamespace(

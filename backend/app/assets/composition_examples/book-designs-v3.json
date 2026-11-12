@@ -1,0 +1,79 @@
+{
+  "version": 3,
+  "models": {
+    "adventure": {
+      "name": "Meu Pai, Meu Herói",
+      "style": "realistic",
+      "reference_set": "adventure",
+      "sources": {
+        "cover": "capa-meupai-heroi.png",
+        "page": "pagina-meupai-heroi.png",
+        "holding": "foto-meupai-heroi.png"
+      },
+      "cover": {
+        "region": [
+          0.06,
+          0.06,
+          0.94,
+          0.29
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.105,
+        "long_font_ratio": 0.078,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Compose one continuous medium-wide narrative scene from edge to edge, with foreground, middle ground and background, detailed theme-appropriate materials and meaningful small objects already justified by the activity. Keep the complete head, hair and any hat below the title reserve. The child is part of the scene, never a face-filling portrait. Do not add irrelevant props or extra people. No stretched side strips, mirrored edges, repeated texture tiles, smeared sand or water, blur bands, collage seams or locally enlarged background patches. Plan the complete environment in this single artwork, rather than extending or zooming a finished portrait. The server adds the literal large balanced title and gold accents afterward; do not draw lettering or decorative stars in the art."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "One distinct narrative moment per full-bleed square page, large natural people below short verses in continuous bright quiet upper scenery. Keep all gestures and faces clear of the text."
+      },
+      "preview_interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.09,
+          0.055,
+          0.91,
+          0.31
+        ],
+        "alignment": "left",
+        "font_ratio": 0.043,
+        "description": "Two equally sized facing square pages. Each owns a separate short passage, left-aligned in its upper quiet sky or light scenery, with large recognizable people and a different consecutive action below. Natural inner margins clear of the gutter; no repeated paragraph and no illustration-only page."
+      },
+      "finish": "MEU PAI, MEU HEROI QUALITY STANDARD: premium photographic editorial realism, lifelike recognizable faces with natural pores, individual hair strands, real apparent age and natural eyes. Warm directional daylight with gentle fill, soft believable contact shadows, clear luminous sky blues, fresh greens and warm golden highlights when appropriate to the actual theme. Detailed coherent real-world scenery and materials; subtle depth of field only behind the narrative action, crisp people, clothing and essential objects. Affectionate candid expressions and physically plausible relaxed gestures. No watercolor or pencil scenery, beige/sepia wash, waxy skin, plastic CGI, cartoon conversion, oversaturated skin, artificial face smoothing or blown highlights. Retain the project's actual theme, wardrobe and requested cast; never copy the example father, child, helicopter, lake or scenery into an unrelated story.",
+      "visual": {
+        "finish": "premium_photographic_editorial_realism",
+        "lighting": "warm_directional_daylight_soft_fill_natural_contact_shadows",
+        "background": "continuous_detailed_setting_sharp_edges_no_stretched_mirrored_or_blurred_side_fills",
+        "color": "luminous_balanced_blues_greens_gold_natural_skin"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Bold.ttf",
+        "titleWeight": 900,
+        "baseWeight": 700,
+        "titleColor": "#061A45",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 2,
+        "titleGoldOrnaments": true,
+        "longTitleMinCharacters": 42
+      },
+      "presentation": "meu_pai_heroi_v2",
+      "holding": {
+        "pose": "A candid warm reading moment with only the project's authorized cast. The reader naturally supports a slightly open square hardback across the lap, its actual front cover facing the camera and rear board visible at an angle. Keep the whole face and both supporting hands visible, fingers naturally wrapping the edges, correct small-book scale, solid boards, a real spine, continuous page block, soft contact shadows and consistent warm interior daylight. Preserve the exact project cover and lettering through local perspective composition; never redraw a different title or cover.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      }
+    }
+  }
+}

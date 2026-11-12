@@ -25,7 +25,9 @@ def _font(path, size):
     return ImageFont.truetype(str(path), size)
 
 
-def _fit_copy(draw, value, font_path, preferred, minimum, width, height, line_height, stroke):
+def _fit_copy(
+    draw, value, font_path, preferred, minimum, width, height, line_height, stroke, balanced=False
+):
     for size in range(preferred, minimum - 1, -1):
         font = _font(font_path, size)
         lines = []
@@ -46,6 +48,24 @@ def _fit_copy(draw, value, font_path, preferred, minimum, width, height, line_he
             if not fits:
                 break
         step = max(1, round(size * line_height))
+        if balanced and len(value.splitlines()) == 1 and len(value.split()) > 1:
+            words = value.split()
+            pairs = [(" ".join(words[:i]), " ".join(words[i:])) for i in range(1, len(words))]
+            candidates = [
+                pair
+                for pair in pairs
+                if all(draw.textlength(line, font=font) + 2 * stroke <= width for line in pair)
+            ]
+            if candidates:
+                lines = list(
+                    min(
+                        candidates,
+                        key=lambda pair: abs(
+                            draw.textlength(pair[0], font=font)
+                            - draw.textlength(pair[1], font=font)
+                        ),
+                    )
+                )
         ink_height = max(
             (font.getbbox(line)[3] - font.getbbox(line)[1] for line in lines), default=0
         )
@@ -221,6 +241,7 @@ def text(
         else preferred_size
     )
     stroke = max(1, round(image.width * 0.0012)) if readable else 0
+    gold = title and typography.get("titleGoldOrnaments", False)
     font, lines, step = _fit_copy(
         draw,
         normalized,
@@ -228,9 +249,10 @@ def text(
         preferred_size,
         minimum_size,
         box[2] - box[0],
-        box[3] - box[1],
+        box[3] - box[1] - (round(image.width * 0.03) if gold else 0),
         line_height,
         stroke,
+        balanced=title and typography.get("titleBalancedLines") == 2,
     )
     alignment = alignment or typography["coverAlignment" if title else "bodyAlignment"]
     if alignment not in {"left", "center"}:
@@ -249,6 +271,41 @@ def text(
                 draw.textbbox(position, line, font=font, anchor="lt", stroke_width=stroke)
             )
         positions.append((position, line))
+    decorations = []
+    if gold:
+        radius = image.width * 0.013
+        gap = image.width * 0.012
+        for ink in list(ink_boxes):
+            cy = (ink[1] + ink[3]) / 2
+            for cx in (ink[0] - gap - radius, ink[2] + gap + radius):
+                ornament_bounds = [cx - radius, cy - radius, cx + radius, cy + radius]
+                if ornament_bounds[0] >= box[0] and ornament_bounds[2] <= box[2]:
+                    points = [
+                        (
+                            cx
+                            + math.cos(-math.pi / 2 + i * math.pi / 5)
+                            * radius
+                            * (1 if i % 2 == 0 else 0.45),
+                            cy
+                            + math.sin(-math.pi / 2 + i * math.pi / 5)
+                            * radius
+                            * (1 if i % 2 == 0 else 0.45),
+                        )
+                        for i in range(10)
+                    ]
+                    decorations.append(("star", points))
+                    ink_boxes.append(ornament_bounds)
+        bottom = max(b[3] for b in ink_boxes)
+        cx = (box[0] + box[2]) / 2
+        ornament_bounds = [
+            cx - image.width * 0.14,
+            bottom + gap,
+            cx + image.width * 0.14,
+            bottom + gap + image.width * 0.012,
+        ]
+        if ornament_bounds[3] <= box[3]:
+            decorations.append(("arc", ornament_bounds))
+            ink_boxes.append(ornament_bounds)
     preferred_color = color
     contrast = None
     if not measure_only:
@@ -267,6 +324,11 @@ def text(
             stroke_width=stroke,
             stroke_fill=("#071337" if color == "#fff9ed" else "#fff9ed") if readable else None,
         )
+    for kind, points in decorations:
+        if kind == "star":
+            draw.polygon(points, fill="#F6BC43")
+        else:
+            draw.arc(points, 190, 350, fill="#F6BC43", width=max(1, round(image.width * 0.003)))
     padding = image.width * 0.012
     ink_region = [
         max(0, min(b[0] for b in ink_boxes) - padding) / image.width,
@@ -286,6 +348,7 @@ def text(
     return (data if measure_only else encode(image)), {
         "text": value,
         "lines": lines,
+        "gold_ornaments": len(decorations),
         "region": bounds,
         "ink_region_with_margin": ink_region,
         "ink_regions_with_margin": line_regions,
@@ -472,7 +535,14 @@ def reading_region_candidates(
                 if bottom - top >= 0.10:
                     regions.append([left, top, right, bottom])
     choices = []
+    top_cover = title and editorial_profile.policy(profile)["typography"].get("titleGoldOrnaments")
+    if top_cover:
+        regions.extend([[0.06, 0.045, 0.94, 0.29], [0.06, 0.075, 0.94, 0.32]])
     for index, region in enumerate(regions):
+        if top_cover and (
+            region[0] > 0.12 or region[2] < 0.88 or region[1] > 0.10 or region[3] > 0.36
+        ):
+            continue
         try:
             _, layout = text(
                 data,

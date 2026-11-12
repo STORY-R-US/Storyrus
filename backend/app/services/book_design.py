@@ -18,9 +18,9 @@ def _signature(value):
     ).hexdigest()
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=3)
 def definitions(version=1):
-    if version not in {1, 2}:
+    if version not in {1, 2, 3}:
         raise HTTPException(409, "Versão do padrão visual indisponível")
     return json.loads((ROOT / f"book-designs-v{version}.json").read_text(encoding="utf-8"))
 
@@ -33,7 +33,7 @@ def reference(design, stage):
 
 
 def snapshot(model_id, *, version=None):
-    version = version if version is not None else 2 if model_id == "adventure" else 1
+    version = version if version is not None else 3 if model_id == "adventure" else 1
     data = definitions(version)
     if model_id not in data["models"]:
         raise HTTPException(400, "Escolha um padrão do Catálogo disponível")
