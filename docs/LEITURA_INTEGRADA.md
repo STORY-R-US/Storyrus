@@ -63,3 +63,22 @@ O modelo interno do chat não é conhecido; não se afirma que seja o mesmo.
 Referências técnicas verificadas:
 - https://developers.openai.com/api/docs/models/gpt-image-2.6-sunburst
 - https://developers.openai.com/api/docs/guides/image-generation#gpt-image-26
+
+## Validação do caminho do Estúdio sem gerar imagens
+
+`test_studio_preview_reaches_image_transport_and_resumes_without_repurchase`
+percorre as rotas HTTP de prévia, o worker, o provedor OpenAI real até o limite
+HTTP simulado, armazenamento, ZIP e aprovação. Confere JPEG original intacto,
+modelo/qualidade/complexidade, contrato de letra e capa em uma única face,
+referência exata da capa nas cenas seguintes e bytes intactos do miolo/leitura
+no ZIP. Exercita sucesso, reprovação visual e resposta de imagem desconhecida.
+Retomar não faz outra chamada de imagem nem adiciona custo ao novo trabalho;
+resultado desconhecido mantém o pacote e a aprovação bloqueados.
+
+Para repetir localmente com imagens já compradas, definir
+`STORYRUS_LOCAL_REPLAY_DIR` para uma pasta contendo `api-capa.png`,
+`api-miolo.png`, `api-leitura.png` e executar esse teste. As imagens não são
+versionadas e toda resposta de imagem/texto permanece simulada: nenhuma chamada
+paga é feita. Isso verifica preservação e integração, não mede a qualidade de uma
+nova geração nem a acurácia do revisor visual. A navegação do Estúdio e do Catálogo
+permanece coberta pela suíte Playwright do GitHub.

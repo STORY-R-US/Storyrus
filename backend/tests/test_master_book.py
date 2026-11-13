@@ -3865,3 +3865,124 @@ async def test_cover_correction_does_not_buy_when_saved_art_is_corrupt(reference
     )
     assert "Arte original da edição inválida" in job.error
     assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("outcome", ["success", "rejected", "unknown"])
+async def test_studio_preview_reaches_image_transport_and_resumes_without_repurchase(
+    reference_studio, monkeypatch, outcome
+):
+    """Exercise HTTP routes, worker, real provider, storage/package and retry ledger offline."""
+    import base64
+    import os
+    import zipfile
+    from pathlib import Path
+
+    import httpx
+
+    from app.ai_clients import image_openai
+    from app.services import book_design
+    from app.workers import editorial_render
+
+    studio, _, control = reference_studio
+    client, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, book_design=book_design.snapshot("adventure"))
+    db.commit()
+    monkeypatch.setattr(Pipeline, "integrated_editorial_available", INTEGRATED_WORKFLOW)
+    monkeypatch.setattr(Pipeline, "integrated_reading_available", INTEGRATED_READING)
+    monkeypatch.setattr(settings, "openai_image_model", "gpt-image-2.6-sunburst")
+    monkeypatch.setattr(settings, "openai_image_quality", "high")
+    monkeypatch.setattr(settings, "skip_openai", False)
+    # Optional LOCAL replay of purchased images. No customer image is committed to CI.
+    replay = os.environ.get("STORYRUS_LOCAL_REPLAY_DIR")
+    outputs = (
+        [
+            (Path(replay) / name).read_bytes()
+            for name in ("api-capa.png", "api-miolo.png", "api-leitura.png")
+        ]
+        if replay
+        else [
+            editorial_render.encode(Image.new("RGB", (1024, 1024), color))
+            for color in ("blue", "green", "gold")
+        ]
+    )
+    photo_buffer = io.BytesIO()
+    Image.new("RGB", (768, 1024), "beige").save(photo_buffer, format="JPEG")
+    original_photo = photo_buffer.getvalue()
+    for key in list(store):
+        if store[key] == _png():
+            store[key] = original_photo
+    requests = []
+
+    class OfflineImages:
+        def __init__(self, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def post(self, url, **kwargs):
+            assert url == "https://api.openai.com/v1/images/edits"
+            requests.append(kwargs)
+            assert len(requests) <= 3, "Resume attempted to buy another image"
+            if outcome == "unknown" and len(requests) == 3:
+                raise httpx.ReadTimeout("Simulated unknown image result")
+            return httpx.Response(
+                200,
+                json={
+                    "data": [{"b64_json": base64.b64encode(outputs[len(requests) - 1]).decode()}],
+                    "usage": {},
+                },
+            )
+
+    monkeypatch.setattr(image_openai.httpx, "AsyncClient", OfflineImages)
+    monkeypatch.setattr(
+        handlers,
+        "get_image_provider",
+        lambda: image_openai.OpenAIImageProvider(api_key="offline-only"),
+    )
+    control["reject_reading"] = outcome == "rejected"
+    first = await _run(
+        studio,
+        "preview",
+        key="transport-preview",
+        expected="DONE" if outcome == "success" else "FAILED",
+    )
+    assert len(requests) == 3
+    for request in requests:
+        assert request["data"]["model"] == "gpt-image-2.6-sunburst"
+        assert request["data"]["quality"] == request["data"]["complexity"] == "high"
+        assert "input_fidelity" not in request["data"]
+        assert request["files"][0][1][1] == original_photo  # original JPEG, unchanged
+    assert "heavy rounded sans-serif" in requests[0]["data"]["prompt"]
+    assert "heavy rounded sans-serif" in requests[1]["data"]["prompt"]
+    assert "ONE FRONT BOARD" in requests[2]["data"]["prompt"]
+    assert requests[1]["files"][1][1][1] == outputs[0]
+    assert requests[2]["files"][1][1][1] == outputs[0]
+    if outcome != "success":
+        assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+        assert client.post(f"/v1/projects/{pid}/preview/approve").status_code != 200
+    control["reject_reading"] = False
+    second = await _run(
+        studio,
+        "preview",
+        key="transport-resume",
+        expected="FAILED" if outcome == "unknown" else "DONE",
+    )
+    assert len(requests) == 3
+    assert float(second.cost_usd or 0) == 0
+    if outcome == "unknown":
+        assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+        return  # uncertain result never buys another image or approves a partial preview
+    assert float(first.cost_usd or 0) > 0  # simulated spend counted once
+    package = client.get(f"/v1/projects/{pid}/preview/package")
+    assert package.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(package.content)) as archive:
+        images = [archive.read(name) for name in archive.namelist() if name.endswith(".png")]
+        assert len(images) == 3
+        assert outputs[1] in images and outputs[2] in images
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
