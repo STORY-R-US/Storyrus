@@ -821,7 +821,7 @@ describe("Landing — CTAs e links", () => {
           expect(shown.length, `${lang}: ${link.textContent}`).toBeGreaterThan(0);
           shown.forEach((book) => books.add(book.getAttribute("href")!));
         }
-        expect(books.size).toBe(variant === "photo" ? 58 : 37);
+        expect(books.size).toBe(variant === "photo" ? 58 : 38);
         if (variant === "photo") expect(books.has("/livro/31")).toBe(true);
         else expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
       }
@@ -890,7 +890,7 @@ describe("Landing — CTAs e links", () => {
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(37);
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(38);
     expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-pedro-amem-se.png", "pt")));
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
@@ -939,6 +939,7 @@ describe("Landing — CTAs e links", () => {
 
 describe("Catálogo e página do livro", () => {
   it("abre o catálogo completo agrupado e a página do livro", async () => {
+    const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/catalogo"]}>
         <AppRoutes />
@@ -956,8 +957,8 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(12);
-    fireEvent.change(screen.getByTestId("catalog-category"), { target: { value: "educativo" } });
-    expect(screen.getByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
+    await user.selectOptions(screen.getByTestId("catalog-category"), "educativo");
+    expect(await screen.findByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
     fireEvent.change(screen.getByTestId("catalog-search"), { target: { value: "Davi" } });
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(1);
     expect(screen.getAllByRole("link", { name: /davi, o menino pastor/i })[0]).toHaveAttribute("href", "/livro/20");

@@ -1754,5 +1754,23 @@
       "page": "cartoon-pagina-heroi-policia-v1-pt.webp",
       "holding": "cartoon-foto-heroi-policia-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-28": {
+    "id": "catalog-cartoon-28",
+    "catalog_index": 28,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Herói Favorito, A Aranha",
+      "en": "My Favorite Hero, The Spider",
+      "es": "Mi Héroe Favorito, La Araña"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-heroi-aranha-v1-pt.webp",
+      "page": "cartoon-pagina-heroi-aranha-v1-pt.webp",
+      "holding": "cartoon-foto-heroi-aranha-v1-pt.webp"
+    }
   }
 }
