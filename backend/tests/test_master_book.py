@@ -4027,6 +4027,10 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         assert "input_fidelity" not in request["data"]
         assert request["files"][0][1][1] == original_photo  # original JPEG, unchanged
     if correcting:
+        assert all(
+            entry["state"] == "repaired"
+            for entry in first.result["editorial_review_recoveries"].values()
+        )
         assert "ONE CORRECTIVE EDIT" in requests[repair_index + 1]["data"]["prompt"]
         assert first.error is None and first.result["preview_complete"]
         assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200

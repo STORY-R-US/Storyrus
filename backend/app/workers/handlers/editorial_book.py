@@ -2280,6 +2280,20 @@ class Pipeline:
         # No recursive call to this helper: a second failure requires internal
         # intervention. Both the edit and its inspection are durable and reusable.
         qa = await self.review(repaired, prompt, **review_kwargs)
+        recoveries = dict((self.job.result or {}).get("editorial_review_recoveries") or {})
+        resolved = False
+        for key, entry in recoveries.items():
+            if entry.get("image_sha256") == original_sha and entry.get("state") == "needs_operator":
+                recoveries[key] = {
+                    **entry,
+                    "state": "repaired",
+                    "repaired_sha256": render.digest(repaired),
+                    "repaired_storage_key": repaired_source["storage_key"],
+                }
+                resolved = True
+        if resolved:
+            self.job.result = {**(self.job.result or {}), "editorial_review_recoveries": recoveries}
+            self.db.commit()
         return repaired, repaired_source, qa
 
     async def integrated_editorial_scene(self, name, action, *, role, text, passages=None):
