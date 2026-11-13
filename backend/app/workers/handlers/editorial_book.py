@@ -593,31 +593,89 @@ class Pipeline:
                 "JSON {valid:boolean, issues:[strings], limitations:[strings]}; incerteza implica valid:false."
             )
         )
-        result = (
-            await self.master._pkg()
-            .get_text_provider()
-            .validate_editorial_preview(
-                data=data,
-                photos=self.photos,
-                cover=cover,
-                prompt=prompt,
-                style_refs=self.refs
-                + (
-                    [book_design.reference(self.design, "cover")]
-                    if getattr(self, "design", None) and self.design.get("version") == 4
-                    else []
-                ),
-                full_image_prompt=full_image_prompt,
-                inspection_region=(technical or {})
-                .get("typography", {})
-                .get("ink_region_with_margin"),
-                inspection_regions=(technical or {})
-                .get("typography", {})
-                .get("ink_regions_with_margin"),
-            )
-        )
+        review_args = {
+            "data": data,
+            "photos": self.photos,
+            "cover": cover,
+            "prompt": prompt,
+            "style_refs": self.refs
+            + (
+                [book_design.reference(self.design, "cover")]
+                if getattr(self, "design", None) and self.design.get("version") == 4
+                else []
+            ),
+            "full_image_prompt": full_image_prompt,
+            "inspection_region": (technical or {})
+            .get("typography", {})
+            .get("ink_region_with_margin"),
+            "inspection_regions": (technical or {})
+            .get("typography", {})
+            .get("ink_regions_with_margin"),
+        }
+        provider = self.master._pkg().get_text_provider()
+        result = await provider.validate_editorial_preview(**review_args)
         self.account(result, "Revisão editorial")
         report = editorial_review.parse_report(result.text)
+        if mandatory and not editorial_review.approved(report):
+            # Recheck the SAME received image once, before failing the job. This
+            # path never calls the image provider or changes the saved artwork.
+            # The normal paid-request journal also caches the second opinion:
+            # a restart cannot purchase the same review again.
+            from app.services.error_report import record_error
+
+            recovery_key = signature([render.digest(data), prompt])
+            recoveries = dict((self.job.result or {}).get("editorial_review_recoveries") or {})
+            if recovery_key not in recoveries:
+                record_error(
+                    self.db,
+                    message="Revisão automática em conferência interna: "
+                    + json.dumps(report, ensure_ascii=False),
+                    project_id=self.project.id,
+                    job_id=self.job.id,
+                    stage="editorial_review",
+                )
+            entry = {
+                "state": "checking_saved_art",
+                "image_sha256": render.digest(data),
+                "first_report": report,
+                "automatic_image_regeneration": False,
+                "customer_action_required": False,
+            }
+            recoveries[recovery_key] = entry
+            self.job.result = {**(self.job.result or {}), "editorial_review_recoveries": recoveries}
+            self.db.commit()
+            second_prompt = prompt + (
+                "\nSECOND INDEPENDENT INSPECTION OF THE SAME SAVED OUTPUT. "
+                "Apply every original identity, anatomy, literal-text and layout requirement. "
+                "Verify concrete visible evidence before rejecting; do not invent defects. "
+                "Only for a book-holding scene: a portrait printed on the front plus a person outside the book is expected. "
+                "A plain back board is valid; reject wrapping only if artwork actually crosses "
+                "the spine. Do not approve merely because this is a second inspection. "
+                "If any required criterion remains uncertain or defective, return valid:false."
+            )
+            try:
+                self.guard()
+                result = await provider.validate_editorial_preview(
+                    **{**review_args, "prompt": second_prompt}
+                )
+                self.account(result, "Conferência interna da arte salva")
+                report = editorial_review.parse_report(result.text)
+            except Exception:
+                entry["state"] = "needs_operator"
+                recoveries[recovery_key] = entry
+                self.job.result = {
+                    **(self.job.result or {}),
+                    "editorial_review_recoveries": recoveries,
+                }
+                self.db.commit()
+                raise
+            entry.update(
+                state="verified" if editorial_review.approved(report) else "needs_operator",
+                second_report=report,
+            )
+            recoveries[recovery_key] = entry
+            self.job.result = {**(self.job.result or {}), "editorial_review_recoveries": recoveries}
+            self.db.commit()
         if not editorial_review.approved(report):
             logging.getLogger(__name__).warning(
                 "editorial_review_rejected job=%s role=%s issues=%s",

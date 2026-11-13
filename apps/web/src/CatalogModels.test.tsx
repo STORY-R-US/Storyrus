@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import * as catalogDefinitions from "./catalogModel";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CatalogBookCard, catalogEntry } from "./Landing";
 import { catalogModel, catalogModelId } from "./catalogModel";
 
 describe("specific catalog models", () => {
+  afterEach(() => vi.restoreAllMocks());
   it.each([0, 1, 6, 21])("passes the exact selected model through registration for book %i", (index) => {
     const book=catalogEntry('pt',index)!;
     render(<MemoryRouter><CatalogBookCard book={book} lang="pt" personalize="Personalizar" /></MemoryRouter>);
@@ -15,7 +17,9 @@ describe("specific catalog models", () => {
     expect(target.searchParams.get('titulo')).toBe(book.t);
   });
   it('blocks a book without interior instead of silently switching to the default', () => {
-    render(<MemoryRouter><CatalogBookCard book={catalogEntry('pt',35)!} lang="pt" personalize="Personalizar" /></MemoryRouter>);
+    const model = catalogModel(catalogModelId(0))!;
+    vi.spyOn(catalogDefinitions, 'catalogModel').mockReturnValue({...model, available: false, reason: 'missing_interior'});
+    render(<MemoryRouter><CatalogBookCard book={catalogEntry('pt',0)!} lang="pt" personalize="Personalizar" /></MemoryRouter>);
     expect(screen.queryByTestId('landing-personalize')).not.toBeInTheDocument();
     expect(screen.getByTestId('catalog-model-unavailable')).toHaveTextContent(/miolo/);
   });

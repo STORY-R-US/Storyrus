@@ -3868,7 +3868,10 @@ async def test_cover_correction_does_not_buy_when_saved_art_is_corrupt(reference
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("outcome", ["success", "rejected", "unknown"])
+@pytest.mark.parametrize(
+    "outcome",
+    ["success", "recovered", "recovered_cover", "recovered_spread", "rejected", "unknown"],
+)
 async def test_studio_preview_reaches_image_transport_and_resumes_without_repurchase(
     reference_studio, monkeypatch, outcome
 ):
@@ -3945,12 +3948,39 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         "get_image_provider",
         lambda: image_openai.OpenAIImageProvider(api_key="offline-only"),
     )
+    review_calls = []
+    recovering = outcome.startswith("recovered")
+    target_prefix = {"recovered_cover": "CAPA_PLANA", "recovered_spread": "LIVRO_ABERTO"}.get(
+        outcome, "LEITURA"
+    )
+    if recovering:
+        from app.ai_clients.request_journal import journaled
+
+        text_class = handlers.get_text_provider().__class__
+        validate = text_class.validate_editorial_preview
+
+        @journaled("offline:editorial_review")
+        async def reject_first_review(self, **kwargs):
+            review_calls.append(kwargs)
+            target_calls = [
+                call for call in review_calls if call["prompt"].startswith(target_prefix)
+            ]
+            if kwargs["prompt"].startswith(target_prefix) and len(target_calls) == 1:
+                return TextResult(
+                    text='{"valid":false,"issues":["simulated false rejection"],"limitations":[]}',
+                    cost_usd=0.007,
+                )
+            checked = await validate(self, **kwargs)
+            checked.cost_usd = 0.009
+            return checked
+
+        monkeypatch.setattr(text_class, "validate_editorial_preview", reject_first_review)
     control["reject_reading"] = outcome == "rejected"
     first = await _run(
         studio,
         "preview",
         key="transport-preview",
-        expected="DONE" if outcome == "success" else "FAILED",
+        expected="DONE" if outcome == "success" or recovering else "FAILED",
     )
     assert len(requests) == 3
     for request in requests:
@@ -3963,11 +3993,27 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     assert "ONE FRONT BOARD" in requests[2]["data"]["prompt"]
     assert requests[1]["files"][1][1][1] == outputs[0]
     assert requests[2]["files"][1][1][1] == outputs[0]
-    if outcome != "success":
+    if outcome != "success" and not recovering:
         assert first.result["internal_resolution"]["customer_action_required"] is False
         assert first.result["internal_resolution"]["automatic_image_regeneration"] is False
         assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
         assert client.post(f"/v1/projects/{pid}/preview/approve").status_code != 200
+    if recovering:
+        # Delivery happens in the ORIGINAL worker run: no customer retry or new job.
+        assert first.error is None and first.result["preview_complete"]
+        assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+        assert list(first.result["editorial_review_recoveries"].values())[0]["state"] == "verified"
+        assert len(review_calls) == 4  # cover, spread, first reading review, second opinion
+        target_calls = [call for call in review_calls if call["prompt"].startswith(target_prefix)]
+        assert len(target_calls) == 2
+        assert target_calls[0]["data"] == target_calls[1]["data"]
+        assert "SECOND INDEPENDENT INSPECTION" in target_calls[1]["prompt"]
+    if outcome == "rejected":
+        assert (
+            list(first.result["editorial_review_recoveries"].values())[0]["state"]
+            == "needs_operator"
+        )
+        assert first.result["internal_resolution"]["state"] == "needs_operator"
     control["reject_reading"] = False
     second = await _run(
         studio,
@@ -3977,6 +4023,8 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     )
     assert len(requests) == 3
     assert float(second.cost_usd or 0) == 0
+    if recovering:
+        assert len(review_calls) == 4  # both opinions cached; no repeated paid review
     if outcome == "unknown":
         assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
         return  # uncertain result never buys another image or approves a partial preview
