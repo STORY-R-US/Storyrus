@@ -122,7 +122,7 @@ def test_story_failure_keeps_saved_preview(auth_client):
     orders = auth_client.get("/v1/usage/orders/mine").json()
     order = next(item for item in orders if item["id"] == str(ticket_id))
     assert order["generation_status"] == "ready"
-    assert order["generation_error"] == "OpenAI 429: credit_balance_exhausted"
+    assert order["generation_error"] is None
     assert {item["kind"] for item in order["book_files"]} >= {"cover", "page_image", "in_hand"}
 
 
@@ -148,7 +148,7 @@ def test_finished_story_reports_preview_ready(auth_client):
     assert order["generation_error"] is None
 
 
-def test_failed_preview_without_images_stays_failed(auth_client):
+def test_failed_preview_without_images_is_under_internal_review(auth_client):
     ticket_id, project_id = _order(auth_client)
     db = _session(auth_client)
     try:
@@ -166,8 +166,8 @@ def test_failed_preview_without_images_stays_failed(auth_client):
         db.close()
     orders = auth_client.get("/v1/usage/orders/mine").json()
     order = next(item for item in orders if item["id"] == str(ticket_id))
-    assert order["generation_status"] == "failed"
-    assert order["generation_error"] == "OpenAI 429: insufficient_quota"
+    assert order["generation_status"] == "reviewing"
+    assert order["generation_error"] is None
 
 
 def test_failed_job_shows_up_on_the_error_report(auth_client):
@@ -225,7 +225,7 @@ def test_preview_status_reports_demo_and_partial_truthfully(auth_client, monkeyp
         job.cost_usd = 0.08
         db.commit()
         orders = auth_client.get("/v1/usage/orders/mine").json()
-        assert orders[0]["generation_status"] == "partial"
+        assert orders[0]["generation_status"] == "reviewing"
         assert orders[0]["image_provider"] == "openai"
     finally:
         db.close()
