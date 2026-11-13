@@ -1808,5 +1808,23 @@
       "page": "cartoon-pagina-pascoa-v1-pt.webp",
       "holding": "cartoon-foto-pascoa-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-34": {
+    "id": "catalog-cartoon-34",
+    "catalog_index": 34,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Bruno Em Uma Aventura Animal",
+      "en": "Bruno On An Animal Adventure",
+      "es": "Bruno En Una Aventura Animal"
+    },
+    "example_name": "Bruno",
+    "sources": {
+      "cover": "covers/cartoon-capa-bruno-animais-v1-pt.webp",
+      "page": "cartoon-pagina-bruno-animais-v1-pt.webp",
+      "holding": "cartoon-foto-bruno-animais-v1-pt.webp"
+    }
   }
 }
