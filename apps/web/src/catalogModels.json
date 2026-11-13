@@ -1772,5 +1772,23 @@
       "page": "cartoon-pagina-heroi-aranha-v1-pt.webp",
       "holding": "cartoon-foto-heroi-aranha-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-29": {
+    "id": "catalog-cartoon-29",
+    "catalog_index": 29,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tia Especial, Não Existe Igual",
+      "en": "A Special Aunt, One Of A Kind",
+      "es": "Una Tía Especial, No Hay Otra Igual"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-tia-especial-v1-pt.webp",
+      "page": "cartoon-pagina-tia-especial-v1-pt.webp",
+      "holding": "cartoon-foto-tia-especial-v1-pt.webp"
+    }
   }
 }
