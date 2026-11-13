@@ -612,7 +612,7 @@ describe("Prévia automática", () => {
     expect(document.title).toBe("Story R Us - Projeto Criado");
   });
 
-  it("mostra retry quando a prévia falha com 500", async () => {
+  it("mantém falha interna 500 em revisão sem pedir repetição", async () => {
     state.credits = 20;
     vi.spyOn(api, "startPreview").mockRejectedValue(new Error("500: Erro interno"));
     const user = userEvent.setup();
@@ -632,11 +632,9 @@ describe("Prévia automática", () => {
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     expect(await screen.findByTestId("studio-order-sent")).toBeInTheDocument();
-    expect(await screen.findByText(/500: Erro interno/i)).toBeInTheDocument();
-    expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
-    expect(screen.getByTestId("studio-retry-preview")).toBeInTheDocument();
-    await user.click(screen.getByTestId("studio-retry-preview"));
-    expect(api.startPreview).toHaveBeenLastCalledWith(expect.any(String), expect.objectContaining({ cover_only: true }));
+    expect(await screen.findByTestId("studio-internal-review")).toBeInTheDocument();
+    expect(screen.queryByText(/500: Erro interno/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("studio-retry-preview")).not.toBeInTheDocument();
     expect(new URLSearchParams(window.location.search).get("projeto")).toBeTruthy();
     expect(new URLSearchParams(window.location.search).has("project")).toBe(false);
   });
@@ -678,8 +676,8 @@ describe("Prévia automática", () => {
 
     renderApp("/app?projeto=unknown-generation");
 
-    const messages = await screen.findAllByText(/não confirmou o resultado desta etapa/i);
-    expect(messages[0]).toHaveTextContent(/client-request-123/i);
+    expect(await screen.findByTestId("studio-internal-review")).toBeInTheDocument();
+    expect(screen.queryByText(/client-request-123/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^GENERATION_OUTCOME_UNKNOWN$/)).not.toBeInTheDocument();
     expect(screen.queryByTestId("studio-retry-preview")).not.toBeInTheDocument();
   });
@@ -779,7 +777,11 @@ describe("Studio — perfil específico do Catálogo", () => {
     await user.click(screen.getByRole("checkbox", {name:/responsável legal/i}));
     await user.click(screen.getByRole("button", {name:/gerar o livro/i}));
     await screen.findByTestId("studio-order-sent");
-    if (failFirst) await user.click(await screen.findByTestId("studio-retry-preview"));
+    if (failFirst) {
+      await screen.findByTestId("studio-internal-review");
+      expect(screen.queryByTestId("studio-retry-preview")).not.toBeInTheDocument();
+      expect(preview).toHaveBeenCalledTimes(1);
+    }
     expect(preview).toHaveBeenLastCalledWith(expect.any(String), expect.objectContaining({catalog_design_id:"catalog-realistic-0", draft_title:"João, goleiro do Palmeiras"}));
     expect(window.location.search).toContain("modelo=catalog-realistic-0");
   });

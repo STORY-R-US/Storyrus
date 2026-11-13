@@ -1,8 +1,9 @@
 import { TEST_SESSION_TOKEN } from "./session";
 import { test, expect } from "./fixtures";
 
-test("A saved unsafe title layout explains the problem without automatically generating again", async ({ page }) => {
+test("Internal image review stays off the customer error screen without generating again", async ({ page }) => {
   const calls: string[] = [];
+  let resolved = false;
   const project = {
     id: "protected-title", status: "CREATED", style: "realistic", language: "pt-BR",
     child_name: "André", child_age: 30, created_at: "2026-11-11",
@@ -28,9 +29,9 @@ test("A saved unsafe title layout explains the problem without automatically gen
       full_name: "Ana", phone: "11999999999", street: "Rua", number: "1", city: "São Paulo", state: "SP", country: "BR", credits: 10 });
     if (path.endsWith("/credits")) return json({ credits: 10 });
     if (path.endsWith("/jobs")) return json([{ id: "saved-layout-failure", project_id: project.id,
-      type: "EBOOK", status: "FAILED", provider: "openai", attempts: 1, cost_credits: 0,
+      type: "EBOOK", status: resolved ? "DONE" : "FAILED", provider: "openai", attempts: 1, cost_credits: 0,
       created_at: "2026-11-11T20:00:00Z",
-      error: "Etapa editorial cover:art: BOOK_LAYOUT_UNSAFE: face and blue knit cap",
+      error: resolved ? null : "Etapa editorial cover:art: BOOK_LAYOUT_UNSAFE: face and blue knit cap",
       result: { payload: { cover_only: true }, last_provider_error: { outcome_unknown: false } } }]);
     if (path.endsWith("/assets")) return json({ previews: [], photo_count: 1, character_url: null,
       realistic_url: null, page_images: [], page_versions: [], extra_characters: [], ebook_url: null,
@@ -41,10 +42,15 @@ test("A saved unsafe title layout explains the problem without automatically gen
     return json({ detail: "Unexpected test endpoint" }, 404);
   });
   await page.goto("/app?project=protected-title", { waitUntil: "domcontentloaded" });
-  const message = page.getByText(/Não foi possível encaixar o texto sem cobrir rosto, cabelo, gorro/).first();
+  const message = page.getByTestId("studio-internal-review").first();
   await expect(message).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("face and blue knit cap", { exact: true })).toHaveCount(0);
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(message).toBeVisible();
+  await expect(page.getByTestId("studio-retry-preview")).toHaveCount(0);
+  await expect(page.getByTestId("studio-error-report")).toHaveCount(0);
+  resolved = true;
+  await expect(message).toHaveCount(0, { timeout: 10_000 });
+  await expect(page.getByTestId("studio-error-report")).toHaveCount(0);
   expect(calls).toEqual([]);
 });

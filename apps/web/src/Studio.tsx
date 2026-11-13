@@ -1,3 +1,4 @@
+import { InternalReviewNotice } from "./studio/InternalReviewNotice";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
 import { PRIVACY_NOTICE } from "./privacyNotice";
@@ -29,7 +30,7 @@ import { PreviewTrio } from "./studio/PreviewTrio";
 import { MasterBookFlow } from "./studio/MasterBookFlow";
 import { PreviewCopyRecovery } from "./studio/PreviewCopyRecovery";
 import { capitalizeChildName } from "./studio/childName";
-import { generationError as formatGenerationError, uncertainGeneration } from "./studio/generationError";
+import { generationError as formatGenerationError, uncertainGeneration, internalGenerationIssue } from "./studio/generationError";
 import {
   masterPreviewEta,
   masterPreviewSteps,
@@ -510,7 +511,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const inputSafetyBlocked = /INPUT_SAFETY_BLOCKED/i.test(generationError || "");
   const providerSafetyBlocked = /moderation_block|content_policy_violation/i.test(generationError || "");
   const generationOutcomeUnknown = uncertainGeneration(generationError, previewFailedJob);
-  const noAutomaticRetry = inputSafetyBlocked || providerSafetyBlocked || generationOutcomeUnknown;
+  const internalReview = internalGenerationIssue(generationError, previewFailedJob) || openJobErrors.some((job) => internalGenerationIssue(job.error, job));
+  const noAutomaticRetry = inputSafetyBlocked || providerSafetyBlocked || generationOutcomeUnknown || internalReview;
   const userFacingError = (message?: string | null, job?: Job) =>
     formatGenerationError(t, message, job);
   const visibleGenerationError = retiredAIError(generationError) ? {
@@ -531,7 +533,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setJobs,
     setAssets,
     isDemo,
-    keepWatching: orderSent && !isDemo && !previewReady && !previewFailed && !error,
+    keepWatching: orderSent && !isDemo && (internalReview || (!previewReady && !previewFailed && !error)),
   });
 
   useEffect(() => {
@@ -1146,12 +1148,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             )}
-            {visibleGenerationError && (
+            {internalReview && <InternalReviewNotice lang={lang} />}
+            {!internalReview && visibleGenerationError && (
               <p className="studio-error" role="alert">
                 {visibleGenerationError}
               </p>
             )}
-            {openJobErrors.length > 0 && (
+            {!internalReview && openJobErrors.length > 0 && (
               <div data-testid="studio-error-report">
                 <h3>{t.errorReport}</h3>
                 <ul>
@@ -1178,7 +1181,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <button type="button" className="link" disabled={busy} onClick={resetProject}>{t.newProject}</button>
               </>
             )}
-            {showPreviewLoading ? (
+            {internalReview ? null : showPreviewLoading ? (
               <div className="studio-preview-building" data-testid="studio-preview-building">
                 <p className="studio-slogan">{t.previewBuilding}</p>
                 <ol className="preview-steps" aria-label={t.ariaProgress}>

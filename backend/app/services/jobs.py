@@ -283,6 +283,27 @@ def mark_failed_and_refund(db: Session, job: Job, error: str) -> None:
     project = db.get(Project, job.project_id)
     job.status = JobStatus.FAILED.value
     job.error = error[:2000]
+    if (job.result or {}).get("last_provider_error", {}).get("outcome_unknown") or any(
+        code in error
+        for code in (
+            "BOOK_ART_",
+            "BOOK_LAYOUT_UNSAFE",
+            "BOOK_TEXT_INVALID",
+            "BOOK_REVIEW_INVALID",
+            "BOOK_GENERATED_CONTENT_INVALID",
+            "BOOK_STORAGE_TEMPORARY",
+            "GENERATION_OUTCOME_UNKNOWN",
+        )
+    ):
+        job.result = {
+            **(job.result or {}),
+            "internal_resolution": {
+                "state": "awaiting_review",
+                "source": "generation_failure",
+                "customer_action_required": False,
+                "automatic_image_regeneration": False,
+            },
+        }
     if job.cost_credits and project is not None:
         credits.refund(db, project.user_id, job.cost_credits)
     from app.services.error_report import record_error

@@ -6,3 +6,5 @@
 # Preserve the original imported prompt endings as part of the snapshot.
 /backend/app/assets/editorial/2026-11-05.1/prompts/*.txt whitespace=cr-at-eol,-blank-at-eof
 /backend/app/assets/composition_examples/*.enc binary
+
+/backend/app/assets/editorial/2026-11-05.3/** -text whitespace=cr-at-eol

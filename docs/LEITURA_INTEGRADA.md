@@ -82,3 +82,25 @@ versionadas e toda resposta de imagem/texto permanece simulada: nenhuma chamada
 paga é feita. Isso verifica preservação e integração, não mede a qualidade de uma
 nova geração nem a acurácia do revisor visual. A navegação do Estúdio e do Catálogo
 permanece coberta pela suíte Playwright do GitHub.
+
+
+## Falhas internas e revisão da leitura
+
+Falhas editoriais, de enquadramento e resultados incertos permanecem nos registros
+operacionais. O trabalho recebe `internal_resolution` sem autorização para gerar
+outra imagem automaticamente. O Estúdio mostra revisão interna, remove o relatório
+técnico e as ações de corrigir texto/repetir criação, e continua consultando o
+projeto para apresentar o resultado quando a equipe concluir a recuperação.
+Isso não é uma promessa de reparo automático de toda falha: a inspeção de arte
+reprovada continua necessária, e nenhuma arte inválida é aprovada para esconder
+um erro. Pagamento e aprovação do cliente permanecem obrigatórios.
+
+A revisão da cena de leitura distingue a frente impressa da contracapa lisa.
+Pessoa externa mais retrato na capa é a composição esperada; só reprovar como
+capa atravessada quando arte/letras realmente continuarem além da lombada.
+
+A assinatura do pacote editorial agora ordena caminhos de forma igual no Windows
+e no servidor, preservando os bytes originais. Assinaturas antigas da ordenação
+Windows continuam verificadas contra o mesmo pacote, sem alterar o perfil salvo
+ou invalidar artes já pagas. O teste de recuperação percorre também a passagem de
+revisão interna para resultado concluído sem disparar criação pelo navegador.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generationError } from "./generationError";
+import { generationError, internalGenerationIssue } from "./generationError";
 import { studioCopy } from "./i18n";
 
 describe.each(["pt", "en", "es"] as const)("book failures in %s", (lang) => {
@@ -24,4 +24,12 @@ describe.each(["pt", "en", "es"] as const)("book failures in %s", (lang) => {
   it("keeps an uncertain paid result blocked ahead of other classifications", () => {
     expect(generationError(copy, "GENERATION_OUTCOME_UNKNOWN BOOK_LAYOUT_UNSAFE")).toBe(copy.previewGenerationOutcomeUnknown);
   });
+});
+
+
+it.each(["BOOK_ART_REJECTED", "BOOK_LAYOUT_UNSAFE", "GENERATION_OUTCOME_UNKNOWN", "500: Erro interno", "ValueError: internal detail"])("routes %s to internal review", (message) => {
+  expect(internalGenerationIssue(message)).toBe(true);
+});
+it.each(["INPUT_SAFETY_BLOCKED", "INPUT_SAFETY_CHECK_INVALID_IMAGE", "Confirme a autorização das fotos"])("keeps necessary customer decisions actionable: %s", (message) => {
+  expect(internalGenerationIssue(message)).toBe(false);
 });

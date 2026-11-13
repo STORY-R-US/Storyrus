@@ -1,3 +1,4 @@
+import { InternalReviewNotice } from "./InternalReviewNotice";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CatalogDesignSamples } from "./CatalogBookDesign";
 import { PreviewImageViewer } from "./PreviewImageViewer";
@@ -9,7 +10,7 @@ import type { Job, Project } from "../types";
 import type { StudioAssets } from "./assets";
 import { useStudioI18n } from "./useStudioI18n";
 import { capitalizeChildName } from "./childName";
-import { generationError, uncertainGeneration } from "./generationError";
+import { generationError, uncertainGeneration, internalGenerationIssue } from "./generationError";
 
 const COPY = {
   pt: {
@@ -610,6 +611,9 @@ export function MasterBookFlow({
     const title = editTitle.trim();
     if (!title || title === savedTitle) return;
     await run(() => api.updatePreviewTitle(project.id, title));
+  }
+  if (!active && internalGenerationIssue(error || failed?.error, failed)) {
+    return <InternalReviewNotice lang={lang} />;
   }
   if (p.credits_fallback) {
     return <section className="master-adjustment-panel" data-testid="studio-preview-recovery">

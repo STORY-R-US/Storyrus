@@ -30,10 +30,17 @@ def _root(version: str | None = None) -> Path:
         raise ValueError(f"Versão editorial não suportada: {version}") from exc
 
 
-def snapshot(version: str | None = None):
+def snapshot(version: str | None = None, *, legacy_windows_order: bool = False):
     version = version or CURRENT_VERSION
     root = _root(version)
-    files = sorted(p for p in root.rglob("*") if p.is_file())
+    files = sorted(
+        (p for p in root.rglob("*") if p.is_file()),
+        key=lambda p: (
+            p.relative_to(root).as_posix().lower()
+            if legacy_windows_order
+            else p.relative_to(root).as_posix()
+        ),
+    )
     digest = hashlib.sha256()
     for path in files:
         digest.update(path.relative_to(root).as_posix().encode())
@@ -73,7 +80,10 @@ def composed(profile):
 
 def policy(profile):
     editorial = profile["editorial"]
-    if editorial != snapshot(editorial["version"]):
+    if editorial not in (
+        snapshot(editorial["version"]),
+        snapshot(editorial["version"], legacy_windows_order=True),
+    ):
         raise ValueError("Perfil editorial alterado; preserve o pacote original")
     result = json.loads(
         (_root(editorial["version"]) / "config/editorial-policy.json").read_text(encoding="utf-8")
