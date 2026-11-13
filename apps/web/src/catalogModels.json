@@ -1700,5 +1700,23 @@
       "page": "cartoon-pagina-esther-higiene-v1-pt.webp",
       "holding": "cartoon-foto-esther-higiene-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-25": {
+    "id": "catalog-cartoon-25",
+    "catalog_index": 25,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Pequeno Construtor, Grande Empreendedor",
+      "en": "Little Builder, Big Entrepreneur",
+      "es": "Pequeño Constructor, Gran Emprendedor"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-construtor-v1-pt.webp",
+      "page": "cartoon-pagina-construtor-v1-pt.webp",
+      "holding": "cartoon-foto-construtor-v1-pt.webp"
+    }
   }
 }
