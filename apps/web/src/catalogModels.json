@@ -1790,5 +1790,23 @@
       "page": "cartoon-pagina-tia-especial-v1-pt.webp",
       "holding": "cartoon-foto-tia-especial-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-31": {
+    "id": "catalog-cartoon-31",
+    "catalog_index": 31,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Páscoa",
+      "en": "Happy Easter",
+      "es": "Feliz Pascua"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-pascoa-v1-pt.webp",
+      "page": "cartoon-pagina-pascoa-v1-pt.webp",
+      "holding": "cartoon-foto-pascoa-v1-pt.webp"
+    }
   }
 }
