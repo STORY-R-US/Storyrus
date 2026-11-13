@@ -1736,5 +1736,23 @@
       "page": "cartoon-pagina-heroi-bombeiro-v1-pt.webp",
       "holding": "cartoon-foto-heroi-bombeiro-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-27": {
+    "id": "catalog-cartoon-27",
+    "catalog_index": 27,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Herói Favorito, O Policial",
+      "en": "My Favorite Hero, The Police Officer",
+      "es": "Mi Héroe Favorito, El Policía"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-heroi-policia-v1-pt.webp",
+      "page": "cartoon-pagina-heroi-policia-v1-pt.webp",
+      "holding": "cartoon-foto-heroi-policia-v1-pt.webp"
+    }
   }
 }
