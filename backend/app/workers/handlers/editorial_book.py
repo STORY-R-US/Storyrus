@@ -654,6 +654,7 @@ class Pipeline:
                 "If any required criterion remains uncertain or defective, return valid:false."
             )
             try:
+                self.guard()
                 result = await provider.validate_editorial_preview(
                     **{**review_args, "prompt": second_prompt}
                 )

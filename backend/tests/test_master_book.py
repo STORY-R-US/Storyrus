@@ -3968,9 +3968,11 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
             if kwargs["prompt"].startswith(target_prefix) and len(target_calls) == 1:
                 return TextResult(
                     text='{"valid":false,"issues":["simulated false rejection"],"limitations":[]}',
-                    cost_usd=0,
+                    cost_usd=0.007,
                 )
-            return await validate(self, **kwargs)
+            checked = await validate(self, **kwargs)
+            checked.cost_usd = 0.009
+            return checked
 
         monkeypatch.setattr(text_class, "validate_editorial_preview", reject_first_review)
     control["reject_reading"] = outcome == "rejected"
