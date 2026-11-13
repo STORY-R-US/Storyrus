@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import math
+from collections.abc import Iterable
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -229,17 +230,23 @@ def interior_pdf(
     pages: list[bytes], *, dedication: str | None, size_cm: int, title: str = ""
 ) -> bytes:
     """Preserve page orientation and literal text; dedication closes the file."""
-    frames = [_print_page(raw) for raw in pages]
-    frames.append(dedication_page(dedication or ""))
-    return _pages_pdf(frames, size_cm=size_cm, title=title)
+
+    # Encode a single print page at a time instead of retaining the entire
+    # high-resolution interior alongside its originals and the finished PDF.
+    def frames():
+        for raw in pages:
+            yield _print_page(raw)
+        yield dedication_page(dedication or "")
+
+    return _pages_pdf(frames(), size_cm=size_cm, title=title)
 
 
 def _print_page(raw: bytes) -> bytes:
-    image = Image.open(io.BytesIO(raw)).convert("RGB")
-    image = image.resize((TARGET_PX, TARGET_PX), Image.Resampling.LANCZOS)
-    out = io.BytesIO()
-    image.save(out, "PNG")
-    return out.getvalue()
+    with Image.open(io.BytesIO(raw)) as source, source.convert("RGB") as rgb:
+        with rgb.resize((TARGET_PX, TARGET_PX), Image.Resampling.LANCZOS) as image:
+            with io.BytesIO() as out:
+                image.save(out, "PNG")
+                return out.getvalue()
 
 
 def _page_badge(image: Image.Image, number: int) -> None:
@@ -328,7 +335,7 @@ def _dedication_corners(draw: ImageDraw.ImageDraw, side: int) -> None:
         )
 
 
-def _pages_pdf(frames: list[bytes], *, size_cm: int, title: str = "") -> bytes:
+def _pages_pdf(frames: Iterable[bytes], *, size_cm: int, title: str = "") -> bytes:
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen.canvas import Canvas
 
@@ -340,13 +347,16 @@ def _pages_pdf(frames: list[bytes], *, size_cm: int, title: str = "") -> bytes:
         canvas.setTitle(f"STORY R US - {title}")
     canvas.setAuthor("STORY R US")
     for data in frames:
-        frame = Image.open(io.BytesIO(data)).convert("RGB")
-        if frame.size != (TARGET_PX, TARGET_PX):
-            frame = frame.resize((TARGET_PX, TARGET_PX), Image.Resampling.LANCZOS)
-        encoded = io.BytesIO()
-        frame.save(encoded, "JPEG", quality=92)
-        encoded.seek(0)
-        canvas.drawImage(ImageReader(encoded), 0, 0, side, side)
+        with Image.open(io.BytesIO(data)) as original, original.convert("RGB") as rgb:
+            frame = (
+                rgb.resize((TARGET_PX, TARGET_PX), Image.Resampling.LANCZOS)
+                if rgb.size != (TARGET_PX, TARGET_PX)
+                else rgb
+            )
+            with frame, io.BytesIO() as encoded:
+                frame.save(encoded, "JPEG", quality=92)
+                encoded.seek(0)
+                canvas.drawImage(ImageReader(encoded), 0, 0, side, side)
         canvas.showPage()
     canvas.save()
     return output.getvalue()

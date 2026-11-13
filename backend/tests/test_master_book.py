@@ -4036,3 +4036,54 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         assert len(images) == 3
         assert outputs[1] in images and outputs[2] in images
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_preview_export_retry_and_other_customer_isolation(reference_studio, monkeypatch):
+    import tempfile
+    import zipfile
+
+    from app import storage
+    from tests.conftest import signup_and_verify
+
+    studio, calls, _ = reference_studio
+    client, db, pid, store = studio
+    job = await _run(studio, "preview", key="p0-export-preview")
+    before_calls, before_cost = len(calls), job.cost_usd
+    original_store = dict(store)
+    temporary_files = []
+    create_file = tempfile.TemporaryFile
+
+    def tracked_file(*args, **kwargs):
+        file = create_file(*args, **kwargs)
+        temporary_files.append(file)
+        return file
+
+    monkeypatch.setattr(tempfile, "TemporaryFile", tracked_file)
+    read = storage.get_bytes
+
+    def unavailable(key):
+        raise OSError("temporary storage interruption during export")
+
+    monkeypatch.setattr(storage, "get_bytes", unavailable)
+    with pytest.raises(OSError, match="temporary storage interruption"):
+        client.get(f"/v1/projects/{pid}/preview/package")
+    assert temporary_files and all(file.closed for file in temporary_files)
+    monkeypatch.setattr(storage, "get_bytes", read)
+    response = client.get(f"/v1/projects/{pid}/preview/package")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert "attachment" in response.headers["content-disposition"]
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        assert len(archive.namelist()) == 3
+        assert archive.testzip() is None
+    assert all(file.closed for file in temporary_files)
+    assert store == original_store
+    assert len(calls) == before_calls
+    db.refresh(job)
+    assert job.cost_usd == before_cost and job.status == "DONE"
+    other = signup_and_verify(client, "p0-other@example.com")
+    headers = {"Authorization": f"Bearer {other}"}
+    assert client.get(f"/v1/projects/{pid}", headers=headers).status_code == 404
+    assert client.get(f"/v1/projects/{pid}/preview/package", headers=headers).status_code == 404
+    assert client.get(f"/v1/jobs/{job.id}", headers=headers).status_code == 404
