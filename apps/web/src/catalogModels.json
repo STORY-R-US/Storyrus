@@ -1718,5 +1718,23 @@
       "page": "cartoon-pagina-construtor-v1-pt.webp",
       "holding": "cartoon-foto-construtor-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-26": {
+    "id": "catalog-cartoon-26",
+    "catalog_index": 26,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Herói Favorito, O Bombeiro",
+      "en": "My Favorite Hero, The Firefighter",
+      "es": "Mi Héroe Favorito, El Bombero"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-heroi-bombeiro-v1-pt.webp",
+      "page": "cartoon-pagina-heroi-bombeiro-v1-pt.webp",
+      "holding": "cartoon-foto-heroi-bombeiro-v1-pt.webp"
+    }
   }
 }
