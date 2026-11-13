@@ -81,6 +81,8 @@ async def test_integrated_scene_uses_original_faces_finished_cover_and_literal_t
     assert "separate rear board" in args["prompt"]
     assert "eye spacing" in args["prompt"]
     assert "wraps across two boards" in pipe.review.call_args.args[1]
+    assert "are EXPECTED" in pipe.review.call_args.args[1]
+    assert "actually continue beyond the spine" in pipe.review.call_args.args[1]
     assert args["style"] == "fotografia editorial natural"
     assert data == b"complete-scene"
     assert meta["presentation"] == "integrated_reading"

@@ -35,3 +35,17 @@ async def test_provenance_does_not_repurchase_saved_stages(monkeypatch, legacy, 
 
     result, _ = await pipe.stage(stage, inputs, forbidden)
     assert result == data
+
+
+def test_editorial_snapshot_is_platform_independent_and_accepts_legacy_windows_order():
+    from app.services import editorial_profile
+
+    current = editorial_profile.snapshot("2026-11-05.3")
+    assert current["sha256"] == "59599394322c9d74f47af29a8295f06fa4d09f890a77aad0780f99c53de0a075"
+    legacy = editorial_profile.snapshot("2026-11-05.3", legacy_windows_order=True)
+    assert legacy["sha256"] != current["sha256"]
+    assert editorial_profile.policy({"editorial": current}) == editorial_profile.policy(
+        {"editorial": legacy}
+    )
+    with pytest.raises(ValueError, match="Perfil editorial alterado"):
+        editorial_profile.policy({"editorial": {**current, "sha256": "modified"}})

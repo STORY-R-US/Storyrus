@@ -3964,6 +3964,8 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     assert requests[1]["files"][1][1][1] == outputs[0]
     assert requests[2]["files"][1][1][1] == outputs[0]
     if outcome != "success":
+        assert first.result["internal_resolution"]["customer_action_required"] is False
+        assert first.result["internal_resolution"]["automatic_image_regeneration"] is False
         assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
         assert client.post(f"/v1/projects/{pid}/preview/approve").status_code != 200
     control["reject_reading"] = False

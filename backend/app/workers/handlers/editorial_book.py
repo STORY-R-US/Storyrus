@@ -2445,8 +2445,14 @@ class Pipeline:
             "People outside the book must be photographic, "
             "even for cartoon books. A natural casual outfit outside the book is allowed. "
             "The book must have physical thickness, connected boards, natural finger contact "
-            "and consistent perspective, light and shadows. Literal title: "
-            + json.dumps(title, ensure_ascii=False),
+            "and consistent perspective, light and shadows. A plain blue/colored board on the "
+            "opposite side of the hinge is the BACK, not missing front artwork. A real person "
+            "outside the book and their portrait printed on the front are EXPECTED: this is "
+            "not recursive duplication. Judge the four corners of the printed FRONT surface; "
+            "perspective and paper thickness are not wrapping. Only report a wrap if visible "
+            "letters or front illustration actually continue beyond the spine onto the BACK. "
+            "Do not invent forbidden ornaments near a hinge when they stay on the front. "
+            "Literal title: " + json.dumps(title, ensure_ascii=False),
             cover=cover,
             technical={
                 "method": "integrated generation; identity and literal text require visual review"
