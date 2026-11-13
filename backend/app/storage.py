@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import time
 import uuid
+from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
@@ -187,6 +188,21 @@ def delete_project_objects(project_id: uuid.UUID) -> None:
     for page in paginator.paginate(Bucket=settings.storage_bucket, Prefix=prefix):
         for obj in page.get("Contents", []):
             client.delete_object(Bucket=settings.storage_bucket, Key=obj["Key"])
+
+
+@contextmanager
+def open_reader(key: str):
+    """Open stored output for bounded streaming; always close the remote body."""
+    client = _internal_client()
+    stream = (
+        _local_path(key).open("rb")
+        if client is None
+        else client.get_object(Bucket=settings.storage_bucket, Key=key)["Body"]
+    )
+    try:
+        yield stream
+    finally:
+        stream.close()
 
 
 def get_bytes(key: str) -> bytes:

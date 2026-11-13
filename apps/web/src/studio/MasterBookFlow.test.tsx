@@ -40,6 +40,28 @@ describe("Sugestão de título pelo tema", () => {
 });
 
 describe("Studio approval stages", () => {
+  it("baixa o arquivo salvo sem atualizar tarefas nem iniciar geração", async () => {
+    const download = vi.spyOn(api, "downloadBookImage").mockResolvedValue(new Blob(["saved PNG"]));
+    const jobs = vi.spyOn(api, "listJobs");
+    const generate = vi.spyOn(api, "startPreview");
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const original = URL.createObjectURL;
+    const revoke = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:saved-png");
+    URL.revokeObjectURL = vi.fn();
+    try {
+      const ready = { ...project, book_profile: { ...project.book_profile!, stage: "story_ready" } };
+      const saved = { ...assets, previews: [{ ...assets.previews![0], asset_id: "asset-saved" }] };
+      render(<MasterBookFlow project={ready} assets={saved} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+      await userEvent.click(screen.getByRole("button", { name: "Baixar imagem" }));
+      await waitFor(() => expect(click).toHaveBeenCalledOnce());
+      expect(download).toHaveBeenCalledWith("master", "asset-saved");
+      expect(click.mock.instances[0]).toHaveAttribute("download", "03_LEITURA.png");
+      expect(jobs).not.toHaveBeenCalled();
+      expect(generate).not.toHaveBeenCalled();
+      await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:saved-png"), { timeout: 2000 });
+    } finally { URL.createObjectURL = original; URL.revokeObjectURL = revoke; }
+  });
   it.each(["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"])("aprova o trio editorial %s antes da cotação e não oferece história gratuita", async (version) => {
     const current = { ...project, book_profile: { ...project.book_profile!, editorial: { version, sha256: "policy" } },
       purchase_flow: { preview_ready_at: "2026-11-05", stage: "preview_ready" } };

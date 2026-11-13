@@ -566,3 +566,8 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/covers/
 !apps/web/public/exemplos/covers/**
 /outputs/idiomas-audit/
+
+# Licensed ebook fonts required by the production build.
+!backend/app/assets/fonts/Andika-Regular.ttf
+!backend/app/assets/fonts/Andika-Bold.ttf
+!backend/app/assets/fonts/Andika-Italic.ttf

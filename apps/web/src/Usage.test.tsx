@@ -1,5 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, beforeEach, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { api } from "./api";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AppRoutes } from "./Root";
@@ -453,6 +454,33 @@ describe("Painel /gastos", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
     await waitFor(() => expect(document.title).toBe("Story R Us - Gastos"));
+  });
+
+  it("consulta e exporta o período escolhido com a autenticação do painel", async () => {
+    const read = vi.spyOn(api, "usage");
+    const exportFile = vi.spyOn(api, "exportUsage").mockResolvedValue(new Blob(["job_id,cost_usd"]));
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const create = URL.createObjectURL, revoke = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:cost-export");
+    URL.revokeObjectURL = vi.fn();
+    try {
+      render(<Usage />);
+      await userEvent.type(screen.getByLabelText(/senha/i), "segredo");
+      await userEvent.click(screen.getByRole("button", { name: /entrar/i }));
+      const from = await screen.findByLabelText("De");
+      fireEvent.change(from, { target: { value: "2026-11-01" } });
+      fireEvent.change(screen.getByLabelText("Até"), { target: { value: "2026-11-13" } });
+      await waitFor(() => expect(read).toHaveBeenLastCalledWith("segredo", "2026-11-01", "2026-11-13"));
+      await waitFor(() => expect(screen.getByRole("button", { name: "Exportar tarefas (CSV)" })).toBeEnabled());
+      await userEvent.click(screen.getByRole("button", { name: "Exportar tarefas (CSV)" }));
+      expect(exportFile).toHaveBeenCalledWith("segredo", "2026-11-01", "2026-11-13");
+      await waitFor(() => expect(click).toHaveBeenCalledOnce());
+      expect(click.mock.instances[0]).toHaveAttribute("download", "Storyrus-gastos.csv");
+      await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalled(), { timeout: 2000 });
+    } finally {
+      read.mockRestore(); exportFile.mockRestore(); click.mockRestore();
+      URL.createObjectURL = create; URL.revokeObjectURL = revoke;
+    }
   });
 
   it("pede senha e mostra totais depois do ok", async () => {

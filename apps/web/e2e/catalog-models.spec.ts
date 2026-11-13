@@ -1,6 +1,21 @@
 import { expect, test } from "./fixtures";
 import { TEST_SESSION_TOKEN } from "./session";
 
+for (const mobile of [false, true]) {
+  test(`Livros preserves Cartoon through details and registration (${mobile ? "mobile" : "desktop"})`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("lang", "pt"));
+    await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1920, height: 1080 });
+    await page.goto("/livro/6?modo=cartoon");
+    await expect(page.getByTestId("landing-personalize")).toHaveAttribute("href", /modelo(%3D|=)catalog-cartoon-6/);
+    if (mobile) await page.locator(".khamb").click();
+    await page.locator(mobile ? ".kmobile" : ".kcats").getByRole("link", { name: "Livros", exact: true }).click();
+    await expect(page).toHaveURL(/\/catalogo\?modo=cartoon$/);
+    await expect(page.locator(".catalog-result").first().getByTestId("landing-personalize")).toHaveAttribute("href", /modelo(%3D|=)catalog-cartoon-/);
+    await page.locator(".catalog-result").first().getByTestId("landing-personalize").click();
+    await expect(page).toHaveURL(/modelo(%3D|=)catalog-cartoon-/);
+  });
+}
+
 for (const index of [0, 1, 6]) {
   test(`catalog model ${index} survives navigation and permits another theme`, async ({ page }) => {
     await page.addInitScript((token) => { localStorage.setItem('lang','pt'); localStorage.setItem('storyrus_token',token); }, TEST_SESSION_TOKEN);
