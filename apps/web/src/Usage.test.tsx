@@ -452,7 +452,7 @@ describe("Painel /gastos", () => {
       await screen.findByRole("heading", { name: /gastos da plataforma/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
-    expect(document.title).toBe("Story R Us - Gastos");
+    await waitFor(() => expect(document.title).toBe("Story R Us - Gastos"));
   });
 
   it("pede senha e mostra totais depois do ok", async () => {
