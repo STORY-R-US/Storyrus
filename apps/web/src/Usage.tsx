@@ -64,19 +64,26 @@ export function Usage() {
   const [sessionTried, setSessionTried] = useState(false);
   const [lastStatus, setLastStatus] = useState<number | undefined>();
   const autoRetryUsed = useRef(false);
+  const requestSequence = useRef(0);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async (secret: string) => {
+    const request = ++requestSequence.current;
     setLoading(true);
     setError(null);
     setLastStatus(undefined);
     try {
-      const report = await api.usage(apiOwnerPassword(secret));
+      const report = await api.usage(apiOwnerPassword(secret), fromDate || undefined, toDate || undefined);
+      if (request !== requestSequence.current) return;
       setData(report);
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
       persistOwnerSecret(next);
       setPassword(next);
       autoRetryUsed.current = false;
     } catch (err) {
+      if (request !== requestSequence.current) return;
       const status = (err as Error & { status?: number }).status;
       const raw = err instanceof Error ? err.message : "Falha ao carregar gastos.";
       setLastStatus(status);
@@ -91,9 +98,9 @@ export function Usage() {
         }),
       );
     } finally {
-      setLoading(false);
+      if (request === requestSequence.current) setLoading(false);
     }
-  }, []);
+  }, [fromDate, toDate]);
 
   useEffect(() => {
     if (password) {
@@ -161,7 +168,7 @@ export function Usage() {
         <img className="hdr-logo" src={logo} alt="Story R Us" />
         <div>
           <h1>Gastos da plataforma</h1>
-          <p className="muted">Atualiza a cada 20s · fuso de Brasília · extrato do mês atual</p>
+          <p className="muted">Atualiza a cada 20s · fuso de Brasília · sem datas, mostra o mês atual</p>
         </div>
         <OwnerNav current="gastos" />
         <button
@@ -180,6 +187,25 @@ export function Usage() {
       </header>
 
       {error && <p className="error">{error}</p>}
+
+      <section className="usage-panel" aria-label="Período dos gastos">
+        <label>De <input type="date" value={fromDate} max={toDate || undefined} onChange={(event) => setFromDate(event.target.value)} /></label>{" "}
+        <label>Até <input type="date" value={toDate} min={fromDate || undefined} onChange={(event) => setToDate(event.target.value)} /></label>{" "}
+        <button type="button" disabled={loading || exporting} onClick={() => void (async () => {
+          setExporting(true);
+          setError(null);
+          try {
+            const blob = await api.exportUsage(apiOwnerPassword(password), fromDate || undefined, toDate || undefined);
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url; link.download = "Storyrus-gastos.csv";
+            document.body.appendChild(link); link.click(); link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          } catch (error) { setError((error as Error).message); }
+          finally { setExporting(false); }
+        })()}>Exportar tarefas (CSV)</button>
+        <p className="muted">O CSV inclui todas as tarefas do período, tentativas, custo registrado e quantidade de linhas do extrato. Custo vazio significa não medido. As linhas do extrato não são somadas novamente ao total da tarefa. A conferência com a fatura do fornecedor é separada.</p>
+      </section>
 
       <section className="usage-panel" data-testid="owner-orders">
         <h2>Pedidos</h2>

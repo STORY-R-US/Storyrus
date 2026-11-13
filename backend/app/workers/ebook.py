@@ -9,8 +9,8 @@ build_pdf gera um PDF QUADRADO (formato dos livros personalizados impressos) com
   6. contracapa com poema de encerramento em moldura + selo;
   7. pagina final "Obrigado".
 Usa reportlab (puro Python, sem deps de sistema).
-Fonte: Megifera Indica.
-"""  # layout v3 — Megifera Indica + capa redesenhada + preview limitado
+Fonte: Andika (SIL, OFL).
+"""  # layout v3 — capa redesenhada + preview limitado
 
 from __future__ import annotations
 
@@ -26,8 +26,7 @@ from pathlib import Path
 logger = logging.getLogger("ebook")
 
 # ------------------------------------------------------------------- fontes
-# Fonte oficial do ebook: Megifera Indica (Risma Type).
-# Os TTFs sao gerados no build por backend/scripts/fetch_fonts.py.
+# Fonte oficial do ebook: Andika (SIL, OFL), incluída no projeto.
 _FALLBACK_FONTS = {
     "body": "Times-Bold",
     "italic": "Times-Italic",

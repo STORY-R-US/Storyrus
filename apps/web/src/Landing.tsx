@@ -1472,10 +1472,10 @@ const I18N = {
     faq: [
       { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
       { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
-      { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto que você envia apenas para criar o livro e não compartilhamos seus dados. Os exemplos da página inicial são demonstrações, separados do que você envia." },
+      { q: "A foto e os dados da criança estão seguros?", a: "Usamos a foto para criar o livro. Os fornecedores necessários ao serviço podem processar fotos e dados conforme a Política de privacidade. Não vendemos seus dados nem usamos suas fotos em publicidade ou treino de modelos. Os exemplos da página inicial são demonstrações separadas dos seus arquivos." },
       { q: "Recebo digital ou impresso?", a: "O e-book digital fica pronto na plataforma. Se quiser o impresso, peça a cotação depois de aprovar o livro." },
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
-      { q: "Como funciona o vídeo narrado?", a: "Depois do ebook pronto, na tela de resultado você pode gerar o vídeo narrado (voz + cenas ilustradas) ou uma animação curta do personagem." },
+      { q: "Como funciona o vídeo narrado?", a: "Vídeo narrado e animação são recursos opcionais, sujeitos à disponibilidade no Estúdio. A criação do livro não inclui nem inicia um vídeo automaticamente. Quando disponíveis, as condições são informadas antes da solicitação." },
     ],
     rev_title: "O Que As Famílias Dizem", rev_sub: "Histórias que viraram memórias para sempre.",
     reviews: [
@@ -1731,10 +1731,10 @@ const I18N = {
     faq: [
       { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
       { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
-      { q: "Are my child's photo and data safe?", a: "Yes. We use the photo you upload only to create the book and never share your data. Homepage examples are demos, separate from what you send." },
+      { q: "Are my child's photo and data safe?", a: "We use the photo to create the book. Providers needed to deliver the service may process photos and data as described in the Privacy Policy. We do not sell your data or use your photos for advertising or model training. Homepage examples are demos separate from your files." },
       { q: "Digital or printed?", a: "The digital e-book is ready on the platform. If you want a printed copy, request a quote after you approve the book." },
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
-      { q: "How does the narrated video work?", a: "After the ebook is ready, on the result screen you can generate a narrated video (voice + illustrated scenes) or a short character animation." },
+      { q: "How does the narrated video work?", a: "Narrated video and animation are optional features, subject to availability in the Studio. Creating a book does not include or automatically start a video. When available, conditions are shown before you request it." },
     ],
     rev_title: "What Families Say", rev_sub: "Stories that became memories forever.",
     reviews: [
@@ -1990,10 +1990,10 @@ const I18N = {
     faq: [
       { q: "¿Cómo creo un libro personalizado?", a: "Elige un tema, envía una foto del niño y agrega el nombre y una dedicatoria. La IA transforma la foto en ilustraciones y ves la vista previa antes de finalizar." },
       { q: "¿Puedo ver el libro antes?", a: "¡Sí! Recibes una vista previa completa (portada y páginas) antes de descargar o pedir la impresión." },
-      { q: "¿La foto y los datos del niño están seguros?", a: "Sí. Usamos la foto que envías solo para crear el libro y no compartimos tus datos. Los ejemplos de la página inicial son demostraciones, separados de lo que tú envías." },
+      { q: "¿La foto y los datos del niño están seguros?", a: "Usamos la foto para crear el libro. Los proveedores necesarios para prestar el servicio pueden tratar fotos y datos conforme a la Política de privacidad. No vendemos tus datos ni usamos tus fotos en publicidad o entrenamiento de modelos. Los ejemplos de la página inicial son demostraciones separadas de tus archivos." },
       { q: "¿Recibo digital o impreso?", a: "El e-book digital queda listo en la plataforma. Si quieres el impreso, pide la cotización después de aprobar el libro." },
       { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
-      { q: "¿Cómo funciona el video narrado?", a: "Después del ebook listo, en la pantalla de resultado puedes generar el video narrado (voz + escenas ilustradas) o una animación corta del personaje." },
+      { q: "¿Cómo funciona el video narrado?", a: "El vídeo narrado y la animación son recursos opcionales, sujetos a disponibilidad en el Estudio. Crear el libro no incluye ni inicia un vídeo automáticamente. Cuando estén disponibles, las condiciones se informan antes de solicitarlos." },
     ],
     rev_title: "Lo Que Dicen Las Familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
     reviews: [
@@ -2654,13 +2654,13 @@ export type CatalogSection = {
   subs: CatalogSubSection[];
   books: CatalogCardBook[];
 };
-export function catalogCategory(lang: Lang, id: string): CatalogSection | null {
+export function catalogCategory(lang: Lang, id: string, variant: "photo" | "cartoon" = "photo"): CatalogSection | null {
   if (id === "sentimentos") {
     const name = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
     const books = sortCatalogBooks(
       CATALOG_THEMES.flatMap((theme, index) => {
         if (!FEELING_THEMES.has(theme)) return [];
-        const card = toCatalogCard(lang, index);
+        const card = toCatalogCard(lang, index, variant);
         return card ? [card] : [];
       }),
     );
@@ -2672,7 +2672,7 @@ export function catalogCategory(lang: Lang, id: string): CatalogSection | null {
       books,
     };
   }
-  return catalogSections(lang).find((section) => section.id === id) ?? null;
+  return catalogSections(lang, variant).find((section) => section.id === id) ?? null;
 }
 export function catalogEntry(lang: Lang, index: number) {
   const card = toCatalogCard(lang, index);

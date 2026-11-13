@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import logging
 import uuid
 from collections import defaultdict
@@ -150,6 +152,7 @@ def _event_rows(
     events = db.execute(
         select(UsageEvent, Project)
         .join(Project, Project.id == UsageEvent.project_id)
+        .where(UsageEvent.created_at >= range_start, UsageEvent.created_at <= range_end)
         .order_by(UsageEvent.created_at.desc())
         .limit(2000)
     ).all()
@@ -159,8 +162,6 @@ def _event_rows(
         created = _aware(event.created_at)
         if not (range_start <= created <= range_end):
             continue
-        if event.job_id is not None:
-            jobs_with_lines.add(event.job_id)
         out.append(
             UsageEventOut(
                 id=event.id,
@@ -177,6 +178,10 @@ def _event_rows(
         )
         if len(out) >= 400:
             break
+    # A truncated screen must not label an existing ledger as missing.
+    jobs_with_lines = set(
+        db.scalars(select(UsageEvent.job_id).where(UsageEvent.job_id.is_not(None)).distinct())
+    )
     for job, project in job_rows:
         created = _aware(job.created_at)
         if not (range_start <= created <= range_end):
@@ -486,6 +491,73 @@ def my_orders(
     return orders
 
 
+@router.get("/export")
+def export_usage(
+    _: Annotated[None, Depends(require_owner_password)],
+    db: Annotated[Session, Depends(get_db)],
+    from_date: Annotated[date | None, Query(alias="from")] = None,
+    to_date: Annotated[date | None, Query(alias="to")] = None,
+):
+    """One row per recorded job: ledger lines are evidence, never added twice."""
+    today = datetime.now(_TZ).date()
+    start = _parse_day(from_date or today.replace(day=1), end=False)
+    end = _parse_day(to_date or today, end=True)
+    if end < start:
+        raise HTTPException(400, "Intervalo invalido")
+    output = io.StringIO(newline="")
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "job_id",
+            "project_id",
+            "created_at_utc",
+            "type",
+            "status",
+            "attempts",
+            "provider",
+            "cost_usd",
+            "ledger_lines",
+        ]
+    )
+    rows = db.execute(
+        select(Job, func.count(UsageEvent.id))
+        .outerjoin(UsageEvent, UsageEvent.job_id == Job.id)
+        .where(Job.created_at >= start, Job.created_at <= end)
+        .group_by(Job.id)
+        .order_by(Job.created_at, Job.id)
+        .execution_options(yield_per=500)
+    )
+    for job, ledger_lines in rows:
+        values = [
+            str(job.id),
+            str(job.project_id),
+            _aware(job.created_at).isoformat(),
+            job.type,
+            job.status,
+            job.attempts,
+            job.provider or "",
+            job.cost_usd if job.cost_usd is not None else "",
+            ledger_lines,
+        ]
+        writer.writerow(
+            [
+                "'" + value
+                if isinstance(value, str)
+                and value.startswith(("=", "+", "-", "@", "\t", "\r", "\n"))
+                else value
+                for value in values
+            ]
+        )
+    return Response(
+        content="\ufeff" + output.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="Storyrus-gastos.csv"',
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
 @router.get("", response_model=UsageOut)
 def get_usage(
     _: Annotated[None, Depends(require_owner_password)],
@@ -535,7 +607,10 @@ def get_usage(
         select(Job, Project)
         .join(Project, Project.id == Job.project_id)
         .order_by(Job.created_at.desc())
-        .limit(2000)
+        .where(
+            Job.created_at >= min(range_start, month_start),
+            Job.created_at <= max(range_end, today_end),
+        )
     ).all()
 
     today_usd = 0.0
@@ -552,7 +627,7 @@ def get_usage(
         in_range = range_start <= created <= range_end
         if today_start <= created <= today_end and usd is not None:
             today_usd += usd
-        if created >= month_start and usd is not None:
+        if month_start <= created <= today_end and usd is not None:
             month_usd += usd
         if in_range:
             if usd is not None:

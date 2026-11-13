@@ -437,6 +437,28 @@ export function MasterBookFlow({
       p.languages.indexOf(a.language) - p.languages.indexOf(b.language) ||
       (a.role === "sem_texto" ? -1 : 1),
   );
+  async function runDownload(action: () => Promise<unknown>) {
+    if (active) return;
+    setSending(true);
+    setError("");
+    try { await action(); }
+    catch (e) { setError((e as Error).message); }
+    finally { setSending(false); }
+  }
+
+  async function downloadImage(image: import("./assets").BookImage) {
+    if (!image.asset_id) throw new Error(lang === "en" ? "Reload the project before downloading." : lang === "es" ? "Vuelve a abrir el proyecto antes de descargar." : "Reabra o projeto antes de baixar.");
+    const blob = await api.downloadBookImage(project.id, image.asset_id);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = image.filename || "Storyrus-imagem.png";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   async function run(action: () => Promise<unknown>) {
     if (active) return;
     setSending(true);
@@ -753,7 +775,7 @@ export function MasterBookFlow({
                 <span className="master-shot-actions">
                   <button type="button" aria-label={`${expandLabel} ${label}`}
                     onClick={() => setExpandedImage({ url: shot.url, label })}>{expandLabel}</button>
-                  {previews.length === 3 && shot === previews[0] && <button type="button" disabled={active} onClick={() => void run(async () => {
+                  {previews.length === 3 && shot === previews[0] && <button type="button" disabled={active} onClick={() => void runDownload(async () => {
                     const blob = await api.downloadPreviewPackage(project.id);
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement("a");
@@ -773,9 +795,9 @@ export function MasterBookFlow({
                       {t.suggest}
                     </button>
                   ) : (
-                    <a href={shot.url} download={shot.filename} target="_blank" rel="noreferrer">
+                    <button type="button" disabled={active} onClick={() => void runDownload(() => downloadImage(shot))}>
                       {t.save}
-                    </a>
+                    </button>
                   )}
                 </span>
               </figcaption>
@@ -909,9 +931,9 @@ export function MasterBookFlow({
                 <article key={`${image.language}-${page}`} className="master-page-card">
                   <h4>{t.page} {page}</h4>
                   <img src={image.url} alt={`${t.page} ${page}`} />
-                  <a href={image.url} download={image.filename} target="_blank" rel="noreferrer">
+                  <button type="button" disabled={active} onClick={() => void runDownload(() => downloadImage(image))}>
                     {t.save}
-                  </a>
+                  </button>
                   {!project.book_approved_at && (
                     <>
                       <label className="studio-field">
@@ -1093,14 +1115,9 @@ export function MasterBookFlow({
             alt={image.filename}
             style={{ maxWidth: 480, width: "100%", display: "block" }}
           />
-          <a
-            href={image.url}
-            download={image.filename}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <button type="button" disabled={active} onClick={() => void runDownload(() => downloadImage(image))}>
             {t.save}
-          </a>
+          </button>
           {image.role === "com_texto" && (
             <button
               className="kbtn kbtn-soft"

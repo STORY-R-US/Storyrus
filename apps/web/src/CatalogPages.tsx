@@ -45,6 +45,8 @@ function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
 }
 
 function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang) => void }) {
+  const { search } = useLocation();
+  const catalogHref = new URLSearchParams(search).get("modo") === "cartoon" ? "/catalogo?modo=cartoon" : "/catalogo";
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try {
       const stored = localStorage.getItem("theme");
@@ -60,7 +62,7 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
   const copy = catalogPageCopy(lang);
   const closeMenu = () => setMenuOpen(false);
   const links = [
-    { href: "/catalogo", label: copy.cats, color: "#9b8cff" },
+    { href: catalogHref, label: copy.cats, color: "#9b8cff" },
     { href: "/#como", label: copy.hiw, color: "#7aa2ff" },
     { href: "/#passo", label: copy.passo, color: "#f08a4b" },
     { href: "/cartoon", label: copy.cartoon, color: "#3ecf8e" },
@@ -163,7 +165,9 @@ export function CatalogPage() {
 export function CategoryCatalogPage() {
   const [lang, setLang] = useSiteLang();
   const params = useParams();
-  const section = catalogCategory(lang, params.categoria ?? "");
+  const { search } = useLocation();
+  const cartoon = new URLSearchParams(search).get("modo") === "cartoon";
+  const section = catalogCategory(lang, params.categoria ?? "", cartoon ? "cartoon" : "photo");
   usePageMeta(section ? categoryPageMeta(section.id, section.name, lang) : null);
   if (!section) return <NotFound />;
   const copy = catalogPageCopy(lang);
@@ -174,7 +178,7 @@ export function CategoryCatalogPage() {
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <CatalogSectionTitle name={section.name} color={section.color} as="h1" />
           <CatalogBrowser key={section.id} books={section.books} lang={lang}
-            renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} />} />
+            renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} modo={cartoon ? "cartoon" : "realista"} />} />
         </section>
       </main>
     </div>

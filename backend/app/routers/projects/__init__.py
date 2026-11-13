@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.background import BackgroundTask
 
 from app import storage, story_templates
 from app.database import get_db
@@ -323,12 +326,13 @@ def project_assets(
         "previews": [
             {
                 **{key: value for key, value in (a.meta or {}).items() if key != "watermark_key"},
+                "asset_id": str(a.id),
                 "url": url_for(a.storage_key) if paid_book else shown(a),
             }
             for a in preview_assets
         ],
         "page_versions": [
-            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            {**(a.meta or {}), "asset_id": str(a.id), "url": url_for(a.storage_key)}
             for a in pages
             if (a.meta or {}).get("workflow") == 1
             and (a.meta or {}).get("role") in {"sem_texto", "com_texto"}
@@ -350,6 +354,62 @@ def project_assets(
         "photo_count": len(photos),
         "photos_authorized": photos_authorized(db, project.id),
     }
+
+
+@router.get("/{project_id}/assets/{asset_id}/download")
+def download_book_image(
+    project_id: uuid.UUID,
+    asset_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    project = get_owned_project(db, user, project_id)
+    asset = db.scalar(select(Asset).where(Asset.id == asset_id, Asset.project_id == project.id))
+    meta = (asset.meta or {}) if asset else {}
+    role = meta.get("role")
+    preview = role in {"01_CAPA", "02_LIVRO_ABERTO", "03_LEITURA"}
+    page = asset and asset.kind == AssetKind.PAGE_IMAGE.value and role in {"sem_texto", "com_texto"}
+    current_editorial = (project.book_profile or {}).get("editorial")
+    if (
+        not asset
+        or meta.get("workflow") != 1
+        or meta.get("archived")
+        or not (preview or page)
+        or (preview and current_editorial and meta.get("editorial") != current_editorial)
+    ):
+        raise HTTPException(404, "Imagem indisponível")
+    paid_book = (project.purchase_flow or {}).get("stage") in {"generating_book", "book_ready"}
+    key = asset.storage_key if page or paid_book else display_key(db, asset)
+    # Read the first chunk before sending headers so missing output returns a proper error.
+    reader = storage.open_reader(key)
+    try:
+        stream = reader.__enter__()
+        first = stream.read(64 * 1024)
+    except Exception:
+        reader.__exit__(None, None, None)
+        raise HTTPException(404, "Arquivo indisponível") from None
+
+    def chunks():
+        try:
+            yield first
+            while chunk := stream.read(64 * 1024):
+                yield chunk
+        finally:
+            reader.__exit__(None, None, None)
+
+    filename = (
+        str(meta.get("filename") or f"Storyrus-{asset.id}.png").replace("\\", "/").split("/")[-1]
+    )
+    return StreamingResponse(
+        chunks(),
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename, safe='')}",
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+        background=BackgroundTask(reader.__exit__, None, None, None),
+    )
 
 
 @router.get("/{project_id}/jobs", response_model=list[JobOut])

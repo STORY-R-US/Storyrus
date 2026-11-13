@@ -1,5 +1,7 @@
 """API do painel de gastos: senha e agregacao de cost_usd."""
 
+import csv
+import io
 from datetime import UTC, datetime
 
 import pytest
@@ -39,6 +41,78 @@ def _seed_job(client, *, cost_usd, job_type="EBOOK", child="Matteo"):
         return project.id
     finally:
         db.close()
+
+
+def test_historical_range_and_export_include_older_jobs_without_double_counting(
+    auth_client, monkeypatch
+):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    pid = _seed_job(auth_client, cost_usd=0.5)
+    db = _session(auth_client)
+    try:
+        job = db.query(Job).filter(Job.project_id == pid).one()
+        job.created_at = datetime(2020, 1, 2, 12, tzinfo=UTC)
+        for i in range(2001):
+            db.add(
+                Job(
+                    project_id=pid,
+                    type="EBOOK",
+                    status="DONE",
+                    cost_usd=0,
+                    created_at=datetime(2021, 1, 2, 12, tzinfo=UTC),
+                )
+            )
+        db.add_all(
+            [
+                UsageEvent(
+                    job_id=job.id,
+                    project_id=pid,
+                    kind="image",
+                    provider="openai",
+                    action="generate",
+                    label="Saved image",
+                    cost_usd=0.25,
+                    created_at=job.created_at,
+                )
+                for _ in range(2)
+            ]
+        )
+        db.add(
+            Job(
+                project_id=pid,
+                type="EBOOK",
+                status="FAILED",
+                attempts=2,
+                cost_usd=None,
+                created_at=job.created_at,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+    headers = {"X-Usage-Password": "segredo"}
+    query = "?from=2020-01-01&to=2020-01-03"
+    report = auth_client.get("/v1/usage" + query, headers=headers)
+    assert report.status_code == 200, report.text
+    assert report.json()["range_usd"] == 0.5
+    assert report.json()["books"][0]["unmeasured_jobs"] == 1
+    assert len(report.json()["events"]) == 2
+    assert auth_client.get("/v1/usage/export" + query).status_code == 401
+    exported = auth_client.get("/v1/usage/export" + query, headers=headers)
+    assert exported.status_code == 200, exported.text
+    assert exported.headers["cache-control"] == "private, no-store"
+    rows = list(csv.DictReader(io.StringIO(exported.content.decode("utf-8-sig"))))
+    assert len(rows) == 2
+    assert sum(float(row["cost_usd"] or 0) for row in rows) == 0.5
+    assert sorted(row["ledger_lines"] for row in rows) == ["0", "2"]
+    assert any(row["cost_usd"] == "" and row["attempts"] == "2" for row in rows)
+    assert (
+        auth_client.get(
+            "/v1/usage/export?from=2020-02-01&to=2020-01-01", headers=headers
+        ).status_code
+        == 400
+    )
 
 
 def test_usage_without_password_still_rejects_anonymous(client, monkeypatch):

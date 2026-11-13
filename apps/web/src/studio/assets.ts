@@ -17,6 +17,7 @@ export type StudioAssets = {
 };
 
 export type BookImage = {
+  asset_id?: string;
   url: string;
   language: string;
   role: string;

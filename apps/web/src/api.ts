@@ -675,6 +675,14 @@ export const api = {
       body: JSON.stringify(body),
     }).then((result) => { releaseStepIdempotencyKey(id, "page"); return result; });
   },
+  async downloadBookImage(id: string, assetId: string) {
+    await resolveToken();
+    const headers = new Headers();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const resp = await backendFetch(`${BASE}/v1/projects/${id}/assets/${encodeURIComponent(assetId)}/download`, { headers });
+    if (!resp.ok) throw new Error("Imagem indisponível para download.");
+    return resp.blob();
+  },
   async downloadPreviewPackage(id: string) {
     await resolveToken();
     const headers = new Headers();
@@ -832,6 +840,15 @@ export const api = {
       throw new Error(`${resp.status}: ${detail}`);
     }
     return resp.json();
+  },
+  async exportUsage(password?: string | null, from?: string, to?: string) {
+    await resolveToken();
+    const query = new URLSearchParams();
+    if (from) query.set("from", from);
+    if (to) query.set("to", to);
+    const resp = await ownerFetch(`/v1/usage/export?${query}`, password, {});
+    if (!resp.ok) throw await readOwnerError(resp);
+    return resp.blob();
   },
   async usage(password?: string | null, from?: string, to?: string, scope?: "orders") {
     const q = new URLSearchParams();

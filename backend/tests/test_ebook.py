@@ -2,6 +2,7 @@
 
 from io import BytesIO
 
+import pytest
 from PIL import Image
 from pypdf import PdfReader
 
@@ -19,6 +20,37 @@ NAME_TEXT = (
     "M é magia. A é amigo. T é terno. T é talentoso. "
     "E é especial. O é ousado."
 )
+
+
+@pytest.mark.parametrize(
+    "text", ["Coração, avó e ação", "A child's great adventure", "Corazón, pingüino y canción"]
+)
+def test_bundled_font_embeds_and_preserves_localized_text(text):
+    from reportlab.pdfgen import canvas
+
+    from app.workers import ebook
+
+    ebook._fonts_cache = None
+    fonts = ebook._fonts()
+    assert fonts["body"] == "Andika"
+    assert fonts["brand"] == "Andika-Bold"
+    assert fonts["italic"] == "Andika-Italic"
+    output = BytesIO()
+    pdf = canvas.Canvas(output)
+    for index, role in enumerate(("body", "brand", "italic")):
+        pdf.setFont(fonts[role], 18)
+        pdf.drawString(40, 700 - index * 40, text)
+    pdf.save()
+    page = PdfReader(BytesIO(output.getvalue())).pages[0]
+    assert page.extract_text().count(text) == 3
+    embedded = [
+        font.get_object()
+        for font in page["/Resources"]["/Font"].values()
+        if "/Andika" in str(font.get_object().get("/BaseFont"))
+        or "Andika" in str(font.get_object().get("/BaseFont"))
+    ]
+    assert len(embedded) == 3
+    assert all("/FontFile2" in font["/FontDescriptor"] for font in embedded)
 
 
 def _image_bytes() -> bytes:

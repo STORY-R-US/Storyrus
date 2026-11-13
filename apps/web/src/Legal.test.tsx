@@ -3,10 +3,17 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Legal } from "./Legal";
 import { AppRoutes } from "./Root";
+import { legalDocument } from "./legalCopy";
 
 const CONTACT = "info@storyrus.ai";
 
 describe("Legal", () => {
+  it.each(["pt", "en", "es"] as const)("mantém as dez seções dos termos em %s", (lang) => {
+    const blocks = legalDocument(lang, "terms").blocks;
+    expect(blocks.filter((block) => block.type === "h")).toHaveLength(10);
+    expect(blocks.filter((block) => block.type === "p")).toHaveLength(10);
+    expect(blocks.at(-1)?.type).toBe("contact");
+  });
   it("mostra política de privacidade com seções e contato", () => {
     render(
       <MemoryRouter>
