@@ -240,12 +240,12 @@ def _identity_from_clerk_jwt(token: str) -> ClerkIdentity:
             token,
             _jwk_to_pem(match),
             algorithms=["RS256"],
-            options={"verify_aud": False},
+            options={"verify_aud": False, "require_exp": True, "require_sub": True},
         )
     except JWTError as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nao autenticado") from exc
     sub = str(payload.get("sub") or "")
-    if not sub.startswith("user_"):
+    if not sub.startswith("user_") or payload.get("sts") == "pending":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nao autenticado")
     try:
         profile = fetch_clerk_user(sub)
@@ -294,6 +294,11 @@ def resolve_local_user(db: Session, identity: ClerkIdentity) -> User:
 
     existing = db.scalar(select(User).where(func.lower(User.email) == identity.email))
     if existing is not None:
+        if not identity.email_verified:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Verifique seu e-mail antes de vincular uma conta existente",
+            )
         if is_guest_user(email=existing.email, password_hash=existing.password_hash):
             raise HTTPException(status.HTTP_409_CONFLICT, "E-mail ja cadastrado")
         if existing.clerk_user_id and existing.clerk_user_id != identity.clerk_user_id:

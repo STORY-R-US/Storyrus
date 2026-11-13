@@ -7,6 +7,7 @@ import time
 import uuid
 from datetime import UTC, datetime
 
+import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from jose import jwt
@@ -206,7 +207,8 @@ def _b64u(value: int) -> str:
     return base64.urlsafe_b64encode(value.to_bytes(length, "big")).rstrip(b"=").decode()
 
 
-def test_clerk_jwt_creates_user_from_backend_email(client, monkeypatch):
+@pytest.mark.parametrize("session", ["active", "expired", "missing_exp", "pending"])
+def test_clerk_jwt_creates_user_from_backend_email(client, monkeypatch, session):
     private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     numbers = private.public_key().public_numbers()
     kid = "kid-test"
@@ -223,8 +225,15 @@ def test_clerk_jwt_creates_user_from_backend_email(client, monkeypatch):
         serialization.PrivateFormat.PKCS8,
         serialization.NoEncryption(),
     )
+    claims = {"sub": "user_rs256", "iat": int(time.time()), "exp": int(time.time()) + 600}
+    if session == "expired":
+        claims["exp"] = int(time.time()) - 60
+    elif session == "missing_exp":
+        claims.pop("exp")
+    elif session == "pending":
+        claims["sts"] = "pending"
     token = jwt.encode(
-        {"sub": "user_rs256", "iat": int(time.time()), "exp": int(time.time()) + 600},
+        claims,
         pem.decode(),
         algorithm="RS256",
         headers={"kid": kid},
@@ -247,6 +256,11 @@ def test_clerk_jwt_creates_user_from_backend_email(client, monkeypatch):
         },
     )
     me = client.get("/v1/auth/me", headers=_auth(token))
+    if session != "active":
+        assert me.status_code == 401
+        with _db(client) as db:
+            assert db.query(User).filter(User.clerk_user_id == "user_rs256").count() == 0
+        return
     assert me.status_code == 200, me.text
     assert me.json()["email"] == "rs256@example.com"
     assert me.json()["email_verified"] is True
@@ -332,3 +346,16 @@ def test_webhook_rejects_bad_signature(client, monkeypatch):
         },
     )
     assert r.status_code == 401
+
+
+def test_unverified_email_cannot_claim_legacy_books(client):
+    legacy = _legacy_user(client, "legacy@example.com", credits=77, clerk_user_id=None)
+    token = create_test_session_token(
+        clerk_user_id="user_unverified_claim", email="legacy@example.com", email_verified=False
+    )
+    response = client.get("/v1/auth/me", headers=_auth(token))
+    assert response.status_code == 403
+    with _db(client) as db:
+        saved = db.get(User, legacy.id)
+        assert saved.clerk_user_id is None and saved.credits == 77
+        assert db.query(Project).filter(Project.user_id == legacy.id).count() == 1

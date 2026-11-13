@@ -36,6 +36,7 @@ let manualOverride = false;
 let clerkGetToken: ClerkTokenGetter | null = null;
 let clerkSignOut: (() => Promise<void>) | null = null;
 let clerkPresent = false;
+let sessionEpoch = 0;
 const clerkReadyWaiters: Array<() => void> = [];
 const clerkTokenListeners = new Set<() => void>();
 
@@ -92,6 +93,7 @@ export function restoreClerkSessionFromStorage(): void {
 restoreClerkSessionFromStorage();
 
 export function setClerkGetToken(fn: ClerkTokenGetter | null) {
+  sessionEpoch += 1;
   clerkGetToken = fn;
   if (!fn) return;
   notifyClerkReady();
@@ -103,6 +105,7 @@ export function setClerkSignOut(fn: (() => Promise<void>) | null) {
 }
 
 export function setToken(t: string | null) {
+  sessionEpoch += 1;
   token = t;
   manualOverride = Boolean(t);
   try {
@@ -123,11 +126,17 @@ export async function refreshSessionToken(): Promise<string | null> {
 async function resolveToken(): Promise<string | null> {
   if (manualOverride) return token;
   if (!clerkGetToken) return token;
+  const epoch = sessionEpoch;
+  const getter = clerkGetToken;
   try {
-    const fresh = await clerkGetToken();
+    const fresh = await getter();
+    if (epoch !== sessionEpoch) return null;
     if (fresh) token = fresh;
+    else setToken(null);
   } catch {
-    /* mantém o último token se o Clerk não responder */
+    // A failed session check cannot reuse a previous customer's credentials.
+    if (epoch !== sessionEpoch) return null;
+    setToken(null);
   }
   return token;
 }

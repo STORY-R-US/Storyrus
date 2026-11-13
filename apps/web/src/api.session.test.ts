@@ -64,4 +64,43 @@ describe("sessão do Clerk", () => {
     await expect(api.me()).rejects.toThrow("401:");
     expect(getToken()).toBeNull();
   });
+
+  it.each(["signed-out", "unavailable"])("não reutiliza a conta anterior quando Clerk está %s", async (state) => {
+    let signedIn = true;
+    localStorage.setItem("storyrus_token", "previous-customer");
+    setClerkGetToken(async () => {
+      if (signedIn) return "previous-customer";
+      if (state === "unavailable") throw new Error("Clerk unavailable");
+      return null;
+    });
+    await ensureSession();
+    signedIn = false;
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(api.me()).rejects.toThrow("401:");
+    expect(getToken()).toBeNull();
+    expect(localStorage.getItem("storyrus_token")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("descarta uma resposta de sessão que terminou depois do logout", async () => {
+    let finish!: (value: string) => void;
+    setClerkGetToken(() => new Promise((resolve) => { finish = resolve; }));
+    const pending = ensureSession();
+    setToken(null);
+    finish("previous-customer");
+    await expect(pending).rejects.toThrow("401:");
+    expect(getToken()).toBeNull();
+  });
+
+  it("descarta a sessão antiga quando outra conta assume o acesso", async () => {
+    let finish!: (value: string) => void;
+    setClerkGetToken(() => new Promise((resolve) => { finish = resolve; }));
+    const pending = ensureSession();
+    setClerkGetToken(async () => "current-customer");
+    await ensureSession();
+    finish("previous-customer");
+    await expect(pending).rejects.toThrow("401:");
+    expect(getToken()).toBe("current-customer");
+  });
 });

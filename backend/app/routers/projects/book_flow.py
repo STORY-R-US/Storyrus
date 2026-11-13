@@ -102,10 +102,12 @@ def preview_package(
 ):
     import hashlib
     import io
+    import tempfile
     import zipfile
 
-    from fastapi import Response
+    from fastapi.responses import StreamingResponse
     from PIL import Image
+    from starlette.background import BackgroundTask
 
     from app import storage
     from app.models import Asset
@@ -117,65 +119,80 @@ def preview_package(
     if not (project.purchase_flow or {}).get("preview_ready_at"):
         raise HTTPException(409, "Aguarde a prévia atual terminar")
     assets = db.scalars(select(Asset).where(Asset.project_id == project.id)).all()
-    output = io.BytesIO()
+    output = tempfile.TemporaryFile()
     digests = set()
-    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
-        for lang in [project.language or "pt-BR"]:
-            for role in editorial_profile.ROLES:
-                matches = [
-                    a
-                    for a in assets
-                    if (a.meta or {}).get("workflow") == 1
-                    and a.meta.get("language") == lang
-                    and a.meta.get("role") == role
-                    and (
-                        a.meta.get("validation", {}).get("status") == "valid"
-                        or (
-                            a.meta.get("validation", {}).get("status") == "awaiting_user_review"
-                            and a.meta.get("validation", {}).get("reviewer") == "user"
-                            and a.meta.get("validation", {}).get("method")
-                            == "technical_integrity_only"
-                        )
-                    )
-                    and (
-                        not project.book_profile.get("editorial")
-                        or a.meta.get("editorial") == project.book_profile["editorial"]
-                    )
-                ]
-                if len(matches) != 1:
-                    raise HTTPException(
-                        409, "Aguarde três imagens validadas antes de baixar o pacote"
-                    )
-                asset = matches[0]
-                if asset.meta.get("texts") != project.book_profile["locales"][lang]:
-                    raise HTTPException(409, "Atualize as imagens para os textos atuais")
-                data = storage.get_bytes(asset.storage_key)
-                if role == "03_LEITURA":
-                    covers = [
+    try:
+        # PNGs are already compressed; keep the archive on disk, not in API RAM.
+        with zipfile.ZipFile(output, "w", zipfile.ZIP_STORED) as archive:
+            for lang in [project.language or "pt-BR"]:
+                for role in editorial_profile.ROLES:
+                    matches = [
                         a
                         for a in assets
-                        if (a.meta or {}).get("language") == lang
-                        and a.meta.get("role") == "01_CAPA"
-                        and a.meta.get("workflow") == 1
+                        if (a.meta or {}).get("workflow") == 1
+                        and a.meta.get("language") == lang
+                        and a.meta.get("role") == role
+                        and (
+                            a.meta.get("validation", {}).get("status") == "valid"
+                            or (
+                                a.meta.get("validation", {}).get("status") == "awaiting_user_review"
+                                and a.meta.get("validation", {}).get("reviewer") == "user"
+                                and a.meta.get("validation", {}).get("method")
+                                == "technical_integrity_only"
+                            )
+                        )
+                        and (
+                            not project.book_profile.get("editorial")
+                            or a.meta.get("editorial") == project.book_profile["editorial"]
+                        )
                     ]
-                    if (
-                        len(covers) != 1
-                        or asset.meta.get("cover_sha256")
-                        != hashlib.sha256(storage.get_bytes(covers[0].storage_key)).hexdigest()
-                    ):
-                        raise HTTPException(409, "Atualize a leitura para a capa atual")
-                with Image.open(io.BytesIO(data)) as image:
-                    if image.format != "PNG":
-                        raise HTTPException(409, "Arquivo de prévia inválido")
-                    image.verify()
-                digest = hashlib.sha256(data).hexdigest()
-                if digest in digests:
-                    raise HTTPException(409, "O pacote contém imagens duplicadas")
-                digests.add(digest)
-                title = project.book_profile["locales"][lang]["title"]
-                archive.writestr(book_profile.filename(lang, role, title), data)
-    return Response(
-        output.getvalue(),
+                    if len(matches) != 1:
+                        raise HTTPException(
+                            409, "Aguarde três imagens validadas antes de baixar o pacote"
+                        )
+                    asset = matches[0]
+                    if asset.meta.get("texts") != project.book_profile["locales"][lang]:
+                        raise HTTPException(409, "Atualize as imagens para os textos atuais")
+                    data = storage.get_bytes(asset.storage_key)
+                    if role == "03_LEITURA":
+                        covers = [
+                            a
+                            for a in assets
+                            if (a.meta or {}).get("language") == lang
+                            and a.meta.get("role") == "01_CAPA"
+                            and a.meta.get("workflow") == 1
+                        ]
+                        if (
+                            len(covers) != 1
+                            or asset.meta.get("cover_sha256")
+                            != hashlib.sha256(storage.get_bytes(covers[0].storage_key)).hexdigest()
+                        ):
+                            raise HTTPException(409, "Atualize a leitura para a capa atual")
+                    with Image.open(io.BytesIO(data)) as image:
+                        if image.format != "PNG":
+                            raise HTTPException(409, "Arquivo de prévia inválido")
+                        image.verify()
+                    digest = hashlib.sha256(data).hexdigest()
+                    if digest in digests:
+                        raise HTTPException(409, "O pacote contém imagens duplicadas")
+                    digests.add(digest)
+                    title = project.book_profile["locales"][lang]["title"]
+                    archive.writestr(book_profile.filename(lang, role, title), data)
+    except BaseException:
+        output.close()
+        raise
+    output.seek(0)
+
+    def chunks():
+        try:
+            while chunk := output.read(64 * 1024):
+                yield chunk
+        finally:
+            output.close()
+
+    return StreamingResponse(
+        chunks(),
         media_type="application/zip",
         headers={"Content-Disposition": 'attachment; filename="Storyrus-previa.zip"'},
+        background=BackgroundTask(output.close),
     )
