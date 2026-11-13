@@ -426,8 +426,10 @@ async def test_integrated_reading_requires_review_before_publishing(
         studio, "preview", key="integrated-review", expected="FAILED" if reject else "DONE"
     )
     assert job.status == ("FAILED" if reject else "DONE"), job.error
-    assert len(calls) == 4
-    assert "INTEGRATED FINAL SCENE" in calls[-1]["prompt"]
+    assert len(calls) == (5 if reject else 4)
+    assert "INTEGRATED FINAL SCENE" in calls[3]["prompt"]
+    if reject:
+        assert "ONE CORRECTIVE EDIT" in calls[4]["prompt"]
     _, db, pid, _ = studio
     sources = db.scalars(
         select(Asset).where(Asset.project_id == uuid.UUID(pid), Asset.kind == "editorial_source")
@@ -3870,7 +3872,17 @@ async def test_cover_correction_does_not_buy_when_saved_art_is_corrupt(reference
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "outcome",
-    ["success", "recovered", "recovered_cover", "recovered_spread", "rejected", "unknown"],
+    [
+        "success",
+        "recovered",
+        "recovered_cover",
+        "recovered_spread",
+        "rejected",
+        "unknown",
+        "corrected_cover",
+        "corrected_spread",
+        "corrected_reading",
+    ],
 )
 async def test_studio_preview_reaches_image_transport_and_resumes_without_repurchase(
     reference_studio, monkeypatch, outcome
@@ -3890,7 +3902,11 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     studio, _, control = reference_studio
     client, db, pid, store = studio
     project = db.get(Project, uuid.UUID(pid))
-    book_profile.update(project, book_design=book_design.snapshot("adventure"))
+    book_profile.update(
+        project,
+        book_design=book_design.snapshot("adventure"),
+        automatic_image_repair_disabled=outcome == "rejected",
+    )
     db.commit()
     monkeypatch.setattr(Pipeline, "integrated_editorial_available", INTEGRATED_WORKFLOW)
     monkeypatch.setattr(Pipeline, "integrated_reading_available", INTEGRATED_READING)
@@ -3916,6 +3932,17 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     for key in list(store):
         if store[key] == _png():
             store[key] = original_photo
+    correcting = outcome.startswith("corrected")
+    repair_index = {"corrected_cover": 0, "corrected_spread": 1, "corrected_reading": 2}.get(
+        outcome
+    )
+    transport_outputs = list(outputs)
+    if correcting:
+        transport_outputs.insert(repair_index + 1, outputs[repair_index])
+        transport_outputs[repair_index] = editorial_render.encode(
+            Image.new("RGB", (1024, 1024), "red")
+        )
+    expected_requests = 4 if correcting else 3
     requests = []
 
     class OfflineImages:
@@ -3931,13 +3958,19 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         async def post(self, url, **kwargs):
             assert url == "https://api.openai.com/v1/images/edits"
             requests.append(kwargs)
-            assert len(requests) <= 3, "Resume attempted to buy another image"
+            assert len(requests) <= expected_requests, "Resume attempted to buy another image"
             if outcome == "unknown" and len(requests) == 3:
                 raise httpx.ReadTimeout("Simulated unknown image result")
             return httpx.Response(
                 200,
                 json={
-                    "data": [{"b64_json": base64.b64encode(outputs[len(requests) - 1]).decode()}],
+                    "data": [
+                        {
+                            "b64_json": base64.b64encode(
+                                transport_outputs[len(requests) - 1]
+                            ).decode()
+                        }
+                    ],
                     "usage": {},
                 },
             )
@@ -3950,10 +3983,13 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     )
     review_calls = []
     recovering = outcome.startswith("recovered")
-    target_prefix = {"recovered_cover": "CAPA_PLANA", "recovered_spread": "LIVRO_ABERTO"}.get(
-        outcome, "LEITURA"
-    )
-    if recovering:
+    target_prefix = {
+        "recovered_cover": "CAPA_PLANA",
+        "recovered_spread": "LIVRO_ABERTO",
+        "corrected_cover": "CAPA_PLANA",
+        "corrected_spread": "LIVRO_ABERTO",
+    }.get(outcome, "LEITURA")
+    if recovering or correcting:
         from app.ai_clients.request_journal import journaled
 
         text_class = handlers.get_text_provider().__class__
@@ -3965,7 +4001,9 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
             target_calls = [
                 call for call in review_calls if call["prompt"].startswith(target_prefix)
             ]
-            if kwargs["prompt"].startswith(target_prefix) and len(target_calls) == 1:
+            if kwargs["prompt"].startswith(target_prefix) and len(target_calls) <= (
+                2 if correcting else 1
+            ):
                 return TextResult(
                     text='{"valid":false,"issues":["simulated false rejection"],"limitations":[]}',
                     cost_usd=0.007,
@@ -3980,20 +4018,29 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         studio,
         "preview",
         key="transport-preview",
-        expected="DONE" if outcome == "success" or recovering else "FAILED",
+        expected="DONE" if outcome == "success" or recovering or correcting else "FAILED",
     )
-    assert len(requests) == 3
+    assert len(requests) == expected_requests
     for request in requests:
         assert request["data"]["model"] == "gpt-image-2.6-sunburst"
         assert request["data"]["quality"] == request["data"]["complexity"] == "high"
         assert "input_fidelity" not in request["data"]
         assert request["files"][0][1][1] == original_photo  # original JPEG, unchanged
-    assert "heavy rounded sans-serif" in requests[0]["data"]["prompt"]
-    assert "heavy rounded sans-serif" in requests[1]["data"]["prompt"]
-    assert "ONE FRONT BOARD" in requests[2]["data"]["prompt"]
-    assert requests[1]["files"][1][1][1] == outputs[0]
-    assert requests[2]["files"][1][1][1] == outputs[0]
-    if outcome != "success" and not recovering:
+    if correcting:
+        assert all(
+            entry["state"] == "repaired"
+            for entry in first.result["editorial_review_recoveries"].values()
+        )
+        assert "ONE CORRECTIVE EDIT" in requests[repair_index + 1]["data"]["prompt"]
+        assert first.error is None and first.result["preview_complete"]
+        assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+    scene_requests = [r for r in requests if "ONE CORRECTIVE EDIT" not in r["data"]["prompt"]]
+    assert "heavy rounded sans-serif" in scene_requests[0]["data"]["prompt"]
+    assert "heavy rounded sans-serif" in scene_requests[1]["data"]["prompt"]
+    assert "ONE FRONT BOARD" in scene_requests[2]["data"]["prompt"]
+    assert scene_requests[1]["files"][1][1][1] == outputs[0]
+    assert scene_requests[2]["files"][1][1][1] == outputs[0]
+    if outcome != "success" and not recovering and not correcting:
         assert first.result["internal_resolution"]["customer_action_required"] is False
         assert first.result["internal_resolution"]["automatic_image_regeneration"] is False
         assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
@@ -4021,7 +4068,7 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         key="transport-resume",
         expected="FAILED" if outcome == "unknown" else "DONE",
     )
-    assert len(requests) == 3
+    assert len(requests) == expected_requests
     assert float(second.cost_usd or 0) == 0
     if recovering:
         assert len(review_calls) == 4  # both opinions cached; no repeated paid review

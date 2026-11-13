@@ -93,6 +93,7 @@ async def test_integrated_scene_uses_original_faces_finished_cover_and_literal_t
 @pytest.mark.asyncio
 async def test_rejected_text_reuses_paid_scene_on_another_job(monkeypatch):
     pipe, provider, assets = pipeline(monkeypatch)
+    pipe.profile["automatic_image_repair_disabled"] = True
     pipe.review.side_effect = VisualReviewError("changed title", scope="full_image")
     with pytest.raises(VisualReviewError):
         await pipe.integrated_reading(b"finished-cover")
@@ -229,3 +230,52 @@ def test_lettering_contract_preserves_catalog_override(monkeypatch):
     contract = pipe.integrated_lettering_contract()
     assert "catalog-specific-font" in contract
     assert "takes precedence" in contract
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", ["cover", "preview", "page:1", "reading"])
+async def test_one_corrective_edit_preserves_references_and_reuses_saved_result(monkeypatch, role):
+    pipe, provider, _ = pipeline(monkeypatch, photos=2)
+    source = {"storage_key": "original-art"}
+    failure = VisualReviewError("text overlaps hair", scope="full_image")
+    for job in ["first", "resumed"]:
+        pipe.job = SimpleNamespace(id=job, result={})
+        pipe.review.side_effect = [failure, {"status": "valid"}]
+        data, meta, qa = await pipe.review_integrated_with_repair(
+            b"saved-art", source, role, "literal title", cover=b"approved-cover", mandatory=True
+        )
+        assert data == b"complete-scene"
+        assert qa["status"] == "valid"
+    assert provider.generate_scene.await_count == 1
+    args = provider.generate_scene.call_args.kwargs
+    assert args["extra_refs"] == pipe.photos[1:] + [b"saved-art", b"approved-cover"]
+    assert "literal title" in args["prompt"]
+    assert "text overlaps hair" in args["prompt"]
+
+
+@pytest.mark.asyncio
+async def test_rejected_correction_never_buys_a_second_edit(monkeypatch):
+    pipe, provider, _ = pipeline(monkeypatch)
+    pipe.review.side_effect = VisualReviewError("real defect", scope="full_image")
+    for job in ["first", "resume"]:
+        pipe.job = SimpleNamespace(id=job, result={})
+        with pytest.raises(VisualReviewError):
+            await pipe.review_integrated_with_repair(
+                b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
+            )
+    assert provider.generate_scene.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_unknown_corrective_edit_is_not_reissued(monkeypatch):
+    pipe, provider, _ = pipeline(monkeypatch)
+    pipe.review.side_effect = VisualReviewError("real defect", scope="full_image")
+    provider.generate_scene.side_effect = ProviderError(
+        "timeout", outcome_unknown=True, retry_safe=False
+    )
+    for _ in range(2):
+        with pytest.raises(ProviderError):
+            await pipe.review_integrated_with_repair(
+                b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
+            )
+    assert provider.generate_scene.await_count == 1

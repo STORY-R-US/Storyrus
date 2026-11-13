@@ -372,8 +372,8 @@ class Pipeline:
                 ],
             ),
         )
-        # Current layouts solve placement locally. A genuine quality rejection
-        # must not buy another image automatically.
+        # Individual stages never regenerate in a retry loop. Authorized integrated
+        # repairs have their own single-attempt, immutable stage below.
         if self.designed or name.endswith((":art", ":integrated")):
             maximum = 1
         elif name in {"spread", "reading", "reading:integrated"}:
@@ -565,6 +565,27 @@ class Pipeline:
                 "Use os resultados técnicos para geometria e tipografia: "
                 "{{TECHNICAL_VALIDATION_JSON}}. Política pertinente: {{EDITORIAL_POLICY_JSON}}. "
                 "Reprove defeitos concretos ou critérios obrigatórios inconclusivos."
+            )
+        if mandatory:
+            template = (
+                "Evaluate only the current OUTPUT and its declared role and literal text. "
+                "Original photos define likeness; style references are not outputs. "
+                "For TEXT_INVALID quote the exact expected fragment and the visibly different "
+                "observed fragment. Identical fragments are not a text error; line wrapping or "
+                "emphasis alone does not change the words. For TEXT_OVERLAP identify the actual "
+                "letters and subject they touch, not the surrounding empty text container. "
+                "For ANATOMY identify a concrete visible defect rather than a speculative one. "
+                "In an open book, two sequential scenes may reuse the same child, props and "
+                "setting: button pressed then rocket rising is a visible change of action. "
+                "Each page may have its own coherent scene; a physical gutter is not a seam "
+                "defect and a continuous panorama across both pages is not required. "
+                "Judge physical page shape with perspective and curvature, not raw pixel "
+                "width/height of the photographed quadrilateral. Do not demand a font source "
+                "file or absolute biometric certainty from raster images. Natural smiling, "
+                "foreshortening and occlusion are allowed when likeness/anatomy remain coherent. "
+                "Reject real defects or genuinely unreadable required text; do not approve "
+                "solely from the requested prompt. JSON {valid:boolean, issues:[strings], "
+                "limitations:[strings]}. General probabilistic limits belong in limitations."
             )
         for marker, value in {
             "RESULT_IMAGE": "OUTPUT",
@@ -2199,6 +2220,82 @@ class Pipeline:
             "Selected typography: " + json.dumps(typography, ensure_ascii=False) + " "
         )
 
+    async def review_integrated_with_repair(
+        self, raw, source, name, prompt, *, landscape=False, style=None, **review_kwargs
+    ):
+        """One authorized corrective edit of saved art, never an unbounded regeneration loop."""
+        try:
+            qa = await self.review(raw, prompt, **review_kwargs)
+            return raw, source, qa
+        except VisualReviewError as exc:
+            if self.profile.get("automatic_image_repair_disabled"):
+                raise
+            # Freeze the diagnostic before awaiting: an exception variable is cleared
+            # after its except block. The repair cache key deliberately excludes prose.
+            issues = (exc.report or {}).get("issues") or [str(exc)]
+        original_sha = render.digest(raw)
+        repair_prompt = (
+            "ONE CORRECTIVE EDIT OF THE EXISTING IMAGE, not a new concept. "
+            f"References 1 through {len(self.photos)} are original identity photos. "
+            f"Reference {len(self.photos) + 1} is the EXACT SAVED IMAGE TO REPAIR. "
+            "Preserve its cast, theme, scenery, outfit, readable correct words, lettering "
+            "and composition wherever they already satisfy the contract. Correct only "
+            "confirmed defects; do not reproduce a reference sheet or invent new people. "
+            "Keep title/verses large and clear of face, hair, hats and hands. For a held "
+            "book, the complete cover belongs only on the front board. "
+            "A following cover reference, when supplied, is immutable continuity. "
+            "Original role and literal text contract: "
+            + prompt
+            + "\nObserved issues to correct: "
+            + json.dumps(issues, ensure_ascii=False)
+        )
+        cover = review_kwargs.get("cover")
+
+        async def edit(_attempt):
+            result = (
+                await self.master._pkg()
+                .get_image_provider()
+                .generate_scene(
+                    prompt=repair_prompt,
+                    character_ref=self.photos[0],
+                    photo=self.photos[0],
+                    extra_refs=self.photos[1:] + [raw] + ([cover] if cover else []),
+                    style=style or contract.art_direction(self.project.style),
+                    landscape=landscape,
+                )
+            )
+            self.account(result, name + ":correção interna")
+            return result.image_bytes, {
+                "operation": "correct_saved_integrated_art",
+                "original_source_key": source["storage_key"],
+                "original_sha256": original_sha,
+                "maximum_edits": 1,
+            }
+
+        repaired, repaired_source = await self.stage(
+            name + ":repair:integrated",
+            {"source_sha256": original_sha, "repair_contract": 1},
+            edit,
+        )
+        # No recursive call to this helper: a second failure requires internal
+        # intervention. Both the edit and its inspection are durable and reusable.
+        qa = await self.review(repaired, prompt, **review_kwargs)
+        recoveries = dict((self.job.result or {}).get("editorial_review_recoveries") or {})
+        resolved = False
+        for key, entry in recoveries.items():
+            if entry.get("image_sha256") == original_sha and entry.get("state") == "needs_operator":
+                recoveries[key] = {
+                    **entry,
+                    "state": "repaired",
+                    "repaired_sha256": render.digest(repaired),
+                    "repaired_storage_key": repaired_source["storage_key"],
+                }
+                resolved = True
+        if resolved:
+            self.job.result = {**(self.job.result or {}), "editorial_review_recoveries": recoveries}
+            self.db.commit()
+        return repaired, repaired_source, qa
+
     async def integrated_editorial_scene(self, name, action, *, role, text, passages=None):
         """One finished image with literal copy, saved before mandatory review."""
         spread = role == "open_book"
@@ -2331,8 +2428,10 @@ class Pipeline:
             if not spread:
                 render.square(raw)
             prefix = "LIVRO_ABERTO" if spread else "CAPA_PLANA" if title else "PAGINA_INTERNA"
-            qa = await self.review(
+            final, final_source, qa = await self.review_integrated_with_repair(
                 raw,
+                source,
+                name,
                 prefix + ": Finished integrated artwork and literal lettering. Compare ORIGINAL "
                 "photos for identity, age, hair and headwear; preserve approved story clothing. "
                 "Reject malformed anatomy, stretched scenery, seams, bands or text covering faces, "
@@ -2355,17 +2454,23 @@ class Pipeline:
                     ensure_ascii=False,
                 ),
                 cover=continuity,
+                landscape=spread,
+                style=self.design["finish"]
+                if self.design
+                else contract.art_direction(self.project.style),
                 mandatory=True,
                 technical={
                     "method": "integrated generation; exact copy and identity require visual review"
                 },
             )
-            return raw, {
+            if not spread:
+                render.square(final)
+            return final, {
                 "validation": qa,
                 "presentation": "integrated_editorial",
                 "scene_role": role,
-                "art_key": source["storage_key"],
-                "art_sha256": render.digest(raw),
+                "art_key": final_source["storage_key"],
+                "art_sha256": render.digest(final),
                 "integrated_text": True,
                 "layout": {"text": text, "method": "integrated"},
                 "page_role": role,
@@ -2380,7 +2485,7 @@ class Pipeline:
         data, meta = await self.stage(
             name + ":integrated:checked", inputs, validate, billable=False
         )
-        return data, {**meta, **({"art_bytes": raw} if not spread else {})}
+        return data, {**meta, **({"art_bytes": data} if not spread else {})}
 
     def integrated_reading_available(self):
         """Do not migrate a purchased or uncertain legacy template on resume."""
@@ -2489,8 +2594,10 @@ class Pipeline:
             {"cover_sha256": render.digest(cover), "scene_contract": 1},
             generate,
         )
-        qa = await self.review(
+        raw, source, qa = await self.review_integrated_with_repair(
             raw,
+            source,
+            "reading",
             "LEITURA: inspect the complete integrated photograph against ORIGINAL identity "
             "photos and EXACT_COVER. Reject changed identity, age, hair/headwear, malformed "
             "hands, implausible binding, stretched cover, colored placeholders, pasted seams "
@@ -2512,6 +2619,7 @@ class Pipeline:
             "Do not invent forbidden ornaments near a hinge when they stay on the front. "
             "Literal title: " + json.dumps(title, ensure_ascii=False),
             cover=cover,
+            style="fotografia editorial natural",
             technical={
                 "method": "integrated generation; identity and literal text require visual review"
             },

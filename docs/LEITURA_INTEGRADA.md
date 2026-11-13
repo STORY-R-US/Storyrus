@@ -126,3 +126,28 @@ recuperação automática de arte realmente inválida ou de resposta desconhecid
 provedor. Isso deve ser distinguido de `verified`, quando a recuperação automática
 foi concluída e a prévia efetivamente entregue. A prévia real já recuperada não é
 regenerada por esta alteração.
+
+
+## Edição corretiva limitada das cenas integradas
+
+Com a autorização de 13/11/2026, após as duas inspeções reprovarem uma cena
+integrada, a ferramenta pode executar **uma edição corretiva por etapa** (capa,
+página/miolo ou leitura). A edição recebe a arte salva, as fotos originais, a capa
+de continuidade quando aplicável e o texto literal. O resultado passa novamente
+pela revisão obrigatória antes de ser entregue. Uma correção aprovada permite
+concluir a prévia no mesmo trabalho, sem pedir que o cliente repita a criação.
+
+O intermediário corretivo tem chave persistente por projeto, etapa e arte original.
+Retomadas reutilizam a imagem e os pareceres; respostas de geração desconhecidas
+continuam bloqueadas para não repetir compras. Não existe terceira geração em
+cascata: se a edição não resolver, a intervenção continua interna. A autorização
+não transforma falhas reais em aprovação nem promete recuperação ilimitada.
+A edição tem custo normal do provedor; não repete os débitos anteriores.
+`book_profile.automatic_image_repair_disabled=true` preserva exceções em que
+nenhuma nova edição foi autorizada. Essa flag não autoriza criar imagens faltantes.
+
+A revisão exige evidência concreta de diferenças textuais, considera perspectiva
+do livro e distingue duas cenas sequenciais de uma duplicação. Não exige panorama
+único atravessando a lombada. Os testes simulam rejeição dupla e correção de cada
+uma das três etapas, entrega do pacote, retomada e ausência de recompra. Nenhum
+teste faz chamadas pagas. Fluxos históricos não são migrados nem regenerados.
