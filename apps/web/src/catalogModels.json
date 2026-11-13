@@ -741,8 +741,8 @@
     "id": "catalog-realistic-35",
     "catalog_index": 35,
     "style": "realistic",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Aprendendo Economia Com O Gael",
       "en": "Learning Savings With Gael",
@@ -750,9 +750,9 @@
     },
     "example_name": "Gael",
     "sources": {
-      "cover": "",
-      "page": "",
-      "holding": ""
+      "cover": "covers/realistic-capa-gael-economia-v1-pt.webp",
+      "page": "realistic-pagina-gael-economia-v1-pt.webp",
+      "holding": "realistic-foto-gael-economia-v1-pt.webp"
     }
   },
   "catalog-realistic-36": {
@@ -1825,6 +1825,24 @@
       "cover": "covers/cartoon-capa-bruno-animais-v1-pt.webp",
       "page": "cartoon-pagina-bruno-animais-v1-pt.webp",
       "holding": "cartoon-foto-bruno-animais-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-35": {
+    "id": "catalog-cartoon-35",
+    "catalog_index": 35,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Aprendendo Economia Com O Gael",
+      "en": "Learning Savings With Gael",
+      "es": "Aprendiendo Economía Con Gael"
+    },
+    "example_name": "Gael",
+    "sources": {
+      "cover": "covers/cartoon-capa-gael-economia-v1-pt.webp",
+      "page": "cartoon-pagina-gael-economia-v1-pt.webp",
+      "holding": "cartoon-foto-gael-economia-v1-pt.webp"
     }
   }
 }

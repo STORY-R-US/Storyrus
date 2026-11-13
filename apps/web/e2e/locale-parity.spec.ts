@@ -16,7 +16,7 @@ for (const path of ["/", "/cartoon"]) {
       steps: await page.locator("#passo img").count(),
     });
     const pt = await read();
-    expect(pt.books).toHaveLength(path === "/" ? 53 : 41);
+    expect(pt.books).toHaveLength(path === "/" ? 53 : 42);
     expect(pt.hero).toBe(path === "/" ? 18 : 4);
     for (const lang of ["pt", "en", "es"]) {
       await page.getByTestId(`landing-lang-${lang}`).click();

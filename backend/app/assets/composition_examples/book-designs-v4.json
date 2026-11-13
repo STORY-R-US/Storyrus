@@ -6647,6 +6647,150 @@
         "page": "catalog_models/cartoon-34-page.webp",
         "holding": "catalog_models/cartoon-34-holding.webp"
       }
+    },
+    "catalog-realistic-35": {
+      "name": "Aprendendo Economia Com O Gael",
+      "style": "realistic",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/realistic-capa-gael-economia-v1-pt.webp",
+        "page": "realistic-pagina-gael-economia-v1-pt.webp",
+        "holding": "realistic-foto-gael-economia-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.18,
+          0.04,
+          0.85,
+          0.31
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.08,
+        "long_font_ratio": 0.055,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.1,
+          0.04,
+          0.92,
+          0.23
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Premium realistic illustrated storybook matching O Amor de Mae: natural recognizable human faces and ages, soft modeling, diffuse light, coordinated colors, delicate illustrated scenery and subtle texture. No enlarged cartoon eyes, artificial skin or oversharpening. Original project photos define identity. Preserve selected composition and square physical book geometry, adapting scene and props to the user theme. Corresponding PT, EN and ES scenes change only text.",
+      "visual": {
+        "finish": "amor_de_mae_realista_premium",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 3,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback. Preserve exact approved cover and title. Exterior people and environment remain photographic; printed cover keeps the approved premium realistic illustrated finish. Never copy the reference cast identities.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 35,
+      "title_templates": {
+        "pt-BR": "Aprendendo Economia Com O Gael",
+        "en": "Learning Savings With Gael",
+        "es": "Aprendiendo Economía Con Gael"
+      },
+      "example_name": "Gael",
+      "reference_files": {
+        "cover": "catalog_models/realistic-35-cover.webp",
+        "page": "catalog_models/realistic-35-page.webp",
+        "holding": "catalog_models/realistic-35-holding.webp"
+      }
+    },
+    "catalog-cartoon-35": {
+      "name": "Aprendendo Economia Com O Gael",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-gael-economia-v1-pt.webp",
+        "page": "cartoon-pagina-gael-economia-v1-pt.webp",
+        "holding": "cartoon-foto-gael-economia-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.18,
+          0.04,
+          0.85,
+          0.31
+        ],
+        "alignment": "center",
+        "placement": "upper_center",
+        "font_ratio": 0.08,
+        "long_font_ratio": 0.055,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.1,
+          0.04,
+          0.92,
+          0.23
+        ],
+        "alignment": "center",
+        "font_ratio": 0.043,
+        "description": "Two square full-bleed illustrated pages side by side, physical open spread 2:1. Each page shows a distinct story action with the same recognizable faces and ages as the approved cover. Short moderate-weight text sits in naturally quiet upper scenery, clear of faces and actions."
+      },
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
+      "visual": {
+        "finish": "amor_de_bisavo_cartoon",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 3,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 35,
+      "title_templates": {
+        "pt-BR": "Aprendendo Economia Com O Gael",
+        "en": "Learning Savings With Gael",
+        "es": "Aprendiendo Economía Con Gael"
+      },
+      "example_name": "Gael",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-35-cover.webp",
+        "page": "catalog_models/cartoon-35-page.webp",
+        "holding": "catalog_models/cartoon-35-holding.webp"
+      }
     }
   },
   "unavailable": {
@@ -6679,11 +6823,6 @@
       "pt": "Minha Grande Aventura",
       "en": "My Great Adventure",
       "es": "Mi Gran Aventura"
-    },
-    "catalog-realistic-35": {
-      "pt": "Aprendendo Economia Com O Gael",
-      "en": "Learning Savings With Gael",
-      "es": "Aprendiendo Economía Con Gael"
     },
     "catalog-cartoon-38": {
       "pt": "Amem-se Sinceramente Uns Aos Outros",

@@ -187,6 +187,7 @@ const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: stri
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
 };
 const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
+  35: "covers/cartoon-capa-gael-economia-v1-pt.webp",
   34: "covers/cartoon-capa-bruno-animais-v1-pt.webp",
   31: "covers/cartoon-capa-pascoa-v1-pt.webp",
   29: "covers/cartoon-capa-tia-especial-v1-pt.webp",
@@ -320,7 +321,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   "capa-nossa-familia.png",
   { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
   { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
-  "capa-gael-economia.jpg",
+  "covers/realistic-capa-gael-economia-v1-pt.webp",
   { pt: "capa-mariajesus-hockey.png", en: "capa-mariajesus-hockey-en.png", es: "capa-mariajesus-hockey-es.png" },
   { pt: "capa-quatro-geracoes.jpg", en: "capa-quatro-geracoes-en.jpg", es: "capa-quatro-geracoes-es.jpg" },
   { pt: "capa-pedro-amem-se.png", en: "capa-pedro-amem-se-en.png", es: "capa-pedro-amem-se-es.png" },
@@ -357,6 +358,7 @@ const CATALOG_IMGS: CatalogImg[] = [
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
 const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
+  35: { cover: "covers/realistic-capa-gael-economia-v1-pt.webp", page: "realistic-pagina-gael-economia-v1-pt.webp", photo: "realistic-foto-gael-economia-v1-pt.webp" },
   0: { cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", photo: "foto-martin-goleiro.jpg" },
   1: { cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", photo: "foto-emilia-bailarina.jpg" },
   2: { cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", photo: "foto-antonio-bicicleta.jpg" },
