@@ -104,3 +104,25 @@ e no servidor, preservando os bytes originais. Assinaturas antigas da ordenaçã
 Windows continuam verificadas contra o mesmo pacote, sem alterar o perfil salvo
 ou invalidar artes já pagas. O teste de recuperação percorre também a passagem de
 revisão interna para resultado concluído sem disparar criação pelo navegador.
+
+
+## Recuperação automática de reprovação visual indevida
+
+Nas cenas integradas (capa, miolo e leitura), uma reprovação dispara uma única
+segunda inspeção da mesma arte antes de o worker encerrar a tentativa. A segunda
+inspeção mantém todos os critérios de qualidade; não altera imagens nem chama o
+provedor de geração. Se aprovada, o mesmo trabalho continua até `preview_complete`
+e disponibiliza o pacote, sem novo pedido ou clique de repetição do cliente.
+
+As duas respostas usam o diário persistente de chamadas: reiniciar ou retomar
+reutiliza os pareceres recebidos sem comprá-los novamente. O primeiro diagnóstico
+e ambos os pareceres ficam registrados. A inspeção adicional pode ter custo de
+análise de texto/visão na produção, contabilizado normalmente; não é outra imagem,
+não debita novamente créditos do cliente e todos os testes são simulados.
+
+Uma segunda reprovação ou incerteza NÃO é convertida em aprovação. O trabalho
+fica marcado `needs_operator` para intervenção interna; não existe garantia de
+recuperação automática de arte realmente inválida ou de resposta desconhecida do
+provedor. Isso deve ser distinguido de `verified`, quando a recuperação automática
+foi concluída e a prévia efetivamente entregue. A prévia real já recuperada não é
+regenerada por esta alteração.

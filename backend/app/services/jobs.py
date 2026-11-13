@@ -298,7 +298,14 @@ def mark_failed_and_refund(db: Session, job: Job, error: str) -> None:
         job.result = {
             **(job.result or {}),
             "internal_resolution": {
-                "state": "awaiting_review",
+                "state": "needs_operator"
+                if any(
+                    review.get("state") == "needs_operator"
+                    for review in (
+                        (job.result or {}).get("editorial_review_recoveries") or {}
+                    ).values()
+                )
+                else "awaiting_review",
                 "source": "generation_failure",
                 "customer_action_required": False,
                 "automatic_image_regeneration": False,
