@@ -83,7 +83,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
 
 @pytest.mark.parametrize(
     "index",
-    [0, 1, 2, 9, 10, 14, 15, 18, 21, 24, 25, 26, 27, 28, 29, 31, 60, 62, 63, 64, 65, 66, 67],
+    [0, 1, 2, 9, 10, 14, 15, 18, 21, 24, 25, 26, 27, 28, 29, 31, 34, 60, 62, 63, 64, 65, 66, 67],
 )
 def test_new_cartoon_interiors_have_square_pages_and_valid_narrative_font(index):
     design = book_design.snapshot(f"catalog-cartoon-{index}")

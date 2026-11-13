@@ -187,6 +187,7 @@ const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: stri
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
 };
 const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
+  34: "covers/cartoon-capa-bruno-animais-v1-pt.webp",
   31: "covers/cartoon-capa-pascoa-v1-pt.webp",
   29: "covers/cartoon-capa-tia-especial-v1-pt.webp",
   28: "covers/cartoon-capa-heroi-aranha-v1-pt.webp",
@@ -2800,7 +2801,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, "pt"))))
         .sort((a, b) => {
           const rank = (i: number) => {
-            const order = variant === "cartoon" ? CATALOG_LEAD : HOME_CATALOG_ORDER;
+            const order = HOME_CATALOG_ORDER;
             const lead = order.indexOf(i);
             return lead === -1 ? order.length + i : lead;
           };
