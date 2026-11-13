@@ -1,10 +1,18 @@
 """O consumo de jobs na API acompanha seu ciclo de vida."""
 
 import asyncio
+import threading
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.config import settings
+from app.services import process_lifecycle
+
+
+@pytest.fixture(autouse=True)
+def isolated_shutdown_state(monkeypatch):
+    monkeypatch.setattr(process_lifecycle, "_draining", threading.Event())
 
 
 def test_lifespan_starts_and_stops_job_pump(monkeypatch):
@@ -16,7 +24,8 @@ def test_lifespan_starts_and_stops_job_pump(monkeypatch):
     async def pump():
         events.append("started")
         try:
-            await asyncio.Future()
+            while not process_lifecycle.draining():
+                await asyncio.sleep(0.001)
         finally:
             events.append("stopped")
 

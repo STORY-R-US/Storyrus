@@ -63,11 +63,9 @@ async def lifespan(_app: FastAPI):
             except asyncio.CancelledError:
                 pass
         if task is not None:
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+            from app.workers.api_pump import shutdown
+
+            await shutdown(task)
 
 
 app = FastAPI(

@@ -256,6 +256,7 @@ async def test_one_corrective_edit_preserves_references_and_reuses_saved_result(
 @pytest.mark.asyncio
 async def test_rejected_correction_never_buys_a_second_edit(monkeypatch):
     pipe, provider, _ = pipeline(monkeypatch)
+    pipe.profile["automatic_image_repair_limit"] = 1
     pipe.review.side_effect = VisualReviewError("real defect", scope="full_image")
     for job in ["first", "resume"]:
         pipe.job = SimpleNamespace(id=job, result={})
@@ -279,3 +280,43 @@ async def test_unknown_corrective_edit_is_not_reissued(monkeypatch):
                 b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
             )
     assert provider.generate_scene.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_third_correction_continues_from_saved_images_and_stops_at_authorized_limit(
+    monkeypatch,
+):
+    pipe, provider, _ = pipeline(monkeypatch)
+    failure = VisualReviewError("visible defect", scope="full_image")
+    provider.generate_scene.side_effect = [
+        SimpleNamespace(image_bytes=data) for data in [b"repair1", b"repair2", b"repair3"]
+    ]
+    for job in ["first", "restart"]:
+        pipe.job = SimpleNamespace(id=job, result={})
+        pipe.review.side_effect = [failure, failure, failure, {"status": "valid"}]
+        data, _, _ = await pipe.review_integrated_with_repair(
+            b"original", {"storage_key": "saved"}, "cover", "title", mandatory=True
+        )
+        assert data == b"repair3"
+    assert provider.generate_scene.await_count == 3
+    assert [call.kwargs["extra_refs"][-1] for call in provider.generate_scene.call_args_list] == [
+        b"original",
+        b"repair1",
+        b"repair2",
+    ]
+    pipe.job = SimpleNamespace(id="still-rejected", result={})
+    pipe.review.side_effect = failure
+    with pytest.raises(VisualReviewError):
+        await pipe.review_integrated_with_repair(
+            b"original", {"storage_key": "saved"}, "cover", "title", mandatory=True
+        )
+    assert provider.generate_scene.await_count == 3
+
+
+@pytest.mark.asyncio
+async def test_saved_only_recovery_never_buys_missing_original(monkeypatch):
+    pipe, provider, _ = pipeline(monkeypatch)
+    pipe.job.result = {"saved_preview_recovery": {"only_saved_base_images": True}}
+    with pytest.raises(ProviderError, match="BOOK_ART_UNAVAILABLE"):
+        await pipe.integrated_reading(b"cover")
+    provider.generate_scene.assert_not_called()

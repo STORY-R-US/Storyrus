@@ -35,7 +35,7 @@ function generationLabel(order: OrderTicket): string {
   const stages: Record<string, string> = { AVATAR: "Criando personagem", STORY: "Preparando história", EBOOK: "Gerando imagens" };
   const labels: Record<string, string> = {
     queued: "Na fila de geração", generating: order.generation_stage === "EBOOK" ? `Gerando imagens · ${order.generated_images ?? 0}/3` : stages[order.generation_stage ?? ""] ?? "Gerando prévia",
-    ready: "Prévia pronta", partial: "Prévia incompleta", failed: "Geração interrompida", demo: "Imagens de demonstração",
+    ready: "Prévia pronta", partial: "Em acompanhamento", failed: "Em acompanhamento", reviewing: "Em acompanhamento", demo: "Imagens de demonstração",
   };
   return labels[order.generation_status ?? ""] ?? ((order.book_files ?? []).length ? "Prévia disponível" : "Aguardando geração");
 }
@@ -59,14 +59,8 @@ function printRequirements(reason: string): string {
     .replace(/\b(bleed_mm|safety_mm|spine_mm|score_mm|pdf_x|color_profile|filename_pattern)\b/g, (key) => labels[key]);
 }
 
-function generationFailure(error?: string | null): string {
-  const text = error ?? "";
-  if (/Ficha visual/i.test(text)) {
-    return "A ficha visual veio incompleta. Clique em gerar de novo para completar e seguir com as imagens.";
-  }
-  const clean = text.replace(/\s+/g, " ").trim();
-  if (clean && clean.length <= 220) return clean;
-  return "A geração foi interrompida. Seus dados e fotos continuam salvos para uma nova tentativa.";
+function watchesGeneration(order: OrderTicket): boolean {
+  return ["generating", "partial", "failed", "reviewing"].includes(order.generation_status ?? "") || (order.generation_status === "queued" && Boolean(order.generation_stage));
 }
 
 function OrderPreview({ order }: { order: OrderTicket }) {
@@ -100,9 +94,8 @@ function OrderPreview({ order }: { order: OrderTicket }) {
           );
         })}
       </div>
-      {order.generation_status === "partial" && <p className="order-notice">Alguns arquivos da prévia ainda não foram concluídos. As imagens disponíveis ficam salvas no pedido.</p>}
+      {(["partial", "failed", "reviewing"].includes(order.generation_status ?? "") || order.generation_error) && <p className="order-notice">Sua prévia está em acompanhamento interno. As imagens já concluídas estão preservadas e aparecerão aqui conforme a entrega avançar.</p>}
       {order.generation_status === "demo" && <p className="order-notice">Estas imagens foram criadas no modo de demonstração. A equipe pode gerar a prévia com OpenAI neste pedido.</p>}
-      {(order.generation_status === "failed" || order.generation_error) && <p className="order-notice">{generationFailure(order.generation_error)}</p>}
       {pdf && <a className="order-file-button" href={pdf.url} target="_blank" rel="noreferrer">PDF do livro <span>· prévia</span></a>}
     </section>
   );
@@ -447,7 +440,7 @@ export function Pedidos() {
   const [savingOrder, setSavingOrder] = useState(false);
   const [origin, setOrigin] = useState<"all" | "mine" | "others">("all");
   const hasOrders = orders !== null;
-  const hasActiveGeneration = (orders ?? []).some((order) => order.generation_status === "generating" || (order.generation_status === "queued" && Boolean(order.generation_stage)));
+  const hasActiveGeneration = (orders ?? []).some(watchesGeneration);
 
   const load = useCallback(async (secret: string, quiet = false) => {
     if (!quiet) setLoading(true);
@@ -528,7 +521,7 @@ export function Pedidos() {
       .then((list) => {
         if (alive) {
           setPersonal(list);
-          watching = list.some((order) => order.generation_status === "generating" || (order.generation_status === "queued" && Boolean(order.generation_stage)));
+          watching = list.some(watchesGeneration);
         }
       })
       .catch((err: Error) => {

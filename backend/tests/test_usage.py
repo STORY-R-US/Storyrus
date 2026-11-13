@@ -650,3 +650,27 @@ def test_my_orders_recovers_missing_ticket_only_for_current_account(auth_client,
         assert [row["id"] for row in again.json()] == [row["id"] for row in r.json()]
     finally:
         db.close()
+
+
+def test_customer_orders_never_expose_generation_diagnostics(auth_client, monkeypatch):
+    import uuid
+    from datetime import UTC, datetime
+
+    from app.routers import usage
+    from app.schemas import OrderTicketOut
+
+    ticket = OrderTicketOut(
+        id=uuid.uuid4(),
+        project_id=uuid.uuid4(),
+        summary="Livro de Marisa",
+        created_at=datetime.now(UTC),
+        generation_status="partial",
+        generation_error="reading:integrated: GENERATION_OUTCOME_UNKNOWN",
+    )
+    monkeypatch.setattr(usage, "_collect_orders", lambda *a, **kw: ([ticket], 1, 1, 0))
+    result = auth_client.get("/v1/usage/orders/mine")
+    assert result.status_code == 200
+    assert result.json()[0]["generation_status"] == "reviewing"
+    assert result.json()[0]["generation_error"] is None
+    assert "GENERATION_OUTCOME_UNKNOWN" not in result.text
+    assert ticket.generation_error == "reading:integrated: GENERATION_OUTCOME_UNKNOWN"

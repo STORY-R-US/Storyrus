@@ -27,7 +27,15 @@ _current: ContextVar = ContextVar("paid_request_journal", default=None)
 _request_id: ContextVar = ContextVar("paid_client_request_id", default=None)
 
 
+def _accept_new_request():
+    from app.services.process_lifecycle import draining
+
+    if draining():
+        raise ProviderError("SERVICE_DRAINING", transient=True, retry_safe=True)
+
+
 def client_request_id() -> str:
+    _accept_new_request()
     reserve = _request_id.get()
     return reserve() if reserve else str(uuid.uuid4())
 
@@ -209,6 +217,7 @@ def journaled(operation):
     def decorate(call):
         @wraps(call)
         async def wrapped(self, *args, **kwargs):
+            _accept_new_request()
             journal = _current.get()
             if journal is None:
                 return await call(self, *args, **kwargs)

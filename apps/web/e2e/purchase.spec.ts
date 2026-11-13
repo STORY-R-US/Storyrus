@@ -177,3 +177,34 @@ for (const master of [false, true]) {
     ).toBeVisible();
   });
 }
+
+
+test("pedido acompanha recuperação sem expor diagnóstico nem pedir outra geração", async ({page}) => {
+  let ready = false;
+  let purchases = 0;
+  await page.addInitScript((token) => {
+    localStorage.setItem("lang", "pt");
+    localStorage.setItem("storyrus_token", token);
+  }, TEST_SESSION_TOKEN);
+  await page.route("**/v1/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (route.request().method() !== "GET") purchases++;
+    if (path.endsWith("/auth/me")) return route.fulfill({json:{email:"family@test.example",is_owner:false,is_admin:false,is_guest:false,email_verified:true}});
+    if (path.endsWith("/usage/orders/mine")) return route.fulfill({json:[{
+      id:"recover-order",project_id:"recover-project",summary:"Livro\nNome: Marisa",created_at:"2026-11-13T12:00:00Z",
+      generation_status:ready ? "ready" : "partial",
+      generation_error:ready ? null : "reading:integrated: GENERATION_OUTCOME_UNKNOWN",
+      book_files:[{kind:"cover",label:"Capa",url:"/exemplos/ebook-1.jpg"}, ...(ready ? [{kind:"in_hand",label:"Livro na mão",url:"/exemplos/livro-1.jpg"}] : [])],
+    }]});
+    return route.fulfill({status:404,json:{detail:"Unexpected test route"}});
+  });
+  await page.goto("/pedidos");
+  await expect(page.getByRole("status")).toHaveText("Em acompanhamento");
+  await expect(page.locator("body")).not.toContainText("GENERATION_OUTCOME_UNKNOWN");
+  await expect(page.locator("body")).not.toContainText("Prévia incompleta");
+  ready = true;
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(page.getByRole("status")).toHaveText("Prévia pronta");
+  await expect(page.getByRole("img", {name:"Livro na mão"})).toBeVisible();
+  expect(purchases).toBe(0);
+});

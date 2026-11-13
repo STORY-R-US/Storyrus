@@ -483,7 +483,18 @@ def my_orders(
     """Pedidos da própria conta (a lista geral é exclusiva do painel admin)."""
     response.headers["Cache-Control"] = "private, no-store"
     orders, _, _, _ = _collect_orders(db, user_id=user.id)
-    return orders
+    # Operational diagnostics stay in the owner report; customers see delivery state.
+    return [
+        order.model_copy(
+            update={
+                "generation_error": None,
+                "generation_status": "reviewing"
+                if order.generation_status in {"partial", "failed"}
+                else order.generation_status,
+            }
+        )
+        for order in orders
+    ]
 
 
 @router.get("", response_model=UsageOut)
