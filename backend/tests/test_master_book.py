@@ -426,7 +426,7 @@ async def test_integrated_reading_requires_review_before_publishing(
         studio, "preview", key="integrated-review", expected="FAILED" if reject else "DONE"
     )
     assert job.status == ("FAILED" if reject else "DONE"), job.error
-    assert len(calls) == (5 if reject else 4)
+    assert len(calls) == (7 if reject else 4)
     assert "INTEGRATED FINAL SCENE" in calls[3]["prompt"]
     if reject:
         assert "ONE CORRECTIVE EDIT" in calls[4]["prompt"]
@@ -3882,6 +3882,9 @@ async def test_cover_correction_does_not_buy_when_saved_art_is_corrupt(reference
         "corrected_cover",
         "corrected_spread",
         "corrected_reading",
+        "corrected_cover_3",
+        "corrected_spread_3",
+        "corrected_reading_3",
     ],
 )
 async def test_studio_preview_reaches_image_transport_and_resumes_without_repurchase(
@@ -3934,15 +3937,17 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
             store[key] = original_photo
     correcting = outcome.startswith("corrected")
     repair_index = {"corrected_cover": 0, "corrected_spread": 1, "corrected_reading": 2}.get(
-        outcome
+        outcome.removesuffix("_3")
     )
+    repair_count = 3 if outcome.endswith("_3") else 1
     transport_outputs = list(outputs)
     if correcting:
-        transport_outputs.insert(repair_index + 1, outputs[repair_index])
-        transport_outputs[repair_index] = editorial_render.encode(
-            Image.new("RGB", (1024, 1024), "red")
-        )
-    expected_requests = 4 if correcting else 3
+        bad = [
+            editorial_render.encode(Image.new("RGB", (1024, 1024), color))
+            for color in ("red", "purple", "orange")[:repair_count]
+        ]
+        transport_outputs[repair_index:repair_index] = bad
+    expected_requests = 3 + repair_count if correcting else 3
     requests = []
 
     class OfflineImages:
@@ -3988,7 +3993,7 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         "recovered_spread": "LIVRO_ABERTO",
         "corrected_cover": "CAPA_PLANA",
         "corrected_spread": "LIVRO_ABERTO",
-    }.get(outcome, "LEITURA")
+    }.get(outcome.removesuffix("_3"), "LEITURA")
     if recovering or correcting:
         from app.ai_clients.request_journal import journaled
 
@@ -4002,7 +4007,7 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
                 call for call in review_calls if call["prompt"].startswith(target_prefix)
             ]
             if kwargs["prompt"].startswith(target_prefix) and len(target_calls) <= (
-                2 if correcting else 1
+                2 * repair_count if correcting else 1
             ):
                 return TextResult(
                     text='{"valid":false,"issues":["simulated false rejection"],"limitations":[]}',
@@ -4134,3 +4139,32 @@ async def test_preview_export_retry_and_other_customer_isolation(reference_studi
     assert client.get(f"/v1/projects/{pid}", headers=headers).status_code == 404
     assert client.get(f"/v1/projects/{pid}/preview/package", headers=headers).status_code == 404
     assert client.get(f"/v1/jobs/{job.id}", headers=headers).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_failed_saved_preview_is_automatically_delivered_without_customer_retry(
+    reference_studio, monkeypatch
+):
+    studio, calls, control = reference_studio
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, automatic_image_repair_limit=1)
+    db.commit()
+    monkeypatch.setattr(Pipeline, "integrated_editorial_available", INTEGRATED_WORKFLOW)
+    monkeypatch.setattr(Pipeline, "integrated_reading_available", INTEGRATED_READING)
+    control["reject_reading"] = True
+    first = await _run(studio, "preview", key="previous-policy", expected="FAILED")
+    purchased = len(calls)
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
+    book_profile.update(project, automatic_image_repair_limit=3)
+    control["reject_reading"] = False
+    db.commit()
+    assert runner.recover_saved_previews(db) == 1
+    resumed = runner.claim_next(db)
+    assert resumed.id == first.id
+    await runner.process_job(db, resumed)
+    assert resumed.status == "DONE", resumed.error
+    assert resumed.result["preview_complete"]
+    assert len(calls) == purchased
+    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
+    assert resumed.result["internal_resolution"]["state"] == "completed"

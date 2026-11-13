@@ -1695,3 +1695,134 @@ def test_storage_service_retry_does_not_retry_missing_or_forbidden_objects(statu
         {"Error": {"Code": code}, "ResponseMetadata": {"HTTPStatusCode": status}}, "GetObject"
     )
     assert runner.is_transient_exception(exc) is expected
+
+
+@pytest.mark.asyncio
+async def test_preview_recovers_after_temporary_outage_without_new_job_or_credit_charge(
+    db, monkeypatch
+):
+    from datetime import datetime, timedelta
+
+    monkeypatch.setattr(runner.settings, "job_max_attempts", 1)
+    monkeypatch.setattr(runner.settings, "job_heartbeat_interval_s", 0)
+    monkeypatch.setattr(runner.settings, "offline_fallback", True)
+    monkeypatch.setattr("app.services.privacy.photos_authorized", lambda *_: True)
+    monkeypatch.setattr("app.services.spend_guard.assert_vendor_allowed", lambda *a, **kw: None)
+    user, project = _seed(db, credits=7)
+    job = _job(db, project, "EBOOK", cost=3, payload={"preview_chain": True})
+    receipt = {"state": "done", "storage_key": "paid-art"}
+    job.result = {**job.result, "paid_requests": {"image": receipt}}
+    db.commit()
+
+    async def outage(*_):
+        raise ProviderError("temporary storage outage", transient=True, retry_safe=True)
+
+    await runner._process_job_inner(db, job, outage)
+    assert job.status == "PENDING" and job.error is None
+    assert job.result["internal_resolution"]["state"] == "scheduled_retry"
+    assert runner.claim_next(db) is None
+    # A delayed job must not block another customer's work.
+    _, other_project = _seed(db)
+    other = _job(db, other_project, "STORY")
+    assert runner.claim_next(db).id == other.id
+    assert user.credits == 7
+    job.result = {
+        **job.result,
+        "internal_resolution": {
+            **job.result["internal_resolution"],
+            "retry_at": (datetime.now(UTC) - timedelta(seconds=1)).isoformat(),
+        },
+    }
+    db.commit()
+    resumed = runner.claim_next(db)
+    assert resumed.id == job.id
+
+    async def deliver(_db, current):
+        assert current.result["paid_requests"]["image"] == receipt
+        current.result = {**current.result, "preview_complete": True}
+
+    await runner._process_job_inner(db, resumed, deliver)
+    assert resumed.status == "DONE" and resumed.result["preview_complete"]
+    assert resumed.result["internal_resolution"]["state"] == "completed"
+    assert user.credits == 7
+
+
+@pytest.mark.asyncio
+async def test_uncertain_preview_result_is_never_automatically_requeued(db, monkeypatch):
+    monkeypatch.setattr(runner.settings, "job_max_attempts", 1)
+    monkeypatch.setattr(runner.settings, "job_heartbeat_interval_s", 0)
+    monkeypatch.setattr(runner.settings, "offline_fallback", True)
+    monkeypatch.setattr("app.services.privacy.photos_authorized", lambda *_: True)
+    monkeypatch.setattr("app.services.spend_guard.assert_vendor_allowed", lambda *a, **kw: None)
+    _, project = _seed(db)
+    job = _job(db, project, "EBOOK", cost=0, payload={"preview_chain": True})
+
+    async def uncertain(*_):
+        raise ProviderError("unknown", transient=True, retry_safe=False, outcome_unknown=True)
+
+    await runner._process_job_inner(db, job, uncertain)
+    assert job.status == "FAILED"
+    assert job.result["internal_resolution"].get("retry_at") is None
+    assert runner.claim_next(db) is None
+
+
+@pytest.mark.parametrize(
+    "condition",
+    ["eligible", "disabled", "missing", "charged", "unknown", "legacy", "complete", "active"],
+)
+def test_saved_preview_recovery_is_automatic_scoped_and_once(db, monkeypatch, condition):
+    monkeypatch.setattr("app.services.privacy.photos_authorized", lambda *_: True)
+    user, project = _seed(db, credits=7)
+    project.book_profile = {
+        "scene_workflow": "integrated-v1",
+        "stage": "ficha",
+        "automatic_image_repair_disabled": condition == "disabled",
+    }
+    if condition == "legacy":
+        project.book_profile = {"stage": "ficha"}
+    if condition == "complete":
+        project.book_profile = {**project.book_profile, "stage": "preview_ready"}
+    job = _job(
+        db,
+        project,
+        "EBOOK",
+        cost=3 if condition == "charged" else 0,
+        payload={"preview_chain": True},
+    )
+    job.status = "FAILED"
+    job.error = "BOOK_ART_REJECTED: visual review"
+    job.result = {
+        **job.result,
+        "editorial_tasks": {
+            "preview:integrated:checked": {"state": "failed", "attempts": 1},
+            "preview:integrated": {"state": "passed"},
+        },
+    }
+    if condition == "unknown":
+        job.result = {**job.result, "paid_requests": {"image": {"state": "unknown"}}}
+    for stage in ["cover:integrated", "preview:integrated", "reading:integrated"]:
+        if stage == "reading:integrated" and condition == "missing":
+            continue
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind="editorial_source",
+                storage_key=stage,
+                meta={"stage": stage},
+            )
+        )
+    if condition == "active":
+        _job(db, project, "EBOOK", cost=0)
+    db.commit()
+    assert runner.recover_saved_previews(db) == (1 if condition == "eligible" else 0)
+    assert user.credits == 7
+    if condition == "eligible":
+        assert job.status == "PENDING"
+        assert "preview:integrated:checked" not in job.result["editorial_tasks"]
+        assert job.result["editorial_tasks"]["preview:integrated"]["state"] == "passed"
+        job.status = "FAILED"
+        job.error = "BOOK_ART_REJECTED: budget exhausted"
+        db.commit()
+        assert runner.recover_saved_previews(db) == 0
+    else:
+        assert job.status == "FAILED"

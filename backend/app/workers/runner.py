@@ -24,14 +24,14 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.ai_clients.base import ProviderError
 from app.ai_clients.request_journal import request_journal, unresolved_request
 from app.config import settings
 from app.database import SessionLocal
-from app.models import Job, JobStatus, Project
+from app.models import Asset, Job, JobStatus, Project
 from app.observability import opik_trace
 from app.observability.context import correlation_scope
 from app.observability.logging_setup import configure_logging
@@ -160,15 +160,157 @@ async def _heartbeat_loop(job_id: uuid.UUID, stop: asyncio.Event) -> None:
             await asyncio.to_thread(_touch_heartbeat, job_id)
 
 
+def recover_saved_previews(db: Session) -> int:
+    """One migration of free preview jobs already holding all three purchased scenes."""
+    from app.services.privacy import photos_authorized
+
+    candidates = db.scalars(
+        select(Job)
+        .where(
+            Job.status == JobStatus.FAILED.value,
+            Job.type == "EBOOK",
+            Job.cost_credits == 0,
+            Job.error.like("%BOOK_ART_REJECTED%"),
+            Job.result["saved_preview_recovery"]["version"].as_integer().is_(None),
+        )
+        .order_by(Job.created_at.desc())
+        .limit(20)
+    ).all()
+    recovered = 0
+    for candidate in candidates:
+        # Serialize with customer enqueue operations and other recovery workers.
+        project = db.scalar(
+            select(Project).where(Project.id == candidate.project_id).with_for_update()
+        )
+        db.refresh(candidate)
+        profile = (project.book_profile or {}) if project else {}
+        if candidate.status != "FAILED" or (candidate.result or {}).get("saved_preview_recovery"):
+            db.commit()
+            continue
+        result = candidate.result or {}
+        eligible = (
+            project is not None
+            and _is_preview_job(candidate)
+            and profile.get("scene_workflow") == "integrated-v1"
+            and not profile.get("automatic_image_repair_disabled")
+            and not profile.get("test_mode")
+            and profile.get("stage") != "preview_ready"
+            and not (project.purchase_flow or {}).get("preview_approved_at")
+            and not any(
+                ":repair:3:integrated" in key for key in (result.get("editorial_tasks") or {})
+            )
+            and not unresolved_request(candidate)
+            and not profile.get("generation_outcomes_unknown")
+            and not result.get("last_provider_error", {}).get("outcome_unknown")
+            and photos_authorized(db, project.id)
+        )
+        latest = db.scalar(
+            select(Job.id)
+            .where(Job.project_id == candidate.project_id)
+            .order_by(Job.created_at.desc(), Job.id.desc())
+            .limit(1)
+        )
+        active = db.scalar(
+            select(Job.id)
+            .where(Job.project_id == candidate.project_id, Job.status.in_(["PENDING", "RUNNING"]))
+            .limit(1)
+        )
+        sources = (
+            db.scalars(
+                select(Asset).where(
+                    Asset.project_id == candidate.project_id, Asset.kind == "editorial_source"
+                )
+            ).all()
+            if eligible
+            else []
+        )
+        stages = {(asset.meta or {}).get("stage") for asset in sources}
+        eligible = (
+            eligible
+            and latest == candidate.id
+            and not active
+            and {"cover:integrated", "preview:integrated", "reading:integrated"}.issubset(stages)
+        )
+        # Record skipped inspections too: a failed old job must not starve the next batch.
+        marker = {
+            "version": 1,
+            "state": "queued" if eligible else "ineligible",
+            "only_saved_base_images": True,
+        }
+        if eligible:
+            tasks = dict(result.get("editorial_tasks") or {})
+            previous_checks = {
+                key: value
+                for key, value in tasks.items()
+                if key.endswith(":integrated:checked") or key == "reading"
+            }
+            for key, value in previous_checks.items():
+                if value.get("state") != "passed":
+                    tasks.pop(key)
+            candidate.result = {
+                **result,
+                "editorial_tasks": tasks,
+                "saved_preview_recovery": {
+                    **marker,
+                    "previous_error": candidate.error,
+                    "previous_checks": previous_checks,
+                },
+                "internal_resolution": {
+                    "state": "scheduled_retry",
+                    "customer_action_required": False,
+                },
+            }
+            candidate.status = "PENDING"
+            candidate.attempts = 0
+            candidate.error = None
+            candidate.updated_at = datetime.now(UTC)
+            recovered += 1
+        else:
+            candidate.result = {**result, "saved_preview_recovery": marker}
+        db.commit()
+    return recovered
+
+
+def defer_preview_retry(db: Session, job: Job) -> bool:
+    """Keep known-safe temporary preview failures queued without a new debit/refund."""
+    if not _is_preview_job(job) or unresolved_request(job):
+        return False
+    prior = (job.result or {}).get("internal_resolution") or {}
+    cycle = int(prior.get("retry_cycles") or 0) + 1
+    delay = min(3600, 60 * 2 ** min(cycle - 1, 6))
+    retry_at = (datetime.now(UTC) + timedelta(seconds=delay)).isoformat()
+    job.result = {
+        **(job.result or {}),
+        "internal_resolution": {
+            "state": "scheduled_retry",
+            "retry_at": retry_at,
+            "retry_cycles": cycle,
+            "customer_action_required": False,
+            "automatic_image_regeneration": False,
+        },
+    }
+    job.status = JobStatus.PENDING.value
+    job.attempts = 0
+    job.error = None
+    job.updated_at = datetime.now(UTC)
+    db.commit()
+    logger.info("preview %s queued for automatic recovery at %s", job.id, retry_at)
+    return True
+
+
 def claim_next(db: Session) -> Job | None:
     """Pega o proximo job PENDING e marca como RUNNING (atomico).
 
     Ordena por `created_at` ASC (FIFO). Em Postgres o scan usa
     `ix_jobs_status_created_at` (status, created_at) — ver migration 0013.
     """
+    retry_at = Job.result["internal_resolution"]["retry_at"].as_string()
     stmt = (
         select(Job)
-        .where(Job.status == JobStatus.PENDING.value)
+        .where(
+            Job.status == JobStatus.PENDING.value,
+            or_(retry_at.is_(None), retry_at <= datetime.now(UTC).isoformat()),
+        )
         .order_by(Job.created_at.asc())
         .limit(1)
     )
@@ -247,6 +389,16 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                 with request_journal(db, job):
                     await _run_tracked(db, job, handler)
                 job.status = JobStatus.DONE.value
+                recovery = (job.result or {}).get("internal_resolution")
+                if recovery and recovery.get("state") == "scheduled_retry":
+                    job.result = {
+                        **job.result,
+                        "internal_resolution": {
+                            **{k: v for k, v in recovery.items() if k != "retry_at"},
+                            "state": "completed",
+                            "completed_at": datetime.now(UTC).isoformat(),
+                        },
+                    }
                 db.commit()
                 logger.info("job %s (%s) DONE", job.id, job.type)
                 return
@@ -290,6 +442,13 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                     exc.client_request_id,
                 )
                 if not retriable:
+                    if (
+                        exc.transient
+                        and exc.retry_safe
+                        and not exc.outcome_unknown
+                        and defer_preview_retry(db, job)
+                    ):
+                        return
                     jobs_svc.mark_failed_and_refund(db, job, str(exc))
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
@@ -326,6 +485,8 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                     transient,
                 )
                 if not retriable:
+                    if transient and defer_preview_retry(db, job):
+                        return
                     jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
@@ -348,6 +509,7 @@ async def _run_tracked(db: Session, job: Job, handler) -> None:
 async def run_once(db: Session) -> int:
     """Processa ate `worker_batch_size` jobs. Retorna quantos processou."""
     reclaim_stale_jobs(db)
+    recover_saved_previews(db)
     processed = 0
     for _ in range(settings.worker_batch_size):
         job = claim_next(db)

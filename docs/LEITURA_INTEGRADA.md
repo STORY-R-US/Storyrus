@@ -151,3 +151,33 @@ do livro e distingue duas cenas sequenciais de uma duplicação. Não exige pano
 único atravessando a lombada. Os testes simulam rejeição dupla e correção de cada
 uma das três etapas, entrega do pacote, retomada e ausência de recompra. Nenhum
 teste faz chamadas pagas. Fluxos históricos não são migrados nem regenerados.
+
+
+## Continuidade automática e até três correções (13/11/2026)
+
+A autorização posterior amplia o teto padrão para **três edições corretivas por
+etapa**. A primeira mantém a chave de cache anterior; a segunda usa a primeira
+arte corrigida e a terceira usa a segunda, sempre junto às fotos e ao texto
+originais. A ferramenta revisa cada resultado e prossegue para entrega assim que
+aprovar. `automatic_image_repair_limit` pode restringir o teto por projeto;
+`automatic_image_repair_disabled` continua impedindo qualquer correção paga.
+
+Falhas temporárias reconhecidas como seguras não encerram definitivamente uma
+prévia quando acabam as tentativas imediatas: o mesmo trabalho volta à fila com
+espera de 1 minuto até 1 hora, preservando recibos e créditos. Outros pedidos
+continuam sendo atendidos. O próximo ciclo volta a verificar autorização das
+fotos e limite de gastos. Respostas incertas nunca são reenviadas automaticamente.
+
+Uma recuperação inicial verifica prévias integradas anteriormente reprovadas,
+sem créditos estornados, com as três artes originais já salvas e sem outro
+trabalho mais novo/ativo ou aprovação do cliente. Reutiliza o mesmo job e libera
+somente as verificações que falharam. Se a chave atual não localizar uma das
+artes, a recuperação bloqueia qualquer compra de imagem original. Projetos sem
+autorização de nova edição, como o Carlos, permanecem excluídos. Não há migração
+silenciosa de fluxos históricos nem geração de imagens faltantes nessa recuperação.
+
+O teto de três não é uma promessa de correção infalível: orçamento esgotado,
+resposta desconhecida e defeitos persistentes não podem ser resolvidos por
+recompras ilimitadas ou aprovação indevida. Os registros anteriores são mantidos
+para diagnóstico, e os testes de correção/retomada/entrega usam apenas provedores
+simulados, sem chamadas pagas.

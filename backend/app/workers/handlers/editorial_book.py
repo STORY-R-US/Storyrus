@@ -341,6 +341,17 @@ class Pipeline:
                 raise ProviderError("Arte editorial armazenada inválida", transient=False)
             self.record(name, "passed", storage_key=key, resumed=True)
             return data, cached.meta
+        if (
+            billable
+            and name.endswith(":integrated")
+            and ":repair" not in name
+            and (self.job.result or {})
+            .get("saved_preview_recovery", {})
+            .get("only_saved_base_images")
+        ):
+            raise ProviderError(
+                "BOOK_ART_UNAVAILABLE: recuperação exige a arte original salva; nenhuma nova geração foi iniciada"
+            )
         unknown = self._unknown_generation(key) if billable else None
         if unknown:
             raise ProviderError(
@@ -2223,7 +2234,7 @@ class Pipeline:
     async def review_integrated_with_repair(
         self, raw, source, name, prompt, *, landscape=False, style=None, **review_kwargs
     ):
-        """One authorized corrective edit of saved art, never an unbounded regeneration loop."""
+        """Up to three authorized, durable corrections; continue delivery after approval."""
         try:
             qa = await self.review(raw, prompt, **review_kwargs)
             return raw, source, qa
@@ -2234,67 +2245,99 @@ class Pipeline:
             # after its except block. The repair cache key deliberately excludes prose.
             issues = (exc.report or {}).get("issues") or [str(exc)]
         original_sha = render.digest(raw)
-        repair_prompt = (
-            "ONE CORRECTIVE EDIT OF THE EXISTING IMAGE, not a new concept. "
-            f"References 1 through {len(self.photos)} are original identity photos. "
-            f"Reference {len(self.photos) + 1} is the EXACT SAVED IMAGE TO REPAIR. "
-            "Preserve its cast, theme, scenery, outfit, readable correct words, lettering "
-            "and composition wherever they already satisfy the contract. Correct only "
-            "confirmed defects; do not reproduce a reference sheet or invent new people. "
-            "Keep title/verses large and clear of face, hair, hats and hands. For a held "
-            "book, the complete cover belongs only on the front board. "
-            "A following cover reference, when supplied, is immutable continuity. "
-            "Original role and literal text contract: "
-            + prompt
-            + "\nObserved issues to correct: "
-            + json.dumps(issues, ensure_ascii=False)
-        )
-        cover = review_kwargs.get("cover")
-
-        async def edit(_attempt):
-            result = (
-                await self.master._pkg()
-                .get_image_provider()
-                .generate_scene(
-                    prompt=repair_prompt,
-                    character_ref=self.photos[0],
-                    photo=self.photos[0],
-                    extra_refs=self.photos[1:] + [raw] + ([cover] if cover else []),
-                    style=style or contract.art_direction(self.project.style),
-                    landscape=landscape,
-                )
+        original_source_key = source["storage_key"]
+        configured = self.profile.get("automatic_image_repair_limit", 3)
+        maximum = min(3, max(1, configured)) if isinstance(configured, int) else 3
+        rejected_hashes = {original_sha}
+        for repair_number in range(1, maximum + 1):
+            repair_prompt = (
+                "ONE CORRECTIVE EDIT OF THE EXISTING IMAGE, not a new concept. "
+                f"References 1 through {len(self.photos)} are original identity photos. "
+                f"Reference {len(self.photos) + 1} is the EXACT SAVED IMAGE TO REPAIR. "
+                "Preserve its cast, theme, scenery, outfit, readable correct words, lettering "
+                "and composition wherever they already satisfy the contract. Correct only "
+                "confirmed defects; do not reproduce a reference sheet or invent new people. "
+                "Keep title/verses large and clear of face, hair, hats and hands. For a held "
+                "book, the complete cover belongs only on the front board. "
+                "A following cover reference, when supplied, is immutable continuity. "
+                "Original role and literal text contract: "
+                + prompt
+                + "\nObserved issues to correct: "
+                + json.dumps(issues, ensure_ascii=False)
             )
-            self.account(result, name + ":correção interna")
-            return result.image_bytes, {
-                "operation": "correct_saved_integrated_art",
-                "original_source_key": source["storage_key"],
-                "original_sha256": original_sha,
-                "maximum_edits": 1,
-            }
+            cover = review_kwargs.get("cover")
 
-        repaired, repaired_source = await self.stage(
-            name + ":repair:integrated",
-            {"source_sha256": original_sha, "repair_contract": 1},
-            edit,
-        )
-        # No recursive call to this helper: a second failure requires internal
-        # intervention. Both the edit and its inspection are durable and reusable.
-        qa = await self.review(repaired, prompt, **review_kwargs)
-        recoveries = dict((self.job.result or {}).get("editorial_review_recoveries") or {})
-        resolved = False
-        for key, entry in recoveries.items():
-            if entry.get("image_sha256") == original_sha and entry.get("state") == "needs_operator":
-                recoveries[key] = {
-                    **entry,
-                    "state": "repaired",
-                    "repaired_sha256": render.digest(repaired),
-                    "repaired_storage_key": repaired_source["storage_key"],
+            async def edit(_attempt):
+                result = (
+                    await self.master._pkg()
+                    .get_image_provider()
+                    .generate_scene(
+                        prompt=repair_prompt,
+                        character_ref=self.photos[0],
+                        photo=self.photos[0],
+                        extra_refs=self.photos[1:] + [raw] + ([cover] if cover else []),
+                        style=style or contract.art_direction(self.project.style),
+                        landscape=landscape,
+                    )
+                )
+                self.account(result, name + ":correção interna")
+                return result.image_bytes, {
+                    "operation": "correct_saved_integrated_art",
+                    "original_source_key": original_source_key,
+                    "previous_source_key": source["storage_key"],
+                    "original_sha256": original_sha,
+                    "maximum_edits": maximum,
+                    "repair_number": repair_number,
                 }
-                resolved = True
-        if resolved:
-            self.job.result = {**(self.job.result or {}), "editorial_review_recoveries": recoveries}
-            self.db.commit()
-        return repaired, repaired_source, qa
+
+            repaired, repaired_source = await self.stage(
+                name
+                + (
+                    ":repair:integrated"
+                    if repair_number == 1
+                    else f":repair:{repair_number}:integrated"
+                ),
+                {
+                    "source_sha256": original_sha,
+                    "repair_contract": 1,
+                    **(
+                        {"repair_number": repair_number, "previous_sha256": render.digest(raw)}
+                        if repair_number > 1
+                        else {}
+                    ),
+                },
+                edit,
+            )
+            try:
+                qa = await self.review(repaired, prompt, **review_kwargs)
+            except VisualReviewError as exc:
+                if repair_number == maximum:
+                    raise
+                issues = (exc.report or {}).get("issues") or [str(exc)]
+                rejected_hashes.add(render.digest(repaired))
+                raw, source = repaired, repaired_source
+                continue
+            recoveries = dict((self.job.result or {}).get("editorial_review_recoveries") or {})
+            resolved = False
+            for key, entry in recoveries.items():
+                if (
+                    entry.get("image_sha256") in rejected_hashes
+                    and entry.get("state") == "needs_operator"
+                ):
+                    recoveries[key] = {
+                        **entry,
+                        "state": "repaired",
+                        "repaired_sha256": render.digest(repaired),
+                        "repaired_storage_key": repaired_source["storage_key"],
+                    }
+                    resolved = True
+            if resolved:
+                self.job.result = {
+                    **(self.job.result or {}),
+                    "editorial_review_recoveries": recoveries,
+                }
+                self.db.commit()
+            return repaired, repaired_source, qa
 
     async def integrated_editorial_scene(self, name, action, *, role, text, passages=None):
         """One finished image with literal copy, saved before mandatory review."""
