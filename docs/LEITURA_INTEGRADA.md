@@ -181,3 +181,20 @@ resposta desconhecida e defeitos persistentes não podem ser resolvidos por
 recompras ilimitadas ou aprovação indevida. Os registros anteriores são mantidos
 para diagnóstico, e os testes de correção/retomada/entrega usam apenas provedores
 simulados, sem chamadas pagas.
+
+
+## Encerramento seguro durante publicações e tela de pedidos
+
+O lifespan da API cancelava imediatamente o consumidor da fila, inclusive com
+uma chamada de imagem em andamento. Agora o encerramento sinaliza drenagem: não
+pega novos trabalhos, aguarda a resposta atual ser persistida e impede iniciar a
+próxima chamada paga. O mesmo job volta à fila para a nova instância continuar.
+A espera local é de 270 segundos, com `maxShutdownDelaySeconds=300` no serviço
+Render existente (sem mudar plano). Heartbeat continua ativo durante a drenagem.
+A proteção não pode recuperar uma resposta já perdida por um encerramento antigo.
+
+A tela de pedidos não apresenta diagnósticos brutos da geração nem exige que o
+cliente repita a criação. Continua consultando pedidos em acompanhamento e mostra
+a entrega quando disponível. A rota de pedidos da própria conta remove o erro
+técnico da resposta; os registros operacionais do proprietário são preservados.
+O teste de navegador percorre falha interna → entrega pronta sem POST de geração.

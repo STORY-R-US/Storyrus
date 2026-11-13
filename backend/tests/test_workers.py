@@ -1826,3 +1826,57 @@ def test_saved_preview_recovery_is_automatic_scoped_and_once(db, monkeypatch, co
         assert runner.recover_saved_previews(db) == 0
     else:
         assert job.status == "FAILED"
+
+
+@pytest.mark.asyncio
+async def test_deploy_saves_in_flight_paid_result_and_defers_before_next_purchase(
+    db, mem_storage, monkeypatch
+):
+    import asyncio
+
+    from app.ai_clients.request_journal import journaled
+    from app.services import process_lifecycle
+
+    monkeypatch.setattr(runner.settings, "job_heartbeat_interval_s", 0)
+    monkeypatch.setattr(runner.settings, "offline_fallback", True)
+    monkeypatch.setattr("app.services.privacy.photos_authorized", lambda *_: True)
+    monkeypatch.setattr("app.services.spend_guard.assert_vendor_allowed", lambda *a, **kw: None)
+    user, project = _seed(db, credits=7)
+    job = _job(db, project, "EBOOK", cost=3, payload={"preview_chain": True})
+    started, finish = asyncio.Event(), asyncio.Event()
+    calls = []
+
+    class Provider:
+        @journaled("offline:image")
+        async def generate(self, name):
+            calls.append(name)
+            started.set()
+            await finish.wait()
+            return ImageResult(image_bytes=b"saved-response", cost_usd=0.01)
+
+    provider = Provider()
+
+    async def handler(_db, _job):
+        await provider.generate("cover")
+        await provider.generate("reading")
+
+    process_lifecycle.reset()
+    try:
+        running = asyncio.create_task(runner._process_job_inner(db, job, handler))
+        await started.wait()
+        process_lifecycle.begin_shutdown()
+        assert not running.done()
+        finish.set()
+        await running
+        assert calls == ["cover"]
+        assert job.status == "PENDING"
+        entries = list(job.result["paid_requests"].values())
+        assert len(entries) == 1 and entries[0]["state"] == "done"
+        assert entries[0]["storage_key"] in mem_storage
+        assert user.credits == 7
+        process_lifecycle.reset()
+        await runner._process_job_inner(db, job, handler)
+        assert calls == ["cover", "reading"]
+        assert job.status == "DONE" and user.credits == 7
+    finally:
+        process_lifecycle.reset()

@@ -283,6 +283,31 @@ describe("Pedidos", () => {
     ).toHaveAttribute("href", "https://arquivos.test/lia.pdf");
   });
 
+  it("mantém falhas técnicas internas e atualiza a entrega recuperada", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server, state } = await import("./test/server");
+    const { setToken } = await import("./api");
+    state.isOwner = false;
+    setToken("member-token");
+    let ready = false;
+    server.use(http.get("*/v1/usage/orders/mine", () => HttpResponse.json([{
+      id: "marisa-order", project_id: "p-marisa", summary: "Livro\nNome: Marisa", created_at: new Date().toISOString(),
+      generation_status: ready ? "ready" : "partial",
+      generation_error: ready ? null : "Etapa editorial reading:integrated: GENERATION_OUTCOME_UNKNOWN",
+      book_files: [{kind: "cover", label:"Capa", url:"https://files.test/cover.png"}, ...(ready ? [{kind:"in_hand",label:"Livro na mão",url:"https://files.test/reading.png"}] : [])],
+    }])));
+    render(<Pedidos />);
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Em acompanhamento"));
+    expect(document.body).not.toHaveTextContent("GENERATION_OUTCOME_UNKNOWN");
+    expect(document.body).not.toHaveTextContent("Etapa editorial");
+    expect(document.body).not.toHaveTextContent("Prévia incompleta");
+    ready = true;
+    window.dispatchEvent(new Event("focus"));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Prévia pronta"));
+    expect(screen.getByRole("img", {name:"Livro na mão"})).toBeInTheDocument();
+    setToken(null);
+  });
+
   it("mostra a prévia, traduz os requisitos da gráfica e gera no mesmo pedido", async () => {
     const { http, HttpResponse } = await import("msw");
     const { server } = await import("./test/server");

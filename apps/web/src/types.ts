@@ -211,7 +211,7 @@ export interface OrderTicket {
   photo_urls?: string[];
   has_story?: boolean;
   book_files?: OrderBookFile[];
-  generation_status?: "queued" | "generating" | "ready" | "partial" | "failed" | "demo";
+  generation_status?: "queued" | "generating" | "ready" | "partial" | "failed" | "demo" | "reviewing";
   generation_stage?: string | null;
   generated_images?: number;
   image_provider?: string | null;

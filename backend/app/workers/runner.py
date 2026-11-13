@@ -271,13 +271,13 @@ def recover_saved_previews(db: Session) -> int:
     return recovered
 
 
-def defer_preview_retry(db: Session, job: Job) -> bool:
+def defer_preview_retry(db: Session, job: Job, *, shutdown: bool = False) -> bool:
     """Keep known-safe temporary preview failures queued without a new debit/refund."""
-    if not _is_preview_job(job) or unresolved_request(job):
+    if (not _is_preview_job(job) and not shutdown) or unresolved_request(job):
         return False
     prior = (job.result or {}).get("internal_resolution") or {}
     cycle = int(prior.get("retry_cycles") or 0) + 1
-    delay = min(3600, 60 * 2 ** min(cycle - 1, 6))
+    delay = 5 if shutdown else min(3600, 60 * 2 ** min(cycle - 1, 6))
     retry_at = (datetime.now(UTC) + timedelta(seconds=delay)).isoformat()
     job.result = {
         **(job.result or {}),
@@ -413,6 +413,13 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                         request_id=unresolved.get("request_id"),
                         client_request_id=unresolved.get("client_request_id"),
                     )
+                if (
+                    "SERVICE_DRAINING" in str(exc)
+                    and exc.transient
+                    and exc.retry_safe
+                    and defer_preview_retry(db, job, shutdown=True)
+                ):
+                    return
                 retriable = (
                     exc.transient and exc.retry_safe and job.attempts < settings.job_max_attempts
                 )
@@ -508,10 +515,16 @@ async def _run_tracked(db: Session, job: Job, handler) -> None:
 
 async def run_once(db: Session) -> int:
     """Processa ate `worker_batch_size` jobs. Retorna quantos processou."""
+    from app.services.process_lifecycle import draining
+
+    if draining():
+        return 0
     reclaim_stale_jobs(db)
     recover_saved_previews(db)
     processed = 0
     for _ in range(settings.worker_batch_size):
+        if draining():
+            break
         job = claim_next(db)
         if job is None:
             break
