@@ -43,6 +43,8 @@ describe("catálogo no sitemap", () => {
     expect(catalogEntry("pt", 16)).toBeNull();
     expect(catalogEntry("pt", 17)).toBeNull();
     expect(catalogEntry("pt", 32)).toBeNull();
+    expect(catalogEntry("pt", 61)).toBeNull();
+    expect(books.some((book) => book.index === 61)).toBe(false);
     expect(books.some((book) => book.index === 10 && book.title === "Nano E Suas Aventuras")).toBe(true);
     expect(books.some((book) => book.index === 13)).toBe(false);
     expect(books.some((book) => book.index === 16 || book.title === "Abigail Em Uma Aventura Pelo Espaço")).toBe(false);
@@ -76,6 +78,7 @@ describe("catálogo no sitemap", () => {
     expect(xml).not.toContain("https://storyrus.ai/livro/13");
     expect(xml).not.toContain("https://storyrus.ai/livro/16");
     expect(xml).not.toContain("https://storyrus.ai/livro/17");
+    expect(xml).not.toContain("https://storyrus.ai/livro/61</loc>");
     expect(xml).not.toContain("/gastos");
     expect(xml).not.toContain("/pedidos");
     expect(xml).not.toContain("/usuarios");
