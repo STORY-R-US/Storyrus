@@ -17,7 +17,7 @@ for (const path of ["/", "/cartoon"]) {
     });
     const pt = await read();
     expect(pt.books).toHaveLength(path === "/" ? 52 : 42);
-    expect(pt.hero).toBe(path === "/" ? 18 : 4);
+    expect(pt.hero).toBe(path === "/" ? 17 : 4);
     for (const lang of ["pt", "en", "es"]) {
       await page.getByTestId(`landing-lang-${lang}`).click();
       expect(await read()).toEqual(pt);
