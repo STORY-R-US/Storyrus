@@ -1,3 +1,4 @@
+import { PhotoSteps } from "./Landing";
 import { InternalReviewNotice } from "./studio/InternalReviewNotice";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
@@ -1125,6 +1126,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
         <StudioIntro lang={lang} />
+        {!orderSent && <PhotoSteps lang={lang} example="studio" />}
         {project && assets?.photos_authorized === false && (
           <MediaReauthorization projectId={project.id} lang={lang}
             onAuthorized={() => void api.getAssets(project.id).then(setAssets).catch(() => {})} />

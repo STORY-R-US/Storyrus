@@ -2688,6 +2688,10 @@ img.ex-tab-cover {
 .howex-card-scene .howex-media img,
 .howex-card-face .howex-media img,
 .howex-card-avatar .howex-media img { animation: none; transform: none; will-change: auto; }
+.howex-card-protagonist-reference .howex-media img {
+  transform: scale(1.18);
+  transform-origin: 50% 75%;
+}
 .howex-card-page .howex-media img { animation: kenburnsSoft 22s ease-in-out infinite alternate; }
 
 /* antes/depois: respiração sutil (mantém a moldura preenchida) */

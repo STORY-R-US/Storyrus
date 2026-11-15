@@ -83,8 +83,8 @@ describe("approved PT images in all languages", () => {
         videos: container.querySelectorAll("#videos .vid-card").length,
       });
       const pt = read();
-      expect(pt.books).toHaveLength(variant === "photo" ? 53 : 42);
-      expect(pt.hero).toHaveLength(variant === "photo" ? 108 : 24);
+      expect(pt.books).toHaveLength(variant === "photo" ? 52 : 42);
+      expect(pt.hero).toHaveLength(variant === "photo" ? 102 : 24);
       for (const lang of ["en", "es"] as const) {
         fireEvent.click(screen.getByTestId(`landing-lang-${lang}`));
         expect(read()).toEqual(pt);

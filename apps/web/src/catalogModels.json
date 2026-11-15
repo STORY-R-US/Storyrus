@@ -1259,24 +1259,6 @@
       "holding": "foto-enzo-dinossauro.png"
     }
   },
-  "catalog-realistic-61": {
-    "id": "catalog-realistic-61",
-    "catalog_index": 61,
-    "style": "realistic",
-    "available": true,
-    "reason": null,
-    "titles": {
-      "pt": "Pai e Filha: Uma Dupla que Brilha",
-      "en": "Dad and Daughter: A Pair That Shines",
-      "es": "Papá e Hija: Un Equipo que Brilla"
-    },
-    "example_name": "",
-    "sources": {
-      "cover": "capa-pai-e-filha.png",
-      "page": "pagina-pai-e-filha.png",
-      "holding": "foto-pai-e-filha.png"
-    }
-  },
   "catalog-cartoon-18": {
     "id": "catalog-cartoon-18",
     "catalog_index": 18,
