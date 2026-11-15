@@ -8,7 +8,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.addInitScript(() => localStorage.setItem("lang", "pt"));
       await page.goto(route);
-      await expect(page.getByTestId("catalog-search")).toBeVisible();
+      await expect(page.getByTestId("landing-catalog-card").first()).toBeVisible();
       while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
       const selectors = [".khead", ".khero-intro", ".khero-intro h1", ".khero-intro .keyebrow", ".khero-intro .kbtn", ".hero-carousel", ".hero-series.on .hero-series-inner", ".hero-shot.on", ".fb-stage", ".khero-after", ".khead-links .kbtn", ".kcats .kcat-btn", ".cat-card", ".cat-body h3", ".cat-note-grid", ".cat-go", ".howex-card", ".faq-q", ".kband .kbtn", ".kfoot", ".kfoot-nav a", ".kfoot-tag", ".kfoot-copy", ".rev-card", ".vid-card", ".fmt-card", ".kband", ".cat-below", ".cat-notes-sizes", ".promise-card", ".ktitle", ".ksub"];
       let baseline: { selector: string; width: number; height: number }[] = [];

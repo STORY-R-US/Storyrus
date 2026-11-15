@@ -43,7 +43,7 @@ for (const width of [390, 1440]) {
       const books = new Map<string, string>();
       for (const route of ["/catalogo", "/cartoon"]) {
         await page.goto(route);
-        await expect(page.getByTestId("catalog-search")).toBeVisible();
+        await expect(page.getByTestId("landing-catalog-card").first()).toBeVisible();
         while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
         const cards = await page.locator(".cat-card").evaluateAll(elements => elements.map(card => ({
           href: card.querySelector<HTMLAnchorElement>(".cat-book-link")!.getAttribute("href")!,
@@ -79,7 +79,7 @@ for (const width of [390, 1440]) {
 }
 
 for (const lang of ["pt", "en", "es"]) {
-  test(`tablet header, hero action, search and category results in ${lang}`, async ({ page }) => {
+  test(`tablet header, hero action and category results in ${lang}`, async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 900 });
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
     await page.goto("/");
@@ -96,17 +96,11 @@ for (const lang of ["pt", "en", "es"]) {
     await page.setViewportSize({ width: 1024, height: 900 });
     await expect(page.getByTestId("landing-hero-cta")).toHaveCount(0);
     await expect(page.getByTestId("landing-header-cta")).toBeVisible();
-    await page.getByTestId("catalog-search").fill("noé");
-    // Search ignores accents; translated proper names can differ.
-    await page.getByTestId("catalog-search").fill("Enzo");
+    await expect(page.getByRole("searchbox")).toHaveCount(0);
     expect(await page.getByTestId("landing-catalog-card").count()).toBeGreaterThan(0);
-    await page.getByTestId("catalog-search").fill("zzzz-no-book");
-    await expect(page.getByTestId("landing-catalog-card")).toHaveCount(0);
     await page.goto("/catalogo/sentimentos");
     await expect(page.locator(".cat-book-link[href='/livro/64']")).toBeVisible();
-    await page.getByTestId("catalog-search").fill("zzzz-no-book");
-    await expect(page.locator(".catalog-actions a[href='/catalogo']")).toBeVisible();
-    await expect(page.locator(".catalog-actions a[href='/app']")).toBeVisible();
+    await expect(page.getByRole("searchbox")).toHaveCount(0);
     await page.goto("/app?exemplo=dinosaurs");
     await expect(page.locator(".project-journey-steps")).toHaveCount(1);
     await expect(page.locator(".purchase-steps")).toHaveCount(0);
