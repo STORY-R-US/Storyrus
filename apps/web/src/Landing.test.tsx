@@ -228,12 +228,12 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes(localizedExample("capa-nicolas-maefilho.jpg", "pt")))).toBe(false);
     expect(srcs.some((src) => src.includes(localizedExample("capa-matteo-aniversario.png", "pt")))).toBe(false);
     expect(srcs.some((src) => src.includes(localizedExample("capa-matteo-nas-nuvens.png", "pt")))).toBe(true);
-    expect(imgs).toHaveLength(53);
+    expect(imgs).toHaveLength(52);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(true);
     expect(srcs.some((src) => src.includes(localizedExample("capa-feliz-natal-familia.png", "pt")))).toBe(true);
     expect(srcs.some((src) => src.includes(localizedExample("capa-enzo-dinossauro.png", "pt")))).toBe(true);
-    expect(srcs.some((src) => src.includes(localizedExample("capa-pai-e-filha.png", "pt")))).toBe(true);
+    expect(srcs.some((src) => src.includes("pai-e-filha"))).toBe(false);
   });
 
   it("mostra os livros realistas com a mesma capa, o valor e sem o resumo", async () => {
@@ -256,8 +256,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(53);
-    expect(cards).toHaveLength(53);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(52);
+    expect(cards).toHaveLength(52);
     expect(cards.some((card) => card.textContent?.includes("Livro Teste"))).toBe(false);
     expect(within(catalog).getByText(/nano e suas aventuras/i)).toBeInTheDocument();
     expect(within(catalog).getByText(/feliz natal, família/i)).toBeInTheDocument();
@@ -406,7 +406,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-title");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(53);
+    expect(personalize).toHaveLength(52);
     expect(screen.queryAllByTestId("catalog-model-unavailable")).toHaveLength(0);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
@@ -540,7 +540,7 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("src", expect.stringContaining("pagina-amordebisavo.jpg"));
     expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-amordebisavo.jpg"));
     expect(screen.getAllByRole("button", { name: "Nano E Suas Aventuras" }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: "Pai e Filha: Uma Dupla que Brilha" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Pai e Filha: Uma Dupla que Brilha" })).not.toBeInTheDocument();
 
     const track = cover.closest(".hero-carousel-track") as HTMLElement;
     expect(track.querySelector(".hero-slide, .hero-slide-frame")).toBeNull();
@@ -567,7 +567,7 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(heroSrcs.some((src) => src.includes(localizedExample("capa-nanoaventuras.png", "pt")))).toBe(true);
     expect(heroSrcs.some((src) => src.includes(localizedExample("capa-feliz-natal-familia.png", "pt")))).toBe(true);
     expect(heroSrcs.some((src) => src.includes(localizedExample("capa-enzo-dinossauro.png", "pt")))).toBe(true);
-    expect(heroSrcs.some((src) => src.includes(localizedExample("capa-pai-e-filha.png", "pt")))).toBe(true);
+    expect(heroSrcs.some((src) => src.includes("pai-e-filha"))).toBe(false);
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-meupai-heroi.png", "pt")));
     expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("button", { name: /próxima página/i }));
@@ -592,7 +592,7 @@ describe("Landing — menu mobile e abas do hero", () => {
 
     await user.click(screen.getByTestId("landing-lang-es"));
     const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
-    expect(heroImgs).toHaveLength(108); // same 18 book trios, with the carousel loop copy
+    expect(heroImgs).toHaveLength(102); // same 17 book trios, with the carousel loop copy
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-meupai-heroi.png", "es")))).toBe(true);
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-lucas-max.png", "es")))).toBe(true);
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-esther-higiene.png", "es")))).toBe(true);
@@ -606,7 +606,7 @@ describe("Landing — menu mobile e abas do hero", () => {
     const videos = document.getElementById("videos") as HTMLElement;
     expect(within(videos).getByRole("heading", { name: /mi papá, mi héroe/i })).toBeInTheDocument();
     const passo = document.getElementById("passo") as HTMLElement;
-    expect([...passo.querySelectorAll("img")].some((img) => img.getAttribute("src")?.endsWith(localizedExample("pagina-mamaepapaimatteo.jpg", "es")))).toBe(true);
+    expect([...passo.querySelectorAll("img")].some((img) => img.getAttribute("src")?.endsWith(localizedExample("capa-meupai-heroi.png", "es")))).toBe(true);
   }, 15000);
 
   it("coloca o texto Uma foto abaixo do titulo Transforme", async () => {
@@ -769,7 +769,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(passo).getByRole("heading", { name: "Envie Fotos dos Outros Personagens" })).toBeInTheDocument();
     expect(within(passo).getByRole("heading", { name: "Revise e Aprove" })).toBeInTheDocument();
     expect(passo.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["passo-protagonista-v2.webp", "passo-familia-v2.webp", "pagina-mamaepapaimatteo.jpg"]) {
+    for (const file of ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", "capa-meupai-heroi.png"]) {
       expect(passo.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
   });
@@ -801,7 +801,7 @@ describe("Landing — CTAs e links", () => {
     expect(bookLinks()).toHaveLength(4);
     hover(/^família$/i);
     expect(bookLinks().length).toBeGreaterThan(4);
-    expect(bookLinks()).toContain("/livro/61");
+    expect(bookLinks()).not.toContain("/livro/61");
     expect(within(panel).getByRole("link", { name: /^casamento$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu-casamento");
     expect(within(panel).getByRole("link", { name: /hora de dormir/i })).toHaveAttribute("href", "/catalogo#educativo-rotina_dormir");
     hover(/hora de dormir/i);
@@ -821,7 +821,7 @@ describe("Landing — CTAs e links", () => {
           expect(shown.length, `${lang}: ${link.textContent}`).toBeGreaterThan(0);
           shown.forEach((book) => books.add(book.getAttribute("href")!));
         }
-        expect(books.size).toBe(variant === "photo" ? 58 : 42);
+        expect(books.size).toBe(variant === "photo" ? 57 : 42);
         if (variant === "photo") expect(books.has("/livro/31")).toBe(true);
         else expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
       }
@@ -959,10 +959,7 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(12);
     await user.selectOptions(screen.getByTestId("catalog-category"), "educativo");
     expect(await screen.findByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId("catalog-search"), { target: { value: "Davi" } });
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(1);
-    expect(screen.getAllByRole("link", { name: /davi, o menino pastor/i })[0]).toHaveAttribute("href", "/livro/20");
-    fireEvent.change(screen.getByTestId("catalog-search"), { target: { value: "" } });
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
     fireEvent.change(screen.getByTestId("catalog-category"), { target: { value: "" } });
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
     const links = [...document.querySelectorAll(".cat-book-link")].map((a) => a.getAttribute("href"));
@@ -1092,7 +1089,7 @@ describe("Classificação editorial do catálogo", () => {
       expect(shelf("voce-e-eu", "pets")).toEqual(expect.arrayContaining([10, 28]));
       expect(shelf("aventuras", "superhero")).not.toContain(28);
       expect(shelf("aventuras", "dinosaurs")).toContain(60);
-      expect(shelf("voce-e-eu", "fathers_day")).toContain(61);
+      expect(shelf("voce-e-eu", "fathers_day")).not.toContain(61);
       expect(shelf("ocasioes", "christmas")).toEqual(expect.arrayContaining([9, 59]));
       expect(shelf("ocasioes", "birthday")).toEqual(expect.arrayContaining([41, 51, 55]));
       expect(shelf("ocasioes", "birthday")).not.toContain(50);

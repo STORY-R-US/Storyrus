@@ -172,12 +172,6 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     page: heroAsset("pagina-enzo-dinossauro.png", "pagina-enzo-dinossauro-en.png", "pagina-enzo-dinossauro-es.png"),
     photo: heroAsset("foto-enzo-dinossauro.png", "foto-enzo-dinossauro-en.png", "foto-enzo-dinossauro-es.png"),
   },
-  {
-    name: "Pai e Filha: Uma Dupla que Brilha",
-    cover: heroAsset("capa-pai-e-filha.png", "capa-pai-e-filha-en.png", "capa-pai-e-filha-es.png"),
-    page: heroAsset("pagina-pai-e-filha.png", "pagina-pai-e-filha-en.png", "pagina-pai-e-filha-es.png"),
-    photo: heroAsset("foto-pai-e-filha.png", "foto-pai-e-filha-en.png", "foto-pai-e-filha-es.png"),
-  },
 ];
 /** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
 const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
@@ -347,7 +341,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-livro-teste.jpg", en: "capa-livro-teste-en.jpg", es: "capa-livro-teste-es.jpg" },
   { pt: "capa-feliz-natal-familia.png", en: "capa-feliz-natal-familia-en.png", es: "capa-feliz-natal-familia-es.png" },
   { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
-  { pt: "capa-pai-e-filha.png", en: "capa-pai-e-filha-en.png", es: "capa-pai-e-filha-es.png" },
+  { pt: "" }, // Retired slot; preserve subsequent book URLs.
   "covers/realistic-capa-sofia-princesa-v1-pt.webp",
   "covers/realistic-capa-lia-cores-v1-pt.webp",
   "covers/realistic-capa-bento-compartilhar-v1-pt.webp",
@@ -581,11 +575,6 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-enzo-dinossauro.png", en: "pagina-enzo-dinossauro-en.png", es: "pagina-enzo-dinossauro-es.png" },
     photo: { pt: "foto-enzo-dinossauro.png", en: "foto-enzo-dinossauro-en.png", es: "foto-enzo-dinossauro-es.png" },
   },
-  61: {
-    cover: { pt: "capa-pai-e-filha.png", en: "capa-pai-e-filha-en.png", es: "capa-pai-e-filha-es.png" },
-    page: { pt: "pagina-pai-e-filha.png", en: "pagina-pai-e-filha-en.png", es: "pagina-pai-e-filha-es.png" },
-    photo: { pt: "foto-pai-e-filha.png", en: "foto-pai-e-filha-en.png", es: "foto-pai-e-filha-es.png" },
-  },
   62: { cover: "covers/realistic-capa-sofia-princesa-v1-pt.webp", page: "realistic-pagina-sofia-princesa-v1-pt.webp", photo: "realistic-foto-sofia-princesa-v1-pt.webp" },
   63: { cover: "covers/realistic-capa-lia-cores-v1-pt.webp", page: "realistic-pagina-lia-cores-v1-pt.webp", photo: "realistic-foto-lia-cores-v1-pt.webp" },
   64: { cover: "covers/realistic-capa-bento-compartilhar-v1-pt.webp", page: "realistic-pagina-bento-compartilhar-v1-pt.webp", photo: "realistic-foto-bento-compartilhar-v1-pt.webp" },
@@ -685,7 +674,7 @@ const CATALOG_THEMES = [
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
-const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58]);
+const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58, 61]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
@@ -1452,7 +1441,7 @@ const I18N = {
       { t: "Livro Teste", p: "Livro de prova para conferir um pedido de cinquenta centavos. Não é um presente do catálogo.", cover: "Soft", size: "P", tag: "Teste de pedido", quote: "R$ 0,50." },
       { t: "Feliz Natal, Família!", p: "Árvore, presentes e o Papai Noel ao lado: a família inteira guarda o Natal numa história só deles.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Feliz Natal, família!" },
       { t: "Segredos Do Dinossauro, Enzo, Entre O Passado E O Futuro", p: "Com uma lupa na mão, o Enzo atravessa o tempo ao lado de um triceratops e descobre os segredos dos dinossauros.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Do passado ao futuro, a aventura continua." },
-      { t: "Pai e Filha: Uma Dupla que Brilha", p: "No dia da formatura, pai e filha seguram juntos o diploma: uma dupla que brilha em cada conquista.", cover: "Hard", size: "M", tag: "Pai e filha", quote: "Uma dupla que brilha." },
+      { t: "", p: "", cover: "Hard", size: "M", tag: "", quote: "" }, // Retired catalog slot.
       { t: "Sofia, a Princesa que Cultivava Gentileza", p: "Sofia e um amigo plantam e cuidam juntos de um jardim, descobrindo como pequenos gestos fazem a gentileza florescer.", cover: "Hard", size: "M", tag: "Princesas", quote: "Pequenos cuidados fazem a gentileza florescer." },
       { t: "Lia e o Jardim das Cores", p: "No jardim, Lia mistura azul e amarelo, descobre o verde e dá novas cores às folhas de sua pintura.", cover: "Hard", size: "M", tag: "Cores", quote: "Uma mistura, uma descoberta, um jardim de cores." },
       { t: "Bento e a Brincadeira que Cresceu", p: "Bento divide seus blocos com uma amiga. Juntos, constroem uma ponte e se revezam para fazer o trenzinho passar.", cover: "Hard", size: "M", tag: "Compartilhar", quote: "Uma peça de cada um, uma brincadeira para os dois." },
@@ -1711,7 +1700,7 @@ const I18N = {
       { t: "Test Book", p: "A trial book for checking a fifty-cent order. It is not a catalog gift.", cover: "Soft", size: "P", tag: "Order test", quote: "R$ 0,50." },
       { t: "Merry Christmas, Family!", p: "The tree, the presents and Santa beside them: the whole family keeps Christmas in a story all their own.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Merry Christmas, family!" },
       { t: "Dinosaur Secrets, Enzo, From Past To Future", p: "Magnifying glass in hand, Enzo travels through time beside a triceratops and discovers the secrets of the dinosaurs.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "From the past to the future, the adventure goes on." },
-      { t: "Dad and Daughter: A Pair That Shines", p: "On graduation day, dad and daughter hold the diploma together: a pair that shines in every achievement.", cover: "Hard", size: "M", tag: "Dad and daughter", quote: "A pair that shines." },
+      { t: "", p: "", cover: "Hard", size: "M", tag: "", quote: "" }, // Retired catalog slot.
       { t: "Sofia, the Princess Who Grew Kindness", p: "Sofia and a friend plant and care for a garden together, discovering how small acts help kindness bloom.", cover: "Hard", size: "M", tag: "Princesses", quote: "Small acts of care help kindness bloom." },
       { t: "Lia and the Garden of Colors", p: "In the garden, Lia mixes blue and yellow, discovers green and brings fresh color to the leaves in her painting.", cover: "Hard", size: "M", tag: "Colors", quote: "A little mixing, a new discovery, a garden of colors." },
       { t: "Bento and the Game That Grew", p: "Bento shares his blocks with a friend. Together, they build a bridge and take turns sending the little train through.", cover: "Hard", size: "M", tag: "Sharing", quote: "A block from each friend, a game for them both." },
@@ -1970,7 +1959,7 @@ const I18N = {
       { t: "Libro De Prueba", p: "Libro de prueba para revisar un pedido de cincuenta centavos. No es un regalo del catálogo.", cover: "Soft", size: "P", tag: "Prueba de pedido", quote: "R$ 0,50." },
       { t: "¡Feliz Navidad, Familia!", p: "El árbol, los regalos y Papá Noel al lado: toda la familia guarda la Navidad en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "¡Feliz Navidad, familia!" },
       { t: "Secretos Del Dinosaurio, Enzo, Del Pasado Al Futuro", p: "Con una lupa en la mano, Enzo cruza el tiempo junto a un triceratops y descubre los secretos de los dinosaurios.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Del pasado al futuro, la aventura sigue." },
-      { t: "Papá e Hija: Un Equipo que Brilla", p: "El día de la graduación, papá e hija sostienen juntos el diploma: un equipo que brilla en cada logro.", cover: "Hard", size: "M", tag: "Papá e hija", quote: "Un equipo que brilla." },
+      { t: "", p: "", cover: "Hard", size: "M", tag: "", quote: "" }, // Retired catalog slot.
       { t: "Sofia, la Princesa que Cultivaba la Bondad", p: "Sofia y un amigo plantan y cuidan juntos un jardín, descubriendo cómo los pequeños gestos hacen florecer la bondad.", cover: "Hard", size: "M", tag: "Princesas", quote: "Los pequeños cuidados hacen florecer la bondad." },
       { t: "Lia y el Jardín de los Colores", p: "En el jardín, Lia mezcla azul y amarillo, descubre el verde y da nuevos colores a las hojas de su pintura.", cover: "Hard", size: "M", tag: "Colores", quote: "Una mezcla, un descubrimiento, un jardín de colores." },
       { t: "Bento y el Juego que Creció", p: "Bento comparte sus bloques con una amiga. Juntos, construyen un puente y se turnan para hacer pasar el trenecito.", cover: "Hard", size: "M", tag: "Compartir", quote: "Una pieza de cada uno, un juego para los dos." },
@@ -2026,7 +2015,6 @@ function exampleName(name: string, lang: Lang): string {
     "Matteo, Força No Motor, Gigante O Trator": 57, "Feliz 90 Anos, Nonna": 51,
     "Maria E Os Segredos Do Fundo Do Mar": 43, "Nano E Suas Aventuras": 10,
     "Feliz Natal, Família": 59, "Segredos Do Dinossauro, Enzo": 60,
-    "Pai e Filha: Uma Dupla que Brilha": 61,
   };
   return lang !== "pt" && index[name] !== undefined ? I18N[lang].catalog[index[name]].t : name;
 }
@@ -2728,6 +2716,48 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
   return sections;
 }
 
+export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?: "father" | "studio" | "cartoon" }) {
+  const t = I18N[lang];
+  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-pagina-matteo.jpg" : "pagina-mamaepapaimatteo.jpg", lang);
+  const passoImgs = example === "father"
+    ? ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", passoBook]
+    : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
+  const framing = example !== "father" && import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
+  return (
+      <section className="ksection ksection-como" id="passo">
+        <div className="como-panel">
+          <h2 className="ktitle">{t.passo_title}</h2>
+          {framing && (
+            <p className="ksub frame-hint">Arraste a foto dentro do quadro. A barra aproxima. Guardar grava este card.</p>
+          )}
+          <div className="howex">
+            {t.passo.map((h, i) => (
+              <Fragment key={h.t}>
+                <figure className={`howex-card howex-card-scene${example === "father" && i === 0 ? " howex-card-protagonist-reference" : ""}${framing && i < 2 ? " howex-card-frame" : ""}`}>
+                  <div className="howex-lead">
+                    <h3>{h.t}</h3>
+                  </div>
+                  {framing && i < 2 ? (
+                    <PassoFrame file={i === 0 ? "dica-boa.png" : "dica-multi.png"} alt={h.t} n={i + 1} />
+                  ) : (
+                    <div className="howex-media">
+                      {passoImgs[i] ? <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" /> : null}
+                      <span className="howex-num">{i + 1}</span>
+                    </div>
+                  )}
+                  <figcaption>
+                    <p>{h.p}</p>
+                  </figcaption>
+                </figure>
+                {i < t.passo.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+              </Fragment>
+            ))}
+          </div>
+        </div>
+      </section>
+  );
+}
+
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
   const { pathname } = useLocation();
   const [lang, setLang] = useResolvedLang();
@@ -2774,11 +2804,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
   const howImgs = (variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS).map((file) => localizedExample(file, lang));
-  const passoBook = variant === "cartoon"
-    ? localizedExample("cartoon-pagina-matteo.jpg", lang)
-    : assetForLang(heroAsset("pagina-mamaepapaimatteo.jpg", "pagina-mamaepapaimatteo-en.jpg", "pagina-mamaepapaimatteo-es.jpg"), lang);
-  const passoImgs = ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
-  const framing = import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
     let entry = book;
@@ -3424,37 +3449,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
       </section>
 
-      <section className="ksection ksection-como" id="passo">
-        <div className="como-panel reveal">
-          <h2 className="ktitle">{t.passo_title}</h2>
-          {framing && (
-            <p className="ksub frame-hint">Arraste a foto dentro do quadro. A barra aproxima. Guardar grava este card.</p>
-          )}
-          <div className="howex">
-            {t.passo.map((h, i) => (
-              <Fragment key={h.t}>
-                <figure className={`howex-card howex-card-scene${framing && i < 2 ? " howex-card-frame" : ""}`}>
-                  <div className="howex-lead">
-                    <h3>{h.t}</h3>
-                  </div>
-                  {framing && i < 2 ? (
-                    <PassoFrame file={i === 0 ? "dica-boa.png" : "dica-multi.png"} alt={h.t} n={i + 1} />
-                  ) : (
-                    <div className="howex-media">
-                      {passoImgs[i] ? <img src={exUrl(passoImgs[i])} alt={h.t} loading="lazy" /> : null}
-                      <span className="howex-num">{i + 1}</span>
-                    </div>
-                  )}
-                  <figcaption>
-                    <p>{h.p}</p>
-                  </figcaption>
-                </figure>
-                {i < t.passo.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
-              </Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PhotoSteps lang={lang} example={variant === "cartoon" ? "cartoon" : "father"} />
 
       {/* NOSSOS LIVROS */}
       <section className="ksection" id="catalogo">

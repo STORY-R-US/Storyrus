@@ -547,15 +547,6 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/foto-enzo-dinossauro.png
 !apps/web/public/exemplos/foto-enzo-dinossauro-en.png
 !apps/web/public/exemplos/foto-enzo-dinossauro-es.png
-!apps/web/public/exemplos/capa-pai-e-filha.png
-!apps/web/public/exemplos/capa-pai-e-filha-en.png
-!apps/web/public/exemplos/capa-pai-e-filha-es.png
-!apps/web/public/exemplos/pagina-pai-e-filha.png
-!apps/web/public/exemplos/pagina-pai-e-filha-en.png
-!apps/web/public/exemplos/pagina-pai-e-filha-es.png
-!apps/web/public/exemplos/foto-pai-e-filha.png
-!apps/web/public/exemplos/foto-pai-e-filha-en.png
-!apps/web/public/exemplos/foto-pai-e-filha-es.png
 
 # User-supplied visual examples stay local; publish only derived composition rules.
 /backend/app/assets/composition_examples/originals/
@@ -566,3 +557,7 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/covers/
 !apps/web/public/exemplos/covers/**
 /outputs/idiomas-audit/
+
+# Fotos do passo a passo Meu Pai, Meu Herói.
+!apps/web/public/exemplos/passo-meupai-protagonista-v3.png
+!apps/web/public/exemplos/passo-meupai-familia-v3.png

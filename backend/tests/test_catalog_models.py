@@ -73,11 +73,16 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
     web = json.loads(
         (Path(__file__).parents[2] / "apps/web/src/catalogModels.json").read_text(encoding="utf8")
     )
-    assert set(MODELS) == {k for k, v in web.items() if v["available"]}
+    # Retired storefront books keep frozen references for existing orders.
+    retired = {"catalog-realistic-61"}
+    assert retired.isdisjoint(web)
+    assert set(MODELS) - retired == {k for k, v in web.items() if v["available"]}
     assert set(book_design.definitions(4)["unavailable"]) == {
         k for k, v in web.items() if not v["available"]
     }
     for key, design in MODELS.items():
+        if key in retired:
+            continue
         assert design["sources"] == web[key]["sources"]
 
 
