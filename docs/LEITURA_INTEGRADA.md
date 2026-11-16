@@ -198,3 +198,27 @@ cliente repita a criação. Continua consultando pedidos em acompanhamento e mos
 a entrega quando disponível. A rota de pedidos da própria conta remove o erro
 técnico da resposta; os registros operacionais do proprietário são preservados.
 O teste de navegador percorre falha interna → entrega pronta sem POST de geração.
+
+
+## Entrega sem interromper a prévia — 16/11/2026
+
+Por pedido do responsável em 16/11/2026, a prévia do Estúdio não para mais quando
+a revisão automática continua reprovando uma cena integrada. Em produção, as
+reprovações que interromperam prévias (Carlos em 13/11 e Andre em 16/11) eram
+majoritariamente falsos positivos: o revisor citava o mesmo texto como esperado e
+observado, mudando só quebra de linha, espaço inicial ou acento, declarava "no error"
+no próprio item ou listava incerteza probabilística como defeito.
+
+1. `editorial_review.without_false_positives` move esses itens para `limitations`
+   (`discarded_issues` guarda o registro). Defeitos concretos continuam reprovando e
+   seguem para a segunda inspeção e as correções autorizadas, sem alteração.
+2. Se a revisão ainda reprovar depois das correções (ou com correção desligada),
+   a melhor imagem real gerada é entregue com
+   `validation = {status: awaiting_user_review, reviewer: user,
+   method: automatic_review_advisory}` e o parecer completo. O trabalho registra
+   `advisory_deliveries` e o relatório de erros do painel recebe
+   `editorial_review_advisory`. A prévia termina com as três imagens.
+3. Nada é aprovado em nome da família: a prévia, o pedido e o livro completo
+   continuam exigindo a aprovação explícita. Falhas transitórias do provedor seguem
+   a política normal de nova tentativa; nenhuma imagem é recomprada nem substituída
+   por conteúdo de teste.

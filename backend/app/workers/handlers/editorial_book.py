@@ -622,7 +622,9 @@ class Pipeline:
                 "\nAvalie SOMENTE a tarefa atual: ARTE_BASE não possui letras; PAGINA_INTERNA é plana "
                 "e só contém seus versos; CAPA_PLANA só o título. Regras de livro físico e capa na leitura "
                 "só se aplicam aos mockups correspondentes. Adapte o resultado ao contrato da API: "
-                "JSON {valid:boolean, issues:[strings], limitations:[strings]}; incerteza implica valid:false."
+                "JSON {valid:boolean, issues:[strings], limitations:[strings]}. Reprove apenas defeitos "
+                "concretos e visíveis; incertezas gerais, quebra de linha, espaçamento e acentuação "
+                "idênticos ao contrato vão em limitations, nunca em issues."
             )
         )
         review_args = {
@@ -648,6 +650,8 @@ class Pipeline:
         result = await provider.validate_editorial_preview(**review_args)
         self.account(result, "Revisão editorial")
         report = editorial_review.parse_report(result.text)
+        if mandatory:
+            report = editorial_review.without_false_positives(report)
         if mandatory and not editorial_review.approved(report):
             # Recheck the SAME received image once, before failing the job. This
             # path never calls the image provider or changes the saved artwork.
@@ -691,7 +695,9 @@ class Pipeline:
                     **{**review_args, "prompt": second_prompt}
                 )
                 self.account(result, "Conferência interna da arte salva")
-                report = editorial_review.parse_report(result.text)
+                report = editorial_review.without_false_positives(
+                    editorial_review.parse_report(result.text)
+                )
             except Exception:
                 entry["state"] = "needs_operator"
                 recoveries[recovery_key] = entry
@@ -2231,7 +2237,57 @@ class Pipeline:
             "Selected typography: " + json.dumps(typography, ensure_ascii=False) + " "
         )
 
-    async def review_integrated_with_repair(
+    async def review_integrated_with_repair(self, raw, source, name, prompt, **kwargs):
+        """Revisa/corrige a cena e SEMPRE entrega uma imagem real para a família.
+
+        A revisão automática e as correções continuam iguais. Se a revisão ainda
+        reprovar depois delas (muitas vezes por falso positivo: quebra de linha,
+        espaço, "incerteza"), a geração NÃO para: a melhor imagem gerada segue para
+        a revisão explícita da família, e o parecer fica registrado para a equipe.
+        Falhas transitórias do provedor continuam no fluxo normal de nova tentativa.
+        """
+        try:
+            return await self._review_integrated_with_repair(raw, source, name, prompt, **kwargs)
+        except (VisualReviewError, ProviderError) as exc:
+            if isinstance(exc, ProviderError) and exc.transient:
+                raise
+            candidate = getattr(exc, "candidate", None) or (raw, source)
+            return self._deliver_for_family_review(name, *candidate, exc)
+
+    def _deliver_for_family_review(self, name, data, source, exc):
+        from app.services.error_report import record_error
+
+        report = getattr(exc, "report", None)
+        reason = str(exc)[:400]
+        logging.getLogger(__name__).warning(
+            "editorial_review_advisory job=%s stage=%s reason=%s", self.job.id, name, reason
+        )
+        record_error(
+            self.db,
+            message=f"Entregue para revisão da família sem aprovação automática em {name}: "
+            + reason,
+            project_id=self.project.id,
+            job_id=self.job.id,
+            stage="editorial_review_advisory",
+        )
+        deliveries = dict((self.job.result or {}).get("advisory_deliveries") or {})
+        deliveries[name] = {
+            "image_sha256": render.digest(data),
+            "storage_key": source.get("storage_key"),
+            "reason": reason,
+        }
+        self.job.result = {**(self.job.result or {}), "advisory_deliveries": deliveries}
+        self.db.commit()
+        qa = {
+            "status": "awaiting_user_review",
+            "reviewer": "user",
+            "method": "automatic_review_advisory",
+            "automatic_review": report if isinstance(report, dict) else None,
+            "automatic_review_reason": reason,
+        }
+        return data, source, qa
+
+    async def _review_integrated_with_repair(
         self, raw, source, name, prompt, *, landscape=False, style=None, **review_kwargs
     ):
         """Up to three authorized, durable corrections; continue delivery after approval."""
@@ -2312,6 +2368,7 @@ class Pipeline:
                 qa = await self.review(repaired, prompt, **review_kwargs)
             except VisualReviewError as exc:
                 if repair_number == maximum:
+                    exc.candidate = (repaired, repaired_source)
                     raise
                 issues = (exc.report or {}).get("issues") or [str(exc)]
                 rejected_hashes.add(render.digest(repaired))

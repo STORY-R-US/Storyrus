@@ -39,7 +39,9 @@ def pipeline(monkeypatch, *, photos=1):
         commit=lambda: None,
         scalars=lambda _: SimpleNamespace(all=lambda: assets),
     )
-    pipe.cached = lambda key: next((a for a in assets if a.storage_key == key), None)
+    pipe.cached = lambda key: next(
+        (a for a in assets if getattr(a, "storage_key", None) == key), None
+    )
     pipe.guard = lambda **_: None
     pipe.account = lambda *_: None
     pipe.record = lambda *_args, **_kwargs: None
@@ -95,9 +97,15 @@ async def test_rejected_text_reuses_paid_scene_on_another_job(monkeypatch):
     pipe, provider, assets = pipeline(monkeypatch)
     pipe.profile["automatic_image_repair_disabled"] = True
     pipe.review.side_effect = VisualReviewError("changed title", scope="full_image")
-    with pytest.raises(VisualReviewError):
-        await pipe.integrated_reading(b"finished-cover")
-    assert len(assets) == 1  # persisted before review, never published as approved
+    data, meta = await pipe.integrated_reading(b"finished-cover")
+    # The generation does not stop: the real image goes to the family's explicit review.
+    assert data == b"complete-scene"
+    assert meta["validation"]["status"] == "awaiting_user_review"
+    assert meta["validation"]["method"] == "automatic_review_advisory"
+    assert "changed title" in meta["validation"]["automatic_review_reason"]
+    assert "reading" in pipe.job.result["advisory_deliveries"]
+    saved = [a for a in assets if getattr(a, "storage_key", None)]
+    assert len(saved) == 1  # persisted before review, never published as approved
     pipe.job = SimpleNamespace(id="new-job", result={})
     pipe.review.side_effect = None
     data, _ = await pipe.integrated_reading(b"finished-cover")
@@ -260,10 +268,13 @@ async def test_rejected_correction_never_buys_a_second_edit(monkeypatch):
     pipe.review.side_effect = VisualReviewError("real defect", scope="full_image")
     for job in ["first", "resume"]:
         pipe.job = SimpleNamespace(id=job, result={})
-        with pytest.raises(VisualReviewError):
-            await pipe.review_integrated_with_repair(
-                b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
-            )
+        data, _, qa = await pipe.review_integrated_with_repair(
+            b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
+        )
+        # Delivered for the family's review instead of stopping the preview.
+        assert data == b"complete-scene"
+        assert qa["status"] == "awaiting_user_review"
+        assert qa["method"] == "automatic_review_advisory"
     assert provider.generate_scene.await_count == 1
 
 
@@ -275,10 +286,11 @@ async def test_unknown_corrective_edit_is_not_reissued(monkeypatch):
         "timeout", outcome_unknown=True, retry_safe=False
     )
     for _ in range(2):
-        with pytest.raises(ProviderError):
-            await pipe.review_integrated_with_repair(
-                b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
-            )
+        data, _, qa = await pipe.review_integrated_with_repair(
+            b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
+        )
+        assert data == b"saved-art"  # the saved original is delivered, nothing is rebought
+        assert qa["method"] == "automatic_review_advisory"
     assert provider.generate_scene.await_count == 1
 
 
@@ -306,11 +318,23 @@ async def test_third_correction_continues_from_saved_images_and_stops_at_authori
     ]
     pipe.job = SimpleNamespace(id="still-rejected", result={})
     pipe.review.side_effect = failure
-    with pytest.raises(VisualReviewError):
-        await pipe.review_integrated_with_repair(
-            b"original", {"storage_key": "saved"}, "cover", "title", mandatory=True
-        )
+    data, _, qa = await pipe.review_integrated_with_repair(
+        b"original", {"storage_key": "saved"}, "cover", "title", mandatory=True
+    )
+    assert data == b"repair3"  # latest correction goes to the family's review
+    assert qa["method"] == "automatic_review_advisory"
     assert provider.generate_scene.await_count == 3
+
+
+@pytest.mark.asyncio
+async def test_transient_review_failure_keeps_normal_retry(monkeypatch):
+    pipe, provider, _ = pipeline(monkeypatch)
+    pipe.review.side_effect = ProviderError("OpenAI 503: busy", transient=True)
+    with pytest.raises(ProviderError):
+        await pipe.review_integrated_with_repair(
+            b"saved-art", {"storage_key": "original"}, "cover", "title", mandatory=True
+        )
+    provider.generate_scene.assert_not_called()
 
 
 @pytest.mark.asyncio
