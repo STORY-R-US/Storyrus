@@ -422,10 +422,10 @@ async def test_integrated_reading_requires_review_before_publishing(
     studio, calls, control = reference_studio
     monkeypatch.setattr(Pipeline, "integrated_reading_available", lambda self: True)
     control["reject_reading"] = reject
-    job = await _run(
-        studio, "preview", key="integrated-review", expected="FAILED" if reject else "DONE"
-    )
-    assert job.status == ("FAILED" if reject else "DONE"), job.error
+    # A persistent automatic rejection no longer stops the preview: the real image is
+    # delivered for the family's explicit review and the reason stays in the report.
+    job = await _run(studio, "preview", key="integrated-review")
+    assert job.status == "DONE", job.error
     assert len(calls) == (7 if reject else 4)
     assert "INTEGRATED FINAL SCENE" in calls[3]["prompt"]
     if reject:
@@ -436,10 +436,14 @@ async def test_integrated_reading_requires_review_before_publishing(
     ).all()
     assert any(a.meta["stage"] == "reading:integrated" for a in sources)
     finals = [a for a in sources if a.meta["stage"] == "reading"]
-    assert len(finals) == (0 if reject else 1)
-    if finals:
+    assert len(finals) == 1
+    assert finals[0].meta["presentation"] == "integrated_reading"
+    if reject:
+        assert finals[0].meta["validation"]["status"] == "awaiting_user_review"
+        assert finals[0].meta["validation"]["method"] == "automatic_review_advisory"
+        assert "reading" in job.result["advisory_deliveries"]
+    else:
         assert finals[0].meta["validation"]["status"] == "valid"
-        assert finals[0].meta["presentation"] == "integrated_reading"
 
 
 @pytest.mark.asyncio
@@ -4023,7 +4027,7 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         studio,
         "preview",
         key="transport-preview",
-        expected="DONE" if outcome == "success" or recovering or correcting else "FAILED",
+        expected="FAILED" if outcome == "unknown" else "DONE",
     )
     assert len(requests) == expected_requests
     for request in requests:
@@ -4045,7 +4049,7 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
     assert "ONE FRONT BOARD" in scene_requests[2]["data"]["prompt"]
     assert scene_requests[1]["files"][1][1][1] == outputs[0]
     assert scene_requests[2]["files"][1][1][1] == outputs[0]
-    if outcome != "success" and not recovering and not correcting:
+    if outcome == "unknown":
         assert first.result["internal_resolution"]["customer_action_required"] is False
         assert first.result["internal_resolution"]["automatic_image_regeneration"] is False
         assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
@@ -4061,11 +4065,14 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         assert target_calls[0]["data"] == target_calls[1]["data"]
         assert "SECOND INDEPENDENT INSPECTION" in target_calls[1]["prompt"]
     if outcome == "rejected":
+        # Still recorded for the team, but the three images reach the family.
         assert (
             list(first.result["editorial_review_recoveries"].values())[0]["state"]
             == "needs_operator"
         )
-        assert first.result["internal_resolution"]["state"] == "needs_operator"
+        assert first.error is None and first.result["preview_complete"]
+        assert "reading" in first.result["advisory_deliveries"]
+        assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
     control["reject_reading"] = False
     second = await _run(
         studio,
@@ -4142,7 +4149,7 @@ async def test_preview_export_retry_and_other_customer_isolation(reference_studi
 
 
 @pytest.mark.asyncio
-async def test_failed_saved_preview_is_automatically_delivered_without_customer_retry(
+async def test_rejected_saved_preview_is_delivered_without_customer_retry(
     reference_studio, monkeypatch
 ):
     studio, calls, control = reference_studio
@@ -4153,18 +4160,13 @@ async def test_failed_saved_preview_is_automatically_delivered_without_customer_
     monkeypatch.setattr(Pipeline, "integrated_editorial_available", INTEGRATED_WORKFLOW)
     monkeypatch.setattr(Pipeline, "integrated_reading_available", INTEGRATED_READING)
     control["reject_reading"] = True
-    first = await _run(studio, "preview", key="previous-policy", expected="FAILED")
+    # The original worker run delivers all three images; nothing waits for a retry.
+    first = await _run(studio, "preview", key="previous-policy")
+    assert first.status == "DONE", first.error
+    assert first.result["preview_complete"]
+    assert "reading" in first.result["advisory_deliveries"]
     purchased = len(calls)
-    assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
-    book_profile.update(project, automatic_image_repair_limit=3)
-    control["reject_reading"] = False
-    db.commit()
-    assert runner.recover_saved_previews(db) == 1
-    resumed = runner.claim_next(db)
-    assert resumed.id == first.id
-    await runner.process_job(db, resumed)
-    assert resumed.status == "DONE", resumed.error
-    assert resumed.result["preview_complete"]
-    assert len(calls) == purchased
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
-    assert resumed.result["internal_resolution"]["state"] == "completed"
+    assert runner.recover_saved_previews(db) == 0
+    assert runner.claim_next(db) is None
+    assert len(calls) == purchased

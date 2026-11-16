@@ -138,7 +138,7 @@ def preview_package(
                                 a.meta.get("validation", {}).get("status") == "awaiting_user_review"
                                 and a.meta.get("validation", {}).get("reviewer") == "user"
                                 and a.meta.get("validation", {}).get("method")
-                                == "technical_integrity_only"
+                                in {"technical_integrity_only", "automatic_review_advisory"}
                             )
                         )
                         and (
