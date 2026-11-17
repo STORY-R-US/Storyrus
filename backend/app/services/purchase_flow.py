@@ -57,6 +57,25 @@ def require_paid(db: Session, project: Project) -> None:
         )
 
 
+# One generation plus five adjustments of the text for each preview, before payment.
+UNPAID_STORY_REQUESTS = 6
+
+
+def count_unpaid_story_request(project: Project) -> None:
+    """Text is cheap but free: limit unpaid story requests per generated preview."""
+    flow = project.purchase_flow or {}
+    preview = flow.get("preview_ready_at")
+    record = flow.get("story_requests") or {}
+    used = record.get("count", 0) if record.get("preview") == preview else 0
+    if used >= UNPAID_STORY_REQUESTS:
+        raise HTTPException(
+            409,
+            "Você chegou ao limite de ajustes da história nesta prévia. "
+            "Aprove a história ou use Quero ajustar para refazer a prévia.",
+        )
+    update(project, story_requests={"preview": preview, "count": used + 1})
+
+
 def reset_preview(project: Project, *, force: bool = False) -> None:
     if not force and not (project.purchase_flow or {}).get("stage"):
         return
