@@ -37,7 +37,8 @@ const COPY = {
     download: "Abrir livro",
     approveBook: "Aprovar livro",
     retry: "Tentar novamente",
-    writeStory: "Gerar a história",
+    writeStory: "Gostei, ver a história completa",
+    adjustPreview: "Quero ajustar a prévia",
     edit: "Ajuste da história",
     editHint: "É para a história em geral. A mudança vale para todas as páginas.",
     alter: "Alterar",
@@ -52,7 +53,7 @@ const COPY = {
     previewImagesHint: "Confira a capa, o livro aberto e a leitura. Os ajustes ficam junto de cada imagem.",
     previewTitleHeading: "Revise O Título",
     previewNextHeading: "Tudo Certo Com A Prévia?",
-    previewNextHint: "Confira as imagens e o título antes de continuar. A história será apresentada para sua revisão na próxima etapa.",
+    previewNextHint: "Confira as imagens e o título. Em seguida você lê a história completa e aprova ou ajusta cada página antes de fazer o pedido.",
     storyHeading: "A História",
     reviewHeading: "Revisão",
     reviewLead: "A história está aprovada. Este é o resumo.",
@@ -120,7 +121,8 @@ const COPY = {
     download: "Open book",
     approveBook: "Approve book",
     retry: "Try again",
-    writeStory: "Write the story",
+    writeStory: "I like it, show me the full story",
+    adjustPreview: "Adjust the preview",
     edit: "Story adjustment",
     editHint: "This is for the story as a whole. The change applies to every page.",
     alter: "Change",
@@ -135,7 +137,7 @@ const COPY = {
     previewImagesHint: "Review the cover, open book and reading scene. Adjustments are next to each image.",
     previewTitleHeading: "Review The Title",
     previewNextHeading: "Happy With The Preview?",
-    previewNextHint: "Review the images and title before continuing. The story will be presented for your review in the next step.",
+    previewNextHint: "Review the images and title. Next you read the full story and approve or adjust each page before ordering.",
     storyHeading: "The Story",
     reviewHeading: "Review",
     reviewLead: "The story is approved. This is the summary.",
@@ -203,7 +205,8 @@ const COPY = {
     download: "Abrir libro",
     approveBook: "Aprobar libro",
     retry: "Intentar de nuevo",
-    writeStory: "Escribir la historia",
+    writeStory: "Me gusta, ver la historia completa",
+    adjustPreview: "Ajustar la vista previa",
     edit: "Ajuste de la historia",
     editHint: "Es para la historia en general. El cambio vale para todas las páginas.",
     alter: "Cambiar",
@@ -218,7 +221,7 @@ const COPY = {
     previewImagesHint: "Revisa la portada, el libro abierto y la lectura. Los ajustes están junto a cada imagen.",
     previewTitleHeading: "Revisa El Título",
     previewNextHeading: "¿Todo Bien Con La Vista Previa?",
-    previewNextHint: "Revisa las imágenes y el título antes de continuar. La historia se presentará para tu revisión en el siguiente paso.",
+    previewNextHint: "Revisa las imágenes y el título. Después lees la historia completa y apruebas o ajustas cada página antes de hacer el pedido.",
     storyHeading: "La Historia",
     reviewHeading: "Revisión",
     reviewLead: "La historia está aprobada. Este es el resumen.",
@@ -882,7 +885,7 @@ export function MasterBookFlow({
             selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
       )}
-      {!(["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"].includes(p.editorial?.version || "")) && stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
+      {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <section className="master-preview-next" aria-labelledby="master-preview-next-heading">
           <div>
             <h3 id="master-preview-next-heading">{t.previewNextHeading}</h3>
@@ -896,6 +899,12 @@ export function MasterBookFlow({
           >
             {testMode ? t.testContinue : t.writeStory}
           </button>
+          {!editing && (
+            <button type="button" className="kbtn kbtn-soft" disabled={active}
+              data-testid="studio-adjust-preview" onClick={() => setEditing(true)}>
+              {t.adjustPreview}
+            </button>
+          )}
         </section>
       )}
       {reviewing && (
@@ -944,7 +953,7 @@ export function MasterBookFlow({
           </div>
         </section>
       )}
-      {((["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"].includes(p.editorial?.version || "") && stage === "preview_ready") || ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage)) && (
+      {["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
         <PostPreviewFlow
           showSteps={false}
           adjusting={editing}

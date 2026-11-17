@@ -116,12 +116,13 @@ def start_story(
     project = get_owned_project(db, user, project_id)
     if book_profile.enabled(project):
         stage = (project.book_profile or {}).get("stage")
-        from app.services import editorial_profile
-
-        if editorial_profile.composed(project.book_profile) or stage not in {
-            "preview_ready",
-            "story_ready",
-        }:
+        if stage in {"preview_ready", "story_ready"} and not (project.purchase_flow or {}).get(
+            "preview_approved_at"
+        ):
+            # The family reads and approves the complete story before quotation and payment.
+            purchase_flow.require_unpaid(db, project)
+            purchase_flow.count_unpaid_story_request(project)
+        else:
             purchase_flow.require_paid(db, project)
     else:
         purchase_flow.require_unpaid(db, project)

@@ -373,6 +373,7 @@ async def test_complete_integrated_preview_and_print_pages(reference_studio, mon
     assert project.book_profile["scene_workflow"] == "integrated-v1"
     await _run(studio, "preview", key="all-integrated-resume")
     assert len(calls) == 3
+    await _review_story(studio)
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
     get_print_order(db, project.id).payment_status = "paid"
     project.character_ref = {"storage_key": "test-avatar"}
@@ -470,7 +471,8 @@ async def test_reference_pipeline_uses_actions_illustrated_setting_and_new_typog
     assert layouts["preview:left:text"]["weight"] == 700
     assert layouts["preview:right:text"]["alignment"] == "center"
     assert len(client.get(f"/v1/projects/{pid}/assets").json()["previews"]) == 3
-    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+    # The family reads the complete story before quotation and payment.
+    assert client.post(f"/v1/projects/{pid}/story").status_code == 202
 
 
 @pytest.mark.asyncio
@@ -659,9 +661,9 @@ async def test_composed_three_scenes_resume_exact_sources_and_purchase_gates(com
     assert reading.meta["composition"]["source"] == digest(store[cover.meta["flat_cover_key"]])
     assert store[cover.meta["flat_cover_key"]] != store[cover.storage_key]
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 200
-    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+    await _review_story(studio)  # the story is free to read before the order
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
-    assert client.post(f"/v1/projects/{pid}/story").status_code == 409
+    assert client.post(f"/v1/projects/{pid}/story").status_code == 409  # locked until payment
     from app.printkit.service import _approved_cover
 
     assert (
@@ -731,6 +733,7 @@ async def test_composed_paid_page_uses_same_policy_and_keeps_text_layer(composed
     studio, calls, _ = composed_studio
     client, db, pid, store = studio
     await _run(studio, "preview")
+    await _review_story(studio)
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
     project = db.get(Project, uuid.UUID(pid))
     order = get_print_order(db, project.id)
@@ -1015,6 +1018,7 @@ async def test_complete_catalog_design_controls_preview_and_paid_pages(reference
         locale = project.book_profile["locales"]["pt-BR"]
         assert layouts["preview:reading:text"]["text"] == locale["left"] + "\n\n" + locale["right"]
         assert layouts["preview:illustration:text"]["illustration_only"]
+    await _review_story(studio)
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
     get_print_order(db, project.id).payment_status = "paid"
     project.character_ref = {"storage_key": "test-avatar"}
@@ -2599,6 +2603,7 @@ async def test_current_preview_is_delivered_for_explicit_user_approval(reference
     assert client.get(f"/v1/projects/{pid}/preview/package").status_code == 409
     scenes[0].meta = original_meta
     db.commit()
+    await _review_story(studio)
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
     db.refresh(project)
     assert project.purchase_flow["preview_approved_at"]
@@ -4094,6 +4099,7 @@ async def test_studio_preview_reaches_image_transport_and_resumes_without_repurc
         images = [archive.read(name) for name in archive.namelist() if name.endswith(".png")]
         assert len(images) == 3
         assert outputs[1] in images and outputs[2] in images
+    await _review_story(studio)
     assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
 
 
@@ -4170,3 +4176,64 @@ async def test_rejected_saved_preview_is_delivered_without_customer_retry(
     assert runner.recover_saved_previews(db) == 0
     assert runner.claim_next(db) is None
     assert len(calls) == purchased
+
+
+async def _review_story(studio, key="story-review"):
+    """The family reads and approves the complete story before approving the preview."""
+    client, _, pid, _ = studio
+    await _run(studio, "story", key=key)
+    approved = client.post(f"/v1/projects/{pid}/story/approve")
+    assert approved.status_code == 200, approved.text
+
+
+@pytest.mark.asyncio
+async def test_story_is_approved_before_preview_approval_and_payment(reference_studio):
+    from app.printkit.service import get_print_order
+    from app.services import purchase_flow
+
+    studio, calls, _ = reference_studio
+    client, db, pid, _ = studio
+    await _run(studio, "preview", key="story-first-preview")
+    refused = client.post(f"/v1/projects/{pid}/preview/approve")
+    assert refused.status_code == 409
+    assert "história" in refused.json()["detail"]
+    images = len(calls)
+    await _run(studio, "story", key="story-first-text")  # unpaid order
+    project = db.get(Project, uuid.UUID(pid))
+    assert project.book_profile["stage"] == "story_ready"
+    assert project.book_profile["stories"][project.language].count("Página") == 16
+    assert len(calls) == images  # reading the story never buys an image
+    assert client.post(f"/v1/projects/{pid}/story/approve").status_code == 200
+    assert client.post(f"/v1/projects/{pid}/preview/approve").status_code == 200
+    db.expire_all()
+    project = db.get(Project, uuid.UUID(pid))
+    order = get_print_order(db, project.id)
+    assert order.payment_status == "unpaid"
+    order.payment_status = "paid"
+    db.commit()
+    # Payment continues with the approved text instead of writing a new story.
+    assert purchase_flow.enqueue_paid_book(db, order).type == "AVATAR"
+
+
+@pytest.mark.asyncio
+async def test_unpaid_story_requests_are_limited_per_preview(reference_studio):
+    from app.services import purchase_flow
+
+    studio, _, _ = reference_studio
+    client, _, pid, _ = studio
+    await _run(studio, "preview", key="story-limit-preview")
+    for attempt in range(purchase_flow.UNPAID_STORY_REQUESTS):
+        await _run(studio, "story", key=f"story-limit-{attempt}")
+    refused = client.post(f"/v1/projects/{pid}/story", json={})
+    assert refused.status_code == 409
+    assert "limite" in refused.json()["detail"]
+
+
+def test_title_refresh_keeps_the_story_review_stage():
+    from app.workers.handlers.editorial_book import _stage_after_preview
+
+    story = {"pt-BR": "Título: A\n\nPágina 1:\nUm verso."}
+    assert _stage_after_preview({"stage": "preview_ready"}) == "preview_ready"
+    assert _stage_after_preview({"stage": "story_ready", "stories": story}) == "story_ready"
+    assert _stage_after_preview({"stage": "story_approved", "stories": story}) == "story_approved"
+    assert _stage_after_preview({"stage": "preview_approved", "stories": story}) == "story_approved"

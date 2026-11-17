@@ -1012,7 +1012,10 @@ async def _correct_story_languages(
 
 
 async def story(db, job, project):
-    if editorial_profile.composed(project.book_profile or {}):
+    # Before the preview is approved the story is free text for the family to review.
+    # After approval it is part of the paid book again.
+    flow = project.purchase_flow or {}
+    if editorial_profile.composed(project.book_profile or {}) and flow.get("preview_approved_at"):
         purchase_flow.require_paid(db, project)
     contract.require_stage(project, "preview_ready", "preview_approved", "story_ready")
     _set_status(db, project, ProjectStatus.STORY_RUNNING)

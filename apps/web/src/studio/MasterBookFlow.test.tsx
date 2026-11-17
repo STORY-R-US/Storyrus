@@ -40,16 +40,30 @@ describe("Sugestão de título pelo tema", () => {
 });
 
 describe("Studio approval stages", () => {
-  it.each(["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"])("aprova o trio editorial %s antes da cotação e não oferece história gratuita", async (version) => {
+  it.each(["2026-11-05.1", "2026-11-05.2", "2026-11-05.3"])("mostra a história completa do trio editorial %s antes da cotação", async (version) => {
     const current = { ...project, book_profile: { ...project.book_profile!, editorial: { version, sha256: "policy" } },
+      purchase_flow: { preview_ready_at: "2026-11-05", stage: "preview_ready" } };
+    const story = vi.spyOn(api, "startStep").mockResolvedValue({ ...accepted, type: "STORY" });
+    const approve = vi.spyOn(api, "approvePreview").mockResolvedValue(current);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    vi.spyOn(api, "getProject").mockResolvedValue(current);
+    render(<MasterBookFlow project={current} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: /Gostei, continuar com meu livro/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("studio-adjust-preview")).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId("studio-write-story"));
+    await waitFor(() => expect(story).toHaveBeenCalledWith("master", "story"));
+    expect(approve).not.toHaveBeenCalled();
+  });
+  it("só oferece a cotação depois que a história é aprovada", async () => {
+    const current = { ...project, book_profile: { ...project.book_profile!, stage: "story_approved",
+      editorial: { version: "2026-11-05.3", sha256: "policy" }, stories: { "pt-BR": "Título: Lia e as estrelas\n\nPágina 1:\nLia sorri." } },
       purchase_flow: { preview_ready_at: "2026-11-05", stage: "preview_ready" } };
     const approve = vi.spyOn(api, "approvePreview").mockResolvedValue(current);
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     vi.spyOn(api, "getProject").mockResolvedValue(current);
     render(<MasterBookFlow project={current} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     expect(screen.queryByTestId("studio-write-story")).not.toBeInTheDocument();
-    const button = screen.getByRole("button", { name: /Gostei, continuar com meu livro/i });
-    await userEvent.click(button);
+    await userEvent.click(screen.getByRole("button", { name: /Gostei, continuar com meu livro/i }));
     await waitFor(() => expect(approve).toHaveBeenCalledWith("master"));
   });
   it("explica os dados da criança e salva o que o adulto escreve", async () => {

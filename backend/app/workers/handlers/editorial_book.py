@@ -3029,6 +3029,17 @@ class Pipeline:
         )
 
 
+def _stage_after_preview(profile):
+    """A title refresh keeps the story the family is reviewing or has approved."""
+    if not profile.get("stories"):
+        return "preview_ready"
+    if profile.get("stage") in {"story_approved", "preview_approved"}:
+        return "story_approved"
+    if profile.get("stage") == "story_ready":
+        return "story_ready"
+    return "preview_ready"
+
+
 async def preview(db, job, project):
     from . import master_book as master
 
@@ -3290,7 +3301,7 @@ async def preview(db, job, project):
         }
         master._set_status(db, project, ProjectStatus.EBOOK_READY)
         return
-    contract.update(project, stage="preview_ready")
+    contract.update(project, stage=_stage_after_preview(project.book_profile))
     purchase_flow.update(
         project,
         preview_ready_at=purchase_flow.timestamp(),

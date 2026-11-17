@@ -84,15 +84,19 @@ o ambiente em produção exige configurar o destino e executar o procedimento de
 
 ## Depois da prévia
 
-A família escolhe **Gostei, continuar com meu livro** ou **Quero ajustar**.
-Os ajustes salvam título, tema, história e orientações visuais e geram uma nova
-prévia para revisão. Aprovar a prévia abre o resumo com tamanho, acabamento,
+Com as três imagens prontas, a família escolhe **Gostei, ver a história completa**
+ou **Quero ajustar a prévia**. A história completa (16 páginas, só texto) é escrita
+antes do pagamento: a família lê, pode ajustar cada página ou a história inteira
+(até 6 pedidos de texto por prévia) e aprova. Só então aparece
+**Gostei, continuar com meu livro**. Os ajustes da prévia salvam título, tema e
+orientações visuais e geram uma nova prévia e uma nova história para revisão.
+Aprovar a prévia trava a história até o pagamento e abre o resumo com tamanho, acabamento,
 quantidade, endereço e frete. **Salvar cotação e acompanhar** mantém o pedido
 acessível em `/meus-pedidos`, inclusive após recarregar a página.
 
 Enquanto não houver provedor de pagamento configurado, o pedido permanece como
 cotação, sem cobrança. A confirmação real de pagamento enfileira uma única
-geração do livro completo. A família revisa todas as páginas e o PDF, pode pedir
+geração do livro completo, ilustrando a história já aprovada sem reescrevê-la. A família revisa todas as páginas e o PDF, pode pedir
 ajustes e precisa autorizar expressamente a impressão. A aprovação da prévia
 nunca vale como aprovação do livro completo. Pedidos antigos continuam legíveis.
 

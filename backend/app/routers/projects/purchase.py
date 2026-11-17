@@ -419,7 +419,11 @@ def approve_preview(
         if editorial_profile.composed(project.book_profile):
             from .book_flow import preview_package
 
-            book_profile.require_stage(project, "preview_ready", "preview_approved")
+            if (project.book_profile or {}).get("stage") not in {
+                "story_approved",
+                "preview_approved",
+            }:
+                raise HTTPException(409, "Revise e aprove a história antes de aprovar a prévia.")
             # Same server-side integrity, text, cover dependency and real-output gates as download.
             preview_package(project_id, user, db)
         else:
