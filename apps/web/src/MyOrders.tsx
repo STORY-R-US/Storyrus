@@ -135,6 +135,8 @@ function bookTitle(p: Project, fallback: string) {
   return (
     p.purchase_flow?.title ||
     p.book_profile?.title ||
+    p.book_profile?.locales?.[p.language || "pt-BR"]?.title ||
+    Object.values(p.book_profile?.locales ?? {})[0]?.title ||
     p.story_text?.match(/^T[íi]tulo:\s*([^\n]+)/i)?.[1] ||
     p.child_name ||
     fallback

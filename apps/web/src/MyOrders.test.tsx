@@ -61,8 +61,10 @@ describe("Meus pedidos", () => {
       video_url: null, book_size: "M" as const, cover_type: "hard" as const };
     put({ ...base, id: "story", child_name: "Joao", created_at: "2026-11-16T12:00:00Z",
       cover_thumb_url: "https://cdn.test/capa.png",
-      book_profile: { version: 1, stage: "story_ready", title: "Joao Sonha com as Estrelas", gender: "m",
-        languages: ["pt-BR"], current_page: 0 } });
+      language: "pt-BR",
+      // Studio books keep the title in the language texts; the profile title can be empty.
+      book_profile: { version: 1, stage: "story_ready", title: "", gender: "m", languages: ["pt-BR"], current_page: 0,
+        locales: { "pt-BR": { title: "Joao Sonha com as Estrelas", left: "", right: "" } } } });
     put({ ...base, id: "quote", child_name: "Lorena", created_at: "2026-11-17T12:00:00Z",
       purchase_flow: { title: "Lorena e o Jardim", preview_approved_at: "2026-11-17" } });
     put({ ...base, id: "done", child_name: "Rodrigo", created_at: "2026-11-03T12:00:00Z",
