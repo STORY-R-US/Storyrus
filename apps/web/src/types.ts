@@ -60,6 +60,8 @@ export interface Project {
   test_mode?: boolean;
   ai_generation_paused?: boolean;
   processing_revoked_at?: string | null;
+  /** Preview cover thumbnail, only in the project list. */
+  cover_thumb_url?: string | null;
   book_profile?: {
     version: number;
     stage: string;
