@@ -4,20 +4,20 @@ import { useStudioI18n } from "./useStudioI18n";
 
 const COPY = {
   pt: {
-    heading: "Um título ainda mais especial", description: "A IA lê o tema e a história do livro para sugerir cinco novos títulos. Escolha seu favorito e confirme em Atualizar título.",
-    guidance: "Como você gostaria de melhorar o título? (opcional)", placeholder: "Ex.: mais divertido, curto ou com um toque de aventura",
+    heading: "Ou peça novas ideias à IA", description: "A IA lê o tema e a história do livro para sugerir cinco novos títulos. Escolha seu favorito e confirme em Atualizar título.",
+    guidance: "Como deve ser o título? (opcional)", placeholder: "Ex.: mais divertido, curto ou com um toque de aventura",
     generate: "Sugerir 5 títulos com IA", loading: "A IA está preparando cinco sugestões…", again: "Gerar outras 5 opções com IA",
     results: "Sugestões geradas pela IA", choose: "Escolher", selected: "Selecionado", failure: "Não foi possível gerar as sugestões. Tente novamente.",
   },
   en: {
-    heading: "An even more special title", description: "AI uses the book's theme and story to suggest five new titles. Choose your favorite and confirm with Update title.",
-    guidance: "How would you like to improve the title? (optional)", placeholder: "E.g. more playful, shorter or more adventurous",
+    heading: "Or ask AI for new ideas", description: "AI uses the book's theme and story to suggest five new titles. Choose your favorite and confirm with Update title.",
+    guidance: "What should the title be like? (optional)", placeholder: "E.g. more playful, shorter or more adventurous",
     generate: "Suggest 5 titles with AI", loading: "AI is preparing five suggestions…", again: "Generate 5 more options with AI",
     results: "AI-generated suggestions", choose: "Choose", selected: "Selected", failure: "Could not generate suggestions. Please try again.",
   },
   es: {
-    heading: "Un título aún más especial", description: "La IA usa el tema y la historia del libro para sugerir cinco títulos nuevos. Elige tu favorito y confirma con Actualizar título.",
-    guidance: "¿Cómo te gustaría mejorar el título? (opcional)", placeholder: "Ej.: más divertido, corto o con un toque de aventura",
+    heading: "O pide nuevas ideas a la IA", description: "La IA usa el tema y la historia del libro para sugerir cinco títulos nuevos. Elige tu favorito y confirma con Actualizar título.",
+    guidance: "¿Cómo debe ser el título? (opcional)", placeholder: "Ej.: más divertido, corto o con un toque de aventura",
     generate: "Sugerir 5 títulos con IA", loading: "La IA está preparando cinco sugerencias…", again: "Generar otras 5 opciones con IA",
     results: "Sugerencias generadas por IA", choose: "Elegir", selected: "Seleccionado", failure: "No se pudieron generar las sugerencias. Inténtalo de nuevo.",
   },
@@ -59,7 +59,6 @@ export function TitleSuggestions({ projectId, currentTitle, selectedTitle, disab
   return (
     <section className="master-title-suggestions" aria-label={t.heading}>
       <h4>{t.heading}</h4>
-      <p className="master-title-hint">{t.description}</p>
       <label className="studio-field">
         {t.guidance}
         <textarea value={guidance} onChange={(e) => setGuidance(e.target.value)} maxLength={500}

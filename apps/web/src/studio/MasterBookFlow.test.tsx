@@ -179,7 +179,7 @@ describe("Studio approval stages", () => {
     vi.spyOn(api, "getProject").mockResolvedValue(project);
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
-    await userEvent.type(screen.getByLabelText("Como você gostaria de melhorar o título? (opcional)"), "Mais aventura");
+    await userEvent.type(screen.getByLabelText("Como deve ser o título? (opcional)"), "Mais aventura");
     await userEvent.click(screen.getByRole("button", { name: "Sugerir 5 títulos com IA" }));
     await screen.findByRole("list", { name: "Sugestões geradas pela IA" });
     expect(suggest).toHaveBeenCalledWith("master", "Mais aventura");
