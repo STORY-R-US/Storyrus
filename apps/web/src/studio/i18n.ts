@@ -391,7 +391,7 @@ const pt: StudioCopy = {
   demoCta: "Criar a minha história",
   createTitle: "Crie A Sua História",
   projectLocked: "✓ Projeto criado — os campos ficam travados até você começar um novo livro.",
-  slogan: "Compartilhe informações essenciais: indique quem será o protagonista, escolha o título e o tema da história. Disponibilize fotos nítidas e desenvolvemos uma história personalizada com o tema escolhido, transformando a pessoa homenageada em protagonista.",
+  slogan: "Conte quem é o protagonista, escolha o tema e envie fotos nítidas. Em poucos minutos você recebe a prévia para aprovar.",
   pickThemes: "",
   pickThemesHint: "",
   groupDatas: "",
@@ -499,7 +499,7 @@ const pt: StudioCopy = {
   previewHint: "Gera personagem, história e o trio da prévia: capa, 1 página e foto na mão (OpenAI).",
   previewRunning: "Gerando prévia…",
   previewBuilding: "Estamos Montando Sua Prévia…",
-  previewStay: "Fique nesta tela. Ela atualiza sozinha.",
+  previewStay: "Esta tela atualiza sozinha. Se precisar sair, acompanhe em Meus pedidos.",
   previewEta: (min, max) =>
     min === max
       ? `Previsão: cerca de ${min} ${min === 1 ? "minuto" : "minutos"}.`
@@ -683,7 +683,7 @@ const en: StudioCopy = {
   demoCta: "Create my story",
   createTitle: "Create Your Story",
   projectLocked: "✓ Project created — fields stay locked until you start a new book.",
-  slogan: "Share the essentials: say who the main character will be, and choose the title and theme. Send clear photos and we create a personalized story on that theme, with the person you honor as the hero.",
+  slogan: "Tell us who the hero is, pick a theme and send clear photos. In a few minutes you get a preview to approve.",
   pickThemes: "",
   pickThemesHint: "",
   groupDatas: "",
@@ -791,7 +791,7 @@ const en: StudioCopy = {
   previewHint: "Builds character, story, and the preview trio: cover, 1 page, and in-hand photo (OpenAI).",
   previewRunning: "Generating preview…",
   previewBuilding: "We're Building Your Preview…",
-  previewStay: "Stay on this screen. It updates on its own.",
+  previewStay: "This screen updates on its own. If you need to leave, follow it in My orders.",
   previewEta: (min, max) =>
     min === max
       ? `Estimate: about ${min} ${min === 1 ? "minute" : "minutes"}.`
@@ -975,7 +975,7 @@ const es: StudioCopy = {
   demoCta: "Crear mi historia",
   createTitle: "Crea Tu Historia",
   projectLocked: "✓ Proyecto creado — los campos quedan bloqueados hasta que inicies un libro nuevo.",
-  slogan: "Comparte lo esencial: indica quién será el protagonista y elige el título y el tema. Envía fotos nítidas y creamos una historia personalizada con el tema elegido, convirtiendo a la persona homenajeada en protagonista.",
+  slogan: "Cuenta quién es el protagonista, elige el tema y envía fotos nítidas. En pocos minutos recibes la vista previa para aprobar.",
   pickThemes: "",
   pickThemesHint: "",
   groupDatas: "",
@@ -1083,7 +1083,7 @@ const es: StudioCopy = {
   previewHint: "Genera personaje, historia y el trío de vista previa: portada, 1 página y foto en mano (OpenAI).",
   previewRunning: "Generando vista previa…",
   previewBuilding: "Estamos Preparando Tu Vista Previa…",
-  previewStay: "Quédate en esta pantalla. Se actualiza sola.",
+  previewStay: "Esta pantalla se actualiza sola. Si necesitas salir, síguela en Mis pedidos.",
   previewEta: (min, max) =>
     min === max
       ? `Previsión: unos ${min} ${min === 1 ? "minuto" : "minutos"}.`
