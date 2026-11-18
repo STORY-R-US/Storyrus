@@ -192,7 +192,12 @@ export function PrintCheckout({
               />
               <span>
                 <strong>{t.digitalOption}</strong>
-                <small>{t.digitalOptionHint}</small>
+                <small>
+                  {t.digitalOptionHint.replace(
+                    "{price}",
+                    money(prices ? Math.min(prices.digital.ebook, prices.digital.video) : null),
+                  )}
+                </small>
               </span>
             </label>
           </div>
@@ -226,6 +231,8 @@ export function PrintCheckout({
             </span>
           </label>
           <small>{t.bundle.replace("{price}", money(itemPrice("bundle")))}</small>
+          {digital && choice.ebook !== choice.video && <small>{t.pickDigital}</small>}
+          {!digital && <small>{t.extrasWhen}</small>}
         </fieldset>
       )}
       {!digital && (

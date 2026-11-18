@@ -253,7 +253,7 @@ export function PostPreviewFlow({
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {t.pdf}
+                  {project.book_approved_at ? t.ebookDownload : t.pdf}
                 </a>
               )}
               {project.book_approved_at && purchase?.video && (
