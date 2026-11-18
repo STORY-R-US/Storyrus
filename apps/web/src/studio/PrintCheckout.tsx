@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { formatCep, useCepLookup } from "../cepLookup";
-import type { PrintAddress, PrintOrder, Project } from "../types";
+import type { PrintAddress, PrintOrder, Project, PurchaseChoice } from "../types";
 import { useStudioI18n } from "./useStudioI18n";
 import { money, purchaseCopy } from "./purchaseCopy";
 
@@ -125,12 +125,27 @@ export function PrintCheckout({
   const specLocked = busy || ["pending", "paid"].includes(order.payment_status);
   const addressLocked = busy || deliverySent;
   const addressDirty = JSON.stringify(address) !== JSON.stringify(savedAddress);
-  const total =
+  const digital = order.fulfillment === "digital";
+  const choice: PurchaseChoice = {
+    fulfillment: digital ? "digital" : "print",
+    ebook: !!order.extra_ebook,
+    video: !!order.extra_video,
+  };
+  const prices = order.prices;
+  const books =
     order.book_price_cents == null
       ? null
       : order.book_price_cents * order.quantity;
-  const ready = !addressDirty && total != null;
-  const quantityDirty = quantity !== String(order.quantity);
+  const total =
+    order.items_price_cents != null ? order.items_price_cents : digital ? null : books;
+  const extrasTotal = !digital && total != null && books != null ? total - books : 0;
+  const ready = (digital || !addressDirty) && total != null;
+  const quantityDirty = !digital && quantity !== String(order.quantity);
+  const itemPrice = (item: "ebook" | "video" | "bundle") =>
+    prices ? (digital ? prices.digital[item] : prices.extra[item]) : null;
+  function choose(next: PurchaseChoice) {
+    void run(async () => setOrder(await api.setPrintPurchase(projectId, next)));
+  }
   function saveAddress(event: FormEvent) {
     event.preventDefault();
     void run(async () => {
@@ -143,9 +158,77 @@ export function PrintCheckout({
       <p className="purchase-order-code">
         <strong>{order.code}</strong>
       </p>
-      <p className="muted">{t.includes}</p>
+      <p className="muted">{digital ? t.includesDigital : t.includes}</p>
       <div className="purchase-checkout-layout">
       <div className="purchase-checkout-details">
+      {prices && (
+        <fieldset disabled={specLocked} className="purchase-options">
+          <legend>{t.format}</legend>
+          <div className="purchase-option-row">
+            <label className="purchase-option">
+              <input
+                type="radio"
+                name="purchase-fulfillment"
+                checked={!digital}
+                onChange={() => choose({ ...choice, fulfillment: "print" })}
+              />
+              <span>
+                <strong>{t.printOption}</strong>
+                <small>{money(order.book_price_cents)}</small>
+              </span>
+            </label>
+            <label className="purchase-option">
+              <input
+                type="radio"
+                name="purchase-fulfillment"
+                checked={digital}
+                onChange={() =>
+                  choose({
+                    fulfillment: "digital",
+                    ebook: choice.ebook || !choice.video,
+                    video: choice.video,
+                  })
+                }
+              />
+              <span>
+                <strong>{t.digitalOption}</strong>
+                <small>{t.digitalOptionHint}</small>
+              </span>
+            </label>
+          </div>
+          <p className="purchase-options-title">{digital ? t.digitalItems : t.extras}</p>
+          <label className="purchase-option">
+            <input
+              type="checkbox"
+              checked={choice.ebook}
+              disabled={digital && choice.ebook && !choice.video}
+              onChange={(e) => choose({ ...choice, ebook: e.target.checked })}
+            />
+            <span>
+              <strong>
+                {t.ebookItem} · {money(itemPrice("ebook"))}
+              </strong>
+              <small>{t.ebookHint}</small>
+            </span>
+          </label>
+          <label className="purchase-option">
+            <input
+              type="checkbox"
+              checked={choice.video}
+              disabled={digital && choice.video && !choice.ebook}
+              onChange={(e) => choose({ ...choice, video: e.target.checked })}
+            />
+            <span>
+              <strong>
+                {t.videoItem} · {money(itemPrice("video"))}
+              </strong>
+              <small>{t.videoHint}</small>
+            </span>
+          </label>
+          <small>{t.bundle.replace("{price}", money(itemPrice("bundle")))}</small>
+        </fieldset>
+      )}
+      {!digital && (
       <fieldset disabled={specLocked} className="purchase-fields">
         <label>
           {t.size}
@@ -208,6 +291,8 @@ export function PrintCheckout({
           />
         </label>
       </fieldset>
+      )}
+      {!digital && (
       <form id="entrega" onSubmit={saveAddress}>
         <h4>{t.delivery}</h4>
         {order.payment_status === "paid" && !addressLocked && (
@@ -264,31 +349,39 @@ export function PrintCheckout({
           {t.saveAddress}
         </button>
       </form>
+      )}
       </div>
       <aside className="purchase-checkout-summary" aria-label={t.summary}>
       <dl className="purchase-totals">
-        <div>
-          <dt>
-            {t.book} ({order.quantity})
-          </dt>
-          <dd>
-            {money(
-              order.book_price_cents == null
-                ? null
-                : order.book_price_cents * order.quantity,
-            )}
-          </dd>
-        </div>
+        {digital ? (
+          <div>
+            <dt>{t.digitalLine}</dt>
+            <dd>{money(total)}</dd>
+          </div>
+        ) : (
+          <div>
+            <dt>
+              {t.book} ({order.quantity})
+            </dt>
+            <dd>{money(books)}</dd>
+          </div>
+        )}
+        {extrasTotal > 0 && (
+          <div>
+            <dt>{t.extrasLine}</dt>
+            <dd>{money(extrasTotal)}</dd>
+          </div>
+        )}
         <div>
           <dt>{t.freight}</dt>
-          <dd>{t.printerFreight}</dd>
+          <dd>{digital ? t.noFreight : t.printerFreight}</dd>
         </div>
         <div>
           <dt>{t.total}</dt>
           <dd>{money(total)}</dd>
         </div>
       </dl>
-      <p className="muted">{t.printerFreightHint}</p>
+      {!digital && <p className="muted">{t.printerFreightHint}</p>}
       {order.payment_status === "paid" ? (
         <p className="purchase-payment-status is-complete" role="status">{t.paid}</p>
       ) : order.payment_status === "pending" ? (

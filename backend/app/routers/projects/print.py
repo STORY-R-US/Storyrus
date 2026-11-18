@@ -12,15 +12,18 @@ from app.deps import get_current_user, require_registered_user
 from app.models import PrintOrder, Project, User
 from app.owner_auth import user_is_admin
 from app.printkit.gateway import GatewayNotConfigured, checkout_available
+from app.printkit.pricing import price_table, purchase_choice
 from app.printkit.service import (
     address_complete,
     apply_address,
     confirm_manual_payment,
     get_print_order,
+    items_price_cents,
     open_print_order,
     price_for,
     quote_order,
     select_freight,
+    set_purchase,
     set_quantity,
     start_checkout,
 )
@@ -30,6 +33,7 @@ from app.schemas import (
     PrintAddressIn,
     PrintCheckoutIn,
     PrintOrderOut,
+    PrintPurchaseIn,
     PrintQuantityIn,
     ProjectOut,
 )
@@ -39,8 +43,16 @@ from .common import get_owned_project
 router = APIRouter()
 
 
+def _items_price(order: PrintOrder) -> int | None:
+    try:
+        return items_price_cents(order)
+    except ValueError:
+        return None
+
+
 def to_print_out(order: PrintOrder, *, checkout_url: str | None = None) -> PrintOrderOut:
     options = order.freight_options or []
+    choice = purchase_choice(order.project)
     return PrintOrderOut(
         id=order.id,
         project_id=order.project_id,
@@ -62,6 +74,11 @@ def to_print_out(order: PrintOrder, *, checkout_url: str | None = None) -> Print
         label_error=order.label_error,
         checkout_available=checkout_available(),
         checkout_url=checkout_url,
+        fulfillment=choice["fulfillment"],
+        extra_ebook=choice["ebook"],
+        extra_video=choice["video"],
+        items_price_cents=_items_price(order),
+        prices=price_table(order.project.theme),
         recipient_name=order.recipient_name,
         postal_code=order.postal_code,
         street=order.street,
@@ -140,6 +157,24 @@ def save_print_quantity(
     _project, order = _owned_order(db, user, project_id)
     try:
         set_quantity(order, body.quantity)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    db.commit()
+    db.refresh(order)
+    return to_print_out(order)
+
+
+@router.put("/{project_id}/print-order/purchase", response_model=PrintOrderOut)
+def save_print_purchase(
+    project_id: uuid.UUID,
+    body: PrintPurchaseIn,
+    user: User = Depends(require_registered_user),
+    db: Session = Depends(get_db),
+) -> PrintOrderOut:
+    """Impresso com extras (e-book, capa animada) ou compra só digital."""
+    _project, order = _owned_order(db, user, project_id)
+    try:
+        set_purchase(order, fulfillment=body.fulfillment, ebook=body.ebook, video=body.video)
     except ValueError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     db.commit()

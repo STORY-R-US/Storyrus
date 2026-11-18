@@ -159,6 +159,15 @@ class Settings(BaseSettings):
     print_price_p_cents: int = 15700
     print_price_m_cents: int = 17700
     print_allow_p_hardcover: bool = False
+    # Extras do impresso e compra só digital (centavos BRL). Ajustáveis no Render.
+    price_extra_ebook_cents: int = 2900
+    price_extra_video_cents: int = 3900
+    price_extra_bundle_cents: int = 5900
+    price_digital_ebook_cents: int = 9700
+    price_digital_video_cents: int = 11700
+    price_digital_bundle_cents: int = 13700
+    # Capa animada vendida: clipe Kling de 5 ou 10 s a partir da capa aprovada.
+    animated_cover_duration_s: int = 10
     print_gateway: str = ""
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""

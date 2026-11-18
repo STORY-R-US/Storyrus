@@ -132,3 +132,38 @@ def _paid_book_type(project: Project):
     if profile.get("stories") and profile.get("stage") in {"story_approved", "preview_approved"}:
         return JobType.AVATAR
     return JobType.STORY
+
+
+def enqueue_purchased_video(db: Session, order, *, retry: bool = False) -> Job | None:
+    """Capa animada comprada: um clipe por pedido, depois da aprovação do livro."""
+    from app.config import settings
+    from app.printkit.pricing import purchase_choice
+    from app.services import jobs
+
+    project = order.project
+    if order.payment_status != "paid" or not purchase_choice(project)["video"]:
+        return None
+    flow = project.purchase_flow or {}
+    key = f"purchase-video-{order.id}-{flow.get('book_revision', 0)}"
+    existing = db.scalar(
+        select(Job)
+        .where(or_(Job.idempotency_key == key, Job.idempotency_key.startswith(key + "-retry-")))
+        .order_by(Job.created_at.desc())
+        .limit(1)
+    )
+    if existing and not (retry and existing.status == JobStatus.FAILED.value):
+        return existing
+    if existing:
+        key += f"-retry-{existing.id}"
+    return jobs.enqueue_job(
+        db,
+        user=project.user,
+        project=project,
+        job_type=JobType.VIDEO,
+        idempotency_key=key,
+        payload={
+            "source": "cover",
+            "duration_s": settings.animated_cover_duration_s,
+            "purchase_extra": True,
+        },
+    )

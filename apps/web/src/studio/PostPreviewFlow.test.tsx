@@ -263,4 +263,58 @@ describe("continuação da prévia", () => {
     expect(screen.getAllByRole("img", { name: /^Página / })).toHaveLength(6);
     expect(screen.queryByRole("img", { name: "Página 7" })).not.toBeInTheDocument();
   });
+
+  it("soma o e-book e a capa animada ao impresso e oferece a compra só digital", async () => {
+    const approved = {
+      ...project,
+      purchase_flow: { ...project.purchase_flow, preview_approved_at: "2026-10-15" },
+    };
+    const prices = {
+      extra: { ebook: 2900, video: 3900, bundle: 5900 },
+      digital: { ebook: 9700, video: 11700, bundle: 13700 },
+    };
+    vi.spyOn(api, "printOrder").mockResolvedValue({ ...order, prices, items_price_cents: 17700 });
+    const choose = vi
+      .spyOn(api, "setPrintPurchase")
+      .mockResolvedValueOnce({
+        ...order,
+        prices,
+        extra_ebook: true,
+        items_price_cents: 20600,
+      })
+      .mockResolvedValueOnce({
+        ...order,
+        prices,
+        fulfillment: "digital",
+        extra_ebook: true,
+        items_price_cents: 9700,
+      });
+    const user = userEvent.setup();
+    render(<Harness initial={approved} />);
+    await user.click(await screen.findByRole("checkbox", { name: /e-book em pdf/i }));
+    expect(choose).toHaveBeenCalledWith("p1", { fulfillment: "print", ebook: true, video: false });
+    expect(await screen.findByText("Extras")).toBeInTheDocument();
+    expect(screen.getByText("R$ 206,00")).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: /só digital/i }));
+    expect(choose).toHaveBeenLastCalledWith("p1", { fulfillment: "digital", ebook: true, video: false });
+    expect(await screen.findByText("Sem frete")).toBeInTheDocument();
+    expect(screen.queryByText("Endereço de entrega")).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /e-book em pdf/i })).toBeDisabled();
+  });
+
+  it("libera o PDF só para quem comprou o e-book", () => {
+    const complete = {
+      ...project,
+      purchase_flow: {
+        ...project.purchase_flow,
+        preview_approved_at: "2026-10-15",
+        full_book_ready_at: "2026-10-15",
+        stage: "book_ready",
+        purchase: { fulfillment: "print" as const, ebook: false, video: false },
+      },
+    };
+    vi.spyOn(api, "printOrder").mockResolvedValue({ ...order, payment_status: "paid" });
+    render(<Harness initial={complete} />);
+    expect(screen.queryByRole("link", { name: /abrir livro completo/i })).not.toBeInTheDocument();
+  });
 });

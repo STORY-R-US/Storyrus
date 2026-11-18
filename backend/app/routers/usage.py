@@ -31,6 +31,7 @@ from app.models import (
 )
 from app.order_tickets import backfill_order_tickets
 from app.owner_auth import is_owner_email, require_owner_password
+from app.printkit.pricing import purchase_choice
 from app.printkit.service import attach_service_orders
 from app.routers.projects.common import purge_project
 from app.schemas import (
@@ -237,6 +238,19 @@ def _created(value: datetime | None) -> datetime:
 def _give_up(db: Session, action: str) -> None:
     logger.exception("pedidos: %s", action)
     db.rollback()
+
+
+def _purchase_items(project: Project | None) -> list[str]:
+    """Itens vendidos no pedido, para o painel."""
+    if project is None or not (project.purchase_flow or {}).get("purchase"):
+        return []
+    choice = purchase_choice(project)
+    items = ["Só digital"] if choice["fulfillment"] == "digital" else ["Livro impresso"]
+    if choice["ebook"]:
+        items.append("E-book")
+    if choice["video"]:
+        items.append("Capa animada")
+    return items
 
 
 def _load_orders(db: Session, user_id: uuid.UUID | None = None) -> list[OrderTicket]:
@@ -458,6 +472,7 @@ def _collect_orders(
                     child_name=_opt_str(project.child_name) if project else None,
                     dedication=_opt_str(project.dedication) if project else None,
                     quantity=_opt_int(printed.quantity) if printed else None,
+                    purchase_items=_purchase_items(project),
                     recipient_name=_opt_str(printed.recipient_name) if printed else None,
                     postal_code=_opt_str(printed.postal_code) if printed else None,
                     street=_opt_str(printed.street) if printed else None,
