@@ -2295,3 +2295,15 @@
 }
 
 .studio-app .purchase-orders-link { color: var(--studio-link); text-underline-offset: 4px; }
+
+/* Estúdio simplificado (18/11/2026): menos texto, uma ação por vez */
+.studio-app .project-journey { margin: 8px 0 22px; padding-bottom: 18px; }
+.studio-app .project-journey .project-journey-overview { grid-template-columns: minmax(0, 1fr) !important; gap: 0 !important; padding: 14px 18px !important; }
+.studio-app .project-journey .project-journey-lead { margin: 2px 0 0 !important; max-width: none; color: var(--studio-text, inherit); font-size: .95rem !important; line-height: 1.55 !important; }
+.studio-app .project-journey .studio-eyebrow { margin-bottom: 4px; }
+.studio-app .master-title-edit, .studio-app .master-story-adjust { margin: 14px 0; }
+.studio-app .master-title-edit .master-title-card { border: 0; padding: 10px 0 0; margin: 0; background: none; }
+.studio-app .master-story-adjust > .studio-field { margin-top: 12px; }
+.studio-app .master-title-alternatives .master-title-suggestions { margin-top: 16px; padding-top: 16px; }
+.studio-app .preview-steps .preview-step-hint:empty { display: none; }
+.studio-app .studio-master-flow > .catalog-book-design-samples, .studio-app .studio-master-flow > .master-child-edit { margin-top: 14px; }

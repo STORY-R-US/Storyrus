@@ -1,46 +1,45 @@
 import type { Lang } from "../i18n/lang";
 import type { Project } from "../types";
-import { StudioStepIllustration } from "./StudioStepIllustration";
 
 const COPY = {
   pt: {
     label: "A Criação Do Seu Livro", step: "Etapa", of: "de", done: "Livro Aprovado",
     steps: ["Prévia E História", "Pedido E Criação", "Revisão E Entrega"],
-    preview: ["Uma História Começa A Ganhar Vida.", "Confira as primeiras imagens e leia a história. Você pode revisar cada detalhe antes de continuar."],
-    images: ["As imagens da sua prévia", "Veja a capa, o livro aberto e a leitura. Depois, gere a história."],
+    preview: ["Uma História Começa A Ganhar Vida.", "Leia a história com calma. Aprove ou peça ajustes em qualquer página."],
+    images: ["As imagens da sua prévia", "Confira as imagens. Se gostar, siga para a história completa."],
     retry: ["Sua Aprovação Vem Primeiro.", "Vamos preparar uma nova prévia com IA para você revisar. O pedido só continuará após a sua confirmação."],
-    order: ["O Próximo Capítulo É Seu Livro.", "Confira o formato, os dados de entrega e o resumo do pedido para continuar a criação."],
-    storyReview: ["História Aprovada.", "Veja o resumo e escolha se continua ou se quer um ajuste."],
-    payment: ["Acompanhe Seu Pedido.", "Confira os detalhes abaixo e acompanhe a confirmação do pagamento para iniciar o livro completo."],
-    creating: ["Seu Livro Está Ganhando Forma.", "As páginas aparecem aqui conforme ficam prontas. Acompanhe os detalhes e prepare-se para a revisão final."],
-    review: ["Cada Página, Do Seu Jeito.", "Confira o livro completo com calma, peça os ajustes que desejar e confirme a aprovação final."],
-    approved: ["Uma História Pronta Para Guardar.", "Seu livro foi aprovado. Acompanhe os próximos passos e os detalhes de entrega no seu pedido."],
+    order: ["O Próximo Capítulo É Seu Livro.", "Escolha o formato, confira o endereço e finalize o pedido."],
+    storyReview: ["História Aprovada.", "Confira o resumo e continue para o pedido."],
+    payment: ["Acompanhe Seu Pedido.", "Assim que o pagamento for confirmado, começamos o livro completo."],
+    creating: ["Seu Livro Está Ganhando Forma.", "As páginas aparecem aqui conforme ficam prontas."],
+    review: ["Cada Página, Do Seu Jeito.", "Confira o livro completo, peça ajustes se quiser e aprove."],
+    approved: ["Uma História Pronta Para Guardar.", "Seu livro foi aprovado e segue para impressão."],
   },
   en: {
     label: "Your Book's Journey", step: "Step", of: "of", done: "Book Approved",
     steps: ["Preview And Story", "Order And Creation", "Review And Delivery"],
-    preview: ["A Story Is Coming To Life.", "Explore the first images and read the story. You can review every detail before continuing."],
-    images: ["Your preview images", "Look at the cover, the open book, and the reading scene. Then write the story."],
+    preview: ["A Story Is Coming To Life.", "Read the story at your own pace. Approve it or ask for changes on any page."],
+    images: ["Your preview images", "Check the images. If you like them, move on to the full story."],
     retry: ["Your Approval Comes First.", "We will prepare a new AI preview for your review. The order will only continue after your confirmation."],
-    order: ["The Next Chapter Is Your Book.", "Review the format, delivery details and order summary to continue creating your book."],
-    storyReview: ["Story Approved.", "See the summary and choose to continue or ask for a change."],
-    payment: ["Follow Your Order.", "Review the details below and track payment confirmation before the complete book is created."],
-    creating: ["Your Book Is Taking Shape.", "Pages appear here as they become ready. Follow the details and get ready for the final review."],
-    review: ["Every Page, Your Way.", "Take your time to review the complete book, request adjustments and give your final approval."],
-    approved: ["A Story Ready To Treasure.", "Your book is approved. Follow the next steps and delivery details in your order."],
+    order: ["The Next Chapter Is Your Book.", "Choose the format, check the address and complete the order."],
+    storyReview: ["Story Approved.", "Check the summary and continue to the order."],
+    payment: ["Follow Your Order.", "Once payment is confirmed, we start the complete book."],
+    creating: ["Your Book Is Taking Shape.", "Pages appear here as they become ready."],
+    review: ["Every Page, Your Way.", "Review the complete book, ask for changes if you want, and approve it."],
+    approved: ["A Story Ready To Treasure.", "Your book is approved and on its way to print."],
   },
   es: {
     label: "La Creación De Tu Libro", step: "Paso", of: "de", done: "Libro Aprobado",
     steps: ["Vista Previa E Historia", "Pedido Y Creación", "Revisión Y Entrega"],
-    preview: ["Una Historia Empieza A Cobrar Vida.", "Mira las primeras imágenes y lee la historia. Puedes revisar cada detalle antes de continuar."],
-    images: ["Las imágenes de tu vista previa", "Mira la portada, el libro abierto y la lectura. Después, escribe la historia."],
+    preview: ["Una Historia Empieza A Cobrar Vida.", "Lee la historia con calma. Apruébala o pide ajustes en cualquier página."],
+    images: ["Las imágenes de tu vista previa", "Revisa las imágenes. Si te gustan, sigue con la historia completa."],
     retry: ["Tu Aprobación Es Lo Primero.", "Prepararemos una nueva vista previa con IA para que la revises. El pedido solo continuará después de tu confirmación."],
-    order: ["El Próximo Capítulo Es Tu Libro.", "Revisa el formato, los datos de entrega y el resumen del pedido para continuar la creación."],
-    storyReview: ["Historia Aprobada.", "Mira el resumen y elige si continúas o si quieres un ajuste."],
-    payment: ["Sigue Tu Pedido.", "Revisa los detalles y sigue la confirmación del pago para comenzar el libro completo."],
-    creating: ["Tu Libro Está Tomando Forma.", "Las páginas aparecen aquí a medida que están listas. Sigue los detalles y prepárate para la revisión final."],
-    review: ["Cada Página, A Tu Manera.", "Revisa el libro completo con calma, solicita los ajustes que quieras y confirma la aprobación final."],
-    approved: ["Una Historia Lista Para Guardar.", "Tu libro está aprobado. Sigue los próximos pasos y los datos de entrega en tu pedido."],
+    order: ["El Próximo Capítulo Es Tu Libro.", "Elige el formato, revisa la dirección y finaliza el pedido."],
+    storyReview: ["Historia Aprobada.", "Revisa el resumen y continúa con el pedido."],
+    payment: ["Sigue Tu Pedido.", "Cuando se confirme el pago, empezamos el libro completo."],
+    creating: ["Tu Libro Está Tomando Forma.", "Las páginas aparecen aquí a medida que están listas."],
+    review: ["Cada Página, A Tu Manera.", "Revisa el libro completo, pide ajustes si quieres y apruébalo."],
+    approved: ["Una Historia Lista Para Guardar.", "Tu libro está aprobado y va a impresión."],
   },
 };
 
@@ -56,7 +55,7 @@ export function ProjectJourney({ project, lang }: { project: Project; lang: Lang
   const ordering = validPreview && Boolean(flow?.preview_approved_at);
   const storyReview = validPreview && stage === "story_approved" && !flow?.preview_approved_at;
   const current = approved || ready ? 2 : creating || ordering ? 1 : 0;
-  const awaitingStory = stage === "preview_ready" && !Object.values(project.book_profile?.stories || {}).some((text) => String(text || "").trim());
+  const awaitingStory = stage === "cover_ready" || (stage === "preview_ready" && !Object.values(project.book_profile?.stories || {}).some((text) => String(text || "").trim()));
   const copy = !validPreview ? t.retry : approved ? t.approved : ready ? t.review : creating ? t.creating
     : ordering && flow?.stage === "awaiting_payment_confirmation" ? t.payment : ordering ? t.order
     : storyReview ? t.storyReview : awaitingStory ? t.images : t.preview;
@@ -66,10 +65,8 @@ export function ProjectJourney({ project, lang }: { project: Project; lang: Lang
       <div className="project-journey-overview">
         <div>
           <p className="studio-eyebrow">{approved ? t.done : `${t.step} ${current + 1} ${t.of} 3`}</p>
-          <h3>{copy[0]}</h3>
           <p className="project-journey-lead">{copy[1]}</p>
         </div>
-        <StudioStepIllustration step={current === 2 ? 2 : current === 1 && !creating ? 3 : 1} />
       </div>
       <ol className="project-journey-steps">
         {t.steps.map((label, index) => (

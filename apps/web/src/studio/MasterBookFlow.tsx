@@ -53,7 +53,9 @@ const COPY = {
     previewImagesHint: "Confira a capa, o livro aberto e a leitura. Os ajustes ficam junto de cada imagem.",
     previewTitleHeading: "Revise O Título",
     previewNextHeading: "Tudo Certo Com A Prévia?",
-    previewNextHint: "Confira as imagens e o título. Em seguida você lê a história completa e aprova ou ajusta cada página antes de fazer o pedido.",
+    previewNextHint: "No próximo passo você lê a história completa antes de fazer o pedido.",
+    titleEditSummary: "Quer mudar o título?",
+    editSummary: "Quero ajustar a história toda",
     storyHeading: "A História",
     reviewHeading: "Revisão",
     reviewLead: "A história está aprovada. Este é o resumo.",
@@ -69,7 +71,7 @@ const COPY = {
     titleUse: "Usar este título",
     titleChosen: "Selecionado",
     childHeading: "Quer alterar o nome ou a idade?",
-    childHint: "Se precisar corrigir o nome ou a idade, atualize os campos e salve. Isso não gera novas imagens automaticamente.",
+    childHint: "Corrigir o nome ou a idade não refaz as imagens.",
     childName: "Nome da criança",
     childAge: "Idade",
     costume: "Roupa na história (opcional)",
@@ -137,7 +139,9 @@ const COPY = {
     previewImagesHint: "Review the cover, open book and reading scene. Adjustments are next to each image.",
     previewTitleHeading: "Review The Title",
     previewNextHeading: "Happy With The Preview?",
-    previewNextHint: "Review the images and title. Next you read the full story and approve or adjust each page before ordering.",
+    previewNextHint: "Next you read the full story before placing the order.",
+    titleEditSummary: "Want to change the title?",
+    editSummary: "I want to adjust the whole story",
     storyHeading: "The Story",
     reviewHeading: "Review",
     reviewLead: "The story is approved. This is the summary.",
@@ -153,7 +157,7 @@ const COPY = {
     titleUse: "Use this title",
     titleChosen: "Selected",
     childHeading: "Want to change the name or age?",
-    childHint: "If you need to correct the name or age, update the fields and save. This does not generate new images automatically.",
+    childHint: "Fixing the name or age does not remake the images.",
     childName: "Child's name",
     childAge: "Age",
     costume: "Outfit in the story (optional)",
@@ -221,7 +225,9 @@ const COPY = {
     previewImagesHint: "Revisa la portada, el libro abierto y la lectura. Los ajustes están junto a cada imagen.",
     previewTitleHeading: "Revisa El Título",
     previewNextHeading: "¿Todo Bien Con La Vista Previa?",
-    previewNextHint: "Revisa las imágenes y el título. Después lees la historia completa y apruebas o ajustas cada página antes de hacer el pedido.",
+    previewNextHint: "En el siguiente paso lees la historia completa antes de hacer el pedido.",
+    titleEditSummary: "¿Quieres cambiar el título?",
+    editSummary: "Quiero ajustar toda la historia",
     storyHeading: "La Historia",
     reviewHeading: "Revisión",
     reviewLead: "La historia está aprobada. Este es el resumen.",
@@ -237,7 +243,7 @@ const COPY = {
     titleUse: "Usar este título",
     titleChosen: "Seleccionado",
     childHeading: "¿Quieres cambiar el nombre o la edad?",
-    childHint: "Si necesitas corregir el nombre o la edad, actualiza los campos y guarda. Esto no genera imágenes nuevas automáticamente.",
+    childHint: "Corregir el nombre o la edad no rehace las imágenes.",
     childName: "Nombre del protagonista",
     childAge: "Edad",
     costume: "Ropa en la historia (opcional)",
@@ -632,7 +638,6 @@ export function MasterBookFlow({
   }
   return (
     <div className={`studio-master-flow${isPreviewReview ? " is-preview-review" : ""}`} data-testid="studio-master-flow">
-      {p.book_design && isPreviewReview && <CatalogDesignSamples model={p.book_design} lang={lang} />}
       {expandedImage && <PreviewImageViewer src={expandedImage.url} title={expandedImage.label}
         lang={lang} onClose={() => setExpandedImage(null)} />}
       {testMode && <section className="master-adjustment-panel" data-testid="studio-test-mode">
@@ -690,49 +695,6 @@ export function MasterBookFlow({
           )}
         </section>
       )}
-      {!storyReview && (
-      <details className="master-child-edit" open={!isPreviewReview}>
-      <summary>{t.childHeading}</summary>
-      <form className="master-child-card" onSubmit={(event) => void saveChild(event)} data-testid="studio-child-profile">
-        <p className="master-title-hint">{t.childHint}</p>
-        <div className="studio-grid two">
-          <label className="studio-field">
-            {t.childName}
-            <input
-              value={childDraft.name}
-              maxLength={80}
-              onChange={(event) =>
-                setChildDraft((current) => ({ ...current, name: capitalizeChildName(event.target.value) }))
-              }
-            />
-          </label>
-          <label className="studio-field">
-            {t.childAge}
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={120}
-              value={childDraft.age}
-              onChange={(event) => setChildDraft((current) => ({ ...current, age: event.target.value }))}
-            />
-          </label>
-        </div>
-        <button type="submit" className="kbtn kbtn-soft" disabled={active}>{t.childSave}</button>
-      </form>
-      </details>
-      )}
-      {!storyReview && ["story_approved", "preview_approved", "avatar_ready", "avatar_approved", "page_ready", "book_ready"].includes(stage) && (
-        <button
-          type="button"
-          className="kbtn kbtn-primary master-order-jump"
-          onClick={() =>
-            document.getElementById("pedido")?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
-        >
-          {t.goToOrder}
-        </button>
-      )}
       {!storyReview && gallery.length > 0 && (
         <section className={isPreviewReview ? "master-preview-panel master-preview-images" : undefined}
           aria-labelledby="master-preview-images-heading">
@@ -740,7 +702,6 @@ export function MasterBookFlow({
             <h3 id="master-preview-images-heading" className="master-section">
               {isPreviewReview && <span className="master-preview-number" aria-hidden="true">01</span>}{t.images}
             </h3>
-            {isPreviewReview && stage !== "cover_ready" && <p className="master-title-hint">{t.previewImagesHint}</p>}
           </div>
       <div className={`master-gallery${gallery.length === 1 ? " has-single-preview" : ""}`}>
         {gallery.map((shot) => {
@@ -833,7 +794,8 @@ export function MasterBookFlow({
           </button>
         </section>
       )}
-      {!storyReview && canEditTitle && (
+      {!storyReview && canEditTitle && (() => {
+        const titleForm = (
         <form className="master-title-card" onSubmit={(event) => void applyTitle(event)}>
           {isPreviewReview && stage !== "cover_ready" && (
             <div className="master-preview-panel-heading">
@@ -858,33 +820,41 @@ export function MasterBookFlow({
               {t.titleSave}
             </button>
           </div>
-          <p className="master-title-hint">{t.titleHint}</p>
-          {titleOptions.length > 0 && (
-            <details className="master-title-alternatives" open={!isPreviewReview}>
+          {editTitle.trim() !== savedTitle && editTitle.trim() && <p className="master-title-hint">{t.titleHint}</p>}
+          {(titleOptions.length > 0 || (!testMode && !project.ai_generation_paused)) && (
+            <details className="master-title-alternatives">
               <summary>{t.titleOptions}</summary>
-              <p className="master-title-hint">{t.titleOptionsHint}</p>
-              <ul className="master-title-options" aria-label={t.titleOptions}>
-                {titleOptions.map((option) => (
-                  <li key={option}>
-                    <button
-                      type="button"
-                      className={editTitle.trim() === option ? "is-selected" : ""}
-                      aria-pressed={editTitle.trim() === option}
-                      disabled={active}
-                      onClick={() => setEditTitle(option)}
-                    >
-                      <span>{option}</span>
-                      <span className="master-title-choice">{editTitle.trim() === option ? t.titleChosen : t.titleUse}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {titleOptions.length > 0 && (
+                <ul className="master-title-options" aria-label={t.titleOptions}>
+                  {titleOptions.map((option) => (
+                    <li key={option}>
+                      <button
+                        type="button"
+                        className={editTitle.trim() === option ? "is-selected" : ""}
+                        aria-pressed={editTitle.trim() === option}
+                        disabled={active}
+                        onClick={() => setEditTitle(option)}
+                      >
+                        <span>{option}</span>
+                        <span className="master-title-choice">{editTitle.trim() === option ? t.titleChosen : t.titleUse}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!testMode && !project.ai_generation_paused && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
+                selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
             </details>
           )}
-          {!testMode && !project.ai_generation_paused && <TitleSuggestions key={project.id} projectId={project.id} currentTitle={savedTitle}
-            selectedTitle={editTitle} disabled={active} onSelect={setEditTitle} />}
         </form>
-      )}
+        );
+        return isPreviewReview ? titleForm : (
+          <details className="master-child-edit master-title-edit">
+            <summary>{t.titleEditSummary}</summary>
+            {titleForm}
+          </details>
+        );
+      })()}
       {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <section className="master-preview-next" aria-labelledby="master-preview-next-heading">
           <div>
@@ -1038,27 +1008,30 @@ export function MasterBookFlow({
           <button type="button" className="kbtn kbtn-primary" disabled={active} onClick={() => void run(approveStory)}>
             {t.yes}
           </button>
-          <label className="studio-field">
-            {t.edit}
-            <textarea
-              value={adjustment}
-              onChange={(e) => setAdjustment(e.target.value)}
-              maxLength={2000}
-            />
-          </label>
-          <p className="master-title-hint">{t.editHint}</p>
-          <button
-            type="button"
-            className="kbtn kbtn-soft"
-            disabled={active || !adjustment.trim()}
-            onClick={() =>
-              void run(() =>
-                api.startStep(project.id, "story", { brief: adjustment }),
-              )
-            }
-          >
-            {t.send}
-          </button>
+          <details className="master-child-edit master-story-adjust">
+            <summary>{t.editSummary}</summary>
+            <label className="studio-field">
+              {t.edit}
+              <textarea
+                value={adjustment}
+                onChange={(e) => setAdjustment(e.target.value)}
+                maxLength={2000}
+              />
+            </label>
+            <p className="master-title-hint">{t.editHint}</p>
+            <button
+              type="button"
+              className="kbtn kbtn-soft"
+              disabled={active || !adjustment.trim()}
+              onClick={() =>
+                void run(() =>
+                  api.startStep(project.id, "story", { brief: adjustment }),
+                )
+              }
+            >
+              {t.send}
+            </button>
+          </details>
         </section>
       )}
       {stage === "story_approved" && !!project.purchase_flow?.preview_approved_at && (
@@ -1176,6 +1149,39 @@ export function MasterBookFlow({
             </a>
           )}
         </div>
+      )}
+      {p.book_design && isPreviewReview && <CatalogDesignSamples model={p.book_design} lang={lang} />}
+      {!storyReview && (
+      <details className="master-child-edit">
+      <summary>{t.childHeading}</summary>
+      <form className="master-child-card" onSubmit={(event) => void saveChild(event)} data-testid="studio-child-profile">
+        <p className="master-title-hint">{t.childHint}</p>
+        <div className="studio-grid two">
+          <label className="studio-field">
+            {t.childName}
+            <input
+              value={childDraft.name}
+              maxLength={80}
+              onChange={(event) =>
+                setChildDraft((current) => ({ ...current, name: capitalizeChildName(event.target.value) }))
+              }
+            />
+          </label>
+          <label className="studio-field">
+            {t.childAge}
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={120}
+              value={childDraft.age}
+              onChange={(event) => setChildDraft((current) => ({ ...current, age: event.target.value }))}
+            />
+          </label>
+        </div>
+        <button type="submit" className="kbtn kbtn-soft" disabled={active}>{t.childSave}</button>
+      </form>
+      </details>
       )}
     </div>
   );

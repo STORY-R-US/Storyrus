@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { api } from "./api";
 import { PRIVACY_NOTICE } from "./privacyNotice";
 import { StudioIntro, studioDesignCopy } from "./studio/StudioIntro";
-import { StudioStepIllustration } from "./studio/StudioStepIllustration";
 import { ProjectJourney } from "./studio/ProjectJourney";
 import { MediaReauthorization } from "./studio/MediaReauthorization";
 import { siteTitle } from "./pageMeta";
@@ -54,6 +53,8 @@ import "./studio.css";
 export { ProgressList } from "./studio/ProgressList";
 
 const PHOTO_LIMIT = 8;
+
+const ORDER_HEADLINE = { pt: "Seu Pedido", en: "Your Order", es: "Tu Pedido" } as const;
 
 function previewStepLabel(t: StudioCopy, id: PreviewStepId): string {
   if (id === "AVATAR") return t.previewStepCharacter;
@@ -775,7 +776,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       : project?.purchase_flow?.stage === "generating_book" ? purchaseCopy(lang).generating
       : project?.book_profile?.stage === "story_approved" && !project?.purchase_flow?.preview_approved_at
         ? t.storyReviewTitle
-        : t.previewReadyTitle
+        : project?.purchase_flow?.preview_approved_at
+          ? ORDER_HEADLINE[lang]
+          : t.previewReadyTitle
     : t.orderSent;
 
   const [previewWaitedSec, setPreviewWaitedSec] = useState(0);
@@ -1125,7 +1128,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       </div>
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
-        <StudioIntro lang={lang} />
+        {!orderSent && <StudioIntro lang={lang} />}
         {!orderSent && <PhotoSteps lang={lang} example="studio" />}
         {project && assets?.photos_authorized === false && (
           <MediaReauthorization projectId={project.id} lang={lang}
@@ -1201,27 +1204,21 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                         <span>{masterSteps
                           ? masterStepLabel(t, step.id as MasterPreviewStepId)
                           : previewStepLabel(t, step.id as PreviewStepId)}</span>
-                        <span className="preview-step-hint">
+                        {(step.state === "now" || step.state === "queued") && <span className="preview-step-hint">
                           {masterSteps
                             ? masterStepHint(t, step.id as MasterPreviewStepId)
                             : previewStepHint(t, step.id as PreviewStepId, step.id === "EBOOK" ? imageActivity : null)}
-                        </span>
+                        </span>}
                       </span>
                       <span className="preview-step-state">{previewStepStateLabel(t, step.state)}</span>
                     </li>
                   ))}
                 </ol>
-                <p className="studio-slogan preview-must-move" data-testid="studio-preview-must-move">
-                  {masterSteps ? t.previewMasterMove : t.previewMustMove}
-                </p>
-                <p className="studio-slogan preview-eta" data-testid="studio-preview-eta">
-                  {t.previewEta(previewEta.min, previewEta.max)}
-                </p>
-                <p className="studio-slogan preview-elapsed" data-testid="studio-preview-elapsed">
-                  {t.previewElapsed(previewWaitedSec)}
+                <p className="studio-slogan preview-eta">
+                  <span data-testid="studio-preview-eta">{t.previewEta(previewEta.min, previewEta.max)}</span>{" "}
+                  <span className="preview-elapsed" data-testid="studio-preview-elapsed">{t.previewElapsed(previewWaitedSec)}</span>
                 </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
-                <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
               </div>
             ) : showPreviewRetry ? null : project?.book_profile ? (
               <>
@@ -1492,23 +1489,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {showBook && (
           <>
-          <div className="how" role="region" aria-labelledby="studio-how-heading">
-            <h3 className="field-label" id="studio-how-heading">
-              {t.howTitle}
-            </h3>
-            <ol>
-              {t.how.map((step, index) => (
-                <li key={step.t}>
-                  <StudioStepIllustration step={index} />
-                  <div className="studio-how-copy">
-                    <strong>{step.t}</strong>
-                    <p>{step.p}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-
           <h3 className="studio-section-title"><span>01</span>{studioDesignCopy(lang).characters}</h3>
           <div className="studio-grid two">
             <label className="studio-field">

@@ -597,17 +597,14 @@ describe("Prévia automática", () => {
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /projeto criado/i })).toBeInTheDocument();
     expect(screen.getByTestId("studio-preview-eta")).toHaveTextContent(/previsão: cerca de \d/i);
-    expect(screen.getByText(/fique nesta tela/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/ficou pronto quando o título mudar para prévia pronta/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/esta tela atualiza sozinha/i)).toBeInTheDocument();
     const stepStates = ["AVATAR", "STORY", "EBOOK"].map((id) =>
       screen.getByTestId(`studio-preview-step-${id}`).getAttribute("data-step-state"),
     );
     expect(stepStates.filter((state) => state === "now" || state === "queued")).toHaveLength(1);
     expect(stepStates[0]).not.toBe("wait");
     expect(screen.getByTestId("studio-preview-elapsed")).toHaveTextContent(/já se passaram 0:0/i);
-    expect(screen.getByTestId("studio-preview-must-move")).toHaveTextContent(/não fica parado/i);
+    expect(screen.queryByTestId("studio-preview-must-move")).not.toBeInTheDocument();
     expect(screen.getByText(/a foto vira o personagem ilustrado/i)).toBeInTheDocument();
     expect(document.title).toBe("Story R Us - Projeto Criado");
   });
