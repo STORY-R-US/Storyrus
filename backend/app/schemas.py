@@ -528,6 +528,7 @@ class OrderTicketOut(BaseModel):
     child_name: str | None = None
     dedication: str | None = None
     quantity: int | None = None
+    purchase_items: list[str] = []
     recipient_name: str | None = None
     postal_code: str | None = None
     street: str | None = None
@@ -591,6 +592,12 @@ class PrintQuantityIn(BaseModel):
     quantity: int = Field(ge=1, le=500)
 
 
+class PrintPurchaseIn(BaseModel):
+    fulfillment: str = Field(pattern="^(print|digital)$")
+    ebook: bool = False
+    video: bool = False
+
+
 class PrintCheckoutIn(BaseModel):
     installments: int = Field(default=1, ge=1, le=12)
 
@@ -620,6 +627,11 @@ class PrintOrderOut(BaseModel):
     label_error: str | None = None
     checkout_available: bool = False
     checkout_url: str | None = None
+    fulfillment: str = "print"
+    extra_ebook: bool = False
+    extra_video: bool = False
+    items_price_cents: int | None = None
+    prices: dict | None = None
     recipient_name: str | None = None
     postal_code: str | None = None
     street: str | None = None

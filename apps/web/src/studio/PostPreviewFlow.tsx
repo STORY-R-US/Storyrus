@@ -43,6 +43,17 @@ export function PostPreviewFlow({
   const flow = project.purchase_flow;
   const approved = !!flow?.preview_approved_at && !dirty;
   const fullReady = !!flow?.full_book_ready_at;
+  const purchase = flow?.purchase || null;
+  const digital = purchase?.fulfillment === "digital";
+  // Pedidos pagos antes dos extras não têm escolha salva e mantêm o PDF.
+  const ebookIncluded =
+    !purchase || purchase.ebook || (digital && !purchase.video);
+  const videoJob = [...jobs].reverse().find((j) => j.type === "VIDEO");
+  const videoRunning =
+    videoJob?.status === "PENDING" || videoJob?.status === "RUNNING";
+  const stepLabels = digital
+    ? [...t.steps.slice(0, 4), t.digitalStep]
+    : t.steps;
   const fullJob = [...jobs]
     .reverse()
     .find((j) => j.result?.payload?.purchase_full_book);
@@ -102,7 +113,7 @@ export function PostPreviewFlow({
     >
       {showSteps && !compactReview && (
       <ol className="purchase-steps" aria-label={t.summary}>
-        {t.steps.map((label, i) => (
+        {stepLabels.map((label, i) => (
           <li
             key={label}
             aria-current={i === step ? "step" : undefined}
@@ -142,12 +153,14 @@ export function PostPreviewFlow({
         <>
           <StudioStageHeading id="purchase-heading" illustration={step === 3 ? 1 : 3}
             title={project.book_approved_at && fullReady
-              ? t.approved
+              ? digital
+                ? t.approvedDigital
+                : t.approved
               : fullReady
                 ? t.full
                 : flow?.stage === "generating_book"
                   ? t.generating
-                  : t.steps[step]} />
+                  : stepLabels[step]} />
           {flow?.stage === "generating_book" && (
             <>
               <p role="status">
@@ -202,7 +215,15 @@ export function PostPreviewFlow({
           )}
           {fullReady && (
             <>
-              <p>{project.book_approved_at ? t.approvedHint : t.fullHint}</p>
+              <p>
+                {project.book_approved_at
+                  ? digital
+                    ? t.approvedDigitalHint
+                    : t.approvedHint
+                  : digital
+                    ? t.fullHintDigital
+                    : t.fullHint}
+              </p>
               <div className="purchase-pages">
                 {(project.book_profile
                   ? assets?.page_versions
@@ -225,15 +246,60 @@ export function PostPreviewFlow({
                   </a>
                 ))}
               </div>
-              {assets?.ebook_url && (
+              {ebookIncluded && assets?.ebook_url && (
                 <a
                   className="kbtn"
                   href={assets.ebook_url}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {t.pdf}
+                  {project.book_approved_at ? t.ebookDownload : t.pdf}
                 </a>
+              )}
+              {project.book_approved_at && purchase?.video && (
+                <div className="purchase-video" data-testid="purchase-video">
+                  <h4>{t.videoItem}</h4>
+                  {assets?.video_url ? (
+                    <>
+                      <video
+                        className="purchase-video-player"
+                        src={assets.video_url}
+                        controls
+                        playsInline
+                        loop
+                      />
+                      <a
+                        className="kbtn"
+                        href={assets.video_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {t.videoOpen}
+                      </a>
+                    </>
+                  ) : videoRunning ? (
+                    <p role="status">{t.videoMaking}</p>
+                  ) : (
+                    <>
+                      {videoJob?.status === "FAILED" && (
+                        <p role="alert">{t.videoFailed}</p>
+                      )}
+                      <button
+                        type="button"
+                        className="kbtn"
+                        disabled={busy}
+                        onClick={() =>
+                          void run(async () => {
+                            await api.startStep(project.id, "video");
+                            await refresh();
+                          })
+                        }
+                      >
+                        {t.videoRetry}
+                      </button>
+                    </>
+                  )}
+                </div>
               )}
               {!project.book_approved_at && (
                 <>
@@ -243,7 +309,7 @@ export function PostPreviewFlow({
                       checked={confirmed}
                       onChange={(e) => setConfirmed(e.target.checked)}
                     />
-                    {t.confirm}
+                    {digital ? t.confirmDigital : t.confirm}
                   </label>
                   <button
                     className="kbtn kbtn-primary"
@@ -255,7 +321,7 @@ export function PostPreviewFlow({
                       )
                     }
                   >
-                    {t.final}
+                    {digital ? t.finalDigital : t.final}
                   </button>
                   {!project.book_profile && (
                     <details>
@@ -288,7 +354,7 @@ export function PostPreviewFlow({
               )}
             </>
           )}
-          <button
+          {!digital && <button
             type="button"
             className="kbtn"
             onClick={() => {
@@ -304,7 +370,7 @@ export function PostPreviewFlow({
             }}
           >
             {t.editDelivery}
-          </button>
+          </button>}
           <details
             open={(flow?.stage !== "generating_book" && !fullReady) || deliveryOpen}
             onToggle={(event) => setDeliveryOpen(event.currentTarget.open)}

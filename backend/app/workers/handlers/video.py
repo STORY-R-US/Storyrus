@@ -67,6 +67,38 @@ def _video_reference_key(db: Session, project: Project, *, scene_n: int = 1) -> 
     )
 
 
+COVER_PROMPT = (
+    "Anime suavemente esta capa de livro infantil ilustrado: o personagem respira, "
+    "pisca e se mexe de leve, cabelo e roupas balançam com a brisa, nuvens, brilhos "
+    "e estrelas se movem devagar ao fundo. Câmera quase parada com leve aproximação. "
+    "Mantenha o rosto, as cores e todo o texto da capa fixos, nítidos e legíveis."
+)
+
+
+def _cover_reference_key(db: Session, project: Project) -> str:
+    """Capa aprovada do Estúdio (sem marca d'água), no idioma do livro."""
+    editorial = (project.book_profile or {}).get("editorial")
+    language = project.language or "pt-BR"
+    covers = [
+        asset
+        for asset in db.scalars(
+            select(Asset)
+            .where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
+            .order_by(Asset.created_at.desc())
+        ).all()
+        if (asset.meta or {}).get("workflow") == 1
+        and (asset.meta or {}).get("role") == "01_CAPA"
+        and (not editorial or (asset.meta or {}).get("editorial") == editorial)
+    ]
+    cover = next(
+        (a for a in covers if (a.meta or {}).get("language") == language),
+        covers[0] if covers else None,
+    )
+    if cover is None:
+        raise ProviderError("Capa aprovada ausente para a capa animada", transient=False)
+    return cover.storage_key
+
+
 async def handle_video(db: Session, job: Job) -> None:
     """Animação curta (Kling image2video) — não é o vídeo narrado longo."""
     import asyncio
@@ -74,8 +106,16 @@ async def handle_video(db: Session, job: Job) -> None:
 
     project = _project(db, job)
     payload = _payload(job)
-    sb = _latest_storyboard(db, project)
-    ref_key = _video_reference_key(db, project, scene_n=1)
+    from_cover = payload.get("source") == "cover"
+    sb = None if from_cover else _latest_storyboard(db, project)
+    ref_key = (
+        _cover_reference_key(db, project)
+        if from_cover
+        else _video_reference_key(db, project, scene_n=1)
+    )
+    if from_cover and _pkg()._use_video_offline():
+        # Item pago: sem a Kling configurada, falha em vez de entregar um GIF de teste.
+        raise ProviderError("Kling não configurada para a capa animada", transient=False)
     _set_status(db, project, ProjectStatus.VIDEO_RUNNING)
 
     base_image = storage.get_bytes(ref_key)
@@ -92,7 +132,9 @@ async def handle_video(db: Session, job: Job) -> None:
     else:
         provider = _pkg().get_video_provider(payload.get("provider") or job.provider)
 
-        prompt = "Anime o personagem com movimento suave e expressivo."
+        prompt = (
+            COVER_PROMPT if from_cover else "Anime o personagem com movimento suave e expressivo."
+        )
         if sb and sb.get("scenes"):
             first = sb["scenes"][0]
             prompt = first.get("video_prompt") or prompt
@@ -137,7 +179,10 @@ async def handle_video(db: Session, job: Job) -> None:
             project_id=project.id,
             kind=AssetKind.VIDEO.value,
             storage_key=stored,
-            meta={"source": source_url, "kind": "animation"},
+            meta={
+                "source": source_url,
+                "kind": "animated_cover" if from_cover else "animation",
+            },
         )
     )
     project.video_url = stored

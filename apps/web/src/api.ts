@@ -10,6 +10,7 @@ import type {
   Project,
   PrintAddress,
   PrintOrder,
+  PurchaseChoice,
   StoryTemplate,
   UploadUrl,
   UsageReport,
@@ -774,6 +775,12 @@ export const api = {
   },
   async printOrder(id: string) {
     return req<PrintOrder>(`/v1/projects/${id}/print-order`);
+  },
+  async setPrintPurchase(id: string, body: PurchaseChoice) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/purchase`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
   },
   async setPrintQuantity(id: string, quantity: number) {
     return req<PrintOrder>(`/v1/projects/${id}/print-order/quantity`, {

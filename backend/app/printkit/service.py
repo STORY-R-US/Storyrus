@@ -15,7 +15,15 @@ from app.config import settings
 from app.models import Asset, AssetKind, PrintOrder, Project, _now
 from app.printkit.files import build_print_pdfs
 from app.printkit.gateway import configured_gateway
-from app.printkit.pricing import book_price_cents
+from app.printkit.pricing import (
+    DIGITAL,
+    PRINT,
+    book_price_cents,
+    digital_price_cents,
+    extras_price_cents,
+    is_digital,
+    purchase_choice,
+)
 from app.printkit.shipping import ShippingError
 from app.printkit.spec import PrintPagesMissing, PrintSpecIncomplete, spec_from_settings
 
@@ -110,6 +118,14 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     if order.status in {"sent_for_validation", "approved"} or (
         order.payment_status == "paid" and order.cover_key and order.interior_key
     ):
+        return
+    if is_digital(project):
+        # Só digital: nada vai para a gráfica, então não há PDF de produção.
+        order.status = "digital_ready"
+        order.block_reason = None
+        order.cover_key = None
+        order.interior_key = None
+        _sync(project, order)
         return
     order.book_size = project.book_size
     order.cover_type = project.cover_type
@@ -362,6 +378,48 @@ def apply_address(order: PrintOrder, data: dict) -> None:
     order.state = data["state"].strip().upper()
 
 
+def set_purchase(order: PrintOrder, *, fulfillment: str, ebook: bool, video: bool) -> None:
+    """Impresso com extras (e-book, capa animada) ou compra só digital."""
+    from app.services import purchase_flow
+
+    if order.payment_status in {"paid", "pending"}:
+        raise ValueError("As opções do pedido não podem mudar depois de iniciar o pagamento.")
+    if fulfillment not in {PRINT, DIGITAL}:
+        raise ValueError("Tipo de pedido inválido.")
+    if fulfillment == DIGITAL and not (ebook or video):
+        raise ValueError("Escolha o e-book, a capa animada ou os dois.")
+    purchase_flow.update(
+        order.project,
+        purchase={"fulfillment": fulfillment, "ebook": bool(ebook), "video": bool(video)},
+    )
+    if fulfillment == DIGITAL:
+        _clear_freight(order)
+        if order.status in {"awaiting_spec", "held", "awaiting_pages", "files_ready"}:
+            order.status = "awaiting_payment"
+            order.block_reason = None
+            order.cover_key = None
+            order.interior_key = None
+            _sync(order.project, order)
+
+
+def _record_purchase(order: PrintOrder) -> None:
+    """Grava a escolha no pagamento: sem ela, o pedido conta como só impresso."""
+    from app.services import purchase_flow
+
+    purchase_flow.update(order.project, purchase=purchase_choice(order.project))
+
+
+def items_price_cents(order: PrintOrder) -> int:
+    """Livros e extras, sem o frete."""
+    theme = order.project.theme
+    choice = purchase_choice(order.project)
+    if choice["fulfillment"] == DIGITAL:
+        return digital_price_cents(choice["ebook"], choice["video"], theme)
+    copies = max(1, int(order.quantity or 1))
+    books = book_price_cents(order.book_size, theme) * copies
+    return books + extras_price_cents(choice["ebook"], choice["video"], theme)
+
+
 def quote_order(order: PrintOrder):
     from app.printkit.shipping import quote_freight
 
@@ -397,9 +455,10 @@ def start_checkout(order: PrintOrder, installments: int):
         or not (order.project.purchase_flow or {}).get("preview_approved_at")
     ):
         raise ValueError("Revise e aprove a prévia gerada com IA antes do pagamento.")
-    if order.book_size not in {"P", "M"}:
+    digital = is_digital(order.project)
+    if not digital and order.book_size not in {"P", "M"}:
         raise ValueError("Tamanho do livro ausente.")
-    if order.status == "held":
+    if not digital and order.status == "held":
         raise ValueError(order.block_reason or "Formato ainda não liberado.")
     purchase = bool((order.project.purchase_flow or {}).get("preview_approved_at"))
     stage = (order.project.purchase_flow or {}).get("stage")
@@ -410,7 +469,7 @@ def start_checkout(order: PrintOrder, installments: int):
         raise ValueError("Revise a prévia atualizada antes de iniciar o pagamento.")
     if order.status not in _FILE_STATUSES and not (purchase and order.status == "awaiting_payment"):
         raise ValueError("Os arquivos de produção ainda não estão prontos.")
-    if not address_complete(order):
+    if not digital and not address_complete(order):
         raise ValueError("Endereço de entrega incompleto.")
     gateway = configured_gateway()
     if order.payment_status == "paid":
@@ -425,9 +484,9 @@ def start_checkout(order: PrintOrder, installments: int):
         order.payment_status = "unpaid"
         order.payment_provider = None
         order.payment_reference = None
-    copies = max(1, int(order.quantity or 1))
-    books = book_price_cents(order.book_size, order.project.theme) * copies
-    freight = int(order.freight_price_cents or 0)
+    books = items_price_cents(order)
+    freight = 0 if digital else int(order.freight_price_cents or 0)
+    _record_purchase(order)
     charge = gateway.create_charge(
         order_code=order.code,
         amount_cents=books + freight,
@@ -457,12 +516,12 @@ def confirm_manual_payment(db: Session, order: PrintOrder) -> None:
         raise ValueError("Aprove a prévia antes de confirmar o pagamento.")
     if order.payment_status in {"paid", "pending"}:
         raise ValueError("Este pedido já está pago ou tem um pagamento em andamento.")
-    if not address_complete(order):
+    if not is_digital(order.project) and not address_complete(order):
         raise ValueError("Endereço de entrega incompleto.")
     if active_job(db, order.project):
         raise ValueError("Aguarde a prévia atual terminar antes de confirmar o pagamento.")
-    copies = max(1, int(order.quantity or 1))
-    order.amount_cents = book_price_cents(order.book_size, order.project.theme) * copies
+    order.amount_cents = items_price_cents(order)
+    _record_purchase(order)
     order.payment_provider = "manual"
     order.payment_reference = f"manual-{order.code}"
     fulfill_payment(db, order)

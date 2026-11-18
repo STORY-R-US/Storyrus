@@ -111,6 +111,7 @@ export interface Project {
     preview_approved_at?: string | null;
     full_book_ready_at?: string | null;
     quoted_at?: string | null;
+    purchase?: PurchaseChoice | null;
   } | null;
   print_requested_at?: string | null;
   print_status?: string | null;
@@ -232,6 +233,7 @@ export interface OrderTicket {
   child_name?: string | null;
   dedication?: string | null;
   quantity?: number | null;
+  purchase_items?: string[];
   recipient_name?: string | null;
   postal_code?: string | null;
   street?: string | null;
@@ -260,6 +262,17 @@ export interface PrintAddress {
   state: string;
 }
 
+export interface PurchaseChoice {
+  fulfillment: "print" | "digital";
+  ebook: boolean;
+  video: boolean;
+}
+
+export interface PurchasePrices {
+  extra: { ebook: number; video: number; bundle: number };
+  digital: { ebook: number; video: number; bundle: number };
+}
+
 export interface PrintOrder {
   id: string;
   project_id: string;
@@ -281,6 +294,11 @@ export interface PrintOrder {
   label_error: string | null;
   checkout_available: boolean;
   checkout_url: string | null;
+  fulfillment?: "print" | "digital";
+  extra_ebook?: boolean;
+  extra_video?: boolean;
+  items_price_cents?: number | null;
+  prices?: PurchasePrices | null;
   recipient_name: string | null;
   postal_code: string | null;
   street: string | null;

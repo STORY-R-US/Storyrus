@@ -45,6 +45,7 @@ function printDescription(order: OrderTicket): string {
     awaiting_spec: "Configuração da gráfica pendente", awaiting_pages: "Aguardando páginas para impressão",
     awaiting_payment: "Pedido em cotação", generating_book: "Gerando livro completo", awaiting_customer_approval: "Aguardando revisão da família",
     held: "Formato aguardando liberação", files_ready: "Arquivos prontos", sent_for_validation: "Pacote em validação",
+    digital_ready: "Só digital: nada vai para a gráfica",
     approved: "Produção aprovada", rejected: "Ajustes solicitados pela gráfica",
   };
   return labels[order.print_status ?? ""] ?? "Aguardando preparação do impresso";
@@ -112,6 +113,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
     })
     .filter((row) => row.label);
   if (order.child_age != null) rows.push({ label: "Idade", value: String(order.child_age) });
+  if (order.purchase_items?.length) rows.push({ label: "Itens", value: order.purchase_items.join(" + ") });
   if (order.book_size === "M" || order.book_size === "P") {
     rows.push({
       label: "Tamanho",
@@ -138,6 +140,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
       awaiting_pages: "Aguardando páginas",
       held: "Formato ainda não liberado",
       files_ready: "Arquivos prontos",
+      digital_ready: "Só digital",
       sent_for_validation: "Enviado para validação",
       approved: "Aprovado",
       rejected: "Recusado",

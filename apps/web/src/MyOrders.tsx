@@ -24,6 +24,8 @@ const COPY = {
     more: "Mais opções",
     redo: "Sua vez: refazer a prévia",
     approvedBook: "Aprovado para impressão",
+    approvedDigital: "Livro digital pronto",
+    digital: "Digital",
     reviewBook: "Sua vez: revisar o livro completo",
     generating: "Criando o livro completo…",
     paying: "Confirmando o pagamento…",
@@ -54,6 +56,8 @@ const COPY = {
     more: "More options",
     redo: "Your turn: redo the preview",
     approvedBook: "Approved for printing",
+    approvedDigital: "Digital book ready",
+    digital: "Digital",
     reviewBook: "Your turn: review the complete book",
     generating: "Creating the complete book…",
     paying: "Confirming payment…",
@@ -84,6 +88,8 @@ const COPY = {
     more: "Más opciones",
     redo: "Tu turno: rehacer la vista previa",
     approvedBook: "Aprobado para impresión",
+    approvedDigital: "Libro digital listo",
+    digital: "Digital",
     reviewBook: "Tu turno: revisar el libro completo",
     generating: "Creando el libro completo…",
     paying: "Confirmando el pago…",
@@ -117,7 +123,8 @@ function orderState(p: Project, c: Copy, quotation: string): OrderState {
   const stage = p.book_profile?.stage;
   const state = (label: string, tone: Tone, cta: string, done = false): OrderState => ({ label, tone, cta, done });
   if (p.book_profile?.credits_fallback) return state(c.redo, "action", c.resume);
-  if (p.book_approved_at && flow?.full_book_ready_at) return state(c.approvedBook, "done", c.seeBook, true);
+  if (p.book_approved_at && flow?.full_book_ready_at)
+    return state(flow.purchase?.fulfillment === "digital" ? c.approvedDigital : c.approvedBook, "done", c.seeBook, true);
   if (flow?.full_book_ready_at) return state(c.reviewBook, "action", c.reviewBookCta);
   if (flow?.stage === "generating_book") return state(c.generating, "wait", c.follow);
   if (flow?.stage === "awaiting_payment_confirmation") return state(c.paying, "wait", c.follow);
@@ -258,8 +265,12 @@ export function MyOrders() {
           <p className="order-card-meta">
             {[
               child,
-              p.book_size === "P" ? "15 × 15 cm" : "20 × 20 cm",
-              p.cover_type === "hard" ? t.hard : t.soft,
+              ...(p.purchase_flow?.purchase?.fulfillment === "digital"
+                ? [c.digital]
+                : [
+                    p.book_size === "P" ? "15 × 15 cm" : "20 × 20 cm",
+                    p.cover_type === "hard" ? t.hard : t.soft,
+                  ]),
               new Date(p.created_at).toLocaleDateString(locale),
             ]
               .filter(Boolean)

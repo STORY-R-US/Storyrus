@@ -71,14 +71,28 @@ def approve_book(
         prepare_files(db, project, order)
         db.commit()
         db.refresh(project)
+        import logging
+
+        from app.printkit.pricing import is_digital
+
+        if not is_digital(project):
+            try:
+                from app.services.transactional_email import notify_print_shop
+
+                notify_print_shop(db, project, order)
+            except Exception:
+                logging.getLogger(__name__).exception("print_shop_email_failed code=%s", order.code)
         try:
-            from app.services.transactional_email import notify_print_shop
-
-            notify_print_shop(db, project, order)
+            # A aprovação vale mesmo se a capa animada não entrar na fila agora:
+            # a família pode pedir de novo pelo Estúdio.
+            if purchase_flow.enqueue_purchased_video(db, order) is not None:
+                db.commit()
         except Exception:
-            import logging
-
-            logging.getLogger(__name__).exception("print_shop_email_failed code=%s", order.code)
+            db.rollback()
+            logging.getLogger(__name__).exception(
+                "purchased_video_enqueue_failed code=%s", order.code
+            )
+        db.refresh(project)
         return project
     project.book_approved_at = _now()
     db.commit()
