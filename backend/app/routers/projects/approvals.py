@@ -81,9 +81,7 @@ def approve_book(
 
                 notify_print_shop(db, project, order)
             except Exception:
-                logging.getLogger(__name__).exception(
-                    "print_shop_email_failed code=%s", order.code
-                )
+                logging.getLogger(__name__).exception("print_shop_email_failed code=%s", order.code)
         try:
             # A aprovação vale mesmo se a capa animada não entrar na fila agora:
             # a família pode pedir de novo pelo Estúdio.

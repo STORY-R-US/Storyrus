@@ -50,7 +50,9 @@ def test_print_with_both_extras_charges_the_bundle(auth_client):
     r = choose(auth_client, pid, fulfillment="print", ebook=True, video=True)
     assert r.status_code == 200, r.text
     assert r.json()["items_price_cents"] == 17700 + 5900
-    assert auth_client.put(f"/v1/projects/{pid}/print-order/address", json=ADDRESS).status_code == 200
+    assert (
+        auth_client.put(f"/v1/projects/{pid}/print-order/address", json=ADDRESS).status_code == 200
+    )
     make_admin(auth_client)
     paid = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
     assert paid.status_code == 200, paid.text
