@@ -4237,3 +4237,20 @@ def test_title_refresh_keeps_the_story_review_stage():
     assert _stage_after_preview({"stage": "story_ready", "stories": story}) == "story_ready"
     assert _stage_after_preview({"stage": "story_approved", "stories": story}) == "story_approved"
     assert _stage_after_preview({"stage": "preview_approved", "stories": story}) == "story_approved"
+
+
+@pytest.mark.asyncio
+async def test_order_list_shows_only_the_watermarked_preview_cover(reference_studio):
+    studio, _, _ = reference_studio
+    client, _, pid, _ = studio
+    await _run(studio, "preview", key="orders-thumb")
+
+    def listed():
+        return {p["id"]: p for p in client.get("/v1/projects").json()}[pid]["cover_thumb_url"]
+
+    assert listed() is None  # the list never renders a new watermark
+    assert client.get(f"/v1/projects/{pid}/assets").status_code == 200  # Studio marks it
+    thumb = listed()
+    assert thumb and "preview-mark" in thumb
+    single = client.get(f"/v1/projects/{pid}").json()
+    assert single["cover_thumb_url"] is None  # only the list carries thumbnails

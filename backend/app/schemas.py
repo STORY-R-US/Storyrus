@@ -263,6 +263,8 @@ class ChildProfileIn(BaseModel):
 
 class ProjectOut(BaseModel):
     processing_revoked_at: datetime | None = None
+    # Only filled by the project list ("Meus pedidos").
+    cover_thumb_url: str | None = None
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     status: str

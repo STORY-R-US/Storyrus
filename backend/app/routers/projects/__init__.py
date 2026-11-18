@@ -145,11 +145,56 @@ def list_projects(
     response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[Project]:
     response.headers["Cache-Control"] = "private, no-store"
-    return list(
+    projects = list(
         db.scalars(
             select(Project).where(Project.user_id == user.id).order_by(Project.created_at.desc())
         )
     )
+    _attach_cover_thumbs(db, projects)
+    return projects
+
+
+def _attach_cover_thumbs(db: Session, projects: list[Project]) -> None:
+    """Small preview cover for "Meus pedidos".
+
+    Same rule as the Studio: the clean cover only after payment, otherwise the
+    watermarked copy already produced for the Studio. The list never renders a
+    new watermark; without one the page shows an icon instead.
+    """
+    if not projects:
+        return
+    covers: dict = {}
+    for asset in db.scalars(
+        select(Asset)
+        .where(
+            Asset.project_id.in_([p.id for p in projects]),
+            Asset.kind == AssetKind.COVER.value,
+        )
+        .order_by(Asset.created_at.desc())
+    ):
+        meta = asset.meta or {}
+        if meta.get("workflow") == 1 and meta.get("role") == "01_CAPA":
+            covers.setdefault(asset.project_id, []).append(asset)
+    for project in projects:
+        editorial = (project.book_profile or {}).get("editorial")
+        language = project.language or "pt-BR"
+        candidates = [
+            a
+            for a in covers.get(project.id, [])
+            if not editorial or (a.meta or {}).get("editorial") == editorial
+        ]
+        cover = next(
+            (a for a in candidates if (a.meta or {}).get("language") == language),
+            candidates[0] if candidates else None,
+        )
+        paid = (project.purchase_flow or {}).get("stage") in {"generating_book", "book_ready"}
+        key = None
+        if cover is not None:
+            key = cover.storage_key if paid else (cover.meta or {}).get("watermark_key")
+        try:
+            project.cover_thumb_url = storage.presign_get(key) if key else None
+        except Exception:  # noqa: BLE001 - a missing thumbnail never hides the order
+            project.cover_thumb_url = None
 
 
 # Rota literal declarada ANTES de /{project_id} para não ser capturada como UUID.
