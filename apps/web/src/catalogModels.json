@@ -1862,5 +1862,23 @@
       "page": "cartoon-pagina-quatro-geracoes-v1-pt.webp",
       "holding": "cartoon-foto-quatro-geracoes-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-43": {
+    "id": "catalog-cartoon-43",
+    "catalog_index": 43,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Maria E Os Segredos Do Fundo Do Mar",
+      "en": "Maria And The Secrets Of The Deep Sea",
+      "es": "Maria Y Los Secretos Del Fondo Del Mar"
+    },
+    "example_name": "Maria",
+    "sources": {
+      "cover": "covers/cartoon-capa-maria-mar-v1-pt.webp",
+      "page": "cartoon-pagina-maria-mar-v1-pt.webp",
+      "holding": "cartoon-foto-maria-mar-v1-pt.webp"
+    }
   }
 }
