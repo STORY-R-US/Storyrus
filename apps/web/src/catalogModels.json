@@ -1934,5 +1934,23 @@
       "page": "cartoon-pagina-vovo-vida-leve-v1-pt.webp",
       "holding": "cartoon-foto-vovo-vida-leve-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-47": {
+    "id": "catalog-cartoon-47",
+    "catalog_index": 47,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tomé Duvidou, Mas Jesus O Abraçou E Guardou O Seu Coração",
+      "en": "Thomas Doubted, But Jesus Embraced Him And Guarded His Heart",
+      "es": "Tomás Dudó, Pero Jesús Lo Abrazó Y Guardó Su Corazón"
+    },
+    "example_name": "Tomé",
+    "sources": {
+      "cover": "covers/cartoon-capa-tome-jesus-v1-pt.webp",
+      "page": "cartoon-pagina-tome-jesus-v1-pt.webp",
+      "holding": "cartoon-foto-tome-jesus-v1-pt.webp"
+    }
   }
 }
