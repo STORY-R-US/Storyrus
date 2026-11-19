@@ -1916,5 +1916,23 @@
       "page": "cartoon-pagina-feliz-natal-v1-pt.webp",
       "holding": "cartoon-foto-feliz-natal-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-46": {
+    "id": "catalog-cartoon-46",
+    "catalog_index": 46,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Vovô, Com Você A Vida É Sempre Mais Leve E Feliz",
+      "en": "Grandpa, With You Life Is Always Lighter And Happier",
+      "es": "Abuelo, Contigo La Vida Siempre Es Más Ligera Y Feliz"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-vovo-vida-leve-v1-pt.webp",
+      "page": "cartoon-pagina-vovo-vida-leve-v1-pt.webp",
+      "holding": "cartoon-foto-vovo-vida-leve-v1-pt.webp"
+    }
   }
 }
