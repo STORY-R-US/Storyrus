@@ -1880,5 +1880,23 @@
       "page": "cartoon-pagina-maria-mar-v1-pt.webp",
       "holding": "cartoon-foto-maria-mar-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-44": {
+    "id": "catalog-cartoon-44",
+    "catalog_index": 44,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Mamãe E Eu, Presente Que Deus Me Deu",
+      "en": "Mommy And Me, A Gift God Gave To Me",
+      "es": "Mamá Y Yo, El Regalo Que Dios Me Dio"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-mamae-eu-v1-pt.webp",
+      "page": "cartoon-pagina-mamae-eu-v1-pt.webp",
+      "holding": "cartoon-foto-mamae-eu-v1-pt.webp"
+    }
   }
 }
