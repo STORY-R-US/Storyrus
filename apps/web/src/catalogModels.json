@@ -291,8 +291,8 @@
     "id": "catalog-cartoon-12",
     "catalog_index": 12,
     "style": "cartoon",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Mako, Meu Amigo Fiel",
       "en": "Mako, My Loyal Friend",
@@ -300,9 +300,9 @@
     },
     "example_name": "Mako",
     "sources": {
-      "cover": "cartoon-capa-mako.png",
-      "page": "",
-      "holding": ""
+      "cover": "covers/cartoon-capa-mako-v1-pt.webp",
+      "page": "cartoon-pagina-mako-v1-pt.webp",
+      "holding": "cartoon-foto-mako-v1-pt.webp"
     }
   },
   "catalog-realistic-14": {

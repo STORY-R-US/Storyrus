@@ -23,10 +23,11 @@ describe("specific catalog models", () => {
     expect(screen.queryByTestId('landing-personalize')).not.toBeInTheDocument();
     expect(screen.getByTestId('catalog-model-unavailable')).toHaveTextContent(/miolo/);
   });
-  it('keeps cartoon model separate and blocks its missing interior independently', () => {
+  it('keeps the completed cartoon model separate from its realistic version', () => {
     expect(catalogModel(catalogModelId(12))?.available).toBe(true);
-    expect(catalogModel(catalogModelId(12,true))?.available).toBe(false);
-    render(<MemoryRouter><CatalogBookCard book={catalogEntry('pt',6)!} lang="pt" personalize="Personalizar" modo="cartoon" /></MemoryRouter>);
-    expect(decodeURIComponent(screen.getByTestId('landing-personalize').getAttribute('href')!)).toContain('modelo=catalog-cartoon-6');
+    expect(catalogModel(catalogModelId(12,true))?.available).toBe(true);
+    expect(catalogModel(catalogModelId(12,true))?.sources).not.toEqual(catalogModel(catalogModelId(12))?.sources);
+    render(<MemoryRouter><CatalogBookCard book={catalogEntry('pt',12)!} lang="pt" personalize="Personalizar" modo="cartoon" /></MemoryRouter>);
+    expect(decodeURIComponent(screen.getByTestId('landing-personalize').getAttribute('href')!)).toContain('modelo=catalog-cartoon-12');
   });
 });
