@@ -77,7 +77,7 @@ def extras_price_cents(ebook: bool, video: bool, theme: str | None = None) -> in
 
 def digital_price_cents(ebook: bool, video: bool, theme: str | None = None) -> int:
     if not (ebook or video):
-        raise ValueError("Escolha o e-book, a capa animada ou os dois.")
+        raise ValueError("Escolha o e-book, a história animada ou os dois.")
     if theme == TEST_BOOK_THEME:
         return TEST_BOOK_CENTS
     return _tier(

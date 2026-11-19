@@ -1880,3 +1880,195 @@ async def test_deploy_saves_in_flight_paid_result_and_defers_before_next_purchas
         assert job.status == "DONE" and user.credits == 7
     finally:
         process_lifecycle.reset()
+
+
+def _story_book(db, store, p, *, back=True):
+    p.language = "pt-BR"
+    roles = [("01_CAPA", None, "capa")] + [("com_texto", n, f"p{n:02d}") for n in range(1, 17)]
+    if back:
+        roles.append(("04_CONTRACAPA", None, "contra"))
+    for role, page, key in roles:
+        meta = {"workflow": 1, "role": role, "language": "pt-BR"}
+        if page is not None:
+            meta["page"] = page
+        if role == "01_CAPA":
+            meta["flat_cover_key"] = "capa-plana"
+            store["capa-plana"] = b"IMG-capa"
+        kind = AssetKind.COVER.value if role == "01_CAPA" else AssetKind.PAGE_IMAGE.value
+        db.add(Asset(project_id=p.id, kind=kind, storage_key=key, meta=meta))
+        store[key] = f"IMG-{key}".encode()
+    # Página de outro idioma não entra no vídeo.
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PAGE_IMAGE.value,
+            storage_key="p01-es",
+            meta={"workflow": 1, "role": "com_texto", "language": "es", "page": 1},
+        )
+    )
+    db.commit()
+
+
+class FakeStoryKling:
+    """Kling falsa: cada tarefa termina na consulta seguinte; uma imagem pode falhar."""
+
+    def __init__(self, fail_once=None):
+        self.created: list[bytes] = []
+        self.by_task: dict[str, bytes] = {}
+        self.fail_once = set(fail_once or [])
+
+    async def create_video(self, *, image, prompt, duration_s):
+        assert duration_s == 5 and "texto" in prompt
+        self.created.append(image)
+        task_id = f"t{len(self.created)}"
+        self.by_task[task_id] = image
+        return VideoJob(provider_task_id=task_id, status="PENDING")
+
+    async def poll_video(self, *, provider_task_id):
+        image = self.by_task[provider_task_id]
+        if image in self.fail_once:
+            self.fail_once.discard(image)
+            return VideoJob(provider_task_id=provider_task_id, status="FAILED")
+        return VideoJob(
+            provider_task_id=provider_task_id,
+            status="DONE",
+            video_url=f"https://kling/{image.decode()}",
+            cost_usd=0.5,
+        )
+
+
+async def test_story_video_animates_every_page_in_order_without_holding_the_queue(
+    db, mem_storage, monkeypatch
+):
+    from app.workers.deferral import JobDeferred
+    from app.workers.handlers import video as video_mod
+
+    kling = FakeStoryKling(fail_once=[b"IMG-p05"])
+    monkeypatch.setattr(handlers, "_use_video_offline", lambda: False)
+    monkeypatch.setattr(handlers, "get_video_provider", lambda *a, **k: kling)
+
+    async def fake_download(url):
+        return b"CLIP-" + url.rsplit("/", 1)[1].encode()
+
+    joined: list[list[bytes]] = []
+    monkeypatch.setattr(video_mod, "_download", fake_download)
+    monkeypatch.setattr(video_mod, "concat_clips", lambda clips: joined.append(clips) or b"MOVIE")
+    monkeypatch.setattr(handlers.settings, "story_video_concurrency", 3)
+    _, p = _seed(db)
+    _story_book(db, mem_storage, p)
+    j = _job(db, p, "VIDEO", payload={"source": "story", "duration_s": 5})
+
+    rounds = 0
+    while True:
+        rounds += 1
+        assert rounds < 40
+        try:
+            await video_mod.handle_video(db, j)
+            break
+        except JobDeferred:
+            # Nunca mais de 3 clipes esperando a Kling ao mesmo tempo.
+            assert len(j.result["story"]["tasks"]) <= 3
+
+    order = [b"IMG-capa"] + [f"IMG-p{n:02d}".encode() for n in range(1, 17)] + [b"IMG-contra"]
+    assert joined == [[b"CLIP-" + img for img in order]]
+    # A página que falhou foi pedida de novo; as outras só uma vez.
+    assert len(kling.created) == 19 and kling.created.count(b"IMG-p05") == 2
+    assert j.cost_usd == 9.0
+    db.refresh(p)
+    assert mem_storage[p.video_url] == b"MOVIE"
+    assert p.status == ProjectStatus.VIDEO_READY.value
+
+    # Nova tentativa reaproveita os clipes: nenhuma tarefa nova na Kling.
+    j2 = _job(db, p, "VIDEO", payload={"source": "story"})
+    await video_mod.handle_video(db, j2)
+    assert len(kling.created) == 19
+
+
+async def test_runner_puts_a_deferred_job_back_in_the_queue(db, mem_storage, monkeypatch):
+    from app.workers.deferral import JobDeferred
+
+    async def waiting(_db, _job):
+        raise JobDeferred(45)
+
+    monkeypatch.setitem(handlers.HANDLERS, "VIDEO", waiting)
+    _, p = _seed(db)
+    j = _job(db, p, "VIDEO", payload={"source": "story"})
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.PENDING.value
+    assert j.attempts == 0
+    assert j.result["internal_resolution"]["state"] == "waiting_provider"
+    assert runner.claim_next(db) is None
+
+
+async def test_story_video_needs_every_page(db, mem_storage, monkeypatch):
+    from app.workers.handlers import video as video_mod
+
+    monkeypatch.setattr(handlers, "_use_video_offline", lambda: False)
+    _, p = _seed(db)
+    _story_book(db, mem_storage, p, back=False)
+    assert len(video_mod._story_frames(db, p)) == 17
+    page = db.scalar(select(Asset).where(Asset.storage_key == "p09"))
+    db.delete(page)
+    db.commit()
+    with pytest.raises(ProviderError, match="Página 9"):
+        video_mod._story_frames(db, p)
+
+
+async def test_story_video_fails_without_kling(db, mem_storage, monkeypatch):
+    from app.workers.handlers import video as video_mod
+
+    monkeypatch.setattr(handlers, "_use_video_offline", lambda: True)
+    _, p = _seed(db)
+    _story_book(db, mem_storage, p)
+    j = _job(db, p, "VIDEO", payload={"source": "story"})
+    with pytest.raises(ProviderError, match="Kling"):
+        await video_mod.handle_video(db, j)
+
+
+@pytest.mark.skipif(__import__("shutil").which("ffmpeg") is None, reason="sem ffmpeg")
+def test_concat_clips_joins_in_sequence(tmp_path):
+    import subprocess
+
+    from app.workers.handlers.video import concat_clips
+
+    clips = []
+    for i, color in enumerate(("red", "blue")):
+        out = tmp_path / f"{i}.mp4"
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-v",
+                "error",
+                "-f",
+                "lavfi",
+                "-i",
+                f"color=c={color}:s=320x240:d=1:r=24",
+                "-pix_fmt",
+                "yuv420p",
+                str(out),
+            ],
+            check=True,
+        )
+        clips.append(out.read_bytes())
+    movie = tmp_path / "m.mp4"
+    movie.write_bytes(concat_clips(clips, size=200))
+    probe = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=width,height:format=duration",
+            "-of",
+            "default=nw=1",
+            str(movie),
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert "width=200" in probe and "height=200" in probe
+    duration = float(probe.split("duration=")[1].split()[0])
+    assert 1.8 < duration < 2.3

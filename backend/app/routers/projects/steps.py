@@ -519,7 +519,7 @@ def start_video(
 ) -> JobAcceptedOut:
     project = get_owned_project(db, user, project_id)
     if (project.book_profile or {}).get("version") == 1:
-        # Livro do Estúdio: a capa animada é um item pago do pedido.
+        # Livro do Estúdio: a história animada é um item pago do pedido.
         from app.printkit.service import get_print_order
         from app.services import purchase_flow
 
@@ -527,12 +527,12 @@ def start_video(
         if order is None or order.payment_status != "paid" or not project.book_approved_at:
             raise HTTPException(
                 status.HTTP_409_CONFLICT,
-                "A capa animada é gerada depois do pagamento e da aprovação do livro.",
+                "A história animada é gerada depois do pagamento e da aprovação do livro.",
             )
         job = purchase_flow.enqueue_purchased_video(db, order, retry=True)
         if job is None:
             raise HTTPException(
-                status.HTTP_409_CONFLICT, "A capa animada não faz parte deste pedido."
+                status.HTTP_409_CONFLICT, "A história animada não faz parte deste pedido."
             )
         return accept_job(job)
     payload = {

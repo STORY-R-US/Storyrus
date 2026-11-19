@@ -330,6 +330,7 @@ describe("Landing — catálogo", () => {
 
     expect(within(card).getByText("R$ 177,00.")).toHaveClass("is-price");
     expect(within(card).getByText("R$ 157,00.")).not.toHaveClass("is-price");
+    expect(card.textContent).toContain("+ E-book R$ 29 · + História animada R$ 89 · Só digital a partir de R$ 119.");
 
     await user.click(within(card).getByRole("button", { name: "P" }));
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();

@@ -249,7 +249,7 @@ def _purchase_items(project: Project | None) -> list[str]:
     if choice["ebook"]:
         items.append("E-book")
     if choice["video"]:
-        items.append("Capa animada")
+        items.append("História animada")
     return items
 
 

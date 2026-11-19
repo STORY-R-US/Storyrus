@@ -99,6 +99,226 @@ def _cover_reference_key(db: Session, project: Project) -> str:
     return cover.storage_key
 
 
+STORY_PROMPT = (
+    "Anime suavemente esta página de livro infantil ilustrado: os personagens se mexem "
+    "de leve e com naturalidade, respiram, piscam e sorriem; cabelo, roupas, água, "
+    "folhas e nuvens balançam devagar. Câmera quase parada com leve aproximação. "
+    "Mantenha os rostos, as cores e todo o texto da página fixos, nítidos e legíveis."
+)
+
+
+def _story_frames(db: Session, project: Project) -> list[tuple[str, str]]:
+    """Capa, as 16 páginas com texto e a contracapa do livro aprovado, em ordem."""
+    language = project.language or "pt-BR"
+    editorial = (project.book_profile or {}).get("editorial")
+    rows = db.scalars(
+        select(Asset).where(Asset.project_id == project.id).order_by(Asset.created_at.asc())
+    ).all()
+
+    def latest(role: str, page: int | None = None) -> Asset | None:
+        found = None
+        for asset in rows:
+            meta = asset.meta or {}
+            if meta.get("workflow") != 1 or meta.get("role") != role:
+                continue
+            if meta.get("language") not in (None, language):
+                continue
+            if editorial and meta.get("editorial") not in (None, editorial):
+                continue
+            if page is not None and meta.get("page") != page:
+                continue
+            found = asset
+        return found
+
+    cover = latest("01_CAPA")
+    if cover is None:
+        raise ProviderError("Capa aprovada ausente para a história animada", transient=False)
+    frames = [("capa", (cover.meta or {}).get("flat_cover_key") or cover.storage_key)]
+    for number in range(1, 17):
+        page = latest("com_texto", number)
+        if page is None:
+            raise ProviderError(f"Página {number} ausente para a história animada", transient=False)
+        frames.append((f"pagina-{number:02d}", page.storage_key))
+    back = latest("04_CONTRACAPA")
+    if back is not None:
+        frames.append(("contracapa", back.storage_key))
+    return frames
+
+
+async def _download(url: str) -> bytes:
+    import httpx
+
+    async with httpx.AsyncClient(timeout=120) as client:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        return resp.content
+
+
+def concat_clips(clips: list[bytes], *, size: int = 720, fps: int = 24) -> bytes:
+    """Junta os clipes em sequência, com corte seco, num MP4 quadrado e sem áudio."""
+    import subprocess
+    import tempfile
+    from pathlib import Path
+
+    from app.media.assemble import ffmpeg_available
+
+    if not ffmpeg_available():
+        raise ProviderError("ffmpeg ausente para montar a história animada", transient=False)
+    with tempfile.TemporaryDirectory() as tmp:
+        cmd = ["ffmpeg", "-y", "-v", "error"]
+        for i, blob in enumerate(clips):
+            path = Path(tmp) / f"c{i:02d}.mp4"
+            path.write_bytes(blob)
+            cmd += ["-i", str(path)]
+        norm = "".join(
+            f"[{i}:v]scale={size}:{size}:force_original_aspect_ratio=decrease,"
+            f"pad={size}:{size}:(ow-iw)/2:(oh-ih)/2,fps={fps},setsar=1,format=yuv420p[v{i}];"
+            for i in range(len(clips))
+        )
+        joined = "".join(f"[v{i}]" for i in range(len(clips)))
+        out = Path(tmp) / "historia.mp4"
+        cmd += [
+            "-filter_complex",
+            f"{norm}{joined}concat=n={len(clips)}:v=1:a=0[out]",
+            "-map",
+            "[out]",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "veryfast",
+            "-crf",
+            "21",
+            "-movflags",
+            "+faststart",
+            "-an",
+            str(out),
+        ]
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise ProviderError(
+                f"ffmpeg falhou ao montar a história: {(proc.stderr or '')[-500:]}",
+                transient=False,
+            )
+        return out.read_bytes()
+
+
+STORY_MAX_FAILURES = 3
+
+
+async def _handle_story_video(db: Session, job: Job, project: Project) -> None:
+    """História animada comprada: cada página vira um clipe Kling, montados em sequência.
+
+    Não segura a fila: envia os clipes, confere uma vez e devolve o job para a
+    fila (JobDeferred) até a Kling terminar. Clipes prontos ficam como Asset e
+    são reaproveitados numa nova tentativa, sem pagar a Kling duas vezes.
+    """
+    from app.workers.deferral import JobDeferred
+
+    if _pkg()._use_video_offline():
+        raise ProviderError("Kling não configurada para a história animada", transient=False)
+    frames = _story_frames(db, project)
+    seconds = _clamp_kling_duration(settings.story_video_clip_s)
+    if project.status != ProjectStatus.VIDEO_RUNNING.value:
+        _set_status(db, project, ProjectStatus.VIDEO_RUNNING)
+    done: dict[str, str] = {}
+    for asset in db.scalars(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.VIDEO.value)
+        .order_by(Asset.created_at.asc())
+    ).all():
+        meta = asset.meta or {}
+        if meta.get("kind") == "story_clip" and meta.get("seconds") == seconds:
+            done[meta.get("source_key")] = asset.storage_key
+    state = dict((job.result or {}).get("story") or {})
+    tasks: dict[str, str] = dict(state.get("tasks") or {})
+    failures: dict[str, int] = dict(state.get("failures") or {})
+    cost = float(state.get("cost_usd") or 0.0)
+    provider = _pkg().get_video_provider(_payload(job).get("provider") or job.provider)
+
+    def save() -> None:
+        job.result = {
+            **(job.result or {}),
+            "story": {"tasks": tasks, "failures": failures, "cost_usd": round(cost, 6)},
+            "progress": {
+                "stage": "story_video",
+                "done": sum(1 for _, k in frames if k in done),
+                "total": len(frames),
+            },
+        }
+        job.cost_usd = round(cost, 6)
+        db.commit()
+
+    for label, key in frames:
+        task_id = tasks.get(key)
+        if key in done or not task_id:
+            continue
+        task = await provider.poll_video(provider_task_id=task_id)
+        if task.status == "DONE" and task.video_url:
+            blob = await _download(task.video_url)
+            clip_key = storage.new_key(project.id, AssetKind.VIDEO.value, "mp4")
+            storage.put_bytes(clip_key, blob, "video/mp4")
+            db.add(
+                Asset(
+                    project_id=project.id,
+                    kind=AssetKind.VIDEO.value,
+                    storage_key=clip_key,
+                    meta={
+                        "kind": "story_clip",
+                        "frame": label,
+                        "source_key": key,
+                        "seconds": seconds,
+                    },
+                )
+            )
+            done[key] = clip_key
+            tasks.pop(key, None)
+            billed = getattr(task, "cost_usd", None)
+            cost += billed if billed is not None else video_cost(seconds)
+            save()
+        elif task.status == "FAILED":
+            tasks.pop(key, None)
+            failures[key] = failures.get(key, 0) + 1
+            save()
+            if failures[key] >= STORY_MAX_FAILURES:
+                raise ProviderError(
+                    f"A Kling não conseguiu animar {label} "
+                    f"depois de {STORY_MAX_FAILURES} tentativas",
+                    transient=False,
+                )
+
+    slots = max(1, int(settings.story_video_concurrency)) - len(tasks)
+    for label, key in frames:
+        if slots <= 0:
+            break
+        if key in done or key in tasks:
+            continue
+        task = await provider.create_video(
+            image=storage.get_bytes(key), prompt=STORY_PROMPT, duration_s=seconds
+        )
+        tasks[key] = task.provider_task_id
+        slots -= 1
+        save()
+
+    if any(key not in done for _, key in frames):
+        save()
+        raise JobDeferred(settings.story_video_poll_s)
+
+    movie = concat_clips([storage.get_bytes(done[key]) for _, key in frames])
+    video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "mp4")
+    storage.put_bytes(video_key, movie, "video/mp4")
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.VIDEO.value,
+            storage_key=video_key,
+            meta={"kind": "story_video", "clips": len(frames), "seconds": seconds},
+        )
+    )
+    project.video_url = video_key
+    save()
+    _set_status(db, project, ProjectStatus.VIDEO_READY)
+
+
 async def handle_video(db: Session, job: Job) -> None:
     """Animação curta (Kling image2video) — não é o vídeo narrado longo."""
     import asyncio
@@ -106,6 +326,9 @@ async def handle_video(db: Session, job: Job) -> None:
 
     project = _project(db, job)
     payload = _payload(job)
+    if payload.get("source") == "story":
+        await _handle_story_video(db, job, project)
+        return
     from_cover = payload.get("source") == "cover"
     sb = None if from_cover else _latest_storyboard(db, project)
     ref_key = (

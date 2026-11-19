@@ -171,7 +171,7 @@ def save_print_purchase(
     user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> PrintOrderOut:
-    """Impresso com extras (e-book, capa animada) ou compra só digital."""
+    """Impresso com extras (e-book, história animada) ou compra só digital."""
     _project, order = _owned_order(db, user, project_id)
     try:
         set_purchase(order, fulfillment=body.fulfillment, ebook=body.ebook, video=body.video)

@@ -83,7 +83,7 @@ def approve_book(
             except Exception:
                 logging.getLogger(__name__).exception("print_shop_email_failed code=%s", order.code)
         try:
-            # A aprovação vale mesmo se a capa animada não entrar na fila agora:
+            # A aprovação vale mesmo se a história animada não entrar na fila agora:
             # a família pode pedir de novo pelo Estúdio.
             if purchase_flow.enqueue_purchased_video(db, order) is not None:
                 db.commit()

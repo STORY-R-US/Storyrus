@@ -1355,7 +1355,7 @@ const I18N = {
       "Maria Jesus E A Disciplina No Hockey Na Grama",
       "Facundo E O Motocross Com Cuidado",
     ],
-    vid_title: "Vídeos", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
+    vid_title: "Vídeos", vid_sub: "A história do livro ganha movimento, página por página — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
@@ -1467,16 +1467,16 @@ const I18N = {
       { t: "Privacidade Da Foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
       { t: "Impressão Pensada como Presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
       { t: "Prévia Antes De Avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
-      { t: "Entrega Sem Complicação", p: "O PDF fica pronto na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
+      { t: "Entrega Sem Complicação", p: "O e-book e a história animada, se você escolher, ficam prontos na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
     ],
     faq_title: "Perguntas Frequentes", faq_sub: "Tudo o que você precisa saber.",
     faq: [
       { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
       { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
       { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto que você envia apenas para criar o livro e não compartilhamos seus dados. Os exemplos da página inicial são demonstrações, separados do que você envia." },
-      { q: "Recebo digital ou impresso?", a: "O e-book digital fica pronto na plataforma. Se quiser o impresso, peça a cotação depois de aprovar o livro." },
+      { q: "Recebo digital ou impresso?", a: "Você escolhe no pedido. No impresso, o e-book em PDF (+ R$ 29) e a história animada (+ R$ 89) são opcionais; os dois juntos saem por + R$ 99. Se preferir só o digital, sem impressão e sem frete, é a partir de R$ 119." },
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
-      { q: "Como funciona o vídeo narrado?", a: "Depois do ebook pronto, na tela de resultado você pode gerar o vídeo narrado (voz + cenas ilustradas) ou uma animação curta do personagem." },
+      { q: "O que é a história animada?", a: "Cada página do seu livro ganha movimento, da capa à contracapa, num vídeo de cerca de 1 minuto e meio, pronto para o WhatsApp e as redes. Você não precisa fazer nada: ele fica pronto sozinho depois que você aprova o livro completo." },
     ],
     rev_title: "O Que As Famílias Dizem", rev_sub: "Histórias que viraram memórias para sempre.",
     reviews: [
@@ -1614,7 +1614,7 @@ const I18N = {
       "Maria Jesus And Discipline In Field Hockey",
       "Facundo And Careful Motocross",
     ],
-    vid_title: "Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
+    vid_title: "Videos", vid_sub: "The book's story comes to life, page by page — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
@@ -1726,16 +1726,16 @@ const I18N = {
       { t: "Photo Privacy", p: "The photo you upload is used only to create the book — never for promotion. The examples on this page are platform demos." },
       { t: "Print Made as a Gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
       { t: "Preview Before You Continue", p: "You see the cover and pages and understand what you're creating before finishing." },
-      { t: "Hassle-Free Delivery", p: "The PDF is ready on the platform. Printed books are quoted on request — we send price and timing within 24 hours." },
+      { t: "Hassle-Free Delivery", p: "The e-book and the animated story, if you choose them, are ready on the platform. Printed books are quoted on request — we send price and timing within 24 hours." },
     ],
     faq_title: "Frequently Asked Questions", faq_sub: "Everything you need to know.",
     faq: [
       { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
       { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
       { q: "Are my child's photo and data safe?", a: "Yes. We use the photo you upload only to create the book and never share your data. Homepage examples are demos, separate from what you send." },
-      { q: "Digital or printed?", a: "The digital e-book is ready on the platform. If you want a printed copy, request a quote after you approve the book." },
+      { q: "Digital or printed?", a: "You choose when you order. With the printed book, the PDF e-book (+ $5.56) and the animated story (+ $17.05) are optional; both together are + $18.97. If you prefer digital only, with no printing and no shipping, it starts at $22.80." },
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
-      { q: "How does the narrated video work?", a: "After the ebook is ready, on the result screen you can generate a narrated video (voice + illustrated scenes) or a short character animation." },
+      { q: "What is the animated story?", a: "Every page of your book comes to life, from the front cover to the back, in a video of about a minute and a half, ready for WhatsApp and social media. You don't need to do anything: it is ready on its own after you approve the complete book." },
     ],
     rev_title: "What Families Say", rev_sub: "Stories that became memories forever.",
     reviews: [
@@ -1873,7 +1873,7 @@ const I18N = {
       "Maria Jesus Y La Disciplina En El Hockey Sobre Césped",
       "Facundo Y El Motocross Con Cuidado",
     ],
-    vid_title: "Videos", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
+    vid_title: "Videos", vid_sub: "La historia del libro cobra vida, página por página — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
@@ -1985,16 +1985,16 @@ const I18N = {
       { t: "Privacidad de la Foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
       { t: "Impresión Pensada como Regalo", p: "Preparado para verse hermoso en las manos, en la lectura en familia y al momento de entregarlo." },
       { t: "Vista Previa antes de Avanzar", p: "Ves la portada y las páginas y entiendes lo que estás creando antes de finalizar." },
-      { t: "Entrega sin Complicaciones", p: "El PDF queda listo en la plataforma. El libro impreso es bajo consulta — en hasta 24h enviamos la cotización y el plazo." },
+      { t: "Entrega sin Complicaciones", p: "El e-book y la historia animada, si los eliges, quedan listos en la plataforma. El libro impreso es bajo consulta — en hasta 24h enviamos la cotización y el plazo." },
     ],
     faq_title: "Preguntas Frecuentes", faq_sub: "Todo lo que necesitas saber.",
     faq: [
       { q: "¿Cómo creo un libro personalizado?", a: "Elige un tema, envía una foto del niño y agrega el nombre y una dedicatoria. La IA transforma la foto en ilustraciones y ves la vista previa antes de finalizar." },
       { q: "¿Puedo ver el libro antes?", a: "¡Sí! Recibes una vista previa completa (portada y páginas) antes de descargar o pedir la impresión." },
       { q: "¿La foto y los datos del niño están seguros?", a: "Sí. Usamos la foto que envías solo para crear el libro y no compartimos tus datos. Los ejemplos de la página inicial son demostraciones, separados de lo que tú envías." },
-      { q: "¿Recibo digital o impreso?", a: "El e-book digital queda listo en la plataforma. Si quieres el impreso, pide la cotización después de aprobar el libro." },
+      { q: "¿Recibo digital o impreso?", a: "Eliges en el pedido. Con el impreso, el e-book en PDF (+ 4,93 €) y la historia animada (+ 15,14 €) son opcionales; los dos juntos cuestan + 16,84 €. Si prefieres solo digital, sin impresión y sin envío, es desde 20,24 €." },
       { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
-      { q: "¿Cómo funciona el video narrado?", a: "Después del ebook listo, en la pantalla de resultado puedes generar el video narrado (voz + escenas ilustradas) o una animación corta del personaje." },
+      { q: "¿Qué es la historia animada?", a: "Cada página de tu libro cobra vida, de la portada a la contraportada, en un video de cerca de un minuto y medio, listo para WhatsApp y redes sociales. No tienes que hacer nada: queda lista sola después de aprobar el libro completo." },
     ],
     rev_title: "Lo Que Dicen Las Familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
     reviews: [
@@ -2295,7 +2295,8 @@ function FlipBook({
   );
 }
 
-// M R$ 177 e P R$ 157. Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
+// M R$ 177 e P R$ 157. Extras e só digital: mesmos valores de PRICE_EXTRA_* e PRICE_DIGITAL_* (config.py / Render).
+// Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
 const FORMAT_COPY: Record<Lang, {
   pages: string;
   hard: string;
@@ -2304,6 +2305,7 @@ const FORMAT_COPY: Record<Lang, {
   sizeP: string;
   priceM: string;
   priceP: string;
+  extras: string;
   hardText: string;
   softText: string;
 }> = {
@@ -2315,6 +2317,7 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "R$ 177,00",
     priceP: "R$ 157,00",
+    extras: "+ E-book R$ 29 · + História animada R$ 89 · Só digital a partir de R$ 119",
     hardText: "Resistente e durável. Utilizada em edições especiais ou colecionáveis.",
     softText: "Leve e flexível. Comum em livros e edições econômicas.",
   },
@@ -2326,6 +2329,7 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "$33.91",
     priceP: "$30.08",
+    extras: "+ E-book $5.56 · + Animated story $17.05 · Digital only from $22.80",
     hardText: "Sturdy and durable. Used for special or collectible editions.",
     softText: "Light and flexible. Common in books and economical editions.",
   },
@@ -2337,6 +2341,7 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "30,10 €",
     priceP: "26,70 €",
+    extras: "+ E-book 4,93 € · + Historia animada 15,14 € · Solo digital desde 20,24 €",
     hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Ligera y flexible. Común en libros y ediciones económicas.",
   },
@@ -2490,6 +2495,7 @@ export function CatalogBookCard({
             </span>
           </p>
         ))}
+        {book.catalogI !== 58 && <p className="cat-note-extras">{copy.extras}.</p>}
       </div>
       <div className="cat-note-grid">
         {(["hard", "soft"] as const).map((choice) => (

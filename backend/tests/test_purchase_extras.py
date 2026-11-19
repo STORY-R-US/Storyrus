@@ -1,4 +1,4 @@
-"""E-book e capa animada: extras do impresso e compra só digital."""
+"""E-book e história animada: extras do impresso e compra só digital."""
 
 import uuid
 
@@ -40,8 +40,8 @@ def test_order_shows_prices_and_defaults_to_print_only(auth_client):
     assert order["extra_ebook"] is False and order["extra_video"] is False
     assert order["items_price_cents"] == 17700
     assert order["prices"] == {
-        "extra": {"ebook": 2900, "video": 3900, "bundle": 5900},
-        "digital": {"ebook": 9700, "video": 11700, "bundle": 13700},
+        "extra": {"ebook": 2900, "video": 8900, "bundle": 9900},
+        "digital": {"ebook": 11900, "video": 20900, "bundle": 21900},
     }
 
 
@@ -49,14 +49,14 @@ def test_print_with_both_extras_charges_the_bundle(auth_client):
     pid = approve(auth_client)
     r = choose(auth_client, pid, fulfillment="print", ebook=True, video=True)
     assert r.status_code == 200, r.text
-    assert r.json()["items_price_cents"] == 17700 + 5900
+    assert r.json()["items_price_cents"] == 17700 + 9900
     assert (
         auth_client.put(f"/v1/projects/{pid}/print-order/address", json=ADDRESS).status_code == 200
     )
     make_admin(auth_client)
     paid = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
     assert paid.status_code == 200, paid.text
-    assert paid.json()["amount_cents"] == 17700 + 5900
+    assert paid.json()["amount_cents"] == 17700 + 9900
     assert choose(auth_client, pid, fulfillment="print").status_code == 409
 
 
@@ -71,7 +71,7 @@ def test_digital_only_needs_no_address_and_skips_the_printer(auth_client, monkey
     r = choose(auth_client, pid, fulfillment="digital", ebook=True)
     assert r.status_code == 200, r.text
     assert r.json()["fulfillment"] == "digital"
-    assert r.json()["items_price_cents"] == 9700
+    assert r.json()["items_price_cents"] == 11900
     with session(auth_client) as db:
         order = get_print_order(db, uuid.UUID(pid))
         order.recipient_name = None
@@ -80,7 +80,7 @@ def test_digital_only_needs_no_address_and_skips_the_printer(auth_client, monkey
     make_admin(auth_client)
     paid = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
     assert paid.status_code == 200, paid.text
-    assert paid.json()["amount_cents"] == 9700
+    assert paid.json()["amount_cents"] == 11900
     with session(auth_client) as db:
         p = db.get(Project, uuid.UUID(pid))
         purchase_flow.update(p, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready")
@@ -99,7 +99,7 @@ def test_digital_only_needs_no_address_and_skips_the_printer(auth_client, monkey
         ).all()
 
 
-def test_purchased_video_is_queued_once_from_the_cover(auth_client, monkeypatch):
+def test_purchased_story_video_is_queued_once(auth_client, monkeypatch):
     monkeypatch.setattr(
         "app.services.transactional_email.notify_print_shop", lambda *_a, **_k: True
     )
@@ -122,8 +122,8 @@ def test_purchased_video_is_queued_once_from_the_cover(auth_client, monkeypatch)
         ).all()
         assert len(videos) == 1
         assert again.id == videos[0].id
-        assert videos[0].result["payload"]["source"] == "cover"
-        assert videos[0].result["payload"]["duration_s"] == 10
+        assert videos[0].result["payload"]["source"] == "story"
+        assert videos[0].result["payload"]["duration_s"] == 5
 
 
 def test_pdf_stays_with_orders_paid_before_the_extras(auth_client):

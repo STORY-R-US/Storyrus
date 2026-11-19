@@ -36,6 +36,7 @@ from app.observability import opik_trace
 from app.observability.context import correlation_scope
 from app.observability.logging_setup import configure_logging
 from app.services import jobs as jobs_svc
+from app.workers.deferral import JobDeferred
 
 logger = logging.getLogger("worker")
 
@@ -390,7 +391,7 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                     await _run_tracked(db, job, handler)
                 job.status = JobStatus.DONE.value
                 recovery = (job.result or {}).get("internal_resolution")
-                if recovery and recovery.get("state") == "scheduled_retry":
+                if recovery and recovery.get("state") in {"scheduled_retry", "waiting_provider"}:
                     job.result = {
                         **job.result,
                         "internal_resolution": {
@@ -401,6 +402,27 @@ async def _process_job_inner(db: Session, job: Job, handler) -> None:
                     }
                 db.commit()
                 logger.info("job %s (%s) DONE", job.id, job.type)
+                return
+            except JobDeferred as exc:
+                prior = (job.result or {}).get("internal_resolution") or {}
+                job.result = {
+                    **(job.result or {}),
+                    "internal_resolution": {
+                        **prior,
+                        "state": "waiting_provider",
+                        "retry_at": (
+                            datetime.now(UTC) + timedelta(seconds=max(exc.seconds, 1.0))
+                        ).isoformat(),
+                        "customer_action_required": False,
+                    },
+                }
+                job.status = JobStatus.PENDING.value
+                job.attempts = 0
+                job.updated_at = datetime.now(UTC)
+                db.commit()
+                logger.info(
+                    "job %s (%s) aguardando provedor; volta em %ss", job.id, job.type, exc.seconds
+                )
                 return
             except ProviderError as exc:
                 # A surrounding wait_for may cancel an HTTP call and translate the
