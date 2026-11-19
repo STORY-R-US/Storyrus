@@ -2042,5 +2042,23 @@
       "page": "cartoon-pagina-amor-que-cresce-v1-pt.webp",
       "holding": "cartoon-foto-amor-que-cresce-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-55": {
+    "id": "catalog-cartoon-55",
+    "catalog_index": 55,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Aniversário, Matteo!",
+      "en": "Happy Birthday, Matteo!",
+      "es": "¡Feliz Cumpleaños, Matteo!"
+    },
+    "example_name": "Matteo",
+    "sources": {
+      "cover": "covers/cartoon-capa-matteo-aniversario-v1-pt.webp",
+      "page": "cartoon-pagina-matteo-aniversario-v1-pt.webp",
+      "holding": "cartoon-foto-matteo-aniversario-v1-pt.webp"
+    }
   }
 }
