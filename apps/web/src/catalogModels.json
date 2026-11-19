@@ -1970,5 +1970,23 @@
       "page": "cartoon-pagina-ana-espaco-v1-pt.webp",
       "holding": "cartoon-foto-ana-espaco-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-51": {
+    "id": "catalog-cartoon-51",
+    "catalog_index": 51,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz 90 Anos, Nonna",
+      "en": "Happy 90th Birthday, Nonna",
+      "es": "Felices 90 Años, Nonna"
+    },
+    "example_name": "Nonna",
+    "sources": {
+      "cover": "covers/cartoon-capa-nonna-90-v1-pt.webp",
+      "page": "cartoon-pagina-nonna-90-v1-pt.webp",
+      "holding": "cartoon-foto-nonna-90-v1-pt.webp"
+    }
   }
 }
