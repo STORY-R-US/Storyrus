@@ -2078,5 +2078,23 @@
       "page": "cartoon-pagina-vovo-docura-v1-pt.webp",
       "holding": "cartoon-foto-vovo-docura-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-59": {
+    "id": "catalog-cartoon-59",
+    "catalog_index": 59,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Natal, Família!",
+      "en": "Merry Christmas, Family!",
+      "es": "¡Feliz Navidad, Familia!"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-natal-familia-v1-pt.webp",
+      "page": "cartoon-pagina-natal-familia-v1-pt.webp",
+      "holding": "cartoon-foto-natal-familia-v1-pt.webp"
+    }
   }
 }
