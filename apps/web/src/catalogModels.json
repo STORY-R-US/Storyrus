@@ -1826,5 +1826,23 @@
       "page": "cartoon-pagina-gael-economia-v1-pt.webp",
       "holding": "cartoon-foto-gael-economia-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-36": {
+    "id": "catalog-cartoon-36",
+    "catalog_index": 36,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Maria Jesus E A Disciplina No Hockey Na Grama",
+      "en": "Maria Jesus And Discipline In Field Hockey",
+      "es": "Maria Jesus Y La Disciplina En El Hockey Sobre Césped"
+    },
+    "example_name": "Maria Jesus",
+    "sources": {
+      "cover": "covers/cartoon-capa-mariajesus-hockey-v1-pt.webp",
+      "page": "cartoon-pagina-mariajesus-hockey-v1-pt.webp",
+      "holding": "cartoon-foto-mariajesus-hockey-v1-pt.webp"
+    }
   }
 }
