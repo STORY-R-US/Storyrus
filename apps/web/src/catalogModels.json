@@ -1844,5 +1844,23 @@
       "page": "cartoon-pagina-mariajesus-hockey-v1-pt.webp",
       "holding": "cartoon-foto-mariajesus-hockey-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-37": {
+    "id": "catalog-cartoon-37",
+    "catalog_index": 37,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Quatro Gerações De Amor, Nosso Maior Valor",
+      "en": "Four Generations Of Love, Our Greatest Treasure",
+      "es": "Cuatro Generaciones De Amor, Nuestro Mayor Tesoro"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-quatro-geracoes-v1-pt.webp",
+      "page": "cartoon-pagina-quatro-geracoes-v1-pt.webp",
+      "holding": "cartoon-foto-quatro-geracoes-v1-pt.webp"
+    }
   }
 }
