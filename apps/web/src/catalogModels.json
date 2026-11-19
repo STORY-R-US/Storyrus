@@ -2060,5 +2060,23 @@
       "page": "cartoon-pagina-matteo-aniversario-v1-pt.webp",
       "holding": "cartoon-foto-matteo-aniversario-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-56": {
+    "id": "catalog-cartoon-56",
+    "catalog_index": 56,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Vovó, Sua Doçura Faz Da Vida Uma Aventura",
+      "en": "Grandma, Your Sweetness Turns Life Into An Adventure",
+      "es": "Abuela, Tu Dulzura Convierte La Vida En Una Aventura"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-vovo-docura-v1-pt.webp",
+      "page": "cartoon-pagina-vovo-docura-v1-pt.webp",
+      "holding": "cartoon-foto-vovo-docura-v1-pt.webp"
+    }
   }
 }

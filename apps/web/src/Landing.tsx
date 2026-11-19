@@ -181,6 +181,7 @@ const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: stri
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
 };
 const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
+  56: "covers/cartoon-capa-vovo-docura-v1-pt.webp",
   55: "covers/cartoon-capa-matteo-aniversario-v1-pt.webp",
   54: "covers/cartoon-capa-amor-que-cresce-v1-pt.webp",
   53: "covers/cartoon-capa-brilho-bailarina-v1-pt.webp",

@@ -120,6 +120,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         53,
         54,
         55,
+        56,
         60,
         62,
         63,
