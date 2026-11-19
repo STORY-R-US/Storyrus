@@ -2024,5 +2024,23 @@
       "page": "cartoon-pagina-brilho-bailarina-v1-pt.webp",
       "holding": "cartoon-foto-brilho-bailarina-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-54": {
+    "id": "catalog-cartoon-54",
+    "catalog_index": 54,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor Que Cresce E Me Enobrece",
+      "en": "A Love That Grows And Ennobles Me",
+      "es": "Un Amor Que Crece Y Me Ennoblece"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-amor-que-cresce-v1-pt.webp",
+      "page": "cartoon-pagina-amor-que-cresce-v1-pt.webp",
+      "holding": "cartoon-foto-amor-que-cresce-v1-pt.webp"
+    }
   }
 }
