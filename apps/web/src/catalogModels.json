@@ -1898,5 +1898,23 @@
       "page": "cartoon-pagina-mamae-eu-v1-pt.webp",
       "holding": "cartoon-foto-mamae-eu-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-45": {
+    "id": "catalog-cartoon-45",
+    "catalog_index": 45,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Feliz Natal A Todos",
+      "en": "Merry Christmas To All",
+      "es": "Feliz Navidad A Todos"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-feliz-natal-v1-pt.webp",
+      "page": "cartoon-pagina-feliz-natal-v1-pt.webp",
+      "holding": "cartoon-foto-feliz-natal-v1-pt.webp"
+    }
   }
 }
