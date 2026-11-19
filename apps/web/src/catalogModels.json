@@ -2006,5 +2006,23 @@
       "page": "cartoon-pagina-vovo-motor-v1-pt.webp",
       "holding": "cartoon-foto-vovo-motor-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-53": {
+    "id": "catalog-cartoon-53",
+    "catalog_index": 53,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Brilho Que Fascina, Alma De Bailarina",
+      "en": "A Glow That Captivates, A Dancer At Heart",
+      "es": "Un Brillo Que Fascina, Alma De Bailarina"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-brilho-bailarina-v1-pt.webp",
+      "page": "cartoon-pagina-brilho-bailarina-v1-pt.webp",
+      "holding": "cartoon-foto-brilho-bailarina-v1-pt.webp"
+    }
   }
 }
