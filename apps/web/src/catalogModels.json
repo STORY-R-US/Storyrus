@@ -1952,5 +1952,23 @@
       "page": "cartoon-pagina-tome-jesus-v1-pt.webp",
       "holding": "cartoon-foto-tome-jesus-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-49": {
+    "id": "catalog-cartoon-49",
+    "catalog_index": 49,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Ana Em Uma Aventura Pelo Espaço",
+      "en": "Ana On An Adventure Through Space",
+      "es": "Ana En Una Aventura Por El Espacio"
+    },
+    "example_name": "Ana",
+    "sources": {
+      "cover": "covers/cartoon-capa-ana-espaco-v1-pt.webp",
+      "page": "cartoon-pagina-ana-espaco-v1-pt.webp",
+      "holding": "cartoon-foto-ana-espaco-v1-pt.webp"
+    }
   }
 }
