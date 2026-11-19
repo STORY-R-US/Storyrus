@@ -1712,6 +1712,7 @@ img.ex-tab-cover {
 .cat-note-line .cat-opt { flex: none; margin-top: 2px; }
 .cat-notes-sizes .cat-note-line span:last-child { display: inline; }
 .cat-notes-sizes .is-price { color: var(--yellow); font-weight: 800; }
+.cat-notes-sizes .cat-note-extras { margin: 4px 0 0; font-size: 0.86em; opacity: 0.9; }
 .cat-note-grid {
   display: grid;
   grid-template-columns: 1fr;

@@ -379,7 +379,7 @@ def apply_address(order: PrintOrder, data: dict) -> None:
 
 
 def set_purchase(order: PrintOrder, *, fulfillment: str, ebook: bool, video: bool) -> None:
-    """Impresso com extras (e-book, capa animada) ou compra só digital."""
+    """Impresso com extras (e-book, história animada) ou compra só digital."""
     from app.services import purchase_flow
 
     if order.payment_status in {"paid", "pending"}:
@@ -387,7 +387,7 @@ def set_purchase(order: PrintOrder, *, fulfillment: str, ebook: bool, video: boo
     if fulfillment not in {PRINT, DIGITAL}:
         raise ValueError("Tipo de pedido inválido.")
     if fulfillment == DIGITAL and not (ebook or video):
-        raise ValueError("Escolha o e-book, a capa animada ou os dois.")
+        raise ValueError("Escolha o e-book, a história animada ou os dois.")
     purchase_flow.update(
         order.project,
         purchase={"fulfillment": fulfillment, "ebook": bool(ebook), "video": bool(video)},

@@ -135,7 +135,7 @@ def _paid_book_type(project: Project):
 
 
 def enqueue_purchased_video(db: Session, order, *, retry: bool = False) -> Job | None:
-    """Capa animada comprada: um clipe por pedido, depois da aprovação do livro."""
+    """História animada comprada: um vídeo por pedido, depois da aprovação do livro."""
     from app.config import settings
     from app.printkit.pricing import purchase_choice
     from app.services import jobs
@@ -162,8 +162,8 @@ def enqueue_purchased_video(db: Session, order, *, retry: bool = False) -> Job |
         job_type=JobType.VIDEO,
         idempotency_key=key,
         payload={
-            "source": "cover",
-            "duration_s": settings.animated_cover_duration_s,
+            "source": "story",
+            "duration_s": settings.story_video_clip_s,
             "purchase_extra": True,
         },
     )

@@ -23,7 +23,7 @@ export type CatalogBookSeo = {
 };
 
 const HOME_DESCRIPTION =
-  "Envie uma foto e a Story R Us cria um personagem ilustrado, um livro em PDF e um vídeo narrado com seu filho como herói.";
+  "Envie uma foto e a Story R Us cria um personagem ilustrado, um livro com seu filho como herói, impresso ou digital, e a história animada em vídeo.";
 
 const HOME_PHRASE = "Transformamos fotos em livros personalizados, histórias em memórias eternas.";
 
