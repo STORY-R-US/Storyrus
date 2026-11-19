@@ -1355,7 +1355,7 @@ const I18N = {
       "Maria Jesus E A Disciplina No Hockey Na Grama",
       "Facundo E O Motocross Com Cuidado",
     ],
-    vid_title: "Vídeos", vid_sub: "A história do livro ganha movimento, página por página — perfeita para assistir em família.",
+    vid_title: "Vídeos", vid_sub: "A história do livro ganha movimento, página a página — perfeita para ver em família.",
     vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
@@ -1614,7 +1614,7 @@ const I18N = {
       "Maria Jesus And Discipline In Field Hockey",
       "Facundo And Careful Motocross",
     ],
-    vid_title: "Videos", vid_sub: "The book's story comes to life, page by page — perfect to watch together.",
+    vid_title: "Videos", vid_sub: "The book's story comes to life, page by page — perfect to watch as a family.",
     vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
@@ -1873,7 +1873,7 @@ const I18N = {
       "Maria Jesus Y La Disciplina En El Hockey Sobre Césped",
       "Facundo Y El Motocross Con Cuidado",
     ],
-    vid_title: "Videos", vid_sub: "La historia del libro cobra vida, página por página — perfecta para ver en familia.",
+    vid_title: "Videos", vid_sub: "La historia del libro cobra vida, página a página — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
@@ -2341,7 +2341,7 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "30,10 €",
     priceP: "26,70 €",
-    extras: "+ E-book 4,93 € · + Historia animada 15,14 € · Solo digital desde 20,24 €",
+    extras: "+ E-book 4,93 € · + Historia animada 15,14 € · Digital desde 20,24 €",
     hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Ligera y flexible. Común en libros y ediciones económicas.",
   },
