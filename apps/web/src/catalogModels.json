@@ -1988,5 +1988,23 @@
       "page": "cartoon-pagina-nonna-90-v1-pt.webp",
       "holding": "cartoon-foto-nonna-90-v1-pt.webp"
     }
+  },
+  "catalog-cartoon-52": {
+    "id": "catalog-cartoon-52",
+    "catalog_index": 52,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amor De Vovô É Igual A Motor Bem Cuidado",
+      "en": "A Grandpa's Love Is Like A Well-Kept Engine",
+      "es": "El Amor Del Abuelo Es Como Un Motor Bien Cuidado"
+    },
+    "example_name": "",
+    "sources": {
+      "cover": "covers/cartoon-capa-vovo-motor-v1-pt.webp",
+      "page": "cartoon-pagina-vovo-motor-v1-pt.webp",
+      "holding": "cartoon-foto-vovo-motor-v1-pt.webp"
+    }
   }
 }
