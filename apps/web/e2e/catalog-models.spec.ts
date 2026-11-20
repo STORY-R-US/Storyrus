@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import { TEST_SESSION_TOKEN } from "./session";
+import catalogModels from "../src/catalogModels.json" with { type: "json" };
 
 for (const index of [0, 1, 6]) {
   test(`catalog model ${index} survives navigation and permits another theme`, async ({ page }) => {
@@ -40,8 +41,10 @@ for (const index of [0, 1, 6]) {
 }
 
 test('missing cartoon interior cannot silently select a realistic or default model',async({page})=>{
+  const incomplete = Object.values(catalogModels).find(model => model.style === 'cartoon' && !model.available);
+  test.skip(!incomplete, 'Every Cartoon preview has its required references. The unavailable-model guard remains covered by the component test.');
   await page.addInitScript(()=>localStorage.setItem('lang','pt'));
-  await page.goto('/livro/19?modo=cartoon');
+  await page.goto(`/livro/${incomplete!.catalog_index}?modo=cartoon`);
   await expect(page.getByTestId('catalog-model-unavailable')).toContainText('miolo');
   await expect(page.getByTestId('landing-personalize')).toHaveCount(0);
 });

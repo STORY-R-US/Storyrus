@@ -381,8 +381,8 @@
     "id": "catalog-cartoon-19",
     "catalog_index": 19,
     "style": "cartoon",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Amor De Tia",
       "en": "An Aunt's Love",
@@ -390,9 +390,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "cartoon-capa-amordetia.png",
-      "page": "",
-      "holding": ""
+      "cover": "covers/cartoon-capa-amor-tia-v1-pt.webp",
+      "page": "cartoon-pagina-amor-tia-v1-pt.webp",
+      "holding": "cartoon-foto-amor-tia-v1-pt.webp"
     }
   },
   "catalog-realistic-20": {
