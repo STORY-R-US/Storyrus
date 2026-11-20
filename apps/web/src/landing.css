@@ -2695,6 +2695,11 @@ img.ex-tab-cover {
   transform: scale(1.18);
   transform-origin: 50% 75%;
 }
+/* Passo 2 da home: aproxima o pai e o filho. */
+.howex-card-family-reference .howex-media img {
+  transform: scale(1.55);
+  transform-origin: 50% 20%;
+}
 .howex-card-page .howex-media img { animation: kenburnsSoft 22s ease-in-out infinite alternate; }
 
 /* antes/depois: respiração sutil (mantém a moldura preenchida) */

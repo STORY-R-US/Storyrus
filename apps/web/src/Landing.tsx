@@ -1253,7 +1253,7 @@ const I18N = {
     cat_empty: "Ainda não temos um exemplo neste tema.",
     cats_label: "Livros",
     realistic_link: "Realista",
-    cartoon_link: "Livros Cartoon",
+    cartoon_link: "Cartoon",
     quick_links: "Acessos Rápidos",
     font_label: "Fonte Do Título",
     explore: "Explorar Agora",
@@ -1512,7 +1512,7 @@ const I18N = {
     cat_empty: "We don't have an example for this theme yet.",
     cats_label: "Books",
     realistic_link: "Realistic",
-    cartoon_link: "Cartoon Books",
+    cartoon_link: "Cartoon",
     quick_links: "Quick Links",
     font_label: "Cover Font",
     explore: "Explore Now",
@@ -1771,7 +1771,7 @@ const I18N = {
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
     cats_label: "Libros",
     realistic_link: "Realista",
-    cartoon_link: "Libros Cartoon",
+    cartoon_link: "Cartoon",
     quick_links: "Accesos Rápidos",
     font_label: "Fuente Del Título",
     explore: "Explorar Ahora",
@@ -2722,6 +2722,7 @@ export function catalogPageCopy(lang: Lang) {
     passo: t.passo_title,
     videos: t.videos_link,
     reviews: t.reviews_link,
+    realistic: t.realistic_link,
     cartoon: t.cartoon_link,
     login: t.cta_login,
     signup: t.cta_play,
@@ -2850,7 +2851,7 @@ export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?:
           <div className="howex">
             {t.passo.map((h, i) => (
               <Fragment key={h.t}>
-                <figure className={`howex-card howex-card-scene${example === "father" && i === 0 ? " howex-card-protagonist-reference" : ""}${framing && i < 2 ? " howex-card-frame" : ""}`}>
+                <figure className={`howex-card howex-card-scene${example === "father" && i === 0 ? " howex-card-protagonist-reference" : ""}${example === "father" && i === 1 ? " howex-card-family-reference" : ""}${framing && i < 2 ? " howex-card-frame" : ""}`}>
                   <div className="howex-lead">
                     <h3>{h.t}</h3>
                   </div>
@@ -3209,18 +3210,18 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </div>
                   </div>
                 </div>
-                <a href="#como" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
-                  {t.hiw_title}
-                </a>
-                <a href="#passo" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
+                <Link to="/" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} aria-current={variant === "cartoon" ? undefined : "page"} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.95)" }} />
+                  {t.realistic_link}
+                </Link>
+                <Link to="/cartoon" className="kcat-btn" style={{ "--cat": "#3ecf8e" } as CSSProperties} aria-current={variant === "cartoon" ? "page" : undefined} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
+                  {t.cartoon_link}
+                </Link>
+                <a href="#como" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f08a4b", boxShadow: "0 0 10px rgba(240,138,75,.9)" }} />
                   {t.passo_title}
                 </a>
-                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
-                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
-                </Link>
                 <a href="#videos" className="kcat-btn" style={{ "--cat": "#e07a9a" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
                   {t.videos_link}
@@ -3409,9 +3410,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           </div>
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
-            <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
-            <a className="kmobile-link" href="#passo" onClick={closeNav}>{t.passo_title}</a>
-            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
+            <Link className="kmobile-link" to="/" onClick={closeNav}>{t.realistic_link}</Link>
+            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>{t.cartoon_link}</Link>
+            <a className="kmobile-link" href="#como" onClick={closeNav}>{t.passo_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>

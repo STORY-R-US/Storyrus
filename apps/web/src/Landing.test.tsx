@@ -756,7 +756,7 @@ describe("Landing — CTAs e links", () => {
     }
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
-    expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
@@ -862,7 +862,9 @@ describe("Landing — CTAs e links", () => {
     expect(await screen.findByTestId("landing-hero-title")).toBeInTheDocument();
     const cartoonNav = document.querySelector(".kcats") as HTMLElement;
     expect(within(cartoonNav).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
-    expect(within(cartoonNav).queryByRole("link", { name: /^livros cartoon$/i })).not.toBeInTheDocument();
+    expect(within(cartoonNav).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    expect(within(cartoonNav).getByRole("link", { name: /^passo a passo$/i })).toHaveAttribute("href", "#como");
+    expect(within(cartoonNav).queryByRole("link", { name: /^como funciona$/i })).not.toBeInTheDocument();
     expect(within(document.querySelector(".kmobile") as HTMLElement).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(screen.queryByRole("heading", { name: /^educativo$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /^sentimentos$/i })).not.toBeInTheDocument();
@@ -956,10 +958,11 @@ describe("Catálogo e página do livro", () => {
     expect(screen.queryByRole("button", { name: /imagem anterior|próxima imagem/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /como funciona/i })).toHaveAttribute("href", "/#como");
+    expect(screen.getByRole("link", { name: /^passo a passo$/i })).toHaveAttribute("href", "/#como");
+    expect(screen.getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
     expect(screen.getByRole("link", { name: /avaliações/i })).toHaveAttribute("href", "/#reviews");
-    expect(screen.getByRole("link", { name: /livros cartoon/i })).toHaveAttribute("href", "/cartoon");
+    expect(screen.getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect(screen.getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
