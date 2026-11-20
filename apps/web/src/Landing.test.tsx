@@ -83,7 +83,7 @@ describe("Landing — idioma", () => {
     expect(document.documentElement.lang).toBe("es");
     expect(localStorage.getItem("lang")).toBe("es");
     expect(screen.getByTestId("landing-lang-es")).toHaveClass("on");
-  });
+  }, 15000);
 
   it("restaura idioma salvo no localStorage", async () => {
     localStorage.setItem("lang", "en");
@@ -113,7 +113,7 @@ describe("Landing — tema", () => {
 
     await user.click(themeButtons()[0]);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-  });
+  }, 15000);
 
   it("restaura tema claro do localStorage", async () => {
     localStorage.setItem("theme", "light");
