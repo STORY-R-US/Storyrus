@@ -107,6 +107,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         27,
         28,
         29,
+        30,
         31,
         34,
         35,

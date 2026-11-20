@@ -876,7 +876,7 @@ describe("Landing — CTAs e links", () => {
     fireEvent.mouseEnter(cartoonVovo);
     const cartoonAvo = within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /amor de avô/i });
     expect(cartoonAvo).toHaveAttribute("href", "/livro/30?modo=cartoon");
-    expect(cartoonAvo.querySelector("img")).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-avo.png", "pt")));
+    expect(cartoonAvo.querySelector("img")).toHaveAttribute("src", expect.stringContaining(localizedExample("covers/cartoon-capa-amor-avo-v1-pt.webp", "pt")));
     const cartoonEducativo = document.querySelectorAll("#cat-panel .kcat-group")[3] as HTMLElement;
     expect(within(cartoonEducativo).getByRole("link", { name: /^sentimentos$/i })).toHaveAttribute("href", "/catalogo?modo=cartoon#educativo-literacia_emocional");
     expect(within(cartoonEducativo).getByRole("link", { name: /hora de dormir/i })).toHaveAttribute("href", "/catalogo?modo=cartoon#educativo-rotina_dormir");

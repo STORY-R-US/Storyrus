@@ -651,8 +651,8 @@
     "id": "catalog-cartoon-30",
     "catalog_index": 30,
     "style": "cartoon",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Amor De Avô, Meu Porto Seguro",
       "en": "Grandpa's Love, My Safe Harbor",
@@ -660,9 +660,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "cartoon-capa-avo.png",
-      "page": "",
-      "holding": ""
+      "cover": "covers/cartoon-capa-amor-avo-v1-pt.webp",
+      "page": "cartoon-pagina-amor-avo-v1-pt.webp",
+      "holding": "cartoon-foto-amor-avo-v1-pt.webp"
     }
   },
   "catalog-realistic-31": {
