@@ -143,6 +143,14 @@ export function PrintCheckout({
   const quantityDirty = !digital && quantity !== String(order.quantity);
   const itemPrice = (item: "ebook" | "video" | "bundle") =>
     prices ? (digital ? prices.digital[item] : prices.extra[item]) : null;
+  // No impresso os itens digitais somam ao livro ("+ R$ 29"); no só digital o valor é o preço cheio.
+  const itemMoney = (cents: number | null) => `${digital ? "" : "+ "}${money(cents)}`;
+  const itemsSum =
+    itemPrice("ebook") != null && itemPrice("video") != null
+      ? (itemPrice("ebook") as number) + (itemPrice("video") as number)
+      : null;
+  const extrasLabel =
+    choice.ebook && choice.video ? t.bothItems : choice.video ? t.videoItem : t.ebookItem;
   function choose(next: PurchaseChoice) {
     void run(async () => setOrder(await api.setPrintPurchase(projectId, next)));
   }
@@ -174,7 +182,7 @@ export function PrintCheckout({
               />
               <span>
                 <strong>{t.printOption}</strong>
-                <small>{money(order.book_price_cents)}</small>
+                <small>{t.printOptionHint.replace("{price}", money(order.book_price_cents))}</small>
               </span>
             </label>
             <label className="purchase-option">
@@ -211,7 +219,7 @@ export function PrintCheckout({
             />
             <span>
               <strong>
-                {t.ebookItem} · {money(itemPrice("ebook"))}
+                {t.ebookItem} · {itemMoney(itemPrice("ebook"))}
               </strong>
               <small>{t.ebookHint}</small>
             </span>
@@ -225,12 +233,17 @@ export function PrintCheckout({
             />
             <span>
               <strong>
-                {t.videoItem} · {money(itemPrice("video"))}
+                {t.videoItem} · {itemMoney(itemPrice("video"))}
               </strong>
               <small>{t.videoHint}</small>
             </span>
           </label>
-          <small>{t.bundle.replace("{price}", money(itemPrice("bundle")))}</small>
+          <small>
+            {t.bundle
+              .replace("{price}", itemMoney(itemPrice("bundle")))
+              .replace("{sum}", itemMoney(itemsSum))}
+          </small>
+          {digital && <small>{t.digitalWhy}</small>}
           {digital && choice.ebook !== choice.video && <small>{t.pickDigital}</small>}
           {!digital && <small>{t.extrasWhen}</small>}
         </fieldset>
@@ -375,7 +388,7 @@ export function PrintCheckout({
         )}
         {extrasTotal > 0 && (
           <div>
-            <dt>{t.extrasLine}</dt>
+            <dt>{extrasLabel}</dt>
             <dd>{money(extrasTotal)}</dd>
           </div>
         )}

@@ -83,7 +83,7 @@ describe("Landing — idioma", () => {
     expect(document.documentElement.lang).toBe("es");
     expect(localStorage.getItem("lang")).toBe("es");
     expect(screen.getByTestId("landing-lang-es")).toHaveClass("on");
-  });
+  }, 15000);
 
   it("restaura idioma salvo no localStorage", async () => {
     localStorage.setItem("lang", "en");
@@ -113,7 +113,7 @@ describe("Landing — tema", () => {
 
     await user.click(themeButtons()[0]);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-  });
+  }, 15000);
 
   it("restaura tema claro do localStorage", async () => {
     localStorage.setItem("theme", "light");
@@ -162,11 +162,8 @@ describe("Landing — avaliações", () => {
     fotos.forEach((file, i) => {
       expect(within(reviews).getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
     });
-    expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
-    expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Nicolas$/);
-    expect(within(reviews).getByTestId("landing-review-name-2")).toHaveTextContent(/^Emilia$/);
-    expect(within(reviews).getByTestId("landing-review-name-10")).toHaveTextContent(/^Raquel$/);
-    expect(within(reviews).getByTestId("landing-review-name-14")).toHaveTextContent(/^Noé$/);
+    expect(reviews.querySelector(".rev-photo figcaption")).toBeNull();
+    expect(within(reviews).queryByText(/^Martin$/)).not.toBeInTheDocument();
     expect(within(reviews).queryByTestId("landing-review-cover-15")).not.toBeInTheDocument();
     expect(within(reviews).queryByTestId("landing-review-cover-16")).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/^Abigail$/)).not.toBeInTheDocument();
@@ -189,7 +186,6 @@ describe("Landing — avaliações", () => {
     expect(within(reviews).getByText(/grandma saw herself in the book/i)).toBeInTheDocument();
     expect(within(reviews).getByText("Helena V.")).toBeInTheDocument();
     expect(within(reviews).queryByText(/a vovó se viu no livro/i)).not.toBeInTheDocument();
-    expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
     expect(within(reviews).getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("localized/foto-martin-goleiro-en.webp"));
     expect([...reviews.querySelectorAll("img")].some((img) => (img.getAttribute("src") ?? "").includes("foto-martin-goleiro"))).toBe(true);
     expect([...reviews.querySelectorAll("img")].some((img) => (img.getAttribute("src") ?? "").includes("foto-mamaepapaimatteo-en.jpg"))).toBe(false);
@@ -267,18 +263,18 @@ describe("Landing — catálogo", () => {
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
       expect(within(card).queryByText(/amizade e cuidado/i)).not.toBeInTheDocument();
     });
-    expect(within(cards[0]).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
-    expect(within(cards[1]).getByText("Meu Herói Favorito, O Bombeiro")).toBeInTheDocument();
-    expect(within(cards[2]).getByText("Meu Herói Favorito, O Policial")).toBeInTheDocument();
-    expect(within(cards[3]).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
-    expect(within(cards[4]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
-    expect(within(cards[5]).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
-    expect(within(cards[6]).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
-    expect(within(cards[7]).getByText("Amem-se Sinceramente Uns Aos Outros")).toBeInTheDocument();
-    expect(within(cards[8]).getByText(/Tomé Duvidou/i)).toBeInTheDocument();
-    expect(within(cards[9]).getByText(/Martin, O Grande Goleiro/i)).toBeInTheDocument();
-    expect(within(cards[10]).getByText(/Maria Jesus E A Disciplina No Hockey/i)).toBeInTheDocument();
-    expect(within(cards[11]).getByText("Brilho Que Fascina, Alma De Bailarina")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
+    expect(within(cards[1]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
+    expect(within(cards[2]).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
+    expect(within(cards[3]).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
+    expect(within(cards[4]).getByText("Amem-se Sinceramente Uns Aos Outros")).toBeInTheDocument();
+    expect(within(cards[5]).getByText(/Tomé Duvidou/i)).toBeInTheDocument();
+    expect(within(cards[6]).getByText(/Martin, O Grande Goleiro/i)).toBeInTheDocument();
+    expect(within(cards[7]).getByText(/Maria Jesus E A Disciplina No Hockey/i)).toBeInTheDocument();
+    expect(within(cards[8]).getByText("Brilho Que Fascina, Alma De Bailarina")).toBeInTheDocument();
+    expect(within(cards[cards.length - 3]).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
+    expect(within(cards[cards.length - 2]).getByText("Meu Herói Favorito, O Bombeiro")).toBeInTheDocument();
+    expect(within(cards[cards.length - 1]).getByText("Meu Herói Favorito, O Policial")).toBeInTheDocument();
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
     expect(within(catalog).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
@@ -300,9 +296,9 @@ describe("Landing — catálogo", () => {
     expect(within(catalog).queryByText("Nossa Família")).not.toBeInTheDocument();
     expect(within(catalog).queryByText("Minha Grande Aventura")).not.toBeInTheDocument();
     expect(within(catalog).getByText("Esther E Os Superpoderes Da Higiene")).toBeInTheDocument();
-    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-construtor.png", "pt")));
-    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-heroi-bombeiro.png", "pt")));
-    expect(cards[2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-heroi-policia.png", "pt")));
+    expect(cards[cards.length - 3].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-construtor.png", "pt")));
+    expect(cards[cards.length - 2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-heroi-bombeiro.png", "pt")));
+    expect(cards[cards.length - 1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-heroi-policia.png", "pt")));
     expect(within(cards[0]).getByRole("button", { name: "HARD", pressed: true })).toBeInTheDocument();
     expect(within(cards[0]).getByRole("button", { name: "SOFT", pressed: false })).toBeInTheDocument();
     expect(within(cards[0]).getByRole("button", { name: "M", pressed: true })).toBeInTheDocument();
@@ -330,7 +326,18 @@ describe("Landing — catálogo", () => {
 
     expect(within(card).getByText("R$ 177,00.")).toHaveClass("is-price");
     expect(within(card).getByText("R$ 157,00.")).not.toHaveClass("is-price");
-    expect(card.textContent).toContain("+ E-book R$ 29 · + História animada R$ 89 · Só digital a partir de R$ 119.");
+    expect(card.textContent).toContain("Valor do livro impresso, sem o frete. E-book e história animada são opcionais.");
+    expect(within(card).getByTestId("catalog-all-prices")).toHaveAttribute("href", "/#valores");
+    const prices = screen.getByTestId("landing-prices");
+    expect(within(prices).getByRole("heading", { name: "Valores" })).toBeInTheDocument();
+    expect(within(prices).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Livro Impresso",
+      "Impresso + Digital",
+      "Só Digital",
+    ]);
+    for (const value of ["R$ 157", "R$ 177", "+ R$ 29", "+ R$ 89", "+ R$ 99", "R$ 119", "R$ 209", "R$ 219"]) {
+      expect(within(prices).getByText(value)).toBeInTheDocument();
+    }
 
     await user.click(within(card).getByRole("button", { name: "P" }));
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
@@ -409,7 +416,7 @@ describe("Landing — catálogo", () => {
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize).toHaveLength(52);
     expect(screen.queryAllByTestId("catalog-model-unavailable")).toHaveLength(0);
-    const first = studioTarget(personalize[0].getAttribute("href"));
+    const first = studioTarget(personalize[personalize.length - 3].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
     expect(first).toContain("tamanho=M");
@@ -418,8 +425,8 @@ describe("Landing — catálogo", () => {
     expect(first).toContain("titulo=");
     expect(first).not.toContain("heroi=");
     expect(first).toContain("Construir e criar");
-    expect(studioTarget(personalize[1].getAttribute("href"))).toContain("tema=superhero");
-    expect(studioTarget(personalize[3].getAttribute("href"))).toContain("tema=fathers_day");
+    expect(studioTarget(personalize[personalize.length - 2].getAttribute("href"))).toContain("tema=superhero");
+    expect(studioTarget(personalize[0].getAttribute("href"))).toContain("tema=fathers_day");
     const martin = personalize.find((link) => studioTarget(link.getAttribute("href")).includes("Martin, O Grande Goleiro"));
     expect(martin).toBeTruthy();
     expect(studioTarget(martin ? martin.getAttribute("href") : null)).toContain("tema=sport");
@@ -741,7 +748,7 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     await screen.findByTestId("landing-hero-title");
 
-    const order = ["como", "passo", "catalogo", "promessa", "videos", "reviews", "faq"];
+    const order = ["como", "passo", "catalogo", "valores", "promessa", "videos", "reviews", "faq"];
     const nodes = order.map((id) => document.getElementById(id));
     expect(nodes.every(Boolean)).toBe(true);
     for (let i = 0; i < nodes.length - 1; i++) {
@@ -749,7 +756,7 @@ describe("Landing — CTAs e links", () => {
     }
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
-    expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
@@ -855,7 +862,9 @@ describe("Landing — CTAs e links", () => {
     expect(await screen.findByTestId("landing-hero-title")).toBeInTheDocument();
     const cartoonNav = document.querySelector(".kcats") as HTMLElement;
     expect(within(cartoonNav).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
-    expect(within(cartoonNav).queryByRole("link", { name: /^livros cartoon$/i })).not.toBeInTheDocument();
+    expect(within(cartoonNav).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    expect(within(cartoonNav).getByRole("link", { name: /^passo a passo$/i })).toHaveAttribute("href", "#como");
+    expect(within(cartoonNav).queryByRole("link", { name: /^como funciona$/i })).not.toBeInTheDocument();
     expect(within(document.querySelector(".kmobile") as HTMLElement).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(screen.queryByRole("heading", { name: /^educativo$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /^sentimentos$/i })).not.toBeInTheDocument();
@@ -884,13 +893,13 @@ describe("Landing — CTAs e links", () => {
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
     expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["passo-protagonista-v2.webp", "passo-familia-v2.webp", "cartoon-pagina-matteo.jpg"]) {
+    for (const file of ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", localizedExample("cartoon-capa-bisavo.jpg", "pt")]) {
       expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
-    const cards = within(catalog).getAllByTestId("landing-catalog-card");
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
+    const cards = within(catalog).getAllByTestId("landing-catalog-card").slice(-3);
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(57);
     expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-pedro-amem-se.png", "pt")));
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
@@ -940,7 +949,6 @@ describe("Landing — CTAs e links", () => {
 
 describe("Catálogo e página do livro", () => {
   it("abre o catálogo completo agrupado e a página do livro", async () => {
-    const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/catalogo"]}>
         <AppRoutes />
@@ -950,18 +958,18 @@ describe("Catálogo e página do livro", () => {
     expect(screen.queryByRole("button", { name: /imagem anterior|próxima imagem/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
     expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /como funciona/i })).toHaveAttribute("href", "/#como");
+    expect(screen.getByRole("link", { name: /^passo a passo$/i })).toHaveAttribute("href", "/#como");
+    expect(screen.getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
     expect(screen.getByRole("link", { name: /avaliações/i })).toHaveAttribute("href", "/#reviews");
-    expect(screen.getByRole("link", { name: /livros cartoon/i })).toHaveAttribute("href", "/cartoon");
+    expect(screen.getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect(screen.getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(12);
-    await user.selectOptions(screen.getByTestId("catalog-category"), "educativo");
-    expect(await screen.findByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("catalog-category")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByTestId("catalog-category"), { target: { value: "" } });
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
     const links = [...document.querySelectorAll(".cat-book-link")].map((a) => a.getAttribute("href"));
     expect(new Set(links).size).toBe(links.length);

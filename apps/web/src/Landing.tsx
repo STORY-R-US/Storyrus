@@ -694,9 +694,8 @@ const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58, 61]);
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
 const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]);
-/** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
+/** Vitrine em linhas de 3: família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
-  25, 26, 27,
   21, 30, 22,
   20, 38, 47,
   0, 36, 53,
@@ -719,6 +718,8 @@ const HOME_CATALOG_ORDER = [
   66,
   67,
 ];
+/** Última linha da vitrine: construtor, bombeiro e policial (antes era a primeira). */
+const HOME_CATALOG_LAST = [25, 26, 27];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
@@ -1252,7 +1253,7 @@ const I18N = {
     cat_empty: "Ainda não temos um exemplo neste tema.",
     cats_label: "Livros",
     realistic_link: "Realista",
-    cartoon_link: "Livros Cartoon",
+    cartoon_link: "Cartoon",
     quick_links: "Acessos Rápidos",
     font_label: "Fonte Do Título",
     explore: "Explorar Agora",
@@ -1477,7 +1478,7 @@ const I18N = {
       { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
       { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
       { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto que você envia apenas para criar o livro e não compartilhamos seus dados. Os exemplos da página inicial são demonstrações, separados do que você envia." },
-      { q: "Recebo digital ou impresso?", a: "Você escolhe no pedido. No impresso, o e-book em PDF (+ R$ 29) e a história animada (+ R$ 89) são opcionais; os dois juntos saem por + R$ 99. Se preferir só o digital, sem impressão e sem frete, é a partir de R$ 119." },
+      { q: "Recebo digital ou impresso?", a: "Você escolhe no pedido: só o livro impresso, o impresso com a versão digital (e-book em PDF e história animada em vídeo) ou só a versão digital, sem impressão e sem frete. O preço de cada opção está na seção Valores, logo abaixo dos livros." },
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
       { q: "O que é a história animada?", a: "Cada página do seu livro ganha movimento, da capa à contracapa, num vídeo de cerca de 1 minuto e meio, pronto para o WhatsApp e as redes. Você não precisa fazer nada: ele fica pronto sozinho depois que você aprova o livro completo." },
     ],
@@ -1511,7 +1512,7 @@ const I18N = {
     cat_empty: "We don't have an example for this theme yet.",
     cats_label: "Books",
     realistic_link: "Realistic",
-    cartoon_link: "Cartoon Books",
+    cartoon_link: "Cartoon",
     quick_links: "Quick Links",
     font_label: "Cover Font",
     explore: "Explore Now",
@@ -1736,7 +1737,7 @@ const I18N = {
       { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
       { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
       { q: "Are my child's photo and data safe?", a: "Yes. We use the photo you upload only to create the book and never share your data. Homepage examples are demos, separate from what you send." },
-      { q: "Digital or printed?", a: "You choose when you order. With the printed book, the PDF e-book (+ $5.56) and the animated story (+ $17.05) are optional; both together are + $18.97. If you prefer digital only, with no printing and no shipping, it starts at $22.80." },
+      { q: "Digital or printed?", a: "You choose when you order: the printed book alone, the printed book with the digital version (PDF e-book and animated story video) or digital only, with no printing and no shipping. The price of each option is in the Prices section, right below the books." },
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
       { q: "What is the animated story?", a: "Every page of your book comes to life, from the front cover to the back, in a video of about a minute and a half, ready for WhatsApp and social media. You don't need to do anything: it is ready on its own after you approve the complete book." },
     ],
@@ -1770,7 +1771,7 @@ const I18N = {
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
     cats_label: "Libros",
     realistic_link: "Realista",
-    cartoon_link: "Libros Cartoon",
+    cartoon_link: "Cartoon",
     quick_links: "Accesos Rápidos",
     font_label: "Fuente Del Título",
     explore: "Explorar Ahora",
@@ -1995,7 +1996,7 @@ const I18N = {
       { q: "¿Cómo creo un libro personalizado?", a: "Elige un tema, envía una foto del niño y agrega el nombre y una dedicatoria. La IA transforma la foto en ilustraciones y ves la vista previa antes de finalizar." },
       { q: "¿Puedo ver el libro antes?", a: "¡Sí! Recibes una vista previa completa (portada y páginas) antes de descargar o pedir la impresión." },
       { q: "¿La foto y los datos del niño están seguros?", a: "Sí. Usamos la foto que envías solo para crear el libro y no compartimos tus datos. Los ejemplos de la página inicial son demostraciones, separados de lo que tú envías." },
-      { q: "¿Recibo digital o impreso?", a: "Eliges en el pedido. Con el impreso, el e-book en PDF (+ 4,93 €) y la historia animada (+ 15,14 €) son opcionales; los dos juntos cuestan + 16,84 €. Si prefieres solo digital, sin impresión y sin envío, es desde 20,24 €." },
+      { q: "¿Recibo digital o impreso?", a: "Eliges en el pedido: solo el libro impreso, el impreso con la versión digital (e-book en PDF e historia animada en video) o solo la versión digital, sin impresión y sin envío. El precio de cada opción está en la sección Precios, justo debajo de los libros." },
       { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
       { q: "¿Qué es la historia animada?", a: "Cada página de tu libro cobra vida, de la portada a la contraportada, en un video de cerca de un minuto y medio, listo para WhatsApp y redes sociales. No tienes que hacer nada: queda lista sola después de aprobar el libro completo." },
     ],
@@ -2309,6 +2310,7 @@ const FORMAT_COPY: Record<Lang, {
   priceM: string;
   priceP: string;
   extras: string;
+  allPrices: string;
   hardText: string;
   softText: string;
 }> = {
@@ -2320,7 +2322,8 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "R$ 177,00",
     priceP: "R$ 157,00",
-    extras: "+ E-book R$ 29 · + História animada R$ 89 · Só digital a partir de R$ 119",
+    extras: "Valor do livro impresso, sem o frete. E-book e história animada são opcionais.",
+    allPrices: "Ver todos os valores",
     hardText: "Resistente e durável. Utilizada em edições especiais ou colecionáveis.",
     softText: "Leve e flexível. Comum em livros e edições econômicas.",
   },
@@ -2332,7 +2335,8 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "$33.91",
     priceP: "$30.08",
-    extras: "+ E-book $5.56 · + Animated story $17.05 · Digital only from $22.80",
+    extras: "Printed book price, shipping not included. E-book and animated story are optional.",
+    allPrices: "See all prices",
     hardText: "Sturdy and durable. Used for special or collectible editions.",
     softText: "Light and flexible. Common in books and economical editions.",
   },
@@ -2344,9 +2348,86 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "30,10 €",
     priceP: "26,70 €",
-    extras: "+ E-book 4,93 € · + Historia animada 15,14 € · Digital desde 20,24 €",
+    extras: "Precio del libro impreso, sin el envío. El e-book y la historia animada son opcionales.",
+    allPrices: "Ver todos los precios",
     hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Ligera y flexible. Común en libros y ediciones económicas.",
+  },
+};
+// Seção "Valores" da landing: os mesmos preços de FORMAT_COPY e de PRICE_EXTRA_* / PRICE_DIGITAL_* (config.py / Render).
+type PriceGroup = { title: string; lead: string; rows: [string, string][]; note: string };
+const PRICES_COPY: Record<Lang, { title: string; sub: string; groups: PriceGroup[] }> = {
+  pt: {
+    title: "Valores",
+    sub: "Você vê a prévia e a história antes de pagar. Escolha uma das três formas de receber.",
+    groups: [
+      {
+        title: "Livro Impresso",
+        lead: "O livro físico, com 16 páginas.",
+        rows: [["15 × 15 cm", "R$ 157"], ["20 × 20 cm", "R$ 177"]],
+        note: "Capa dura ou flexível pelo mesmo valor. O frete não está incluído.",
+      },
+      {
+        title: "Impresso + Digital",
+        lead: "Some a versão digital ao livro impresso.",
+        rows: [["E-book (o livro em PDF)", "+ R$ 29"], ["História animada (o livro em vídeo)", "+ R$ 89"], ["Os dois", "+ R$ 99"]],
+        note: "É opcional e você escolhe na hora do pedido.",
+      },
+      {
+        title: "Só Digital",
+        lead: "Sem livro impresso e sem frete.",
+        rows: [["E-book (o livro em PDF)", "R$ 119"], ["História animada (o livro em vídeo)", "R$ 209"], ["Os dois", "R$ 219"]],
+        note: "Sem o livro impresso, o valor já inclui a criação do livro.",
+      },
+    ],
+  },
+  en: {
+    title: "Prices",
+    sub: "You see the preview and the story before paying. Choose one of three ways to receive it.",
+    groups: [
+      {
+        title: "Printed Book",
+        lead: "The physical book, with 16 pages.",
+        rows: [["15 × 15 cm", "$30.08"], ["20 × 20 cm", "$33.91"]],
+        note: "Hard or soft cover for the same price. Shipping is not included.",
+      },
+      {
+        title: "Printed + Digital",
+        lead: "Add the digital version to the printed book.",
+        rows: [["E-book (the book as a PDF)", "+ $5.56"], ["Animated story (the book as a video)", "+ $17.05"], ["Both", "+ $18.97"]],
+        note: "It is optional and you choose when you order.",
+      },
+      {
+        title: "Digital Only",
+        lead: "No printed book and no shipping.",
+        rows: [["E-book (the book as a PDF)", "$22.80"], ["Animated story (the book as a video)", "$40.04"], ["Both", "$41.95"]],
+        note: "Without the printed book, the price already includes creating the book.",
+      },
+    ],
+  },
+  es: {
+    title: "Precios",
+    sub: "Ves la vista previa y la historia antes de pagar. Elige una de las tres formas de recibirlo.",
+    groups: [
+      {
+        title: "Libro Impreso",
+        lead: "El libro físico, con 16 páginas.",
+        rows: [["15 × 15 cm", "26,70 €"], ["20 × 20 cm", "30,10 €"]],
+        note: "Tapa dura o blanda por el mismo precio. El envío no está incluido.",
+      },
+      {
+        title: "Impreso + Digital",
+        lead: "Suma la versión digital al libro impreso.",
+        rows: [["E-book (el libro en PDF)", "+ 4,93 €"], ["Historia animada (el libro en video)", "+ 15,14 €"], ["Los dos", "+ 16,84 €"]],
+        note: "Es opcional y lo eliges al hacer el pedido.",
+      },
+      {
+        title: "Solo Digital",
+        lead: "Sin libro impreso y sin envío.",
+        rows: [["E-book (el libro en PDF)", "20,24 €"], ["Historia animada (el libro en video)", "35,54 €"], ["Los dos", "37,24 €"]],
+        note: "Sin el libro impreso, el precio ya incluye la creación del libro.",
+      },
+    ],
   },
 };
 export type CatalogCardBook = {
@@ -2458,6 +2539,8 @@ export function CatalogBookCard({
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice("M"));
   const copy = FORMAT_COPY[lang];
+  // As outras traduções ocupam o mesmo espaço (locale-copy), para o card ter a mesma altura nos três idiomas.
+  const otherFormats = (["pt", "en", "es"] as const).filter((locale) => locale !== lang).map((locale) => FORMAT_COPY[locale]);
   const pageCopy = BOOK_PAGE_COPY[lang];
   const flipLabels = {
     prev: I18N[lang].cf_prev,
@@ -2498,7 +2581,18 @@ export function CatalogBookCard({
             </span>
           </p>
         ))}
-        {book.catalogI !== 58 && <p className="cat-note-extras">{copy.extras}.</p>}
+        {book.catalogI !== 58 && (
+          <p
+            className="cat-note-extras locale-copy"
+            data-copy-a={`${otherFormats[0].extras} ${otherFormats[0].allPrices}`}
+            data-copy-b={`${otherFormats[1].extras} ${otherFormats[1].allPrices}`}
+          >
+            <span>
+              {copy.extras}{" "}
+              <a href="/#valores" data-testid="catalog-all-prices">{copy.allPrices}</a>
+            </span>
+          </p>
+        )}
       </div>
       <div className="cat-note-grid">
         {(["hard", "soft"] as const).map((choice) => (
@@ -2628,6 +2722,7 @@ export function catalogPageCopy(lang: Lang) {
     passo: t.passo_title,
     videos: t.videos_link,
     reviews: t.reviews_link,
+    realistic: t.realistic_link,
     cartoon: t.cartoon_link,
     login: t.cta_login,
     signup: t.cta_play,
@@ -2739,10 +2834,12 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
 
 export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?: "father" | "studio" | "cartoon" }) {
   const t = I18N[lang];
-  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-pagina-matteo.jpg" : "pagina-mamaepapaimatteo.jpg", lang);
+  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-capa-bisavo.jpg" : "pagina-mamaepapaimatteo.jpg", lang);
   const passoImgs = example === "father"
     ? ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", passoBook]
-    : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
+    : example === "cartoon"
+      ? ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", passoBook]
+      : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
   const framing = example !== "father" && import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   return (
       <section className="ksection ksection-como" id="passo">
@@ -2754,7 +2851,7 @@ export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?:
           <div className="howex">
             {t.passo.map((h, i) => (
               <Fragment key={h.t}>
-                <figure className={`howex-card howex-card-scene${example === "father" && i === 0 ? " howex-card-protagonist-reference" : ""}${framing && i < 2 ? " howex-card-frame" : ""}`}>
+                <figure className={`howex-card howex-card-scene${example === "father" && i === 0 ? " howex-card-protagonist-reference" : ""}${example === "father" && i === 1 ? " howex-card-family-reference" : ""}${framing && i < 2 ? " howex-card-frame" : ""}`}>
                   <div className="howex-lead">
                     <h3>{h.t}</h3>
                   </div>
@@ -2850,6 +2947,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         .sort((a, b) => {
           const rank = (i: number) => {
             const order = HOME_CATALOG_ORDER;
+            const last = HOME_CATALOG_LAST.indexOf(i);
+            if (last !== -1) return 10000 + last;
             const lead = order.indexOf(i);
             return lead === -1 ? order.length + i : lead;
           };
@@ -3111,18 +3210,18 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </div>
                   </div>
                 </div>
-                <a href="#como" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
-                  {t.hiw_title}
-                </a>
-                <a href="#passo" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
+                <Link to="/" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} aria-current={variant === "cartoon" ? undefined : "page"} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.95)" }} />
+                  {t.realistic_link}
+                </Link>
+                <Link to="/cartoon" className="kcat-btn" style={{ "--cat": "#3ecf8e" } as CSSProperties} aria-current={variant === "cartoon" ? "page" : undefined} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
+                  {t.cartoon_link}
+                </Link>
+                <a href="#como" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f08a4b", boxShadow: "0 0 10px rgba(240,138,75,.9)" }} />
                   {t.passo_title}
                 </a>
-                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
-                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
-                </Link>
                 <a href="#videos" className="kcat-btn" style={{ "--cat": "#e07a9a" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
                   {t.videos_link}
@@ -3311,9 +3410,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           </div>
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
-            <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
-            <a className="kmobile-link" href="#passo" onClick={closeNav}>{t.passo_title}</a>
-            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
+            <Link className="kmobile-link" to="/" onClick={closeNav}>{t.realistic_link}</Link>
+            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>{t.cartoon_link}</Link>
+            <a className="kmobile-link" href="#como" onClick={closeNav}>{t.passo_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
@@ -3482,6 +3581,35 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         )} />
       </section>
 
+      {/* VALORES — todos os preços num só lugar */}
+      <section className="ksection" id="valores" data-testid="landing-prices">
+        <h2 className="ktitle reveal">{PRICES_COPY[lang].title}</h2>
+        <p
+          className="ksub reveal locale-copy"
+          data-copy-a={PRICES_COPY[lang === "pt" ? "en" : "pt"].sub}
+          data-copy-b={PRICES_COPY[lang === "es" ? "en" : "es"].sub}
+        >
+          <span>{PRICES_COPY[lang].sub}</span>
+        </p>
+        <div className="price-grid">
+          {PRICES_COPY[lang].groups.map((group) => (
+            <div className="price-card reveal" key={group.title}>
+              <h3>{group.title}</h3>
+              <p className="price-lead">{group.lead}</p>
+              <dl>
+                {group.rows.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="price-note">{group.note}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* NOSSA PROMESSA — logo abaixo dos livros */}
       <section className="ksection promise-section" id="promessa">
         <h2 className="ktitle reveal promise-heading">
@@ -3563,7 +3691,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
                   />
                 </span>
-                <figcaption data-testid={copy === 0 ? `landing-review-name-${i}` : undefined}>{b.name}</figcaption>
               </figure>
             )))}
           </div>

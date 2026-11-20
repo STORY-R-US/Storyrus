@@ -6,7 +6,10 @@ for (const lang of ["pt", "en", "es"]) {
     await page.route(/https:\/\/ipapi\.co\//, (route) => route.abort());
     await page.goto("/catalogo");
     await expect(page.getByTestId("landing-catalog-card")).toHaveCount(12);
-    await page.getByTestId("catalog-category").selectOption("aventuras-sport");
+    await expect(page.getByTestId("catalog-category")).toHaveCount(0);
+    await page.goto("/");
+    await page.goto("/catalogo#aventuras-sport");
+    await expect(page.locator(".catalog-sub-title")).toHaveAttribute("id", "aventuras-sport");
     await expect(page.locator('a[href="/livro/53"]')).toHaveCount(2);
     const images = page.locator(".cat-book img");
     await images.evaluateAll((items) => items.forEach((item) => (item as HTMLImageElement).loading = "eager"));
@@ -29,7 +32,7 @@ test("ordem da vitrine", async ({ page }) => {
   await expect(links).toHaveCount(52);
   await expect(catalog.locator('.cat-book-link[href="/livro/62"]')).toHaveCount(1);
   await expect(catalog.locator('.cat-book-link[href="/livro/63"]')).toHaveCount(1);
-  expect((await links.evaluateAll((items) => items.map((item) => item.getAttribute("href")))).slice(0, 12)).toEqual([25, 26, 27, 21, 30, 22, 20, 38, 47, 0, 36, 53].map((id) => `/livro/${id}`));
+  expect((await links.evaluateAll((items) => items.map((item) => item.getAttribute("href")))).slice(0, 12)).toEqual([21, 30, 22, 20, 38, 47, 0, 36, 53, 28, 34, 57].map((id) => `/livro/${id}`));
 });
 
 test("vitrine em desktop e celular", async ({ page }) => {

@@ -24,7 +24,7 @@ for (const lang of ["pt", "en", "es"]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       if (lang === "pt") await page.screenshot({ path: `test-results/banner-dinosaurs-${width}.png` });
       await dinosaurs.click();
-      await expect(page.getByTestId("catalog-category")).toHaveValue("aventuras-dinosaurs");
+      await expect(page.locator(".catalog-sub-title")).toHaveAttribute("id", "aventuras-dinosaurs");
       await expect(page.getByTestId("landing-catalog-card")).toHaveCount(2);
       await page.locator('a.cat-book-link[href="/livro/60"]').click();
       await expect(page.getByTestId("book-series-cover")).toBeVisible();
@@ -44,7 +44,7 @@ for (const lang of ["pt", "en", "es"]) {
       for (const id of [18, 60]) await expect(cartoonFeats.locator(`a[href="/livro/${id}?modo=cartoon"]`)).toBeVisible();
       const adventure = panel.locator('a[href="/catalogo?modo=cartoon#aventuras-adventure"]').first();
       await adventure.click();
-      await expect(page.getByTestId("catalog-category")).toHaveValue("aventuras-adventure");
+      await expect(page.locator(".catalog-sub-title")).toHaveAttribute("id", "aventuras-adventure");
       const adventureBooks = [2, 10, 14, 25, 33, 34];
       await expect(page.getByTestId("landing-catalog-card")).toHaveCount(adventureBooks.length);
       for (const id of adventureBooks) {
