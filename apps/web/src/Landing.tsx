@@ -219,7 +219,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   11: "cartoon-capa-maya.jpg",
   12: "covers/cartoon-capa-mako-v1-pt.webp",
   18: "covers/cartoon-capa-noe-v1-pt.webp",
-  19: "cartoon-capa-amordetia.png",
+  19: "covers/cartoon-capa-amor-tia-v1-pt.webp",
   20: "cartoon-capa-davi.png",
   21: "covers/cartoon-capa-meupai-heroi-v1-pt.webp",
   22: "cartoon-capa-enzo.jpg",
