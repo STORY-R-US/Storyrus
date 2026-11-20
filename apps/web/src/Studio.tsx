@@ -386,7 +386,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (!tema && !titulo && !historia) return;
     presetApplied.current = true;
     if (tema) setTemaId(tema);
-    if (q.get("tamanho") === "P" || q.get("tamanho") === "M") setBookSize(q.get("tamanho") as "M" | "P");
+    // O 15 × 15 cm saiu do site: links antigos com tamanho=P abrem em 20 × 20 cm.
+    setBookSize("M");
     const capa = (q.get("capa") || "").toLowerCase();
     if (capa === "soft" || capa === "hard") setCoverType(capa);
     if (q.get("modo") === "cartoon") setArtMode("cartoon");
@@ -1748,7 +1749,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <div className="studio-choice" role="group" aria-label={t.bookSize}>
               <span className="studio-choice-label">{t.bookSize}</span>
               <div className="studio-actions">
-                {(["M", "P"] as const).map((choice) => (
+                {(["M"] as const).map((choice) => (
                   <button
                     key={choice}
                     type="button"
@@ -1757,7 +1758,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     disabled={fieldsLocked}
                     onClick={() => setBookSize(choice)}
                   >
-                    {choice === "M" ? t.bookSizeM : t.bookSizeP}
+                    {t.bookSizeM}
                   </button>
                 ))}
               </div>

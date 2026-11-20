@@ -701,7 +701,7 @@ const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
 const HOME_CATALOG_ORDER = [
   21, 30, 22,
   20, 38, 47,
-  0, 68, 36, 53,
+  68, 0, 36,
   28, 34, 57,
   11, 12, 23,
   29, 46, 31,
@@ -723,14 +723,13 @@ const HOME_CATALOG_ORDER = [
 ];
 /** Última linha da vitrine: construtor, bombeiro e policial (antes era a primeira). */
 const HOME_CATALOG_LAST = [25, 26, 27];
+/** Fora da vitrine da página inicial (continua no catálogo e no menu): Brilho Que Fascina, Alma De Bailarina. */
+const HOME_VITRINE_HIDDEN = new Set([53]);
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
-}
-function catalogSizeChoice(size?: string): CatalogSizeChoice {
-  return size === "P" ? "P" : "M";
 }
 const VIDEO_IMGS = ["capa-meupai-heroi.png", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = [
@@ -2305,7 +2304,7 @@ function FlipBook({
   );
 }
 
-// M R$ 177 e P R$ 157. Extras e só digital: mesmos valores de PRICE_EXTRA_* e PRICE_DIGITAL_* (config.py / Render).
+// M (20 × 20 cm) R$ 177; o P (15 × 15 cm) saiu do site em 20/11/2026. Extras e só digital: mesmos valores de PRICE_EXTRA_* e PRICE_DIGITAL_* (config.py / Render).
 // Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
 const FORMAT_COPY: Record<Lang, {
   pages: string;
@@ -2370,7 +2369,7 @@ const PRICES_COPY: Record<Lang, { title: string; sub: string; groups: PriceGroup
       {
         title: "Livro Impresso",
         lead: "O livro físico, com 16 páginas.",
-        rows: [["15 × 15 cm", "R$ 157"], ["20 × 20 cm", "R$ 177"]],
+        rows: [["20 × 20 cm", "R$ 177"]],
         note: "Capa dura ou flexível pelo mesmo valor. O frete não está incluído.",
       },
       {
@@ -2394,7 +2393,7 @@ const PRICES_COPY: Record<Lang, { title: string; sub: string; groups: PriceGroup
       {
         title: "Printed Book",
         lead: "The physical book, with 16 pages.",
-        rows: [["15 × 15 cm", "$30.08"], ["20 × 20 cm", "$33.91"]],
+        rows: [["20 × 20 cm", "$33.91"]],
         note: "Hard or soft cover for the same price. Shipping is not included.",
       },
       {
@@ -2418,7 +2417,7 @@ const PRICES_COPY: Record<Lang, { title: string; sub: string; groups: PriceGroup
       {
         title: "Libro Impreso",
         lead: "El libro físico, con 16 páginas.",
-        rows: [["15 × 15 cm", "26,70 €"], ["20 × 20 cm", "30,10 €"]],
+        rows: [["20 × 20 cm", "30,10 €"]],
         note: "Tapa dura o blanda por el mismo precio. El envío no está incluido.",
       },
       {
@@ -2543,7 +2542,8 @@ export function CatalogBookCard({
   layout?: "card" | "page";
 }) {
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
-  const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice("M"));
+  // Só o 20 × 20 cm está à venda; o 15 × 15 cm saiu do site.
+  const size: CatalogSizeChoice = "M";
   const copy = FORMAT_COPY[lang];
   // As outras traduções ocupam o mesmo espaço (locale-copy), para o card ter a mesma altura nos três idiomas.
   const otherFormats = (["pt", "en", "es"] as const).filter((locale) => locale !== lang).map((locale) => FORMAT_COPY[locale]);
@@ -2567,26 +2567,14 @@ export function CatalogBookCard({
     <div className="cat-notes">
       <div className="cat-notes-sizes">
         <p className="cat-notes-lead">{copy.pages}</p>
-        {(["P", "M"] as const).map((choice) => (
-          <p key={choice} className="cat-note-line">
-            <span className="cat-opt">
-              <button
-                type="button"
-                className={size === choice ? "is-on" : ""}
-                aria-pressed={size === choice}
-                onClick={() => setSize(choice)}
-              >
-                {choice}
-              </button>
+        <p className="cat-note-line">
+          <span>
+            {copy.sizeM}:{" "}
+            <span className="is-price">
+              {book.catalogI === 58 ? "R$ 0,50" : copy.priceM}.
             </span>
-            <span>
-              {choice === "M" ? copy.sizeM : copy.sizeP}:{" "}
-              <span className={size === choice ? "is-price" : undefined}>
-                {book.catalogI === 58 ? "R$ 0,50" : choice === "M" ? copy.priceM : copy.priceP}.
-              </span>
-            </span>
-          </p>
-        ))}
+          </span>
+        </p>
         {book.catalogI !== 58 && (
           <p
             className="cat-note-extras locale-copy"
@@ -2949,7 +2937,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
           ? Boolean(CARTOON_COVER[i]) && Boolean(catalogCoverFile(i, "pt", "cartoon"))
-          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, "pt"))))
+          : !HOME_VITRINE_HIDDEN.has(i) && (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, "pt"))))
         .sort((a, b) => {
           const rank = (i: number) => {
             const order = HOME_CATALOG_ORDER;
