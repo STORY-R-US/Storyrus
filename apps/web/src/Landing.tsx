@@ -2538,6 +2538,8 @@ export function CatalogBookCard({
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice("M"));
   const copy = FORMAT_COPY[lang];
+  // As outras traduções ocupam o mesmo espaço (locale-copy), para o card ter a mesma altura nos três idiomas.
+  const otherFormats = (["pt", "en", "es"] as const).filter((locale) => locale !== lang).map((locale) => FORMAT_COPY[locale]);
   const pageCopy = BOOK_PAGE_COPY[lang];
   const flipLabels = {
     prev: I18N[lang].cf_prev,
@@ -2579,9 +2581,15 @@ export function CatalogBookCard({
           </p>
         ))}
         {book.catalogI !== 58 && (
-          <p className="cat-note-extras">
-            {copy.extras}{" "}
-            <a href="/#valores" data-testid="catalog-all-prices">{copy.allPrices}</a>
+          <p
+            className="cat-note-extras locale-copy"
+            data-copy-a={`${otherFormats[0].extras} ${otherFormats[0].allPrices}`}
+            data-copy-b={`${otherFormats[1].extras} ${otherFormats[1].allPrices}`}
+          >
+            <span>
+              {copy.extras}{" "}
+              <a href="/#valores" data-testid="catalog-all-prices">{copy.allPrices}</a>
+            </span>
           </p>
         )}
       </div>
@@ -3570,7 +3578,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       {/* VALORES — todos os preços num só lugar */}
       <section className="ksection" id="valores" data-testid="landing-prices">
         <h2 className="ktitle reveal">{PRICES_COPY[lang].title}</h2>
-        <p className="ksub reveal">{PRICES_COPY[lang].sub}</p>
+        <p
+          className="ksub reveal locale-copy"
+          data-copy-a={PRICES_COPY[lang === "pt" ? "en" : "pt"].sub}
+          data-copy-b={PRICES_COPY[lang === "es" ? "en" : "es"].sub}
+        >
+          <span>{PRICES_COPY[lang].sub}</span>
+        </p>
         <div className="price-grid">
           {PRICES_COPY[lang].groups.map((group) => (
             <div className="price-card reveal" key={group.title}>

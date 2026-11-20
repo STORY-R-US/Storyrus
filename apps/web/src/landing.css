@@ -1713,7 +1713,7 @@ img.ex-tab-cover {
 .cat-notes-sizes .cat-note-line span:last-child { display: inline; }
 .cat-notes-sizes .is-price { color: var(--yellow); font-weight: 800; }
 .cat-notes-sizes .cat-note-extras { margin: 6px 0 0; font-size: 0.86em; opacity: 0.9; }
-.cat-notes-sizes .cat-note-extras a { color: var(--yellow); font-weight: 700; text-underline-offset: 3px; white-space: nowrap; }
+.cat-notes-sizes .cat-note-extras a { color: var(--yellow); text-underline-offset: 3px; }
 [data-theme="light"] .kid .cat-notes-sizes .cat-note-extras a { color: #3F8FD8; }
 .cat-note-grid {
   display: grid;
