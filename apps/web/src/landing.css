@@ -3313,7 +3313,7 @@ img.ex-tab-cover {
 .catalog-filters { display: flex; flex-wrap: wrap; gap: 16px; margin: 24px 0 12px; text-align: left; }
 .catalog-filters label { display: grid; gap: 6px; flex: 1 1 250px; min-width: 0; font-weight: 700; }
 .catalog-filters input, .catalog-filters select { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid #455581; border-radius: 12px; padding: 12px; font: inherit; background: #182343; color: #e9eefb; }
-.catalog-count { text-align: left; color: #b9c8e7; }
+.catalog-count { text-align: left; color: #b9c8e7; margin-top: 24px; }
 .catalog-result { display: flex; min-width: 0; }
 .catalog-result > .cat-card { width: 100%; box-sizing: border-box; }
 .catalog-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 24px; }

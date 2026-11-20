@@ -947,7 +947,6 @@ describe("Landing — CTAs e links", () => {
 
 describe("Catálogo e página do livro", () => {
   it("abre o catálogo completo agrupado e a página do livro", async () => {
-    const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/catalogo"]}>
         <AppRoutes />
@@ -965,10 +964,9 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(12);
-    await user.selectOptions(screen.getByTestId("catalog-category"), "educativo");
-    expect(await screen.findByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("catalog-category")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByTestId("catalog-category"), { target: { value: "" } });
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
     const links = [...document.querySelectorAll(".cat-book-link")].map((a) => a.getAttribute("href"));
     expect(new Set(links).size).toBe(links.length);

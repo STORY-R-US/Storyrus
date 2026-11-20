@@ -4,9 +4,9 @@ import type { CatalogCardBook, catalogSections } from "./Landing";
 import type { Lang } from "./i18n/lang";
 
 const COPY = {
-  pt: { category: "Categoria", all: "Todas as categorias", more: "Mostrar mais livros", count: "livros encontrados", empty: "Nenhum livro disponível nesta seleção.", reset: "Limpar filtros", catalog: "Ver todo o catálogo", create: "Criar minha história" },
-  en: { category: "Category", all: "All categories", more: "Show more books", count: "books found", empty: "No books available in this selection.", reset: "Clear filters", catalog: "View the full catalog", create: "Create my story" },
-  es: { category: "Categoría", all: "Todas las categorías", more: "Mostrar más libros", count: "libros encontrados", empty: "No hay libros disponibles en esta selección.", reset: "Borrar filtros", catalog: "Ver todo el catálogo", create: "Crear mi historia" },
+  pt: { more: "Mostrar mais livros", count: "livros encontrados", empty: "Nenhum livro disponível nesta seleção.", reset: "Limpar filtros", catalog: "Ver todo o catálogo", create: "Criar minha história" },
+  en: { more: "Show more books", count: "books found", empty: "No books available in this selection.", reset: "Clear filters", catalog: "View the full catalog", create: "Create my story" },
+  es: { more: "Mostrar más libros", count: "libros encontrados", empty: "No hay libros disponibles en esta selección.", reset: "Borrar filtros", catalog: "Ver todo el catálogo", create: "Crear mi historia" },
 };
 
 /** One inventory, shared by all locales; pagination never repeats a book. */
@@ -29,12 +29,6 @@ export function CatalogBrowser({ books, sections = [], hash = "", lang, renderBo
   const unique = [...new Map((selected?.books ?? books).map((book) => [book.catalogI ?? book.t, book])).values()];
   const matches = unique;
   return <div className="catalog-browser">
-    <div className="catalog-filters">
-      {sections.length > 0 && <label><select aria-label={t.category} value={selected?.id ?? ""} onChange={(event) => { setGroup(event.target.value); setLimit(12); }} data-testid="catalog-category">
-        <option value="">{t.all}</option>
-        {options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
-      </select></label>}
-    </div>
     {selected && <h2 className="catalog-sub-title" id={selected.id}>{selected.name}</h2>}
     <p className="catalog-count" role="status">{matches.length} {t.count}</p>
     {matches.length ? <div className="cat-grid">{matches.slice(0, limit).map((book) => <div className="catalog-result" key={book.catalogI ?? book.t}>{renderBook(book)}</div>)}</div> : <p className="kcat-empty">{t.empty}</p>}

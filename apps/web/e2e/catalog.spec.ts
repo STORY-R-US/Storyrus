@@ -6,7 +6,10 @@ for (const lang of ["pt", "en", "es"]) {
     await page.route(/https:\/\/ipapi\.co\//, (route) => route.abort());
     await page.goto("/catalogo");
     await expect(page.getByTestId("landing-catalog-card")).toHaveCount(12);
-    await page.getByTestId("catalog-category").selectOption("aventuras-sport");
+    await expect(page.getByTestId("catalog-category")).toHaveCount(0);
+    await page.goto("/");
+    await page.goto("/catalogo#aventuras-sport");
+    await expect(page.locator(".catalog-sub-title")).toHaveAttribute("id", "aventuras-sport");
     await expect(page.locator('a[href="/livro/53"]')).toHaveCount(2);
     const images = page.locator(".cat-book img");
     await images.evaluateAll((items) => items.forEach((item) => (item as HTMLImageElement).loading = "eager"));
