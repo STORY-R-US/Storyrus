@@ -268,7 +268,7 @@ export function PrintCheckout({
             }}
           >
             <option value="M">20 × 20 cm</option>
-            <option value="P">15 × 15 cm</option>
+            {order.book_size === "P" && <option value="P">15 × 15 cm</option>}
           </select>
         </label>
         <label>

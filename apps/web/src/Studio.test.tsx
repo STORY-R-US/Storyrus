@@ -317,7 +317,8 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/nome do pai/i)).toHaveValue("");
     expect(screen.getByLabelText(/idade do pai/i)).toHaveValue(null);
     expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /15 × 15 cm/i, pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /15 × 15 cm/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /20 × 20 cm/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /capa flexível/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
     expect(screen.queryByLabelText(/^quantidade de livros$/i)).not.toBeInTheDocument();
