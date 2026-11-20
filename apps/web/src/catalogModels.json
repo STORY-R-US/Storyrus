@@ -507,8 +507,8 @@
     "id": "catalog-cartoon-23",
     "catalog_index": 23,
     "style": "cartoon",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Lucas E Seu Amigo Max",
       "en": "Lucas And His Friend Max",
@@ -516,9 +516,9 @@
     },
     "example_name": "Lucas",
     "sources": {
-      "cover": "cartoon-capa-lucas.png",
-      "page": "",
-      "holding": ""
+      "cover": "covers/cartoon-capa-lucas-max-v1-pt.webp",
+      "page": "cartoon-pagina-lucas-max-v1-pt.webp",
+      "holding": "cartoon-foto-lucas-max-v1-pt.webp"
     }
   },
   "catalog-realistic-24": {
