@@ -500,7 +500,7 @@ a.kcat-group-name.is-chip:focus-visible {
   justify-content: center;
   width: 100%;
   /* Media geometry depends on the viewport, never translated text. */
-  max-width: 848px;
+  max-width: 1080px;
   margin: 8px auto 0;
   padding: 14px 0 16px;
   box-sizing: border-box;

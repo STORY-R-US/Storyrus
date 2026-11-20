@@ -694,9 +694,8 @@ const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58, 61]);
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
 const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]);
-/** Vitrine em linhas de 3: heróis, família, fé e esportes; depois capas da mesma família de cor. */
+/** Vitrine em linhas de 3: família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
-  25, 26, 27,
   21, 30, 22,
   20, 38, 47,
   0, 36, 53,
@@ -719,6 +718,8 @@ const HOME_CATALOG_ORDER = [
   66,
   67,
 ];
+/** Última linha da vitrine: construtor, bombeiro e policial (antes era a primeira). */
+const HOME_CATALOG_LAST = [25, 26, 27];
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
@@ -2832,10 +2833,12 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
 
 export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?: "father" | "studio" | "cartoon" }) {
   const t = I18N[lang];
-  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-pagina-matteo.jpg" : "pagina-mamaepapaimatteo.jpg", lang);
+  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-capa-bisavo.jpg" : "pagina-mamaepapaimatteo.jpg", lang);
   const passoImgs = example === "father"
     ? ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", passoBook]
-    : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
+    : example === "cartoon"
+      ? ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", passoBook]
+      : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
   const framing = example !== "father" && import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   return (
       <section className="ksection ksection-como" id="passo">
@@ -2943,6 +2946,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         .sort((a, b) => {
           const rank = (i: number) => {
             const order = HOME_CATALOG_ORDER;
+            const last = HOME_CATALOG_LAST.indexOf(i);
+            if (last !== -1) return 10000 + last;
             const lead = order.indexOf(i);
             return lead === -1 ? order.length + i : lead;
           };
@@ -3685,7 +3690,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
                   />
                 </span>
-                <figcaption data-testid={copy === 0 ? `landing-review-name-${i}` : undefined}>{b.name}</figcaption>
               </figure>
             )))}
           </div>

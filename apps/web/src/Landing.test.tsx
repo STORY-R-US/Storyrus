@@ -162,11 +162,8 @@ describe("Landing — avaliações", () => {
     fotos.forEach((file, i) => {
       expect(within(reviews).getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
     });
-    expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
-    expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Nicolas$/);
-    expect(within(reviews).getByTestId("landing-review-name-2")).toHaveTextContent(/^Emilia$/);
-    expect(within(reviews).getByTestId("landing-review-name-10")).toHaveTextContent(/^Raquel$/);
-    expect(within(reviews).getByTestId("landing-review-name-14")).toHaveTextContent(/^Noé$/);
+    expect(reviews.querySelector(".rev-photo figcaption")).toBeNull();
+    expect(within(reviews).queryByText(/^Martin$/)).not.toBeInTheDocument();
     expect(within(reviews).queryByTestId("landing-review-cover-15")).not.toBeInTheDocument();
     expect(within(reviews).queryByTestId("landing-review-cover-16")).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/^Abigail$/)).not.toBeInTheDocument();
@@ -189,7 +186,6 @@ describe("Landing — avaliações", () => {
     expect(within(reviews).getByText(/grandma saw herself in the book/i)).toBeInTheDocument();
     expect(within(reviews).getByText("Helena V.")).toBeInTheDocument();
     expect(within(reviews).queryByText(/a vovó se viu no livro/i)).not.toBeInTheDocument();
-    expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
     expect(within(reviews).getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("localized/foto-martin-goleiro-en.webp"));
     expect([...reviews.querySelectorAll("img")].some((img) => (img.getAttribute("src") ?? "").includes("foto-martin-goleiro"))).toBe(true);
     expect([...reviews.querySelectorAll("img")].some((img) => (img.getAttribute("src") ?? "").includes("foto-mamaepapaimatteo-en.jpg"))).toBe(false);
@@ -267,18 +263,18 @@ describe("Landing — catálogo", () => {
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
       expect(within(card).queryByText(/amizade e cuidado/i)).not.toBeInTheDocument();
     });
-    expect(within(cards[0]).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
-    expect(within(cards[1]).getByText("Meu Herói Favorito, O Bombeiro")).toBeInTheDocument();
-    expect(within(cards[2]).getByText("Meu Herói Favorito, O Policial")).toBeInTheDocument();
-    expect(within(cards[3]).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
-    expect(within(cards[4]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
-    expect(within(cards[5]).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
-    expect(within(cards[6]).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
-    expect(within(cards[7]).getByText("Amem-se Sinceramente Uns Aos Outros")).toBeInTheDocument();
-    expect(within(cards[8]).getByText(/Tomé Duvidou/i)).toBeInTheDocument();
-    expect(within(cards[9]).getByText(/Martin, O Grande Goleiro/i)).toBeInTheDocument();
-    expect(within(cards[10]).getByText(/Maria Jesus E A Disciplina No Hockey/i)).toBeInTheDocument();
-    expect(within(cards[11]).getByText("Brilho Que Fascina, Alma De Bailarina")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
+    expect(within(cards[1]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
+    expect(within(cards[2]).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
+    expect(within(cards[3]).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
+    expect(within(cards[4]).getByText("Amem-se Sinceramente Uns Aos Outros")).toBeInTheDocument();
+    expect(within(cards[5]).getByText(/Tomé Duvidou/i)).toBeInTheDocument();
+    expect(within(cards[6]).getByText(/Martin, O Grande Goleiro/i)).toBeInTheDocument();
+    expect(within(cards[7]).getByText(/Maria Jesus E A Disciplina No Hockey/i)).toBeInTheDocument();
+    expect(within(cards[8]).getByText("Brilho Que Fascina, Alma De Bailarina")).toBeInTheDocument();
+    expect(within(cards[cards.length - 3]).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
+    expect(within(cards[cards.length - 2]).getByText("Meu Herói Favorito, O Bombeiro")).toBeInTheDocument();
+    expect(within(cards[cards.length - 1]).getByText("Meu Herói Favorito, O Policial")).toBeInTheDocument();
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
     expect(within(catalog).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
@@ -895,13 +891,13 @@ describe("Landing — CTAs e links", () => {
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
     expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["passo-protagonista-v2.webp", "passo-familia-v2.webp", "cartoon-pagina-matteo.jpg"]) {
+    for (const file of ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", "cartoon-capa-bisavo.jpg"]) {
       expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
-    const cards = within(catalog).getAllByTestId("landing-catalog-card");
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
+    const cards = within(catalog).getAllByTestId("landing-catalog-card").slice(-3);
     expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(57);
     expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining(localizedExample("cartoon-capa-pedro-amem-se.png", "pt")));
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();

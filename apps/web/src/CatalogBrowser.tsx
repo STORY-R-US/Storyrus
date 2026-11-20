@@ -30,7 +30,7 @@ export function CatalogBrowser({ books, sections = [], hash = "", lang, renderBo
   const matches = unique;
   return <div className="catalog-browser">
     <div className="catalog-filters">
-      {sections.length > 0 && <label>{t.category}<select value={selected?.id ?? ""} onChange={(event) => { setGroup(event.target.value); setLimit(12); }} data-testid="catalog-category">
+      {sections.length > 0 && <label><select aria-label={t.category} value={selected?.id ?? ""} onChange={(event) => { setGroup(event.target.value); setLimit(12); }} data-testid="catalog-category">
         <option value="">{t.all}</option>
         {options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
       </select></label>}
