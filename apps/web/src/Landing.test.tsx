@@ -330,7 +330,18 @@ describe("Landing — catálogo", () => {
 
     expect(within(card).getByText("R$ 177,00.")).toHaveClass("is-price");
     expect(within(card).getByText("R$ 157,00.")).not.toHaveClass("is-price");
-    expect(card.textContent).toContain("+ E-book R$ 29 · + História animada R$ 89 · Só digital a partir de R$ 119.");
+    expect(card.textContent).toContain("Valor do livro impresso, sem o frete. E-book e história animada são opcionais.");
+    expect(within(card).getByTestId("catalog-all-prices")).toHaveAttribute("href", "/#valores");
+    const prices = screen.getByTestId("landing-prices");
+    expect(within(prices).getByRole("heading", { name: "Valores" })).toBeInTheDocument();
+    expect(within(prices).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Livro Impresso",
+      "Impresso + Digital",
+      "Só Digital",
+    ]);
+    for (const value of ["R$ 157", "R$ 177", "+ R$ 29", "+ R$ 89", "+ R$ 99", "R$ 119", "R$ 209", "R$ 219"]) {
+      expect(within(prices).getByText(value)).toBeInTheDocument();
+    }
 
     await user.click(within(card).getByRole("button", { name: "P" }));
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
@@ -741,7 +752,7 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     await screen.findByTestId("landing-hero-title");
 
-    const order = ["como", "passo", "catalogo", "promessa", "videos", "reviews", "faq"];
+    const order = ["como", "passo", "catalogo", "valores", "promessa", "videos", "reviews", "faq"];
     const nodes = order.map((id) => document.getElementById(id));
     expect(nodes.every(Boolean)).toBe(true);
     for (let i = 0; i < nodes.length - 1; i++) {

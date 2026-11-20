@@ -1477,7 +1477,7 @@ const I18N = {
       { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
       { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
       { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto que você envia apenas para criar o livro e não compartilhamos seus dados. Os exemplos da página inicial são demonstrações, separados do que você envia." },
-      { q: "Recebo digital ou impresso?", a: "Você escolhe no pedido. No impresso, o e-book em PDF (+ R$ 29) e a história animada (+ R$ 89) são opcionais; os dois juntos saem por + R$ 99. Se preferir só o digital, sem impressão e sem frete, é a partir de R$ 119." },
+      { q: "Recebo digital ou impresso?", a: "Você escolhe no pedido: só o livro impresso, o impresso com a versão digital (e-book em PDF e história animada em vídeo) ou só a versão digital, sem impressão e sem frete. O preço de cada opção está na seção Valores, logo abaixo dos livros." },
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
       { q: "O que é a história animada?", a: "Cada página do seu livro ganha movimento, da capa à contracapa, num vídeo de cerca de 1 minuto e meio, pronto para o WhatsApp e as redes. Você não precisa fazer nada: ele fica pronto sozinho depois que você aprova o livro completo." },
     ],
@@ -1736,7 +1736,7 @@ const I18N = {
       { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
       { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
       { q: "Are my child's photo and data safe?", a: "Yes. We use the photo you upload only to create the book and never share your data. Homepage examples are demos, separate from what you send." },
-      { q: "Digital or printed?", a: "You choose when you order. With the printed book, the PDF e-book (+ $5.56) and the animated story (+ $17.05) are optional; both together are + $18.97. If you prefer digital only, with no printing and no shipping, it starts at $22.80." },
+      { q: "Digital or printed?", a: "You choose when you order: the printed book alone, the printed book with the digital version (PDF e-book and animated story video) or digital only, with no printing and no shipping. The price of each option is in the Prices section, right below the books." },
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
       { q: "What is the animated story?", a: "Every page of your book comes to life, from the front cover to the back, in a video of about a minute and a half, ready for WhatsApp and social media. You don't need to do anything: it is ready on its own after you approve the complete book." },
     ],
@@ -1995,7 +1995,7 @@ const I18N = {
       { q: "¿Cómo creo un libro personalizado?", a: "Elige un tema, envía una foto del niño y agrega el nombre y una dedicatoria. La IA transforma la foto en ilustraciones y ves la vista previa antes de finalizar." },
       { q: "¿Puedo ver el libro antes?", a: "¡Sí! Recibes una vista previa completa (portada y páginas) antes de descargar o pedir la impresión." },
       { q: "¿La foto y los datos del niño están seguros?", a: "Sí. Usamos la foto que envías solo para crear el libro y no compartimos tus datos. Los ejemplos de la página inicial son demostraciones, separados de lo que tú envías." },
-      { q: "¿Recibo digital o impreso?", a: "Eliges en el pedido. Con el impreso, el e-book en PDF (+ 4,93 €) y la historia animada (+ 15,14 €) son opcionales; los dos juntos cuestan + 16,84 €. Si prefieres solo digital, sin impresión y sin envío, es desde 20,24 €." },
+      { q: "¿Recibo digital o impreso?", a: "Eliges en el pedido: solo el libro impreso, el impreso con la versión digital (e-book en PDF e historia animada en video) o solo la versión digital, sin impresión y sin envío. El precio de cada opción está en la sección Precios, justo debajo de los libros." },
       { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
       { q: "¿Qué es la historia animada?", a: "Cada página de tu libro cobra vida, de la portada a la contraportada, en un video de cerca de un minuto y medio, listo para WhatsApp y redes sociales. No tienes que hacer nada: queda lista sola después de aprobar el libro completo." },
     ],
@@ -2309,6 +2309,7 @@ const FORMAT_COPY: Record<Lang, {
   priceM: string;
   priceP: string;
   extras: string;
+  allPrices: string;
   hardText: string;
   softText: string;
 }> = {
@@ -2320,7 +2321,8 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "R$ 177,00",
     priceP: "R$ 157,00",
-    extras: "+ E-book R$ 29 · + História animada R$ 89 · Só digital a partir de R$ 119",
+    extras: "Valor do livro impresso, sem o frete. E-book e história animada são opcionais.",
+    allPrices: "Ver todos os valores",
     hardText: "Resistente e durável. Utilizada em edições especiais ou colecionáveis.",
     softText: "Leve e flexível. Comum em livros e edições econômicas.",
   },
@@ -2332,7 +2334,8 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "$33.91",
     priceP: "$30.08",
-    extras: "+ E-book $5.56 · + Animated story $17.05 · Digital only from $22.80",
+    extras: "Printed book price, shipping not included. E-book and animated story are optional.",
+    allPrices: "See all prices",
     hardText: "Sturdy and durable. Used for special or collectible editions.",
     softText: "Light and flexible. Common in books and economical editions.",
   },
@@ -2344,9 +2347,86 @@ const FORMAT_COPY: Record<Lang, {
     sizeP: "15 × 15 cm",
     priceM: "30,10 €",
     priceP: "26,70 €",
-    extras: "+ E-book 4,93 € · + Historia animada 15,14 € · Digital desde 20,24 €",
+    extras: "Precio del libro impreso, sin el envío. El e-book y la historia animada son opcionales.",
+    allPrices: "Ver todos los precios",
     hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Ligera y flexible. Común en libros y ediciones económicas.",
+  },
+};
+// Seção "Valores" da landing: os mesmos preços de FORMAT_COPY e de PRICE_EXTRA_* / PRICE_DIGITAL_* (config.py / Render).
+type PriceGroup = { title: string; lead: string; rows: [string, string][]; note: string };
+const PRICES_COPY: Record<Lang, { title: string; sub: string; groups: PriceGroup[] }> = {
+  pt: {
+    title: "Valores",
+    sub: "Você vê a prévia e a história antes de pagar. Escolha uma das três formas de receber.",
+    groups: [
+      {
+        title: "Livro Impresso",
+        lead: "O livro físico, com 16 páginas.",
+        rows: [["15 × 15 cm", "R$ 157"], ["20 × 20 cm", "R$ 177"]],
+        note: "Capa dura ou flexível pelo mesmo valor. O frete não está incluído.",
+      },
+      {
+        title: "Impresso + Digital",
+        lead: "Some a versão digital ao livro impresso.",
+        rows: [["E-book (o livro em PDF)", "+ R$ 29"], ["História animada (o livro em vídeo)", "+ R$ 89"], ["Os dois", "+ R$ 99"]],
+        note: "É opcional e você escolhe na hora do pedido.",
+      },
+      {
+        title: "Só Digital",
+        lead: "Sem livro impresso e sem frete.",
+        rows: [["E-book (o livro em PDF)", "R$ 119"], ["História animada (o livro em vídeo)", "R$ 209"], ["Os dois", "R$ 219"]],
+        note: "Sem o livro impresso, o valor já inclui a criação do livro.",
+      },
+    ],
+  },
+  en: {
+    title: "Prices",
+    sub: "You see the preview and the story before paying. Choose one of three ways to receive it.",
+    groups: [
+      {
+        title: "Printed Book",
+        lead: "The physical book, with 16 pages.",
+        rows: [["15 × 15 cm", "$30.08"], ["20 × 20 cm", "$33.91"]],
+        note: "Hard or soft cover for the same price. Shipping is not included.",
+      },
+      {
+        title: "Printed + Digital",
+        lead: "Add the digital version to the printed book.",
+        rows: [["E-book (the book as a PDF)", "+ $5.56"], ["Animated story (the book as a video)", "+ $17.05"], ["Both", "+ $18.97"]],
+        note: "It is optional and you choose when you order.",
+      },
+      {
+        title: "Digital Only",
+        lead: "No printed book and no shipping.",
+        rows: [["E-book (the book as a PDF)", "$22.80"], ["Animated story (the book as a video)", "$40.04"], ["Both", "$41.95"]],
+        note: "Without the printed book, the price already includes creating the book.",
+      },
+    ],
+  },
+  es: {
+    title: "Precios",
+    sub: "Ves la vista previa y la historia antes de pagar. Elige una de las tres formas de recibirlo.",
+    groups: [
+      {
+        title: "Libro Impreso",
+        lead: "El libro físico, con 16 páginas.",
+        rows: [["15 × 15 cm", "26,70 €"], ["20 × 20 cm", "30,10 €"]],
+        note: "Tapa dura o blanda por el mismo precio. El envío no está incluido.",
+      },
+      {
+        title: "Impreso + Digital",
+        lead: "Suma la versión digital al libro impreso.",
+        rows: [["E-book (el libro en PDF)", "+ 4,93 €"], ["Historia animada (el libro en video)", "+ 15,14 €"], ["Los dos", "+ 16,84 €"]],
+        note: "Es opcional y lo eliges al hacer el pedido.",
+      },
+      {
+        title: "Solo Digital",
+        lead: "Sin libro impreso y sin envío.",
+        rows: [["E-book (el libro en PDF)", "20,24 €"], ["Historia animada (el libro en video)", "35,54 €"], ["Los dos", "37,24 €"]],
+        note: "Sin el libro impreso, el precio ya incluye la creación del libro.",
+      },
+    ],
   },
 };
 export type CatalogCardBook = {
@@ -2498,7 +2578,12 @@ export function CatalogBookCard({
             </span>
           </p>
         ))}
-        {book.catalogI !== 58 && <p className="cat-note-extras">{copy.extras}.</p>}
+        {book.catalogI !== 58 && (
+          <p className="cat-note-extras">
+            {copy.extras}{" "}
+            <a href="/#valores" data-testid="catalog-all-prices">{copy.allPrices}</a>
+          </p>
+        )}
       </div>
       <div className="cat-note-grid">
         {(["hard", "soft"] as const).map((choice) => (
@@ -3480,6 +3565,29 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <CatalogBookCard book={book} lang={lang} personalize={t.personalize}
             modo={variant === "cartoon" ? "cartoon" : "realista"} />
         )} />
+      </section>
+
+      {/* VALORES — todos os preços num só lugar */}
+      <section className="ksection" id="valores" data-testid="landing-prices">
+        <h2 className="ktitle reveal">{PRICES_COPY[lang].title}</h2>
+        <p className="ksub reveal">{PRICES_COPY[lang].sub}</p>
+        <div className="price-grid">
+          {PRICES_COPY[lang].groups.map((group) => (
+            <div className="price-card reveal" key={group.title}>
+              <h3>{group.title}</h3>
+              <p className="price-lead">{group.lead}</p>
+              <dl>
+                {group.rows.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="price-note">{group.note}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* NOSSA PROMESSA — logo abaixo dos livros */}

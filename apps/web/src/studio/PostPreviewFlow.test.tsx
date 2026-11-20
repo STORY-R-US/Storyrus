@@ -293,7 +293,8 @@ describe("continuação da prévia", () => {
     render(<Harness initial={approved} />);
     await user.click(await screen.findByRole("checkbox", { name: /e-book em pdf/i }));
     expect(choose).toHaveBeenCalledWith("p1", { fulfillment: "print", ebook: true, video: false });
-    expect(await screen.findByText("Extras")).toBeInTheDocument();
+    expect(await screen.findByText("E-book em PDF")).toBeInTheDocument();
+    expect(screen.getByText("Levando os dois, sai por + R$ 59,00 em vez de + R$ 68,00.")).toBeInTheDocument();
     expect(screen.getByText("R$ 206,00")).toBeInTheDocument();
     await user.click(screen.getByRole("radio", { name: /só digital/i }));
     expect(choose).toHaveBeenLastCalledWith("p1", { fulfillment: "digital", ebook: true, video: false });
