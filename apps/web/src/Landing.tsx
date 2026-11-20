@@ -225,7 +225,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   22: "cartoon-capa-enzo.jpg",
   23: "covers/cartoon-capa-lucas-max-v1-pt.webp",
   30: "covers/cartoon-capa-amor-avo-v1-pt.webp",
-  33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
+  33: "covers/cartoon-capa-aventura-v1-pt.webp",
   38: "covers/cartoon-capa-amem-se-v1-pt.webp",
   39: { pt: "cartoon-capa-meus-sobrinhos.png", en: "cartoon-capa-meus-sobrinhos-en.png", es: "cartoon-capa-meus-sobrinhos-es.png" },
   40: { pt: "cartoon-capa-tio-favorito.png", en: "cartoon-capa-tio-favorito-en.png", es: "cartoon-capa-tio-favorito-es.png" },
@@ -363,10 +363,12 @@ const CATALOG_IMGS: CatalogImg[] = [
   "covers/realistic-capa-nina-boa-noite-v1-pt.webp",
   "covers/realistic-capa-theo-sentimentos-v1-pt.webp",
   "covers/realistic-capa-clara-miguel-casamento-v1-pt.webp",
+  "covers/realistic-capa-davi-brasil-v1-pt.webp",
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
 const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
+  68: { cover: "covers/realistic-capa-davi-brasil-v1-pt.webp", page: "realistic-pagina-davi-brasil-v1-pt.webp", photo: "realistic-foto-davi-brasil-v1-pt.webp" },
   35: { cover: "covers/realistic-capa-gael-economia-v1-pt.webp", page: "realistic-pagina-gael-economia-v1-pt.webp", photo: "realistic-foto-gael-economia-v1-pt.webp" },
   0: { cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", photo: "foto-martin-goleiro.jpg" },
   1: { cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", photo: "foto-emilia-bailarina.jpg" },
@@ -685,6 +687,7 @@ const CATALOG_THEMES = [
   "rotina_dormir",
   "literacia_emocional",
   "casamento",
+  "sport",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
@@ -693,12 +696,12 @@ const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58, 61]);
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68]);
 /** Vitrine em linhas de 3: família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   21, 30, 22,
   20, 38, 47,
-  0, 36, 53,
+  0, 68, 36, 53,
   28, 34, 57,
   11, 12, 23,
   29, 46, 31,
@@ -1464,6 +1467,7 @@ const I18N = {
       { t: "Boa Noite, Lua! Boa Noite, Nina!", p: "Nina guarda seu livro, dá boa-noite ao quarto e abraça seu coelhinho para se aconchegar e descansar.", cover: "Hard", size: "M", tag: "Hora de Dormir", quote: "Um abraço no coelhinho, um sonho a caminho." },
       { t: "Theo e as Cores do Coração", p: "Quando sua pipa rasga, Theo aprende a contar o que sente, pedir ajuda e encontrar a calma para voltar a brincar.", cover: "Hard", size: "M", tag: "Sentimentos", quote: "Falar do que sentimos abre espaço para um novo sorriso." },
       { t: "Clara e Miguel, Nosso Sim para Sempre", p: "Clara e Miguel celebram seu casamento em um jardim, guardando os votos, os abraços e os sonhos que querem construir juntos.", cover: "Hard", size: "M", tag: "Casamento", quote: "Um sim, um abraço, uma história para construir juntos." },
+      {"t": "Davi, o Craque do Brasil", "p": "Davi treina no estádio, respeita os amigos e descobre que cada passe e cada gesto de união fazem o time crescer.", "cover": "Hard", "size": "M", "tag": "Futebol", "quote": "Com dedicação e união, o time joga com o coração."},
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1723,6 +1727,7 @@ const I18N = {
       { t: "Good Night, Moon! Good Night, Nina!", p: "Nina puts her book away, says good night to her room and hugs her little bunny as she settles down to rest.", cover: "Hard", size: "M", tag: "Bedtime", quote: "A bunny held tight, a dream for the night." },
       { t: "Theo and the Colors of the Heart", p: "When his kite tears, Theo learns to say how he feels, ask for help and find the calm he needs to play again.", cover: "Hard", size: "M", tag: "Feelings", quote: "Sharing how we feel makes room for a new smile." },
       { t: "Clara and Miguel, Our Forever Yes", p: "Clara and Miguel celebrate their wedding in a garden, treasuring their vows, warm embraces and the dreams they want to build together.", cover: "Hard", size: "M", tag: "Wedding", quote: "A yes, an embrace, a story to build together." },
+      {"t": "Davi, Brazil’s Soccer Star", "p": "Davi trains at the stadium, respects his friends and discovers how every pass and act of teamwork helps the team grow.", "cover": "Hard", "size": "M", "tag": "Soccer", "quote": "With dedication and teamwork, the team plays with heart."},
     ],
     promise_title: "A Personalized Gift to Preserve Unforgettable Moments.",
     promise_sub: "From the photo to the final preview, every detail is created with care, bringing a unique gift to life to treasure forever.",
@@ -1982,6 +1987,7 @@ const I18N = {
       { t: "¡Buenas Noches, Luna! ¡Buenas Noches, Nina!", p: "Nina guarda su libro, da las buenas noches a su cuarto y abraza a su conejito para acomodarse y descansar.", cover: "Hard", size: "M", tag: "Hora de Dormir", quote: "Un abrazo al conejito, un sueño suavecito." },
       { t: "Theo y los Colores del Corazón", p: "Cuando se rompe su cometa, Theo aprende a contar lo que siente, pedir ayuda y recuperar la calma para volver a jugar.", cover: "Hard", size: "M", tag: "Sentimientos", quote: "Contar lo que sentimos abre espacio para una nueva sonrisa." },
       { t: "Clara y Miguel, Nuestro Sí para Siempre", p: "Clara y Miguel celebran su boda en un jardín, atesorando sus votos, los abrazos y los sueños que quieren construir juntos.", cover: "Hard", size: "M", tag: "Boda", quote: "Un sí, un abrazo, una historia para construir juntos." },
+      {"t": "Davi, el Crack de Brasil", "p": "Davi entrena en el estadio, respeta a sus amigos y descubre que cada pase y cada gesto de unión ayudan al equipo a crecer.", "cover": "Hard", "size": "M", "tag": "Fútbol", "quote": "Con dedicación y unión, el equipo juega con el corazón."},
     ],
     promise_title: "Un Regalo Personalizado Para Eternizar Momentos Inolvidables.",
     promise_sub: "De la foto a la vista previa final, cada detalle se crea con cariño, dando vida a un regalo único para toda la vida.",

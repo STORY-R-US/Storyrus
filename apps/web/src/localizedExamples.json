@@ -1430,5 +1430,29 @@
   "cartoon-foto-amem-se-v1-pt.webp": {
     "en": "cartoon-foto-amem-se-v1-en.webp",
     "es": "cartoon-foto-amem-se-v1-es.webp"
+  },
+  "covers/cartoon-capa-aventura-v1-pt.webp": {
+    "en": "covers/cartoon-capa-aventura-v1-en.webp",
+    "es": "covers/cartoon-capa-aventura-v1-es.webp"
+  },
+  "cartoon-pagina-aventura-v1-pt.webp": {
+    "en": "cartoon-pagina-aventura-v1-en.webp",
+    "es": "cartoon-pagina-aventura-v1-es.webp"
+  },
+  "cartoon-foto-aventura-v1-pt.webp": {
+    "en": "cartoon-foto-aventura-v1-en.webp",
+    "es": "cartoon-foto-aventura-v1-es.webp"
+  },
+  "covers/realistic-capa-davi-brasil-v1-pt.webp": {
+    "en": "covers/realistic-capa-davi-brasil-v1-en.webp",
+    "es": "covers/realistic-capa-davi-brasil-v1-es.webp"
+  },
+  "realistic-pagina-davi-brasil-v1-pt.webp": {
+    "en": "realistic-pagina-davi-brasil-v1-en.webp",
+    "es": "realistic-pagina-davi-brasil-v1-es.webp"
+  },
+  "realistic-foto-davi-brasil-v1-pt.webp": {
+    "en": "realistic-foto-davi-brasil-v1-en.webp",
+    "es": "realistic-foto-davi-brasil-v1-es.webp"
   }
 }

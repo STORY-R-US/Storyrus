@@ -705,8 +705,8 @@
     "id": "catalog-cartoon-33",
     "catalog_index": 33,
     "style": "cartoon",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Minha Grande Aventura",
       "en": "My Great Adventure",
@@ -714,9 +714,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "cartoon-capa-aventura.png",
-      "page": "",
-      "holding": ""
+      "cover": "covers/cartoon-capa-aventura-v1-pt.webp",
+      "page": "cartoon-pagina-aventura-v1-pt.webp",
+      "holding": "cartoon-foto-aventura-v1-pt.webp"
     }
   },
   "catalog-realistic-34": {
@@ -2095,6 +2095,24 @@
       "cover": "covers/cartoon-capa-natal-familia-v1-pt.webp",
       "page": "cartoon-pagina-natal-familia-v1-pt.webp",
       "holding": "cartoon-foto-natal-familia-v1-pt.webp"
+    }
+  },
+  "catalog-realistic-68": {
+    "id": "catalog-realistic-68",
+    "catalog_index": 68,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Davi, o Craque do Brasil",
+      "en": "Davi, Brazil’s Soccer Star",
+      "es": "Davi, el Crack de Brasil"
+    },
+    "example_name": "Davi",
+    "sources": {
+      "cover": "covers/realistic-capa-davi-brasil-v1-pt.webp",
+      "page": "realistic-pagina-davi-brasil-v1-pt.webp",
+      "holding": "realistic-foto-davi-brasil-v1-pt.webp"
     }
   }
 }
