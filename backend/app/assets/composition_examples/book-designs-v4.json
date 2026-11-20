@@ -8159,6 +8159,78 @@
         "page": "catalog_models/cartoon-30-page.webp",
         "holding": "catalog_models/cartoon-30-holding.webp"
       }
+    },
+    "catalog-cartoon-38": {
+      "name": "Amem-se Sinceramente Uns Aos Outros",
+      "style": "cartoon",
+      "reference_set": "catalog",
+      "sources": {
+        "cover": "covers/cartoon-capa-amem-se-v1-pt.webp",
+        "page": "cartoon-pagina-amem-se-v1-pt.webp",
+        "holding": "cartoon-foto-amem-se-v1-pt.webp"
+      },
+      "cover": {
+        "region": [
+          0.52,
+          0.1,
+          0.96,
+          0.45
+        ],
+        "alignment": "center",
+        "placement": "upper_right_block",
+        "font_ratio": 0.06,
+        "long_font_ratio": 0.045,
+        "composition": "medium_wide_continuous_scene",
+        "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
+      },
+      "interior": {
+        "mode": "two_scenes",
+        "region": [
+          0.06,
+          0.05,
+          0.95,
+          0.28
+        ],
+        "alignment": "center",
+        "font_ratio": 0.038,
+        "description": "Two square illustrated pages, physical spread 2:1. Preserve Pedro, the younger boy, their ages, faces and wardrobe. Left Pedro reads by fishing nets; right he offers a cup. Narrative occupies upper-left sky on left page and upper-right sky on right page, away from faces and gestures."
+      },
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
+      "visual": {
+        "finish": "amor_de_bisavo_cartoon",
+        "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
+        "color": "match_selected_reference_palette_adapt_props_to_user_theme"
+      },
+      "typography": {
+        "titleFontFile": "Nunito-Black.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
+        "titleWeight": 900,
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
+        "color": "#071337",
+        "titleLineHeight": 1.05,
+        "lineHeight": 1.2,
+        "titleBalancedLines": 3,
+        "titleGoldOrnaments": false,
+        "longTitleMinCharacters": 42
+      },
+      "holding": {
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
+        "camera": "eye_level_natural_three_quarter",
+        "binding": "cover_derived_hardback"
+      },
+      "catalog_index": 38,
+      "title_templates": {
+        "pt-BR": "Amem-se Sinceramente Uns Aos Outros",
+        "en": "Love One Another Sincerely",
+        "es": "Ámense Sinceramente Unos A Otros"
+      },
+      "example_name": "",
+      "reference_files": {
+        "cover": "catalog_models/cartoon-38-cover.webp",
+        "page": "catalog_models/cartoon-38-page.webp",
+        "holding": "catalog_models/cartoon-38-holding.webp"
+      }
     }
   },
   "unavailable": {
@@ -8171,11 +8243,6 @@
       "pt": "Minha Grande Aventura",
       "en": "My Great Adventure",
       "es": "Mi Gran Aventura"
-    },
-    "catalog-cartoon-38": {
-      "pt": "Amem-se Sinceramente Uns Aos Outros",
-      "en": "Love One Another Sincerely",
-      "es": "Ámense Sinceramente Unos A Otros"
     },
     "catalog-realistic-58": {
       "pt": "Livro Teste",

@@ -813,8 +813,8 @@
     "id": "catalog-cartoon-38",
     "catalog_index": 38,
     "style": "cartoon",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Amem-se Sinceramente Uns Aos Outros",
       "en": "Love One Another Sincerely",
@@ -822,9 +822,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "cartoon-capa-pedro-amem-se.png",
-      "page": "",
-      "holding": ""
+      "cover": "covers/cartoon-capa-amem-se-v1-pt.webp",
+      "page": "cartoon-pagina-amem-se-v1-pt.webp",
+      "holding": "cartoon-foto-amem-se-v1-pt.webp"
     }
   },
   "catalog-realistic-39": {
