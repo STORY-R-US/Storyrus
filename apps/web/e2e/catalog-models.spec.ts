@@ -41,7 +41,7 @@ for (const index of [0, 1, 6]) {
 
 test('missing cartoon interior cannot silently select a realistic or default model',async({page})=>{
   await page.addInitScript(()=>localStorage.setItem('lang','pt'));
-  await page.goto('/livro/12?modo=cartoon');
+  await page.goto('/livro/19?modo=cartoon');
   await expect(page.getByTestId('catalog-model-unavailable')).toContainText('miolo');
   await expect(page.getByTestId('landing-personalize')).toHaveCount(0);
 });
