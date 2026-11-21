@@ -387,7 +387,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   7: {
     cover: { pt: "capa-mamaepapaimatteo.png", en: "capa-mamaepapaimatteo-en.png", es: "capa-mamaepapaimatteo-es.png" },
     page: { pt: "pagina-mamaepapaimatteo.jpg", en: "pagina-mamaepapaimatteo-en.jpg", es: "pagina-mamaepapaimatteo-es.jpg" },
-    photo: { en: "foto-mamaepapaimatteo-en.jpg", es: "foto-mamaepapaimatteo-es.jpg" },
+    photo: "realistic-foto-mamae-papai-matteo-v1-pt.webp",
   },
   8: {
     cover: { pt: "capa-amordebisavo.png", en: "capa-amordebisavo-en.png", es: "capa-amordebisavo-es.png" },
@@ -472,6 +472,7 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   34: {
     cover: { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
     page: "pagina-bruno-animais.jpg",
+    photo: "realistic-foto-bruno-animais-v1-pt.webp",
   },
   36: {
     cover: { pt: "capa-mariajesus-hockey.png", en: "capa-mariajesus-hockey-en.png", es: "capa-mariajesus-hockey-es.png" },

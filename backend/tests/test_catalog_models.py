@@ -84,6 +84,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         if key in retired:
             continue
         assert design["sources"] == web[key]["sources"]
+        assert all(design["sources"].get(role) for role in ("cover", "page", "holding"))
 
 
 @pytest.mark.parametrize(
@@ -92,13 +93,19 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         0,
         1,
         2,
+        5,
+        6,
+        7,
+        8,
         9,
         10,
+        11,
         12,
         14,
         15,
         18,
         19,
+        20,
         21,
         23,
         24,
@@ -147,7 +154,8 @@ def test_new_cartoon_interiors_have_square_pages_and_valid_narrative_font(index)
     design = book_design.snapshot(f"catalog-cartoon-{index}")
     assert design["style"] == "cartoon"
     assert design["interior"]["mode"] == (
-        "text_left" if index in (0, 1, 2, 9, 10) else "two_scenes"
+        "text_left" if index in (0, 1, 2, 9, 10) else
+        "text_right" if index in (6, 7, 8) else "two_scenes"
     )
     with Image.open(io.BytesIO(book_design.reference(design, "page"))) as image:
         assert image.width / image.height == pytest.approx(2, abs=0.01)

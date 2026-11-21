@@ -73,6 +73,12 @@ for (const width of [390, 1440]) {
           if (count) await tabs.nth(i).click();
           await expect.poll(() => gallery.locator("img").evaluate(img => (img as HTMLImageElement).naturalWidth), { message: `${href}, image ${i}` }).toBeGreaterThan(0);
           expect(await gallery.locator("img").getAttribute("src")).not.toContain("/exemplos//exemplos/");
+          if (i === 1 && /\/livro\/(5|6|7|8|11|20)\?modo=cartoon$/.test(href)) {
+            const image = gallery.locator("img");
+            await image.evaluate(el => (el as HTMLImageElement).decode());
+            expect(await image.evaluate(el => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight)).toBeCloseTo(2, 2);
+            expect(await image.evaluate(el => getComputedStyle(el).objectFit)).toBe("contain");
+          }
         }
       }
     });

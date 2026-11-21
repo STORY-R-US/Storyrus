@@ -85,7 +85,7 @@
     "example_name": "Nicolas",
     "sources": {
       "cover": "cartoon-capa-nicolas.jpg",
-      "page": "cartoon-pagina-nicolas.jpg",
+      "page": "cartoon-pagina-nicolas-square-v2-pt.webp",
       "holding": "cartoon-foto-nicolas.jpg"
     }
   },
@@ -121,7 +121,7 @@
     "example_name": "",
     "sources": {
       "cover": "cartoon-capa-amordemae.jpg",
-      "page": "cartoon-pagina-amordemae.jpg",
+      "page": "cartoon-pagina-amor-mae-square-v2-pt.webp",
       "holding": "cartoon-foto-amordemae.jpg"
     }
   },
@@ -140,7 +140,7 @@
     "sources": {
       "cover": "capa-mamaepapaimatteo.png",
       "page": "pagina-mamaepapaimatteo.jpg",
-      "holding": ""
+      "holding": "realistic-foto-mamae-papai-matteo-v1-pt.webp"
     }
   },
   "catalog-cartoon-7": {
@@ -157,7 +157,7 @@
     "example_name": "Matteo",
     "sources": {
       "cover": "cartoon-capa-matteo.jpg",
-      "page": "cartoon-pagina-matteo.jpg",
+      "page": "cartoon-pagina-mamae-papai-matteo-square-v2-pt.webp",
       "holding": "cartoon-foto-matteo.jpg"
     }
   },
@@ -193,7 +193,7 @@
     "example_name": "",
     "sources": {
       "cover": "cartoon-capa-bisavo.jpg",
-      "page": "cartoon-pagina-bisavo.jpg",
+      "page": "cartoon-pagina-amor-bisavo-square-v2-pt.webp",
       "holding": "cartoon-foto-bisavo.jpg"
     }
   },
@@ -265,7 +265,7 @@
     "example_name": "Maya",
     "sources": {
       "cover": "cartoon-capa-maya.jpg",
-      "page": "cartoon-pagina-maya.jpg",
+      "page": "cartoon-pagina-maya-square-v2-pt.webp",
       "holding": "cartoon-foto-maya.jpg"
     }
   },
@@ -427,7 +427,7 @@
     "example_name": "Davi",
     "sources": {
       "cover": "cartoon-capa-davi.png",
-      "page": "cartoon-pagina-davi.jpg",
+      "page": "cartoon-pagina-davi-square-v2-pt.webp",
       "holding": "cartoon-foto-davi.jpg"
     }
   },
@@ -734,7 +734,7 @@
     "sources": {
       "cover": "capa-bruno-animais.png",
       "page": "pagina-bruno-animais.jpg",
-      "holding": ""
+      "holding": "realistic-foto-bruno-animais-v1-pt.webp"
     }
   },
   "catalog-realistic-35": {

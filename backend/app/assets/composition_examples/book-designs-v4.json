@@ -300,7 +300,7 @@
       "reference_set": "catalog",
       "sources": {
         "cover": "cartoon-capa-nicolas.jpg",
-        "page": "cartoon-pagina-nicolas.jpg",
+        "page": "cartoon-pagina-nicolas-square-v2-pt.webp",
         "holding": "cartoon-foto-nicolas.jpg"
       },
       "cover": {
@@ -318,16 +318,16 @@
         "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
       },
       "interior": {
-        "mode": "text_left",
+        "mode": "two_scenes",
         "region": [
           0.1,
-          0.16,
+          0.05,
           0.9,
-          0.82
+          0.32
         ],
         "alignment": "center",
-        "font_ratio": 0.04,
-        "description": "One generous ivory reading page with discreet themed edge decoration and short literal verses; opposite page is one full-page story illustration in the same selected finish. Reading page is left."
+        "font_ratio": 0.038,
+        "description": "Two genuinely square pages side by side, physical spread 2:1. Preserve exact selected characters, ages, scene actions and composition. Narrative uses moderate rounded type, clear of faces, hands and important objects; PT, EN and ES preserve the same scene."
       },
       "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
       "visual": {
@@ -337,9 +337,9 @@
       },
       "typography": {
         "titleFontFile": "BreeSerif-Regular.ttf",
-        "bodyFontFile": "BreeSerif-Regular.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
+        "baseWeight": 500,
         "titleColor": "#061A45",
         "color": "#071337",
         "titleLineHeight": 1.05,
@@ -347,8 +347,7 @@
         "titleBalancedLines": 2,
         "titleGoldOrnaments": false,
         "longTitleMinCharacters": 42,
-        "titleFontPackage": "catalog-v1",
-        "bodyFontPackage": "catalog-v1"
+        "titleFontPackage": "catalog-v1"
       },
       "holding": {
         "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation.",
@@ -364,7 +363,7 @@
       "example_name": "Nicolas",
       "reference_files": {
         "cover": "catalog_models/cartoon-5-cover.jpg",
-        "page": "catalog_models/cartoon-5-page.jpg",
+        "page": "catalog_models/cartoon-5-page-square-v2.webp",
         "holding": "catalog_models/cartoon-5-holding.jpg"
       }
     },
@@ -446,7 +445,7 @@
       "reference_set": "catalog",
       "sources": {
         "cover": "cartoon-capa-amordemae.jpg",
-        "page": "cartoon-pagina-amordemae.jpg",
+        "page": "cartoon-pagina-amor-mae-square-v2-pt.webp",
         "holding": "cartoon-foto-amordemae.jpg"
       },
       "cover": {
@@ -473,7 +472,7 @@
         ],
         "alignment": "center",
         "font_ratio": 0.04,
-        "description": "One generous ivory reading page with discreet themed edge decoration and short literal verses; opposite page is one full-page story illustration in the same selected finish. Reading page is right."
+        "description": "Two genuinely square pages side by side, physical spread 2:1. Preserve exact selected characters, ages, scene actions and composition. Narrative uses moderate rounded type, clear of faces, hands and important objects; PT, EN and ES preserve the same scene."
       },
       "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
       "visual": {
@@ -483,9 +482,9 @@
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
+        "baseWeight": 500,
         "titleColor": "#061A45",
         "color": "#071337",
         "titleLineHeight": 1.05,
@@ -508,7 +507,7 @@
       "example_name": "",
       "reference_files": {
         "cover": "catalog_models/cartoon-6-cover.jpg",
-        "page": "catalog_models/cartoon-6-page.jpg",
+        "page": "catalog_models/cartoon-6-page-square-v2.webp",
         "holding": "catalog_models/cartoon-6-holding.jpg"
       }
     },
@@ -519,7 +518,7 @@
       "sources": {
         "cover": "capa-mamaepapaimatteo.png",
         "page": "pagina-mamaepapaimatteo.jpg",
-        "holding": ""
+        "holding": "realistic-foto-mamae-papai-matteo-v1-pt.webp"
       },
       "cover": {
         "region": [
@@ -581,7 +580,7 @@
       "reference_files": {
         "cover": "catalog_models/realistic-7-cover.jpg",
         "page": "catalog_models/realistic-7-page.jpg",
-        "holding": "catalog_models/realistic-7-holding.jpg"
+        "holding": "catalog_models/realistic-7-holding-v1.webp"
       }
     },
     "catalog-cartoon-7": {
@@ -590,7 +589,7 @@
       "reference_set": "catalog",
       "sources": {
         "cover": "cartoon-capa-matteo.jpg",
-        "page": "cartoon-pagina-matteo.jpg",
+        "page": "cartoon-pagina-mamae-papai-matteo-square-v2-pt.webp",
         "holding": "cartoon-foto-matteo.jpg"
       },
       "cover": {
@@ -617,7 +616,7 @@
         ],
         "alignment": "center",
         "font_ratio": 0.04,
-        "description": "One generous ivory reading page with discreet themed edge decoration and short literal verses; opposite page is one full-page story illustration in the same selected finish. Reading page is right."
+        "description": "Two genuinely square pages side by side, physical spread 2:1. Preserve exact selected characters, ages, scene actions and composition. Narrative uses moderate rounded type, clear of faces, hands and important objects; PT, EN and ES preserve the same scene."
       },
       "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
       "visual": {
@@ -627,9 +626,9 @@
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
+        "baseWeight": 500,
         "titleColor": "#061A45",
         "color": "#071337",
         "titleLineHeight": 1.05,
@@ -652,7 +651,7 @@
       "example_name": "Matteo",
       "reference_files": {
         "cover": "catalog_models/cartoon-7-cover.jpg",
-        "page": "catalog_models/cartoon-7-page.jpg",
+        "page": "catalog_models/cartoon-7-page-square-v2.webp",
         "holding": "catalog_models/cartoon-7-holding.jpg"
       }
     },
@@ -734,7 +733,7 @@
       "reference_set": "catalog",
       "sources": {
         "cover": "cartoon-capa-bisavo.jpg",
-        "page": "cartoon-pagina-bisavo.jpg",
+        "page": "cartoon-pagina-amor-bisavo-square-v2-pt.webp",
         "holding": "cartoon-foto-bisavo.jpg"
       },
       "cover": {
@@ -761,7 +760,7 @@
         ],
         "alignment": "center",
         "font_ratio": 0.04,
-        "description": "A full-page story illustration on the left, a generous ivory reading page on the right with soft turquoise and sage botanical heart edging. Keep literal verses clear of decoration."
+        "description": "Two genuinely square pages side by side, physical spread 2:1. Preserve exact selected characters, ages, scene actions and composition. Narrative uses moderate rounded type, clear of faces, hands and important objects; PT, EN and ES preserve the same scene."
       },
       "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
       "visual": {
@@ -771,9 +770,9 @@
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
+        "baseWeight": 500,
         "titleColor": "#061A45",
         "color": "#071337",
         "titleLineHeight": 1.05,
@@ -796,7 +795,7 @@
       "example_name": "",
       "reference_files": {
         "cover": "catalog_models/cartoon-8-cover.jpg",
-        "page": "catalog_models/cartoon-8-page.jpg",
+        "page": "catalog_models/cartoon-8-page-square-v2.webp",
         "holding": "catalog_models/cartoon-8-holding.jpg"
       }
     },
@@ -1022,7 +1021,7 @@
       "reference_set": "catalog",
       "sources": {
         "cover": "cartoon-capa-maya.jpg",
-        "page": "cartoon-pagina-maya.jpg",
+        "page": "cartoon-pagina-maya-square-v2-pt.webp",
         "holding": "cartoon-foto-maya.jpg"
       },
       "cover": {
@@ -1049,7 +1048,7 @@
         ],
         "alignment": "center",
         "font_ratio": 0.043,
-        "description": "Two distinct full-bleed story scenes, one per page, with a short passage in naturally quiet upper scenery and visible activity below. Match the selected interior reference, not another catalog book."
+        "description": "Two genuinely square pages side by side, physical spread 2:1. Preserve exact selected characters, ages, scene actions and composition. Narrative uses moderate rounded type, clear of faces, hands and important objects; PT, EN and ES preserve the same scene."
       },
       "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
       "visual": {
@@ -1059,9 +1058,9 @@
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
+        "baseWeight": 500,
         "titleColor": "#061A45",
         "color": "#071337",
         "titleLineHeight": 1.05,
@@ -1084,7 +1083,7 @@
       "example_name": "Maya",
       "reference_files": {
         "cover": "catalog_models/cartoon-11-cover.jpg",
-        "page": "catalog_models/cartoon-11-page.jpg",
+        "page": "catalog_models/cartoon-11-page-square-v2.webp",
         "holding": "catalog_models/cartoon-11-holding.jpg"
       }
     },
@@ -1526,7 +1525,7 @@
       "reference_set": "catalog",
       "sources": {
         "cover": "cartoon-capa-davi.png",
-        "page": "cartoon-pagina-davi.jpg",
+        "page": "cartoon-pagina-davi-square-v2-pt.webp",
         "holding": "cartoon-foto-davi.jpg"
       },
       "cover": {
@@ -1553,7 +1552,7 @@
         ],
         "alignment": "center",
         "font_ratio": 0.043,
-        "description": "Two distinct full-bleed story scenes, one per page, with a short passage in naturally quiet upper scenery and visible activity below. Match the selected interior reference, not another catalog book."
+        "description": "Two genuinely square pages side by side, physical spread 2:1. Preserve exact selected characters, ages, scene actions and composition. Narrative uses moderate rounded type, clear of faces, hands and important objects; PT, EN and ES preserve the same scene."
       },
       "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
       "visual": {
@@ -1563,9 +1562,9 @@
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
+        "baseWeight": 500,
         "titleColor": "#061A45",
         "color": "#071337",
         "titleLineHeight": 1.05,
@@ -1588,7 +1587,7 @@
       "example_name": "Davi",
       "reference_files": {
         "cover": "catalog_models/cartoon-20-cover.jpg",
-        "page": "catalog_models/cartoon-20-page.jpg",
+        "page": "catalog_models/cartoon-20-page-square-v2.webp",
         "holding": "catalog_models/cartoon-20-holding.jpg"
       }
     },
@@ -2463,7 +2462,7 @@
       "sources": {
         "cover": "capa-bruno-animais.png",
         "page": "pagina-bruno-animais.jpg",
-        "holding": ""
+        "holding": "realistic-foto-bruno-animais-v1-pt.webp"
       },
       "cover": {
         "region": [
@@ -2526,7 +2525,7 @@
       "reference_files": {
         "cover": "catalog_models/realistic-34-cover.jpg",
         "page": "catalog_models/realistic-34-page.jpg",
-        "holding": "catalog_models/realistic-34-holding.jpg"
+        "holding": "catalog_models/realistic-34-holding-v1.webp"
       }
     },
     "catalog-realistic-36": {
