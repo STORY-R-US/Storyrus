@@ -16,7 +16,7 @@ for (const path of ["/", "/cartoon"]) {
       steps: await page.locator("#passo img").count(),
     });
     const pt = await read();
-    expect(pt.books).toHaveLength(path === "/" ? 53 : 59);
+    expect(pt.books).toHaveLength(59);
     expect(pt.hero).toBe(path === "/" ? 17 : 4);
     for (const lang of ["pt", "en", "es"]) {
       await page.getByTestId(`landing-lang-${lang}`).click();
@@ -42,9 +42,9 @@ for (const lang of ["pt", "en", "es"]) for (const width of [390, 1440]) {
     };
     const realistic = await readBooks("/");
     const cartoon = await readBooks("/cartoon");
-    const shared = new Set(realistic.filter(book => cartoon.includes(book)));
-    expect(shared.size).toBeGreaterThan(20);
-    expect(cartoon.filter(book => shared.has(book))).toEqual(realistic.filter(book => shared.has(book)));
+    expect(realistic).toHaveLength(59);
+    expect(new Set(realistic).size).toBe(59);
+    expect(cartoon).toEqual(realistic);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
