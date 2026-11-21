@@ -2823,48 +2823,48 @@
       "style": "cartoon",
       "reference_set": "catalog",
       "sources": {
-        "cover": "cartoon-capa-meus-sobrinhos.png",
-        "page": "cartoon-pagina-meus-sobrinhos.jpg",
-        "holding": "cartoon-foto-meus-sobrinhos.jpg"
+        "cover": "covers/cartoon-capa-meus-sobrinhos-v1-pt.webp",
+        "page": "cartoon-pagina-meus-sobrinhos-v1-pt.webp",
+        "holding": "cartoon-foto-meus-sobrinhos-v1-pt.webp"
       },
       "cover": {
         "region": [
-          0.06,
-          0.045,
+          0.1,
+          0.04,
           0.94,
-          0.29
+          0.19
         ],
         "alignment": "center",
         "placement": "upper_center",
-        "font_ratio": 0.095,
-        "long_font_ratio": 0.065,
+        "font_ratio": 0.06,
+        "long_font_ratio": 0.045,
         "composition": "medium_wide_continuous_scene",
         "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
       },
       "interior": {
         "mode": "two_scenes",
         "region": [
-          0.09,
-          0.055,
-          0.91,
-          0.31
+          0.1,
+          0.05,
+          0.9,
+          0.3
         ],
         "alignment": "center",
-        "font_ratio": 0.043,
-        "description": "Two distinct full-bleed story scenes, one per page, with a short passage in naturally quiet upper scenery and visible activity below. Match the selected interior reference, not another catalog book."
+        "font_ratio": 0.038,
+        "description": "Two square illustrated pages, physical spread 2:1. Preserve the exact approved cast, ages, actions and scenery on each page. Short moderate-weight narrative text in clear natural upper space, away from faces and gestures."
       },
-      "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
       "visual": {
-        "finish": "catalog_specific_39",
+        "finish": "amor_de_bisavo_cartoon",
         "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
         "color": "match_selected_reference_palette_adapt_props_to_user_theme"
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
-        "titleColor": "#061A45",
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
         "color": "#071337",
         "titleLineHeight": 1.05,
         "lineHeight": 1.2,
@@ -2873,7 +2873,7 @@
         "longTitleMinCharacters": 42
       },
       "holding": {
-        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation.",
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
         "camera": "eye_level_natural_three_quarter",
         "binding": "cover_derived_hardback"
       },
@@ -2885,9 +2885,9 @@
       },
       "example_name": "",
       "reference_files": {
-        "cover": "catalog_models/cartoon-39-cover.jpg",
-        "page": "catalog_models/cartoon-39-page.jpg",
-        "holding": "catalog_models/cartoon-39-holding.jpg"
+        "cover": "catalog_models/cartoon-39-cover.webp",
+        "page": "catalog_models/cartoon-39-page.webp",
+        "holding": "catalog_models/cartoon-39-holding.webp"
       }
     },
     "catalog-realistic-40": {
@@ -2967,48 +2967,48 @@
       "style": "cartoon",
       "reference_set": "catalog",
       "sources": {
-        "cover": "cartoon-capa-tio-favorito.png",
-        "page": "cartoon-pagina-tio-favorito.jpg",
-        "holding": "cartoon-foto-tio-favorito.jpg"
+        "cover": "covers/cartoon-capa-tio-favorito-v1-pt.webp",
+        "page": "cartoon-pagina-tio-favorito-v1-pt.webp",
+        "holding": "cartoon-foto-tio-favorito-v1-pt.webp"
       },
       "cover": {
         "region": [
-          0.06,
-          0.045,
-          0.94,
-          0.29
+          0.1,
+          0.04,
+          0.95,
+          0.2
         ],
         "alignment": "center",
         "placement": "upper_center",
-        "font_ratio": 0.095,
-        "long_font_ratio": 0.065,
+        "font_ratio": 0.06,
+        "long_font_ratio": 0.045,
         "composition": "medium_wide_continuous_scene",
         "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
       },
       "interior": {
         "mode": "two_scenes",
         "region": [
-          0.09,
-          0.055,
-          0.91,
-          0.31
+          0.1,
+          0.05,
+          0.9,
+          0.3
         ],
         "alignment": "center",
-        "font_ratio": 0.043,
-        "description": "Two distinct full-bleed story scenes, one per page, with a short passage in naturally quiet upper scenery and visible activity below. Match the selected interior reference, not another catalog book."
+        "font_ratio": 0.038,
+        "description": "Two square illustrated pages, physical spread 2:1. Preserve the exact approved cast, ages, actions and scenery on each page. Short moderate-weight narrative text in clear natural upper space, away from faces and gestures."
       },
-      "finish": "Bold flat comic illustration, crisp dark ink outlines, cel-shaded forms and bright pop-art colors; preserve the selected reference cartoon style, never convert it to photographic or plastic 3D rendering. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
       "visual": {
-        "finish": "catalog_specific_40",
+        "finish": "amor_de_bisavo_cartoon",
         "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
         "color": "match_selected_reference_palette_adapt_props_to_user_theme"
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
-        "titleColor": "#061A45",
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
         "color": "#071337",
         "titleLineHeight": 1.05,
         "lineHeight": 1.2,
@@ -3017,7 +3017,7 @@
         "longTitleMinCharacters": 42
       },
       "holding": {
-        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation.",
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
         "camera": "eye_level_natural_three_quarter",
         "binding": "cover_derived_hardback"
       },
@@ -3029,9 +3029,9 @@
       },
       "example_name": "",
       "reference_files": {
-        "cover": "catalog_models/cartoon-40-cover.jpg",
-        "page": "catalog_models/cartoon-40-page.jpg",
-        "holding": "catalog_models/cartoon-40-holding.jpg"
+        "cover": "catalog_models/cartoon-40-cover.webp",
+        "page": "catalog_models/cartoon-40-page.webp",
+        "holding": "catalog_models/cartoon-40-holding.webp"
       }
     },
     "catalog-realistic-41": {
@@ -3111,48 +3111,48 @@
       "style": "cartoon",
       "reference_set": "catalog",
       "sources": {
-        "cover": "cartoon-capa-grace-aniversario.png",
-        "page": "cartoon-pagina-grace-aniversario.jpg",
-        "holding": "cartoon-foto-grace-aniversario.jpg"
+        "cover": "covers/cartoon-capa-grace-aniversario-v1-pt.webp",
+        "page": "cartoon-pagina-grace-aniversario-v1-pt.webp",
+        "holding": "cartoon-foto-grace-aniversario-v1-pt.webp"
       },
       "cover": {
         "region": [
-          0.06,
-          0.045,
-          0.94,
-          0.29
+          0.16,
+          0.04,
+          0.84,
+          0.22
         ],
         "alignment": "center",
         "placement": "upper_center",
-        "font_ratio": 0.095,
-        "long_font_ratio": 0.065,
+        "font_ratio": 0.06,
+        "long_font_ratio": 0.045,
         "composition": "medium_wide_continuous_scene",
         "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
       },
       "interior": {
         "mode": "two_scenes",
         "region": [
-          0.09,
-          0.055,
-          0.91,
-          0.31
+          0.1,
+          0.05,
+          0.9,
+          0.3
         ],
         "alignment": "center",
-        "font_ratio": 0.043,
-        "description": "Two distinct full-bleed story scenes, one per page, with a short passage in naturally quiet upper scenery and visible activity below. Match the selected interior reference, not another catalog book."
+        "font_ratio": 0.038,
+        "description": "Two square illustrated pages, physical spread 2:1. Preserve the exact approved cast, ages, actions and scenery on each page. Short moderate-weight narrative text in clear natural upper space, away from faces and gestures."
       },
-      "finish": "Bold flat comic illustration, crisp dark ink outlines, cel-shaded forms and bright pop-art colors; preserve the selected reference cartoon style, never convert it to photographic or plastic 3D rendering. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
       "visual": {
-        "finish": "catalog_specific_41",
+        "finish": "amor_de_bisavo_cartoon",
         "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
         "color": "match_selected_reference_palette_adapt_props_to_user_theme"
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
-        "titleColor": "#061A45",
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
         "color": "#071337",
         "titleLineHeight": 1.05,
         "lineHeight": 1.2,
@@ -3161,7 +3161,7 @@
         "longTitleMinCharacters": 42
       },
       "holding": {
-        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation.",
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
         "camera": "eye_level_natural_three_quarter",
         "binding": "cover_derived_hardback"
       },
@@ -3173,9 +3173,9 @@
       },
       "example_name": "Grace",
       "reference_files": {
-        "cover": "catalog_models/cartoon-41-cover.jpg",
-        "page": "catalog_models/cartoon-41-page.jpg",
-        "holding": "catalog_models/cartoon-41-holding.jpg"
+        "cover": "catalog_models/cartoon-41-cover.webp",
+        "page": "catalog_models/cartoon-41-page.webp",
+        "holding": "catalog_models/cartoon-41-holding.webp"
       }
     },
     "catalog-realistic-42": {
@@ -3255,48 +3255,48 @@
       "style": "cartoon",
       "reference_set": "catalog",
       "sources": {
-        "cover": "cartoon-capa-grace-andar.png",
-        "page": "cartoon-pagina-grace-andar.jpg",
-        "holding": "cartoon-foto-grace-andar.jpg"
+        "cover": "covers/cartoon-capa-grace-andar-v1-pt.webp",
+        "page": "cartoon-pagina-grace-andar-v1-pt.webp",
+        "holding": "cartoon-foto-grace-andar-v1-pt.webp"
       },
       "cover": {
         "region": [
-          0.06,
-          0.045,
-          0.94,
-          0.29
+          0.12,
+          0.04,
+          0.9,
+          0.2
         ],
         "alignment": "center",
         "placement": "upper_center",
-        "font_ratio": 0.095,
-        "long_font_ratio": 0.065,
+        "font_ratio": 0.06,
+        "long_font_ratio": 0.045,
         "composition": "medium_wide_continuous_scene",
         "scene_direction": "Follow this specific catalog cover composition, subject scale, title hierarchy, decorative treatment and palette. Adapt scenery and objects to the user-selected theme. Preserve the entire real face, hair and any hat outside the measured title area. Reserve continuous natural scenery, never a blank band. No stretched or mirrored side fill, texture tiles, collage seams or blurred extensions. Do not draw sample lettering or import sample identities."
       },
       "interior": {
         "mode": "two_scenes",
         "region": [
-          0.09,
-          0.055,
-          0.91,
-          0.31
+          0.1,
+          0.05,
+          0.9,
+          0.3
         ],
         "alignment": "center",
-        "font_ratio": 0.043,
-        "description": "Two distinct full-bleed story scenes, one per page, with a short passage in naturally quiet upper scenery and visible activity below. Match the selected interior reference, not another catalog book."
+        "font_ratio": 0.038,
+        "description": "Two square illustrated pages, physical spread 2:1. Preserve the exact approved cast, ages, actions and scenery on each page. Short moderate-weight narrative text in clear natural upper space, away from faces and gestures."
       },
-      "finish": "Premium illustrated cartoon matching the selected reference: soft expressive recognizable faces, coordinated luminous colors, carefully shaded rounded forms and detailed illustrated scenery. Match the sample rendering depth and line treatment; do not impose generic plastic 3D, photographic skin, anime or chibi. Original project photos alone define cast and likeness. The user-selected theme defines actions and props; preserve this exact catalog visual treatment and page structure while adapting the story. Never copy reference names, people or paragraphs.",
+      "finish": "Cartoon 3D premium following Amor de Bisavo: soft sculpted recognizable faces, expressive rounded forms, delicately modeled hair, diffuse warm light, tactile fabrics and coordinated illustrated scenery. Original customer photos alone define identity and age. The selected book preserves its own theme, cast, wardrobe, composition and story; never copy the Bisavo cast or props. Cover and interior share identical characters; PT, EN and ES change only text. Cover is square with thin left spine, open book has two square pages, physical spread 2:1.",
       "visual": {
-        "finish": "catalog_specific_42",
+        "finish": "amor_de_bisavo_cartoon",
         "background": "continuous_detailed_narrative_setting_no_stretched_mirrored_or_blurred_edge_fills",
         "color": "match_selected_reference_palette_adapt_props_to_user_theme"
       },
       "typography": {
         "titleFontFile": "Nunito-Black.ttf",
-        "bodyFontFile": "Nunito-Bold.ttf",
+        "bodyFontFile": "Nunito-Medium.ttf",
         "titleWeight": 900,
-        "baseWeight": 700,
-        "titleColor": "#061A45",
+        "baseWeight": 500,
+        "titleColor": "#172A3A",
         "color": "#071337",
         "titleLineHeight": 1.05,
         "lineHeight": 1.2,
@@ -3305,7 +3305,7 @@
         "longTitleMinCharacters": 42
       },
       "holding": {
-        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation.",
+        "pose": "Naturally support the complete square hardback, matching the selected catalog finish and binding. Preserve exact approved cover, lettering and project cast; do not copy sample people. The selected holding reference only defines book presentation. Exterior people and environment are photographic; only the exact approved cover printed on the square book is Cartoon.",
         "camera": "eye_level_natural_three_quarter",
         "binding": "cover_derived_hardback"
       },
@@ -3317,9 +3317,9 @@
       },
       "example_name": "Grace",
       "reference_files": {
-        "cover": "catalog_models/cartoon-42-cover.jpg",
-        "page": "catalog_models/cartoon-42-page.jpg",
-        "holding": "catalog_models/cartoon-42-holding.jpg"
+        "cover": "catalog_models/cartoon-42-cover.webp",
+        "page": "catalog_models/cartoon-42-page.webp",
+        "holding": "catalog_models/cartoon-42-holding.webp"
       }
     },
     "catalog-realistic-43": {

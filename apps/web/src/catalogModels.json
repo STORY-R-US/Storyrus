@@ -858,9 +858,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "cartoon-capa-meus-sobrinhos.png",
-      "page": "cartoon-pagina-meus-sobrinhos.jpg",
-      "holding": "cartoon-foto-meus-sobrinhos.jpg"
+      "cover": "covers/cartoon-capa-meus-sobrinhos-v1-pt.webp",
+      "page": "cartoon-pagina-meus-sobrinhos-v1-pt.webp",
+      "holding": "cartoon-foto-meus-sobrinhos-v1-pt.webp"
     }
   },
   "catalog-realistic-40": {
@@ -894,9 +894,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "cartoon-capa-tio-favorito.png",
-      "page": "cartoon-pagina-tio-favorito.jpg",
-      "holding": "cartoon-foto-tio-favorito.jpg"
+      "cover": "covers/cartoon-capa-tio-favorito-v1-pt.webp",
+      "page": "cartoon-pagina-tio-favorito-v1-pt.webp",
+      "holding": "cartoon-foto-tio-favorito-v1-pt.webp"
     }
   },
   "catalog-realistic-41": {
@@ -930,9 +930,9 @@
     },
     "example_name": "Grace",
     "sources": {
-      "cover": "cartoon-capa-grace-aniversario.png",
-      "page": "cartoon-pagina-grace-aniversario.jpg",
-      "holding": "cartoon-foto-grace-aniversario.jpg"
+      "cover": "covers/cartoon-capa-grace-aniversario-v1-pt.webp",
+      "page": "cartoon-pagina-grace-aniversario-v1-pt.webp",
+      "holding": "cartoon-foto-grace-aniversario-v1-pt.webp"
     }
   },
   "catalog-realistic-42": {
@@ -966,9 +966,9 @@
     },
     "example_name": "Grace",
     "sources": {
-      "cover": "cartoon-capa-grace-andar.png",
-      "page": "cartoon-pagina-grace-andar.jpg",
-      "holding": "cartoon-foto-grace-andar.jpg"
+      "cover": "covers/cartoon-capa-grace-andar-v1-pt.webp",
+      "page": "cartoon-pagina-grace-andar-v1-pt.webp",
+      "holding": "cartoon-foto-grace-andar-v1-pt.webp"
     }
   },
   "catalog-realistic-43": {
