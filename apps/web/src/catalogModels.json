@@ -687,8 +687,8 @@
     "id": "catalog-realistic-33",
     "catalog_index": 33,
     "style": "realistic",
-    "available": false,
-    "reason": "missing_interior_reference",
+    "available": true,
+    "reason": null,
     "titles": {
       "pt": "Minha Grande Aventura",
       "en": "My Great Adventure",
@@ -696,9 +696,9 @@
     },
     "example_name": "",
     "sources": {
-      "cover": "",
-      "page": "",
-      "holding": ""
+      "cover": "covers/realistic-capa-aventura-v1-pt.webp",
+      "page": "realistic-pagina-aventura-v1-pt.webp",
+      "holding": "realistic-foto-aventura-v1-pt.webp"
     }
   },
   "catalog-cartoon-33": {
@@ -2113,6 +2113,42 @@
       "cover": "covers/realistic-capa-davi-brasil-v1-pt.webp",
       "page": "realistic-pagina-davi-brasil-v1-pt.webp",
       "holding": "realistic-foto-davi-brasil-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-57": {
+    "id": "catalog-cartoon-57",
+    "catalog_index": 57,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Matteo, Força No Motor, Gigante O Trator",
+      "en": "Matteo, Mighty Motor, Giant Tractor",
+      "es": "Matteo, Motor Potente, Tractor Gigante"
+    },
+    "example_name": "Matteo",
+    "sources": {
+      "cover": "covers/cartoon-capa-matteo-trator-v1-pt.webp",
+      "page": "cartoon-pagina-matteo-trator-v1-pt.webp",
+      "holding": "cartoon-foto-matteo-trator-v1-pt.webp"
+    }
+  },
+  "catalog-cartoon-68": {
+    "id": "catalog-cartoon-68",
+    "catalog_index": 68,
+    "style": "cartoon",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Davi, o Craque do Brasil",
+      "en": "Davi, Brazil’s Soccer Star",
+      "es": "Davi, el Crack de Brasil"
+    },
+    "example_name": "Davi",
+    "sources": {
+      "cover": "covers/cartoon-capa-davi-brasil-v1-pt.webp",
+      "page": "cartoon-pagina-davi-brasil-v1-pt.webp",
+      "holding": "cartoon-foto-davi-brasil-v1-pt.webp"
     }
   }
 }

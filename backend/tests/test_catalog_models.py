@@ -127,6 +127,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         54,
         55,
         56,
+        57,
         59,
         60,
         62,
@@ -135,6 +136,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
         65,
         66,
         67,
+        68,
     ],
 )
 def test_new_cartoon_interiors_have_square_pages_and_valid_narrative_font(index):
