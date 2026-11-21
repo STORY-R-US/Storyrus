@@ -31,7 +31,10 @@ for (const lang of ["pt", "en", "es"]) {
         await expect(gallery.getByRole("tab")).toHaveCount(3);
         for (const [position, role] of ["capa", "pagina", "foto"].entries()) {
           await gallery.getByRole("tab").nth(position).click();
-          await expect(image).toHaveAttribute("src", `/exemplos/${position === 0 ? "covers/" : ""}${style}-${role}-${slug}-v1-${lang}.webp`);
+          const expectedFile = index === 38 && style === "cartoon" && role === "foto" && lang === "es"
+            ? "cartoon-foto-amem-se-parity-es.png"
+            : `${position === 0 ? "covers/" : ""}${style}-${role}-${slug}-v1-${lang}.webp`;
+          await expect(image).toHaveAttribute("src", `/exemplos/${expectedFile}`);
           await image.evaluate(async el => { await (el as HTMLImageElement).decode(); await new Promise(requestAnimationFrame); });
           await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
           const ratio = await image.evaluate(el => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight);

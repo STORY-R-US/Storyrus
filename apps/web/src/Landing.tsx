@@ -693,14 +693,8 @@ const CATALOG_THEMES = [
   "casamento",
   "sport",
 ];
-/** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
-const CATALOG_LIMIT = 14;
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
 const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58, 61]);
-/** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13]);
-/** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 33]);
 /** Vitrine em linhas de 3: família, fé e esportes; depois capas da mesma família de cor. */
 const HOME_CATALOG_ORDER = [
   21, 30, 22,
@@ -727,8 +721,6 @@ const HOME_CATALOG_ORDER = [
 ];
 /** Última linha da vitrine: construtor, bombeiro e policial (antes era a primeira). */
 const HOME_CATALOG_LAST = [25, 26, 27];
-/** Fora da vitrine da página inicial (continua no catálogo e no menu): Brilho Que Fascina, Alma De Bailarina. */
-const HOME_VITRINE_HIDDEN = new Set([53]);
 const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 51, 55, 52, 53, 54, 56, 57, 58];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
@@ -2941,7 +2933,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => !HIDDEN_BOOK_INDEXES.has(i) && (variant === "cartoon"
           ? Boolean(CARTOON_COVER[i]) && Boolean(catalogCoverFile(i, "pt", "cartoon"))
-          : !HOME_VITRINE_HIDDEN.has(i) && (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i) && Boolean(coverForLang(i, "pt"))))
+          : Boolean(catalogCoverFile(i, "pt", "photo"))))
         .sort((a, b) => {
           const rank = (i: number) => {
             const order = HOME_CATALOG_ORDER;

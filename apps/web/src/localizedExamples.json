@@ -4,8 +4,8 @@
     "es": "localized/capa-meupai-heroi-es.webp"
   },
   "pagina-meupai-heroi.png": {
-    "en": "localized/pagina-meupai-heroi-en.webp",
-    "es": "localized/pagina-meupai-heroi-es.webp"
+    "en": "pagina-meupai-heroi-parity-en.png",
+    "es": "pagina-meupai-heroi-parity-es.png"
   },
   "foto-meupai-heroi.png": {
     "en": "localized/foto-meupai-heroi-en.webp",
@@ -76,7 +76,7 @@
     "es": "localized/capa-davi-pastor-es.webp"
   },
   "pagina-davi-pastor.png": {
-    "en": "localized/pagina-davi-pastor-en.webp",
+    "en": "pagina-davi-pastor-parity-en.png",
     "es": "localized/pagina-davi-pastor-png-es.webp"
   },
   "foto-davi-pastor.png": {
@@ -152,8 +152,8 @@
     "es": "localized/pagina-nonna-90-anos-jpg-es.webp"
   },
   "foto-nonna-90-anos.jpg": {
-    "en": "localized/foto-nonna-90-anos-jpg-en.webp",
-    "es": "localized/foto-nonna-90-anos-jpg-es.webp"
+    "en": "foto-nonna-90-anos-parity-en.png",
+    "es": "foto-nonna-90-anos-parity-es.png"
   },
   "capa-maria-fundo-do-mar.png": {
     "en": "capa-maria-fundo-do-mar-en.png",
@@ -272,8 +272,8 @@
     "es": "localized/capa-nicolas-maefilho-es.webp"
   },
   "pagina-nicolas-maefilho.jpg": {
-    "en": "localized/pagina-nicolas-maefilho-en.webp",
-    "es": "localized/pagina-nicolas-maefilho-es.webp"
+    "en": "pagina-nicolas-maefilho-parity-en.png",
+    "es": "pagina-nicolas-maefilho-parity-es.png"
   },
   "capa-amordemae.png": {
     "en": "localized/capa-amordemae-png-en.webp",
@@ -432,8 +432,8 @@
     "es": "capa-mariajesus-hockey-es.png"
   },
   "pagina-mariajesus-hockey.png": {
-    "en": "pagina-mariajesus-hockey-en.png",
-    "es": "pagina-mariajesus-hockey-es.png"
+    "en": "pagina-mariajesus-hockey-parity-en.png",
+    "es": "pagina-mariajesus-hockey-parity-es.png"
   },
   "capa-quatro-geracoes.jpg": {
     "en": "localized/capa-quatro-geracoes-jpg-en.webp",
@@ -464,12 +464,12 @@
     "es": "capa-meus-sobrinhos-es.png"
   },
   "pagina-meus-sobrinhos.jpg": {
-    "en": "pagina-meus-sobrinhos-en.jpg",
-    "es": "pagina-meus-sobrinhos-es.jpg"
+    "en": "pagina-meus-sobrinhos-parity-en.png",
+    "es": "pagina-meus-sobrinhos-parity-es.png"
   },
   "foto-meus-sobrinhos.jpg": {
-    "en": "foto-meus-sobrinhos-en.jpg",
-    "es": "foto-meus-sobrinhos-es.jpg"
+    "en": "foto-meus-sobrinhos-parity-en.png",
+    "es": "foto-meus-sobrinhos-parity-es.png"
   },
   "capa-tio-favorito.png": {
     "en": "capa-tio-favorito-en.png",
@@ -480,7 +480,7 @@
     "es": "localized/pagina-tio-favorito-jpg-es.webp"
   },
   "foto-tio-favorito.jpg": {
-    "en": "foto-tio-favorito-en.jpg",
+    "en": "foto-tio-favorito-parity-en.png",
     "es": "localized/foto-tio-favorito-jpg-es.webp"
   },
   "capa-grace-aniversario.png": {
@@ -488,12 +488,12 @@
     "es": "capa-grace-aniversario-es.png"
   },
   "pagina-grace-aniversario.jpg": {
-    "en": "pagina-grace-aniversario-en.jpg",
-    "es": "pagina-grace-aniversario-es.jpg"
+    "en": "pagina-grace-aniversario-parity-en.png",
+    "es": "pagina-grace-aniversario-parity-es.png"
   },
   "foto-grace-aniversario.jpg": {
-    "en": "foto-grace-aniversario-en.jpg",
-    "es": "foto-grace-aniversario-es.jpg"
+    "en": "foto-grace-aniversario-parity-en.png",
+    "es": "foto-grace-aniversario-parity-es.png"
   },
   "capa-grace-andar.png": {
     "en": "localized/capa-grace-andar-png-en.webp",
@@ -504,20 +504,20 @@
     "es": "localized/pagina-grace-andar-jpg-es.webp"
   },
   "foto-grace-andar.jpg": {
-    "en": "localized/foto-grace-andar-jpg-en.webp",
-    "es": "localized/foto-grace-andar-jpg-es.webp"
+    "en": "foto-grace-andar-parity-en.png",
+    "es": "foto-grace-andar-parity-es.png"
   },
   "capa-mamae-e-eu.png": {
     "en": "capa-mamae-e-eu-en.png",
     "es": "capa-mamae-e-eu-es.png"
   },
   "pagina-mamae-e-eu.jpg": {
-    "en": "pagina-mamae-e-eu-en.jpg",
-    "es": "pagina-mamae-e-eu-es.jpg"
+    "en": "pagina-mamae-e-eu-parity-en.png",
+    "es": "pagina-mamae-e-eu-parity-es.png"
   },
   "foto-mamae-e-eu.jpg": {
-    "en": "foto-mamae-e-eu-en.jpg",
-    "es": "foto-mamae-e-eu-es.jpg"
+    "en": "foto-mamae-e-eu-parity-en.png",
+    "es": "foto-mamae-e-eu-parity-es.png"
   },
   "capa-feliz-natal.png": {
     "en": "capa-feliz-natal-en.png",
@@ -576,16 +576,16 @@
     "es": "pagina-amor-vovo-motor-es.jpg"
   },
   "foto-amor-vovo-motor.jpg": {
-    "en": "foto-amor-vovo-motor-en.jpg",
-    "es": "foto-amor-vovo-motor-es.jpg"
+    "en": "foto-amor-vovo-motor-parity-en.png",
+    "es": "foto-amor-vovo-motor-parity-es.png"
   },
   "capa-brilho-bailarina.png": {
     "en": "capa-brilho-bailarina-en.png",
     "es": "capa-brilho-bailarina-es.png"
   },
   "pagina-brilho-bailarina.jpg": {
-    "en": "pagina-brilho-bailarina-en.jpg",
-    "es": "pagina-brilho-bailarina-es.jpg"
+    "en": "pagina-brilho-bailarina-parity-en.png",
+    "es": "pagina-brilho-bailarina-parity-es.png"
   },
   "foto-brilho-bailarina.jpg": {
     "en": "localized/foto-brilho-bailarina-jpg-en.webp",
@@ -612,8 +612,8 @@
     "es": "localized/pagina-matteo-nas-nuvens-jpg-es.webp"
   },
   "foto-matteo-nas-nuvens.jpg": {
-    "en": "localized/foto-matteo-nas-nuvens-jpg-en.webp",
-    "es": "localized/foto-matteo-nas-nuvens-jpg-es.webp"
+    "en": "foto-matteo-nas-nuvens-parity-en.png",
+    "es": "foto-matteo-nas-nuvens-parity-es.png"
   },
   "capa-vovo-docura.jpg": {
     "en": "localized/capa-vovo-docura-jpg-en.webp",
@@ -1429,7 +1429,7 @@
   },
   "cartoon-foto-amem-se-v1-pt.webp": {
     "en": "cartoon-foto-amem-se-v1-en.webp",
-    "es": "cartoon-foto-amem-se-v1-es.webp"
+    "es": "cartoon-foto-amem-se-parity-es.png"
   },
   "covers/cartoon-capa-aventura-v1-pt.webp": {
     "en": "covers/cartoon-capa-aventura-v1-en.webp",
