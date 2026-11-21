@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "description": "Base de desenvolvimento: estrutura dos diretórios, testes e a regra de manter segredos em variáveis de ambiente."
+    },
+    {
+      "path": "README.md",
+      "description": "Como subir backend, web e mobile, e quais verificações precisam passar."
+    },
+    {
+      "path": "docs/ARQUITETURA.md",
+      "description": "Arquitetura do pipeline do ebook, jobs assíncronos e fluxo de compra."
+    }
+  ]
+}
