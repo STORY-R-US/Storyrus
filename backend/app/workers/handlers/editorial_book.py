@@ -2880,7 +2880,8 @@ class Pipeline:
                         await self.master._pkg()
                         .get_image_provider()
                         .generate_scene(
-                            prompt=prompt + (contract.multi_photo_note(self.photos) if reading else ""),
+                            prompt=prompt
+                            + (contract.multi_photo_note(self.photos) if reading else ""),
                             character_ref=self.photos[0] if reading else template_reference or b"",
                             photo=self.photos[0] if reading else None,
                             extra_refs=(self.photos[1:] if reading else [])
