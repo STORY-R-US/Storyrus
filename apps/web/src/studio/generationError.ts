@@ -29,5 +29,5 @@ export function generationError(t: StudioCopy, message?: string | null, job?: Jo
 
 /** Internal failures belong to operations, not to customer text/photo correction. */
 export function internalGenerationIssue(message?: string | null, job?: Job | null): boolean {
-  return uncertainGeneration(message, job) || /BOOK_(?:ART_|LAYOUT_UNSAFE|TEXT_INVALID|REVIEW_INVALID|GENERATED_CONTENT_INVALID|STORAGE_TEMPORARY)|Os versos gerados precisam|Cada verso gerado precisa|Capa ou ilustração reprovada|OpenAI (?:429|5\d\d):|^5\d\d:|(?:ValueError|RuntimeError|AssertionError|ProviderError):|Perfil editorial alterado/i.test(message || "");
+  return uncertainGeneration(message, job) || /BOOK_(?:ART_|LAYOUT_UNSAFE|TEXT_INVALID|REVIEW_INVALID|GENERATED_CONTENT_INVALID|STORAGE_TEMPORARY)|INPUT_SAFETY_CHECK_(?:UNAVAILABLE|INVALID(?!_IMAGE))|Os versos gerados precisam|Cada verso gerado precisa|Capa ou ilustração reprovada|OpenAI (?:429|5\d\d):|^5\d\d:|(?:ValueError|RuntimeError|AssertionError|ProviderError):|Perfil editorial alterado/i.test(message || "");
 }

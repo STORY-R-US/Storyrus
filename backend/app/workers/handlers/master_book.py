@@ -713,7 +713,7 @@ async def preview(db, job, project):
                 )
             else:
                 result = await provider.generate_scene(
-                    prompt=prompt,
+                    prompt=prompt + contract.multi_photo_note(photos),
                     character_ref=reference,
                     photo=photos[0],
                     extra_refs=extra_refs,
@@ -1366,7 +1366,7 @@ async def page(db, job, project):
                     )
                 else:
                     result = await provider.generate_scene(
-                        prompt=prompt,
+                        prompt=prompt + contract.multi_photo_note(photos),
                         character_ref=avatar_bytes,
                         photo=photos[0],
                         extra_refs=photos[1:] + [cover_bytes],
