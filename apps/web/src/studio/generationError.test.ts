@@ -27,7 +27,7 @@ describe.each(["pt", "en", "es"] as const)("book failures in %s", (lang) => {
 });
 
 
-it.each(["BOOK_ART_REJECTED", "BOOK_LAYOUT_UNSAFE", "GENERATION_OUTCOME_UNKNOWN", "500: Erro interno", "ValueError: internal detail"])("routes %s to internal review", (message) => {
+it.each(["BOOK_ART_REJECTED", "BOOK_LAYOUT_UNSAFE", "GENERATION_OUTCOME_UNKNOWN", "500: Erro interno", "ValueError: internal detail", "INPUT_SAFETY_CHECK_UNAVAILABLE", "INPUT_SAFETY_CHECK_INVALID"])("routes %s to internal review", (message) => {
   expect(internalGenerationIssue(message)).toBe(true);
 });
 it.each(["INPUT_SAFETY_BLOCKED", "INPUT_SAFETY_CHECK_INVALID_IMAGE", "Confirme a autorização das fotos"])("keeps necessary customer decisions actionable: %s", (message) => {

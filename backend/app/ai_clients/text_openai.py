@@ -373,15 +373,37 @@ class OpenAITextProvider:
         if not self._api_key:
             raise ProviderError("INPUT_SAFETY_CHECK_UNAVAILABLE", transient=False)
 
-        items = [{"type": "text", "text": text}]
-        for photo in photos:
-            items.append(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": _moderation_image(photo)},
-                }
-            )
+        # The moderation endpoint accepts at most one image per request: a book
+        # with two or more photos gets one request per photo, each with the text.
+        text_item = {"type": "text", "text": text}
+        requests = [
+            [text_item, {"type": "image_url", "image_url": {"url": _moderation_image(photo)}}]
+            for photo in photos
+        ] or [[text_item]]
 
+        flagged = False
+        request_id = None
+        client_request_id = None
+        for items in requests:
+            checked, request_id, client_request_id = await self._moderate_once(items)
+            if checked:
+                flagged = True
+                break
+        self.last_cost_usd = 0
+        return TextResult(
+            text=json.dumps({"flagged": flagged}),
+            cost_usd=0,
+            meta={
+                "provider": "openai",
+                "model": _MODERATION_MODEL,
+                "request_id": request_id,
+                "client_request_id": client_request_id,
+                "flagged": flagged,
+            },
+        )
+
+    async def _moderate_once(self, items: list[dict]) -> tuple[bool, str | None, str]:
+        """Send one moderation request (text plus at most one image)."""
         client_request_id = str(uuid.uuid4())
         headers = {
             "Authorization": f"Bearer {self._api_key}",
@@ -433,18 +455,7 @@ class OpenAITextProvider:
                 request_id=request_id,
                 client_request_id=client_request_id,
             ) from exc
-        self.last_cost_usd = 0
-        return TextResult(
-            text=json.dumps({"flagged": flagged}),
-            cost_usd=0,
-            meta={
-                "provider": "openai",
-                "model": _MODERATION_MODEL,
-                "request_id": request_id,
-                "client_request_id": client_request_id,
-                "flagged": flagged,
-            },
-        )
+        return flagged, request_id, client_request_id
 
     @journaled("openai:text")
     async def _complete(

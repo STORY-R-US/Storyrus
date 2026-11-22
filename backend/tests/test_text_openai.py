@@ -199,6 +199,48 @@ async def test_moderation_preflight_is_free_and_sends_text_and_authorized_photo(
 
 
 @pytest.mark.asyncio
+async def test_moderation_preflight_sends_one_request_per_photo(client):
+    photos = []
+    for color in ("blue", "red"):
+        raw = io.BytesIO()
+        Image.new("RGB", (8, 8), color).save(raw, "PNG")
+        photos.append(raw.getvalue())
+    client.script = [(200, {"results": [{"flagged": False, "categories": {}}]})] * 2
+
+    result = await oai.OpenAITextProvider().moderate_book_input(text="two photos", photos=photos)
+
+    assert len(client.calls) == 2
+    sent = []
+    for call in client.calls:
+        assert call["url"].endswith("/moderations")
+        items = call["json"]["input"]
+        assert items[0] == {"type": "text", "text": "two photos"}
+        assert [item["type"] for item in items] == ["text", "image_url"]
+        sent.append(items[1]["image_url"]["url"])
+    assert sent[0] != sent[1]
+    assert result.meta["flagged"] is False
+    assert result.cost_usd == 0
+
+
+@pytest.mark.asyncio
+async def test_moderation_preflight_blocks_when_any_photo_is_flagged(client):
+    photos = []
+    for color in ("blue", "red"):
+        raw = io.BytesIO()
+        Image.new("RGB", (8, 8), color).save(raw, "PNG")
+        photos.append(raw.getvalue())
+    client.script = [
+        (200, {"results": [{"flagged": False, "categories": {}}]}),
+        (200, {"results": [{"flagged": True, "categories": {"violence": True}}]}),
+    ]
+
+    result = await oai.OpenAITextProvider().moderate_book_input(text="two photos", photos=photos)
+
+    assert len(client.calls) == 2
+    assert result.meta["flagged"] is True
+
+
+@pytest.mark.asyncio
 async def test_moderation_preflight_reports_flagged_input_without_chat_completion(client):
     client.script = [(200, {"results": [{"flagged": True, "categories": {"violence": True}}]})]
 
