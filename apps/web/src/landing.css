@@ -519,7 +519,7 @@ a.kcat-group-name.is-chip:focus-visible {
   left: 0;
   right: 0;
   top: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -532,6 +532,7 @@ a.kcat-group-name.is-chip:focus-visible {
   pointer-events: none;
 }
 .hero-series.on {
+  display: flex;
   position: relative;
   visibility: visible;
   pointer-events: auto;
