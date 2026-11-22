@@ -2321,3 +2321,9 @@
 .studio-app .master-title-alternatives .master-title-suggestions { margin-top: 16px; padding-top: 16px; }
 .studio-app .preview-steps .preview-step-hint:empty { display: none; }
 .studio-app .studio-master-flow > .catalog-book-design-samples, .studio-app .studio-master-flow > .master-child-edit { margin-top: 14px; }
+
+.studio-app [data-testid="studio-story-review"],
+.studio-app [data-testid="studio-master-story"] {
+  scroll-margin-top: 6.5rem;
+}
+.studio-app #pedido { scroll-margin-top: 6.5rem; }

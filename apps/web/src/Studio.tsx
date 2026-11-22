@@ -31,6 +31,7 @@ import { MasterBookFlow } from "./studio/MasterBookFlow";
 import { PreviewCopyRecovery } from "./studio/PreviewCopyRecovery";
 import { capitalizeChildName } from "./studio/childName";
 import { generationError as formatGenerationError, uncertainGeneration, internalGenerationIssue } from "./studio/generationError";
+import { resumeWherePaused } from "./studio/resumeScroll";
 import {
   masterPreviewEta,
   masterPreviewSteps,
@@ -345,6 +346,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const id = q.get("projeto") || q.get("project");
     if (!id) return;
     let cancelled = false;
+    let stopResume: (() => void) | undefined;
     setBusy(true);
     void Promise.all([api.getProject(id), api.getAssets(id), api.listJobs(id)]).then(([p, a, j]) => {
       if (cancelled) return;
@@ -368,9 +370,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       if (p.style === "realistic") setArtMode("realista");
       setBookSize(p.book_size || "M"); setCoverType(p.cover_type || "soft");
       setReviewDirty(false);
+      // Projeto reaberto (Meus pedidos, painel ou link): abre na parte onde a família parou.
+      stopResume = resumeWherePaused();
     }).catch((e: Error) => { if (!cancelled) setError(e.message); })
       .finally(() => { if (!cancelled) setBusy(false); });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; stopResume?.(); };
   }, [isDemo]);
 
   useEffect(() => {
