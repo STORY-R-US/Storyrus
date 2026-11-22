@@ -103,30 +103,6 @@
     642,
     692
   ],
-  "capa-enzo-dinossauro-en.png": [
-    1254,
-    1254,
-    45,
-    39,
-    1157,
-    1171
-  ],
-  "capa-enzo-dinossauro-es.png": [
-    1254,
-    1254,
-    45,
-    40,
-    1158,
-    1170
-  ],
-  "capa-enzo-dinossauro.png": [
-    1254,
-    1254,
-    45,
-    40,
-    1158,
-    1169
-  ],
   "capa-ester-en.png": [
     668,
     670,
@@ -194,10 +170,10 @@
   "capa-grace-andar.png": [
     1254,
     1254,
-    38,
-    38,
-    1179,
-    1179
+    0,
+    1,
+    1254,
+    1253
   ],
   "capa-grace-aniversario-en.png": [
     1254,
@@ -270,6 +246,14 @@
     34,
     686,
     634
+  ],
+  "capa-mariajesus-hockey-es.png": [
+    1254,
+    1254,
+    0,
+    1,
+    1253,
+    1253
   ],
   "capa-matteo-nas-nuvens.png": [
     1254,
@@ -383,14 +367,6 @@
     1195,
     1252
   ],
-  "capa-natalmemetata.png": [
-    1254,
-    1254,
-    10,
-    31,
-    1242,
-    1207
-  ],
   "capa-noe-en.png": [
     724,
     724,
@@ -414,30 +390,6 @@
     23,
     677,
     675
-  ],
-  "capa-pedro-amem-se-en.png": [
-    1254,
-    1254,
-    37,
-    37,
-    1180,
-    1180
-  ],
-  "capa-pedro-amem-se-es.png": [
-    1254,
-    1254,
-    37,
-    37,
-    1180,
-    1180
-  ],
-  "capa-pedro-amem-se.png": [
-    1254,
-    1254,
-    37,
-    37,
-    1180,
-    1180
   ],
   "capa-raquel-papai-en.png": [
     724,
@@ -711,29 +663,13 @@
     1247,
     1248
   ],
-  "covers/capa-davi-pastor-png-pt.webp": [
+  "covers/capa-construtor-png-es.webp": [
     1254,
     1254,
-    1,
+    47,
     0,
-    1253,
+    1207,
     1254
-  ],
-  "covers/capa-enzo-dinossauro-png-en.webp": [
-    1254,
-    1254,
-    1,
-    1,
-    1252,
-    1253
-  ],
-  "covers/capa-enzo-dinossauro-png-es.webp": [
-    1254,
-    1254,
-    2,
-    1,
-    1251,
-    1252
   ],
   "covers/capa-esther-higiene-png-en.webp": [
     1254,
@@ -871,6 +807,14 @@
     1248,
     1250
   ],
+  "covers/capa-mariajesus-hockey-es.webp": [
+    1254,
+    1254,
+    0,
+    1,
+    1253,
+    1253
+  ],
   "covers/capa-matteo-nas-nuvens-png-en.webp": [
     1254,
     1254,
@@ -919,29 +863,21 @@
     1252,
     1251
   ],
-  "covers/capa-maya-cachorra-pt-jpg-en.webp": [
-    1254,
-    1254,
-    2,
-    2,
-    1250,
-    1250
-  ],
   "covers/capa-maya-cachorra-pt-jpg-es.webp": [
     1254,
     1254,
-    3,
-    2,
-    1248,
-    1249
+    1,
+    0,
+    1252,
+    1254
   ],
   "covers/capa-maya-cachorra-pt-jpg-pt.webp": [
     1254,
     1254,
     0,
-    1,
+    0,
     1253,
-    1252
+    1254
   ],
   "covers/capa-meus-sobrinhos-png-es.webp": [
     1254,
@@ -974,30 +910,6 @@
     1,
     1252,
     1252
-  ],
-  "covers/capa-natalmemetata-png-en.webp": [
-    1254,
-    1254,
-    0,
-    1,
-    1253,
-    1252
-  ],
-  "covers/capa-natalmemetata-png-es.webp": [
-    1254,
-    1254,
-    4,
-    3,
-    1247,
-    1248
-  ],
-  "covers/capa-natalmemetata-png-pt.webp": [
-    1254,
-    1254,
-    1,
-    0,
-    1252,
-    1254
   ],
   "covers/capa-noe-png-en.webp": [
     1254,
@@ -1095,6 +1007,30 @@
     1254,
     1253
   ],
+  "covers/cartoon-capa-amem-se-v1-en.webp": [
+    1254,
+    1254,
+    13,
+    8,
+    1233,
+    1238
+  ],
+  "covers/cartoon-capa-amem-se-v1-es.webp": [
+    1254,
+    1254,
+    14,
+    8,
+    1232,
+    1237
+  ],
+  "covers/cartoon-capa-amem-se-v1-pt.webp": [
+    1254,
+    1254,
+    13,
+    8,
+    1233,
+    1238
+  ],
   "covers/cartoon-capa-amordemae-jpg-en.webp": [
     1254,
     1254,
@@ -1171,9 +1107,9 @@
     1254,
     1254,
     1,
-    1,
+    0,
     1252,
-    1252
+    1254
   ],
   "covers/cartoon-capa-bisavo-jpg-es.webp": [
     1254,
@@ -1191,13 +1127,13 @@
     1252,
     1253
   ],
-  "covers/cartoon-capa-davi-png-en.webp": [
+  "covers/cartoon-capa-clara-miguel-casamento-v1-pt.webp": [
     1254,
     1254,
-    0,
+    29,
     1,
-    1254,
-    1252
+    1225,
+    1253
   ],
   "covers/cartoon-capa-enzo-jpg-es.webp": [
     1254,
@@ -1239,6 +1175,14 @@
     1254,
     1251
   ],
+  "covers/cartoon-capa-lia-cores-v1-en.webp": [
+    1254,
+    1254,
+    0,
+    1,
+    1254,
+    1253
+  ],
   "covers/cartoon-capa-lucas-png-en.webp": [
     1254,
     1254,
@@ -1246,14 +1190,6 @@
     0,
     1253,
     1254
-  ],
-  "covers/cartoon-capa-matteo-jpg-es.webp": [
-    1254,
-    1254,
-    0,
-    1,
-    1254,
-    1252
   ],
   "covers/cartoon-capa-meus-sobrinhos-png-es.webp": [
     1254,
@@ -1287,6 +1223,30 @@
     1253,
     1254
   ],
+  "covers/cartoon-capa-nina-boa-noite-v1-en.webp": [
+    1254,
+    1254,
+    1,
+    2,
+    1252,
+    1252
+  ],
+  "covers/cartoon-capa-nina-boa-noite-v1-es.webp": [
+    1254,
+    1254,
+    1,
+    1,
+    1252,
+    1253
+  ],
+  "covers/cartoon-capa-nina-boa-noite-v1-pt.webp": [
+    1254,
+    1254,
+    1,
+    2,
+    1251,
+    1252
+  ],
   "covers/cartoon-capa-pedro-amem-se-png-en.webp": [
     1254,
     1254,
@@ -1302,6 +1262,158 @@
     0,
     1253,
     1254
+  ],
+  "covers/cartoon-capa-quatro-geracoes-v1-en.webp": [
+    1254,
+    1254,
+    4,
+    0,
+    1249,
+    1253
+  ],
+  "covers/cartoon-capa-quatro-geracoes-v1-es.webp": [
+    1254,
+    1254,
+    4,
+    0,
+    1249,
+    1253
+  ],
+  "covers/cartoon-capa-quatro-geracoes-v1-pt.webp": [
+    1254,
+    1254,
+    5,
+    0,
+    1247,
+    1253
+  ],
+  "covers/cartoon-capa-sofia-princesa-v1-en.webp": [
+    1254,
+    1254,
+    0,
+    1,
+    1254,
+    1253
+  ],
+  "covers/cartoon-capa-sofia-princesa-v1-pt.webp": [
+    1254,
+    1254,
+    0,
+    2,
+    1254,
+    1252
+  ],
+  "covers/cartoon-capa-theo-sentimentos-v1-en.webp": [
+    1254,
+    1254,
+    1,
+    0,
+    1253,
+    1253
+  ],
+  "covers/cartoon-capa-theo-sentimentos-v1-es.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1254,
+    1253
+  ],
+  "covers/cartoon-capa-vovo-docura-v1-en.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1253,
+    1253
+  ],
+  "covers/cartoon-capa-vovo-docura-v1-es.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1253,
+    1253
+  ],
+  "covers/cartoon-capa-vovo-docura-v1-pt.webp": [
+    1254,
+    1254,
+    0,
+    1,
+    1253,
+    1252
+  ],
+  "covers/realistic-capa-clara-miguel-casamento-v1-en.webp": [
+    1254,
+    1254,
+    27,
+    0,
+    1227,
+    1254
+  ],
+  "covers/realistic-capa-lia-cores-v1-es.webp": [
+    1254,
+    1254,
+    0,
+    1,
+    1253,
+    1252
+  ],
+  "covers/realistic-capa-lia-cores-v1-pt.webp": [
+    1254,
+    1254,
+    0,
+    2,
+    1253,
+    1251
+  ],
+  "covers/realistic-capa-nina-boa-noite-v1-en.webp": [
+    1254,
+    1254,
+    1,
+    1,
+    1252,
+    1253
+  ],
+  "covers/realistic-capa-nina-boa-noite-v1-es.webp": [
+    1254,
+    1254,
+    1,
+    0,
+    1253,
+    1254
+  ],
+  "covers/realistic-capa-nina-boa-noite-v1-pt.webp": [
+    1254,
+    1254,
+    1,
+    1,
+    1252,
+    1253
+  ],
+  "covers/realistic-capa-sofia-princesa-v1-pt.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1253,
+    1254
+  ],
+  "covers/realistic-capa-theo-sentimentos-v1-es.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1253,
+    1254
+  ],
+  "covers/realistic-capa-theo-sentimentos-v1-pt.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1253,
+    1253
   ],
   "localized/capa-amor-de-avo-png-es.webp": [
     1254,
@@ -1319,6 +1431,14 @@
     1240,
     1169
   ],
+  "localized/capa-construtor-png-es.webp": [
+    1254,
+    1254,
+    47,
+    0,
+    1207,
+    1254
+  ],
   "localized/capa-esther-higiene-png-en.webp": [
     1254,
     1254,
@@ -1334,22 +1454,6 @@
     47,
     1151,
     1149
-  ],
-  "localized/capa-grace-andar-png-en.webp": [
-    1254,
-    1254,
-    58,
-    52,
-    1142,
-    1173
-  ],
-  "localized/capa-grace-andar-png-es.webp": [
-    1254,
-    1254,
-    58,
-    53,
-    1152,
-    1166
   ],
   "localized/capa-lucas-max-png-en.webp": [
     1254,
@@ -1414,22 +1518,6 @@
     16,
     1202,
     1196
-  ],
-  "localized/capa-natalmemetata-png-en.webp": [
-    1254,
-    1254,
-    12,
-    32,
-    1239,
-    1204
-  ],
-  "localized/capa-natalmemetata-png-es.webp": [
-    1254,
-    1254,
-    12,
-    32,
-    1239,
-    1203
   ],
   "localized/capa-noe-en.webp": [
     1254,
@@ -1502,6 +1590,14 @@
     71,
     1075,
     1101
+  ],
+  "localized/cartoon-capa-bisavo-jpg-en.webp": [
+    1254,
+    1254,
+    1,
+    0,
+    1252,
+    1254
   ],
   "localized/cartoon-capa-lucas-png-en.webp": [
     1254,
