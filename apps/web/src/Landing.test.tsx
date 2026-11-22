@@ -776,7 +776,7 @@ describe("Landing — CTAs e links", () => {
     }
   });
 
-  it("mostra todos os livros do tema e liga cada capa à ficha correta", async () => {
+  it("mostra até 4 livros do tema e liga cada capa à ficha correta", async () => {
     renderLanding();
     await screen.findByTestId("landing-hero-title");
     const panel = document.querySelector("#cat-panel") as HTMLElement;
@@ -789,29 +789,29 @@ describe("Landing — CTAs e links", () => {
     hover(/^dinossauros$/i);
     expect(bookLinks().sort()).toEqual(["/livro/18", "/livro/60"]);
     expect(within(feats).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/catalogo#aventuras-dinosaurs");
-    hover(/^aventura$/i);
-    expect(bookLinks()).toContain("/livro/57");
-    hover(/^esportes$/i);
-    expect(bookLinks()).toEqual(expect.arrayContaining(["/livro/0", "/livro/1", "/livro/36", "/livro/53"]));
-    hover(/^princesas$/i);
-    expect(bookLinks()).toContain("/livro/62");
-    hover(/^vovó e eu$/i);
-    expect(bookLinks()).toContain("/livro/56");
+    for (const name of [/^aventura$/i, /^esportes$/i, /^princesas$/i, /^vovó e eu$/i]) {
+      hover(name);
+      expect(bookLinks().length).toBeGreaterThan(0);
+      expect(bookLinks().length).toBeLessThanOrEqual(4);
+      bookLinks().forEach((href) => expect(href).toMatch(/^\/livro\/\d+/));
+    }
     hover(/^irmãos e primos$/i);
     expect(bookLinks()).toEqual(["/livro/22"]);
     hover(/^tios e tias$/i);
     expect(bookLinks()).toHaveLength(4);
     hover(/^família$/i);
-    expect(bookLinks().length).toBeGreaterThan(4);
+    expect(bookLinks()).toHaveLength(4);
     expect(bookLinks()).not.toContain("/livro/61");
+    expect(within(feats).getByRole("link", { name: /ver todos/i })).toBeInTheDocument();
     expect(within(panel).getByRole("link", { name: /^casamento$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu-casamento");
     expect(within(panel).getByRole("link", { name: /hora de dormir/i })).toHaveAttribute("href", "/catalogo#educativo-rotina_dormir");
     hover(/hora de dormir/i);
-    expect(bookLinks()).toContain("/livro/65");
+    expect(bookLinks().length).toBeGreaterThan(0);
+    expect(bookLinks().length).toBeLessThanOrEqual(4);
   });
 
   for (const variant of ["photo", "cartoon"] as const) {
-    it(`mantém todos os livros acessíveis no menu ${variant} nos três idiomas`, () => {
+    it(`mostra de 1 a 4 livros por tema no menu ${variant} nos três idiomas`, () => {
       render(<MemoryRouter><Landing variant={variant} /></MemoryRouter>);
       for (const lang of ["pt", "en", "es"] as const) {
         fireEvent.click(screen.getByTestId(`landing-lang-${lang}`));
@@ -821,11 +821,11 @@ describe("Landing — CTAs e links", () => {
           fireEvent.mouseEnter(link);
           const shown = [...screen.getByTestId("landing-cat-feats").querySelectorAll(".kcat-feat")];
           expect(shown.length, `${lang}: ${link.textContent}`).toBeGreaterThan(0);
+          expect(shown.length, `${lang}: ${link.textContent}`).toBeLessThanOrEqual(4);
           shown.forEach((book) => books.add(book.getAttribute("href")!));
         }
-        expect(books.size).toBe(variant === "photo" ? 59 : 59);
-        if (variant === "photo") expect(books.has("/livro/31")).toBe(true);
-        else expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
+        expect(books.size).toBeGreaterThan(0);
+        if (variant === "cartoon") expect([...books].every((href) => href.endsWith("?modo=cartoon"))).toBe(true);
       }
     });
   }

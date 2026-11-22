@@ -6,6 +6,7 @@ import logo from "./assets/logo.png";
 import { api, getToken, type MeUser } from "./api";
 import { ADULT_SERVICE } from "./privacyNotice";
 import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
+import { formatPhone, phonePlaceholder, reformatPhone } from "./phoneFormat";
 import {
   LANGS,
   type Lang,
@@ -447,7 +448,7 @@ function AuthBody({
       if (!stillDefault) return prev;
       const nextCountry = defaultCountry(lang);
       if (prev.country === nextCountry) return prev;
-      return { ...prev, country: nextCountry, state: "" };
+      return { ...prev, country: nextCountry, state: "", phone: reformatPhone(prev.phone, prev.country, nextCountry) };
     });
   }, [lang]);
 
@@ -477,7 +478,7 @@ function AuthBody({
   }
 
   function onCountryChange(country: string) {
-    setSignup((prev) => ({ ...prev, country, state: "", number: prev.number }));
+    setSignup((prev) => ({ ...prev, country, state: "", number: prev.number, phone: reformatPhone(prev.phone, prev.country, country) }));
   }
 
   function friendlyAuthError(raw: string): string {
@@ -693,9 +694,9 @@ function AuthBody({
                   required
                   minLength={8}
                   autoComplete="tel"
-                  placeholder={region.phonePlaceholder}
+                  placeholder={phonePlaceholder(signup.country)}
                   value={signup.phone}
-                  onChange={(e) => setSignup({ ...signup, phone: e.target.value })}
+                  onChange={(e) => setSignup({ ...signup, phone: formatPhone(e.target.value, signup.country) })}
                   data-testid="auth-phone"
                 />
               </label>
@@ -729,6 +730,30 @@ function AuthBody({
                   </label>
                   {isUsLayout ? (
                     <>
+                      <label>
+                        {region.postalLabel[lang]}
+                        <input
+                          type="text"
+                          required
+                          minLength={signup.country === "US" ? 5 : 2}
+                          maxLength={signup.country === "US" ? 5 : 16}
+                          inputMode={signup.country === "US" ? "numeric" : undefined}
+                          autoComplete="postal-code"
+                          placeholder={region.postalPlaceholder}
+                          value={signup.postal_code}
+                          onChange={(e) => onPostalCodeChange(e.target.value)}
+                          data-testid="auth-postal-code"
+                        />
+                        {postalLookupOn && cepStatusText(cepStatus, t) && (
+                          <span
+                            className={`auth-cep-status is-${cepStatus}`}
+                            data-testid="auth-cep-status"
+                            role="status"
+                          >
+                            {cepStatusText(cepStatus, t)}
+                          </span>
+                        )}
+                      </label>
                       <label className="auth-span-all">
                         {t.street}
                         <input
@@ -791,30 +816,6 @@ function AuthBody({
                             onChange={(e) => setSignup({ ...signup, state: e.target.value })}
                             data-testid="auth-state"
                           />
-                        )}
-                      </label>
-                      <label>
-                        {region.postalLabel[lang]}
-                        <input
-                          type="text"
-                          required
-                          minLength={signup.country === "US" ? 5 : 2}
-                          maxLength={signup.country === "US" ? 5 : 16}
-                          inputMode={signup.country === "US" ? "numeric" : undefined}
-                          autoComplete="postal-code"
-                          placeholder={region.postalPlaceholder}
-                          value={signup.postal_code}
-                          onChange={(e) => onPostalCodeChange(e.target.value)}
-                          data-testid="auth-postal-code"
-                        />
-                        {postalLookupOn && cepStatusText(cepStatus, t) && (
-                          <span
-                            className={`auth-cep-status is-${cepStatus}`}
-                            data-testid="auth-cep-status"
-                            role="status"
-                          >
-                            {cepStatusText(cepStatus, t)}
-                          </span>
                         )}
                       </label>
                     </>

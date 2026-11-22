@@ -2823,9 +2823,12 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
   return sections;
 }
 
+/** O menu mostra só os primeiros livros de cada tema; o resto fica em "Ver todos". */
+const MENU_BOOK_LIMIT = 4;
+
 export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?: "father" | "studio" | "cartoon" }) {
   const t = I18N[lang];
-  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-capa-bisavo.jpg" : "pagina-mamaepapaimatteo.jpg", lang);
+  const passoBook = localizedExample(example === "father" ? "capa-meupai-heroi.png" : example === "cartoon" ? "cartoon-capa-bisavo.jpg" : "capa-mamaepapaimatteo.png", lang);
   const passoImgs = example === "father"
     ? ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", passoBook]
     : example === "cartoon"
@@ -3181,7 +3184,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                       {(() => {
                         const hoverCat = subHover ? shownCats[subHover.cat] : featCat != null ? shownCats[featCat] : null;
                         const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
-                        const shown = activeSub?.books ?? hoverCat?.feats ?? [];
+                        const shown = (activeSub?.books ?? hoverCat?.feats ?? []).slice(0, MENU_BOOK_LIMIT);
                         const allHref = activeSub?.href ?? (hoverCat ? `${catalogBase}#${hoverCat.id}` : catalogBase);
                         return (
                           <>
@@ -3349,7 +3352,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <div className="kmobile-subs-inner">
                     {mobileCat === i && mobileSub?.cat !== i && cat.feats.length > 0 ? (
                       <div className="kmobile-feats" data-testid={`landing-mobile-feats-${cat.id}`}>
-                        {cat.feats.map((feat) => (
+                        {cat.feats.slice(0, MENU_BOOK_LIMIT).map((feat) => (
                           <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
                             <span className="kcat-feat-cover">
                               <img src={exUrl(feat.img)} alt="" />
@@ -3380,7 +3383,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                           </div>
                           {subOpen ? (
                             <div className="kmobile-feats" id={`mobile-sub-${i}-${j}`} data-testid={`landing-mobile-feats-${cat.id}-${j}`}>
-                              {subBooks.length === 0 ? <p className="kmobile-empty">{t.cat_empty}</p> : subBooks.map((feat) => (
+                              {subBooks.length === 0 ? <p className="kmobile-empty">{t.cat_empty}</p> : subBooks.slice(0, MENU_BOOK_LIMIT).map((feat) => (
                                 <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
                                   <span className="kcat-feat-cover">
                                     <img src={exUrl(feat.img)} alt="" />

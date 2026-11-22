@@ -5,6 +5,7 @@ import { accountAccess, accountGateHref } from "./Auth";
 import { siteTitle } from "./pageMeta";
 import { api, getToken, type MeUser, type ProfileUpdatePayload } from "./api";
 import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
+import { formatPhone, phonePlaceholder, reformatPhone } from "./phoneFormat";
 import {
   LANGS,
   type Lang,
@@ -290,7 +291,7 @@ export function Conta() {
   }, [attempt]);
 
   function onCountryChange(country: string) {
-    setForm((prev) => ({ ...prev, country, state: "" }));
+    setForm((prev) => ({ ...prev, country, state: "", phone: reformatPhone(prev.phone, prev.country, country) }));
   }
 
   function onPostalCodeChange(value: string) {
@@ -408,9 +409,9 @@ export function Conta() {
                 required
                 minLength={8}
                 autoComplete="tel"
-                placeholder={region.phonePlaceholder}
+                placeholder={phonePlaceholder(form.country)}
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value, form.country) })}
                 data-testid="conta-phone"
               />
             </label>
@@ -442,6 +443,30 @@ export function Conta() {
               </label>
               {isUsLayout ? (
                 <>
+                  <label>
+                    {region.postalLabel[lang]}
+                    <input
+                      type="text"
+                      required
+                      minLength={form.country === "US" ? 5 : 2}
+                      maxLength={form.country === "US" ? 5 : 16}
+                      inputMode={form.country === "US" ? "numeric" : undefined}
+                      autoComplete="postal-code"
+                      placeholder={region.postalPlaceholder}
+                      value={form.postal_code}
+                      onChange={(e) => onPostalCodeChange(e.target.value)}
+                      data-testid="conta-postal-code"
+                    />
+                    {postalLookupOn && cepStatusText(cepStatus, t) && (
+                      <span
+                        className={`auth-cep-status is-${cepStatus}`}
+                        data-testid="conta-cep-status"
+                        role="status"
+                      >
+                        {cepStatusText(cepStatus, t)}
+                      </span>
+                    )}
+                  </label>
                   <label className="auth-span-all">
                     {t.street}
                     <input
@@ -504,30 +529,6 @@ export function Conta() {
                         onChange={(e) => setForm({ ...form, state: e.target.value })}
                         data-testid="conta-state"
                       />
-                    )}
-                  </label>
-                  <label>
-                    {region.postalLabel[lang]}
-                    <input
-                      type="text"
-                      required
-                      minLength={form.country === "US" ? 5 : 2}
-                      maxLength={form.country === "US" ? 5 : 16}
-                      inputMode={form.country === "US" ? "numeric" : undefined}
-                      autoComplete="postal-code"
-                      placeholder={region.postalPlaceholder}
-                      value={form.postal_code}
-                      onChange={(e) => onPostalCodeChange(e.target.value)}
-                      data-testid="conta-postal-code"
-                    />
-                    {postalLookupOn && cepStatusText(cepStatus, t) && (
-                      <span
-                        className={`auth-cep-status is-${cepStatus}`}
-                        data-testid="conta-cep-status"
-                        role="status"
-                      >
-                        {cepStatusText(cepStatus, t)}
-                      </span>
                     )}
                   </label>
                 </>

@@ -2327,3 +2327,6 @@
   scroll-margin-top: 6.5rem;
 }
 .studio-app #pedido { scroll-margin-top: 6.5rem; }
+
+.studio-app .studio-art-book.has-cover { width: 178px; height: 178px; background: #102f4c; }
+.studio-app .studio-art-book.has-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }

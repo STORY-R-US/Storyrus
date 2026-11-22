@@ -1,9 +1,15 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api";
-import { formatCep, useCepLookup } from "../cepLookup";
+import { formatCep, useCepLookup, type CepStatus } from "../cepLookup";
 import type { PrintAddress, PrintOrder, Project, PurchaseChoice } from "../types";
 import { useStudioI18n } from "./useStudioI18n";
 import { money, purchaseCopy } from "./purchaseCopy";
+
+const CEP_STATUS: Record<string, Partial<Record<CepStatus, string>>> = {
+  pt: { loading: "Buscando endereço…", ok: "Endereço preenchido. Confira e informe o número.", miss: "CEP não encontrado. Preencha o endereço.", error: "Não foi possível buscar o CEP. Preencha o endereço." },
+  en: { loading: "Looking up address…", ok: "Address filled in. Check it and add the number.", miss: "CEP not found. Please fill in the address.", error: "Could not look up the CEP. Please fill in the address." },
+  es: { loading: "Buscando dirección…", ok: "Dirección rellenada. Revisa e indica el número.", miss: "CEP no encontrado. Completa la dirección.", error: "No fue posible buscar el CEP. Completa la dirección." },
+};
 
 const empty: PrintAddress = {
   recipient_name: "",
@@ -40,7 +46,7 @@ export function PrintCheckout({
   const deliverySent =
     ["sent_for_validation", "approved"].includes(order?.status || "") ||
     Boolean(order?.tracking_code);
-  useCepLookup(
+  const cepStatus = useCepLookup(
     address.postal_code,
     address.postal_code !== savedAddress.postal_code && !busy && !deliverySent,
     (a) =>
@@ -358,6 +364,11 @@ export function PrintCheckout({
                   })
                 }
               />
+              {key === "postal_code" && CEP_STATUS[lang]?.[cepStatus] && (
+                <small className="muted" role="status" data-testid="delivery-cep-status">
+                  {CEP_STATUS[lang][cepStatus]}
+                </small>
+              )}
             </label>
           ))}
         </fieldset>

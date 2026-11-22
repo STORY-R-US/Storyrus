@@ -93,7 +93,7 @@ describe("Conta — perfil editável", () => {
     });
     expect(update.mock.calls[0][0]).toMatchObject({
       full_name: "Ana Silva",
-      phone: "11988887777",
+      phone: "+55 (11) 98888-7777",
       city: "São Paulo",
       country: "BR",
     });
