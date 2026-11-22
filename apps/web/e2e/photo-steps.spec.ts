@@ -30,7 +30,7 @@ for (const lang of ["pt", "en", "es"]) {
         const sources = await images.evaluateAll(items => items.map(item => item.getAttribute("src")));
         expect(sources[0]).toContain(path === "/" ? "passo-meupai-protagonista-v3.png" : "passo-protagonista-v2.webp");
         expect(sources[1]).toContain(path === "/" ? "passo-meupai-familia-v3.png" : "passo-familia-v2.webp");
-        expect(sources[2]).toContain(path === "/" ? "capa-meupai-heroi" : "pagina-mamaepapaimatteo");
+        expect(sources[2]).toContain(path === "/" ? "capa-meupai-heroi" : "capa-mamaepapaimatteo");
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         await steps.screenshot({ path: `test-results/photo-steps-${path === "/" ? "home" : "studio"}-${lang}-${width}.png` });
         await expect(page.getByRole("searchbox")).toHaveCount(0);
