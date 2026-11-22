@@ -97,6 +97,25 @@ def photo_manifest(project, photos):
     ]
 
 
+def multi_photo_note(photos) -> str:
+    """Tell the image model how to use several original photos of the cast."""
+    count = len(photos or [])
+    if count < 2:
+        return ""
+    return (
+        f"\nMULTIPLE ORIGINAL PHOTOS: the {count} original identity photographs may show the "
+        "same real person more than once, in different angles, expressions, lighting or "
+        "moments. Photos of the same person are ONE individual: study all of them together "
+        "to reproduce that person's face shape, eyes, eyebrows, nose, mouth, smile, skin "
+        "tone, hair colour, texture and length, body proportions and distinguishing marks "
+        "more faithfully than a single photo allows. When photos disagree, prefer the "
+        "sharpest, best-lit, most frontal view of the face and use the others for extra "
+        "detail. Draw each real person exactly once per scene: never create twins, "
+        "duplicates or a second child because someone appears in several photos, and never "
+        "blend two different people into one face."
+    )
+
+
 _TITLE_LINE = re.compile(r"(?im)^(?:t[íi]tulo|title)\s*:[^\n]*")
 
 

@@ -1532,7 +1532,7 @@ class Pipeline:
                             "natural scenery, no dark vignette or blurred strips."
                         )
                     result = await provider.generate_scene(
-                        prompt=prompt,
+                        prompt=prompt + contract.multi_photo_note(self.photos),
                         character_ref=self.photos[0],
                         photo=self.photos[0],
                         extra_refs=self.photos[1:]
@@ -2081,7 +2081,7 @@ class Pipeline:
                     await self.master._pkg()
                     .get_image_provider()
                     .generate_scene(
-                        prompt=prompt,
+                        prompt=prompt + contract.multi_photo_note(self.photos),
                         character_ref=self.photos[0],
                         photo=self.photos[0],
                         extra_refs=self.photos[1:]
@@ -2328,7 +2328,7 @@ class Pipeline:
                     await self.master._pkg()
                     .get_image_provider()
                     .generate_scene(
-                        prompt=repair_prompt,
+                        prompt=repair_prompt + contract.multi_photo_note(self.photos),
                         character_ref=self.photos[0],
                         photo=self.photos[0],
                         extra_refs=self.photos[1:] + [raw] + ([cover] if cover else []),
@@ -2506,7 +2506,7 @@ class Pipeline:
                 await self.master._pkg()
                 .get_image_provider()
                 .generate_scene(
-                    prompt=prompt,
+                    prompt=prompt + contract.multi_photo_note(self.photos),
                     character_ref=self.photos[0],
                     photo=self.photos[0],
                     extra_refs=references,
@@ -2677,7 +2677,7 @@ class Pipeline:
                 await self.master._pkg()
                 .get_image_provider()
                 .generate_scene(
-                    prompt=prompt,
+                    prompt=prompt + contract.multi_photo_note(self.photos),
                     character_ref=self.photos[0],
                     photo=self.photos[0],
                     extra_refs=self.photos[1:] + [cover] + ([reference] if reference else []),
@@ -2880,7 +2880,7 @@ class Pipeline:
                         await self.master._pkg()
                         .get_image_provider()
                         .generate_scene(
-                            prompt=prompt,
+                            prompt=prompt + (contract.multi_photo_note(self.photos) if reading else ""),
                             character_ref=self.photos[0] if reading else template_reference or b"",
                             photo=self.photos[0] if reading else None,
                             extra_refs=(self.photos[1:] if reading else [])
