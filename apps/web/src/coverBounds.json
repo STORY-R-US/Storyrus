@@ -74,58 +74,26 @@
   "capa-brilho-bailarina-en.png": [
     1254,
     1254,
-    25,
-    27,
-    1194,
-    1196
+    4,
+    3,
+    1247,
+    1248
   ],
   "capa-brilho-bailarina-es.png": [
     1254,
     1254,
-    24,
-    11,
-    1216,
-    1217
+    5,
+    3,
+    1245,
+    1247
   ],
   "capa-brilho-bailarina.png": [
     1254,
     1254,
-    39,
-    40,
-    1178,
-    1170
-  ],
-  "capa-bruno-animais-en.png": [
-    724,
-    724,
-    11,
     4,
-    704,
-    714
-  ],
-  "capa-bruno-animais-es.png": [
-    724,
-    724,
-    11,
-    4,
-    704,
-    714
-  ],
-  "capa-bruno-animais.png": [
-    724,
-    724,
-    12,
-    4,
-    703,
-    714
-  ],
-  "capa-construtor.png": [
-    1254,
-    1254,
-    40,
-    47,
-    1181,
-    1160
+    3,
+    1247,
+    1248
   ],
   "capa-cristobal-esporte.png": [
     724,
@@ -255,77 +223,21 @@
     1182,
     1180
   ],
-  "capa-heroi-aranha-en.png": [
-    1254,
-    1254,
-    4,
-    4,
-    1246,
-    1246
-  ],
-  "capa-heroi-aranha-es.png": [
-    1254,
-    1254,
-    4,
-    4,
-    1246,
-    1246
-  ],
-  "capa-heroi-aranha.png": [
-    1254,
-    1254,
-    4,
-    4,
-    1246,
-    1246
-  ],
-  "capa-heroi-bombeiro-en.png": [
-    1254,
-    1254,
-    40,
-    88,
-    1139,
-    1149
-  ],
-  "capa-heroi-bombeiro-es.png": [
-    1254,
-    1254,
-    40,
-    75,
-    1139,
-    1162
-  ],
-  "capa-heroi-bombeiro.png": [
-    1254,
-    1254,
-    40,
-    75,
-    1139,
-    1161
-  ],
   "capa-heroi-policia-en.png": [
     1254,
     1254,
-    16,
-    97,
-    1224,
-    1136
+    1,
+    1,
+    1252,
+    1253
   ],
   "capa-heroi-policia-es.png": [
     1254,
     1254,
-    16,
-    100,
-    1224,
-    1133
-  ],
-  "capa-heroi-policia.png": [
-    1254,
-    1254,
-    16,
-    98,
-    1220,
-    1138
+    0,
+    0,
+    1253,
+    1254
   ],
   "capa-lucas-max.png": [
     1254,
@@ -359,29 +271,13 @@
     686,
     634
   ],
-  "capa-mariajesus-hockey-en.png": [
+  "capa-matteo-nas-nuvens.png": [
     1254,
     1254,
-    39,
-    17,
-    1176,
-    1232
-  ],
-  "capa-mariajesus-hockey-es.png": [
-    1254,
-    1254,
-    15,
-    0,
-    1228,
-    1250
-  ],
-  "capa-mariajesus-hockey.png": [
-    1254,
-    1254,
-    22,
     1,
-    1209,
-    1247
+    1,
+    1252,
+    1252
   ],
   "capa-matteo-rancho-en.png": [
     1448,
@@ -495,14 +391,6 @@
     1242,
     1207
   ],
-  "capa-nicolas-maefilho.png": [
-    1254,
-    1254,
-    20,
-    4,
-    1213,
-    1246
-  ],
   "capa-noe-en.png": [
     724,
     724,
@@ -526,30 +414,6 @@
     23,
     677,
     675
-  ],
-  "capa-pascoa-en.png": [
-    1254,
-    1254,
-    97,
-    72,
-    1064,
-    1098
-  ],
-  "capa-pascoa-es.png": [
-    1254,
-    1254,
-    97,
-    72,
-    1065,
-    1098
-  ],
-  "capa-pascoa.png": [
-    1254,
-    1254,
-    97,
-    72,
-    1064,
-    1098
   ],
   "capa-pedro-amem-se-en.png": [
     1254,
@@ -823,69 +687,29 @@
     1250,
     1251
   ],
-  "covers/capa-antonio-bicicleta-jpg-en.webp": [
-    1254,
-    1254,
-    0,
-    0,
-    1254,
-    1253
-  ],
   "covers/capa-brilho-bailarina-png-en.webp": [
-    1254,
-    1254,
-    5,
-    3,
-    1245,
-    1249
-  ],
-  "covers/capa-brilho-bailarina-png-es.webp": [
-    1254,
-    1254,
-    4,
-    3,
-    1246,
-    1248
-  ],
-  "covers/capa-brilho-bailarina-png-pt.webp": [
-    1254,
-    1254,
-    5,
-    4,
-    1245,
-    1246
-  ],
-  "covers/capa-bruno-animais-png-en.webp": [
-    1254,
-    1254,
-    2,
-    2,
-    1251,
-    1251
-  ],
-  "covers/capa-bruno-animais-png-es.webp": [
     1254,
     1254,
     4,
     3,
     1247,
+    1248
+  ],
+  "covers/capa-brilho-bailarina-png-es.webp": [
+    1254,
+    1254,
+    5,
+    3,
+    1245,
     1247
   ],
-  "covers/capa-construtor-png-en.webp": [
+  "covers/capa-brilho-bailarina-png-pt.webp": [
     1254,
     1254,
-    1,
-    1,
-    1252,
-    1252
-  ],
-  "covers/capa-construtor-png-pt.webp": [
-    1254,
-    1254,
-    1,
-    0,
-    1252,
-    1254
+    4,
+    3,
+    1247,
+    1248
   ],
   "covers/capa-davi-pastor-png-pt.webp": [
     1254,
@@ -894,14 +718,6 @@
     0,
     1253,
     1254
-  ],
-  "covers/capa-emilia-bailarina-jpg-pt.webp": [
-    1254,
-    1254,
-    0,
-    1,
-    1254,
-    1252
   ],
   "covers/capa-enzo-dinossauro-png-en.webp": [
     1254,
@@ -983,23 +799,15 @@
     1254,
     1253
   ],
-  "covers/capa-heroi-aranha-png-en.webp": [
-    1254,
-    1254,
-    3,
-    3,
-    1248,
-    1248
-  ],
-  "covers/capa-heroi-policia-png-es.webp": [
+  "covers/capa-heroi-policia-png-en.webp": [
     1254,
     1254,
     1,
-    0,
+    1,
     1252,
-    1254
+    1253
   ],
-  "covers/capa-heroi-policia-png-pt.webp": [
+  "covers/capa-heroi-policia-png-es.webp": [
     1254,
     1254,
     0,
@@ -1066,26 +874,26 @@
   "covers/capa-matteo-nas-nuvens-png-en.webp": [
     1254,
     1254,
-    2,
-    2,
-    1250,
-    1250
+    1,
+    1,
+    1252,
+    1252
   ],
   "covers/capa-matteo-nas-nuvens-png-es.webp": [
     1254,
     1254,
-    2,
-    2,
-    1250,
-    1251
+    0,
+    0,
+    1254,
+    1253
   ],
   "covers/capa-matteo-nas-nuvens-png-pt.webp": [
     1254,
     1254,
-    2,
-    2,
-    1250,
-    1250
+    1,
+    1,
+    1252,
+    1252
   ],
   "covers/capa-matteo-trator-jpg-en.webp": [
     1254,
@@ -1191,30 +999,6 @@
     1252,
     1254
   ],
-  "covers/capa-nicolas-maefilho-png-en.webp": [
-    1254,
-    1254,
-    2,
-    1,
-    1251,
-    1252
-  ],
-  "covers/capa-nicolas-maefilho-png-es.webp": [
-    1254,
-    1254,
-    2,
-    2,
-    1251,
-    1251
-  ],
-  "covers/capa-nicolas-maefilho-png-pt.webp": [
-    1254,
-    1254,
-    0,
-    1,
-    1254,
-    1253
-  ],
   "covers/capa-noe-png-en.webp": [
     1254,
     1254,
@@ -1238,30 +1022,6 @@
     0,
     1253,
     1254
-  ],
-  "covers/capa-nonna-90-anos-png-es.webp": [
-    1254,
-    1254,
-    0,
-    1,
-    1254,
-    1252
-  ],
-  "covers/capa-pascoa-png-en.webp": [
-    1254,
-    1254,
-    0,
-    0,
-    1253,
-    1253
-  ],
-  "covers/capa-pascoa-png-pt.webp": [
-    1254,
-    1254,
-    1,
-    1,
-    1253,
-    1252
   ],
   "covers/capa-raquel-papai-png-es.webp": [
     1254,
@@ -1324,14 +1084,6 @@
     1254,
     0,
     0,
-    1254,
-    1253
-  ],
-  "covers/capa-vovo-docura-jpg-pt.webp": [
-    1254,
-    1254,
-    0,
-    1,
     1254,
     1253
   ],
@@ -1523,16 +1275,16 @@
     1254,
     1254,
     1,
-    2,
-    1251,
-    1251
+    0,
+    1252,
+    1254
   ],
   "covers/cartoon-capa-nicolas-jpg-pt.webp": [
     1254,
     1254,
-    1,
     0,
-    1252,
+    0,
+    1253,
     1254
   ],
   "covers/cartoon-capa-pedro-amem-se-png-en.webp": [
@@ -1566,22 +1318,6 @@
     9,
     1240,
     1169
-  ],
-  "localized/capa-construtor-png-en.webp": [
-    1254,
-    1254,
-    41,
-    51,
-    1176,
-    1174
-  ],
-  "localized/capa-construtor-png-es.webp": [
-    1254,
-    1254,
-    47,
-    50,
-    1170,
-    1153
   ],
   "localized/capa-esther-higiene-png-en.webp": [
     1254,
@@ -1646,6 +1382,22 @@
     58,
     1187,
     1099
+  ],
+  "localized/capa-matteo-nas-nuvens-png-en.webp": [
+    1254,
+    1254,
+    1,
+    1,
+    1252,
+    1252
+  ],
+  "localized/capa-matteo-nas-nuvens-png-es.webp": [
+    1254,
+    1254,
+    0,
+    0,
+    1254,
+    1253
   ],
   "localized/capa-nanoaventuras-png-en.webp": [
     1254,
@@ -1766,5 +1518,13 @@
     48,
     1254,
     1206
+  ],
+  "localized/cartoon-capa-nicolas-jpg-es.webp": [
+    1254,
+    1254,
+    1,
+    0,
+    1252,
+    1254
   ]
 }
