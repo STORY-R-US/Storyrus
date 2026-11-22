@@ -22,7 +22,11 @@ for (const path of ["/", "/cartoon"]) {
       await page.getByTestId(`landing-lang-${lang}`).click();
       expect(await read()).toEqual(pt);
       const images = page.locator("img");
-      await images.evaluateAll((imgs) => imgs.forEach((img) => { img.loading = "eager"; }));
+      await images.evaluateAll((imgs) => imgs.forEach((img) => {
+        // Validate every deferred asset too, without requiring eager production loading.
+        if (img.dataset.src) img.src = img.dataset.src;
+        img.loading = "eager";
+      }));
       await expect.poll(() => images.evaluateAll((imgs) => imgs.filter((img) => !img.complete || !img.naturalWidth).map((img) => img.src)), { timeout: 20_000 }).toEqual([]);
     }
   });

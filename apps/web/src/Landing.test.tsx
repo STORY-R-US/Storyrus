@@ -538,9 +538,9 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(cover).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-meupai-heroi.png", "pt")));
     expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
-    expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-amordebisavo.jpg", "pt")));
-    expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("src", expect.stringContaining("pagina-amordebisavo.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-amordebisavo.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("data-src", expect.stringContaining(localizedExample("capa-amordebisavo.jpg", "pt")));
+    expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("data-src", expect.stringContaining("pagina-amordebisavo.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("data-src", expect.stringContaining("foto-amordebisavo.jpg"));
     expect(screen.getAllByRole("button", { name: "Nano E Suas Aventuras" }).length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: "Pai e Filha: Uma Dupla que Brilha" })).not.toBeInTheDocument();
 
@@ -558,11 +558,11 @@ describe("Landing — menu mobile e abas do hero", () => {
 
     const carousel = cover.closest(".hero-carousel") as HTMLElement;
     const natalCovers = [...carousel.querySelectorAll("img")].filter((img) => {
-      const src = img.getAttribute("src") ?? "";
+      const src = img.getAttribute("data-src") ?? "";
       return src.includes(localizedExample("capa-natalmemetata.png", "pt")) && !src.includes("capa-natalmemetata-e");
     });
     expect(natalCovers).toHaveLength(2);
-    const heroSrcs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
+    const heroSrcs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("data-src") ?? "");
     expect(heroSrcs.some((src) => src.includes(localizedExample("capa-matteo-trator.jpg", "pt")))).toBe(true);
     expect(heroSrcs.some((src) => src.includes(localizedExample("capa-nonna-90-anos.png", "pt")))).toBe(true);
     expect(heroSrcs.some((src) => src.includes(localizedExample("capa-maria-fundo-do-mar.png", "pt")))).toBe(true);
@@ -593,7 +593,7 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
 
     await user.click(screen.getByTestId("landing-lang-es"));
-    const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
+    const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("data-src") ?? "");
     expect(heroImgs).toHaveLength(102); // same 17 book trios, with the carousel loop copy
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-meupai-heroi.png", "es")))).toBe(true);
     expect(heroImgs.some((src) => src.includes(localizedExample("capa-lucas-max.png", "es")))).toBe(true);

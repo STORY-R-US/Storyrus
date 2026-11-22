@@ -76,7 +76,7 @@ describe("approved PT images in all languages", () => {
       while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
       const read = () => ({
         books: [...container.querySelectorAll("#catalogo .cat-book-link")].map((a) => a.getAttribute("href")),
-        hero: [...container.querySelectorAll(".hero-carousel img")].map((img) => canonical(img.getAttribute("src")!)),
+        hero: [...container.querySelectorAll(".hero-carousel img")].map((img) => canonical((img.getAttribute("src") ?? img.getAttribute("data-src"))!)),
         reviews: [...container.querySelectorAll("#reviews .rev-photo img")].map((img) => canonical(img.getAttribute("src")!)),
         how: container.querySelectorAll("#como .howex img").length,
         steps: container.querySelectorAll("#passo .howex img").length,

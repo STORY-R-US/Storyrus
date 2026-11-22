@@ -40,7 +40,9 @@ for (const lang of ["pt", "en", "es"]) {
           const ratio = await image.evaluate(el => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight);
           expect(ratio).toBeCloseTo(position === 1 ? 2 : 1, 2);
           if (position === 0) {
-            const box = (await image.boundingBox())!;
+            // The image canvas can extend beyond this frame to crop transparent
+            // margins. Compare the displayed cover; cover-sizes also checks its pixels.
+            const box = (await gallery.locator('.cat-book').boundingBox())!;
             expect(Math.abs(box.width - box.height)).toBeLessThan(1);
             if (expectedCoverWidth) expect(Math.abs(box.width - expectedCoverWidth)).toBeLessThan(1);
             expectedCoverWidth = box.width;

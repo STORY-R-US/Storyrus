@@ -2102,12 +2102,13 @@ function FlipBook({
   pagesRef.current = pages;
   const referenceSrc = referencePages[index];
   const pageKey = pages.join("|");
+  const nextSrc = pages.length > 1 ? pages[(index + 1) % pages.length] : undefined;
   useEffect(() => {
-    pages.forEach((src) => {
-      const img = new Image();
-      img.src = exUrl(src);
-    });
-  }, [pageKey]);
+    // Keep the next turn ready without downloading every book on first load.
+    if (!nextSrc) return;
+    const img = new Image();
+    img.src = exUrl(nextSrc);
+  }, [nextSrc]);
   useEffect(() => {
     const img = new Image();
     let alive = true;
@@ -3502,8 +3503,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                           data-testid={copy === 0 ? `landing-hero-pick-${i}` : undefined}
                         >
                           <img
-                            src={exUrl(src)}
+                            src={isActiveSeries ? exUrl(src) : undefined}
+                            data-src={exUrl(src)}
                             alt=""
+                            loading={isActiveSeries ? "eager" : "lazy"}
+                            decoding="async"
                             data-testid={copy === 0 ? `landing-hero-slide-${i}` : undefined}
                           />
                         </button>
