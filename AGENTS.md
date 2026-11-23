@@ -40,3 +40,26 @@ de ambiente; não versione arquivos `.env` reais nem dados de produção.
   estado atual a sincronizar. Não o aplique sobre os recursos existentes nem
   substitua DATABASE_URL por uma referência à base lógica antiga da instância.
 - Detalhes operacionais: `docs/MIGRACAO_STORYRUS_2026-10-30.txt`.
+
+## Trabalho em conjunto: Codex e Claude
+
+Desde 22/11/2026 o Codex e o Claude trabalham ao mesmo tempo neste repositório,
+a pedido do responsável. O Codex usa branches `codex/*`; o Claude usa `feat/*` e `fix/*`.
+
+- Antes de começar e antes de publicar: `git fetch` e veja as branches do outro
+  agente com commits recentes e o que entrou no `main` no dia. Junte o `main` na
+  sua branch antes de publicar.
+- Se uma branch do outro agente estiver aberta mexendo nos mesmos arquivos,
+  não edite esses arquivos em paralelo: espere o merge ou avise o responsável.
+  O catálogo (`apps/web/public/exemplos`, `catalogModels.json`,
+  `localizedExamples.json`, `coverBounds.json`,
+  `backend/app/assets/composition_examples`) costuma estar com o Codex; Estúdio,
+  landing, checkout e API costumam estar com o Claude.
+- Não apague nem limpe `outputs/` ou `site-producao\outputs` sem pedido explícito.
+- Registro: o Claude registra o trabalho nos docs do Project; o Codex não tem
+  acesso a eles. Por isso, todo PR e todo commit do Codex no `main` levam no corpo
+  da mensagem, em português: o que mudou, os livros ou prévias afetados (nomes),
+  como foi validado (testes e conferência em storyrus.ai) e o que ficou pendente.
+  É a partir disso que o relatório diário para a gerência é montado.
+- Mudanças de preço, tamanho, prazo, frete ou outra promessa ao cliente exigem
+  aprovação do responsável antes de publicar, para os dois agentes.
