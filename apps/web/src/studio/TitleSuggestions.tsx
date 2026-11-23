@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { useStudioI18n } from "./useStudioI18n";
+import { tidyTitleCase } from "./titleCase";
 
 const COPY = {
   pt: {
@@ -48,7 +49,7 @@ export function TitleSuggestions({ projectId, currentTitle, selectedTitle, disab
     setError("");
     try {
       const result = await api.suggestPreviewTitles(projectId, guidance.trim());
-      if (id === request.current) setTitles(result.titles);
+      if (id === request.current) setTitles(result.titles.map(tidyTitleCase));
     } catch (e) {
       if (id === request.current) setError((e as Error).message || t.failure);
     } finally {

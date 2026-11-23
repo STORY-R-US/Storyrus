@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { api } from "./api";
 import { PRIVACY_NOTICE } from "./privacyNotice";
 import { StudioIntro, studioDesignCopy } from "./studio/StudioIntro";
+import { tidyTitleCase } from "./studio/titleCase";
 import { ProjectJourney } from "./studio/ProjectJourney";
 import { MediaReauthorization } from "./studio/MediaReauthorization";
 import { siteTitle } from "./pageMeta";
@@ -1304,6 +1305,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                         titleTouched.current = true;
                         setBookTitle(e.target.value); setReviewDirty(true); setChangesSent(false);
                       }}
+                      onBlur={() => setBookTitle(tidyTitleCase(bookTitle))}
                       placeholder={t.bookTitlePh}
                       maxLength={120}
                       disabled={isDemo || busy}
@@ -1647,6 +1649,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 setBookTitle(e.target.value);
                 if (e.target.value.trim()) clearMissing("title");
               }}
+              onBlur={() => setBookTitle(tidyTitleCase(bookTitle))}
               placeholder={t.bookTitlePh}
               maxLength={120}
               aria-invalid={missing.title || undefined}
