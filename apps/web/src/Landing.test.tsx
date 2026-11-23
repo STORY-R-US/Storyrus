@@ -893,7 +893,7 @@ describe("Landing — CTAs e links", () => {
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
     expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", localizedExample("cartoon-capa-bisavo.jpg", "pt")]) {
+    for (const file of ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo-v2.jpg", localizedExample("cartoon-capa-bisavo.jpg", "pt")]) {
       expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 

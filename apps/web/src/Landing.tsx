@@ -2873,7 +2873,7 @@ export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?:
   const passoImgs = example === "father"
     ? ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", passoBook]
     : example === "cartoon"
-      ? ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", passoBook]
+      ? ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo-v2.jpg", passoBook]
       : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
   const framing = example !== "father" && import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   return (
