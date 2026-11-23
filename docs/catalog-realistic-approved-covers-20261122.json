@@ -1,0 +1,2204 @@
+{
+  "reference": "Bombeiro cover approved by user; Meu Pai Meu Heroi reference preserved",
+  "method": "Built-in image editing; visual comparison against original PT and both translations; WebP export quality 94",
+  "scope": "Realistic covers only. Open books, reading scenes, Cartoon and backend reference snapshots unchanged.",
+  "baseCommit": "c3eb6519b8adac495618bfd0f15dc46fcda050c9",
+  "updatedCoverCount": 168,
+  "preservedReferenceBook": 21,
+  "heldBooks": [
+    {
+      "index": 6,
+      "reason": "Image tool refused English text localization; all three existing covers retained."
+    },
+    {
+      "index": 57,
+      "reason": "Image tool refused title edit; all three existing covers retained."
+    }
+  ],
+  "covers": [
+    {
+      "index": 0,
+      "language": "pt",
+      "file": "covers/capa-martin-goleiro-jpg-pt.webp",
+      "title": "MARTIN, O GRANDE GOLEIRO DO CHILE",
+      "previousSHA256": "8ad7d6a0144a91e9a149a380d76bce883e5d22cb0a6bd0be84ef9b49b4594786",
+      "generatedSHA256": "9e9ee2aee4ceb1d855bccf11fcd4704d9b21497a350cebae9ae6680ca966c179",
+      "publishedSHA256": "77bf2aa22c0d94a36db0e188ef9d0b8926e62e1e3c7b76984670d11a457ad234",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 0,
+      "language": "en",
+      "file": "covers/capa-martin-goleiro-jpg-en.webp",
+      "title": "MARTIN, THE GREAT GOALKEEPER OF CHILE",
+      "previousSHA256": "1cfe6c519cdb42e585cb6e59414abf8c4407ce8a6c27f5a3a1c3914bfb67cbee",
+      "generatedSHA256": "e1232103bf4ca081d51b6b5b492b80edcda2248c95d3df1398c9c60a47897240",
+      "publishedSHA256": "c7b12ac97ef52253770ebfd123a6d9607c810dcfec3af30a08143501f7003a5c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 0,
+      "language": "es",
+      "file": "covers/capa-martin-goleiro-jpg-es.webp",
+      "title": "MARTIN, EL GRAN ARQUERO DE CHILE",
+      "previousSHA256": "99a66e5d6c5d22880504cd2cc8b6a55b98c9ac09a30581aa0491fb20de1ff603",
+      "generatedSHA256": "729c8ee8d604665958367124921530012b6e5b1ee8c00ecb4dc5b26636074376",
+      "publishedSHA256": "8542fa3a3bcdc0f0402e185dc58806ed799f2350afa3330c299e977d41824204",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 1,
+      "language": "pt",
+      "file": "covers/capa-emilia-bailarina-jpg-pt.webp",
+      "title": "EMILIA E OS PRIMEIROS PASSOS DA BAILARINA",
+      "previousSHA256": "7663f435d6dfe422a8e5b74adec662e139dc1c302d9b796751c15b7f0a213851",
+      "generatedSHA256": "a66b85e7f6a7e94b1c960d9858f1050ebf8aef53987651d91b3107fe3045ab70",
+      "publishedSHA256": "5416b11d913536a5eca9097417cac7514bc4e9bd7bbfc4014ea2601612c1181f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 1,
+      "language": "en",
+      "file": "covers/capa-emilia-bailarina-jpg-en.webp",
+      "title": "EMILIA AND THE BALLERINA’S FIRST STEPS",
+      "previousSHA256": "79510785b5a4d1217286e4d554f00440dffcb995a7a7cea4e1497a934b0ef66a",
+      "generatedSHA256": "74e83bbcf95b942727614586521122b97e835d687b25a4aaf8937e2b73b9e024",
+      "publishedSHA256": "2fcd119f6f2a67b4348b2a61e5a707dc80e3ce51ee0ea46f4ed70dbb85ecd52f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 1,
+      "language": "es",
+      "file": "covers/capa-emilia-bailarina-jpg-es.webp",
+      "title": "EMILIA Y LOS PRIMEROS PASOS DE LA BAILARINA",
+      "previousSHA256": "4461f441a52fa72b31be6ffc636eb593ac7efb740024f5633d8dbe5f0e92cf9c",
+      "generatedSHA256": "3992e9c89dcb9a9aeb00e23bd2076c634573578019a1332345cd9e0c9ced1ab9",
+      "publishedSHA256": "336c3303ae61ac519e19630644b4b4192816509710141c6329b5e4daca9f37c6",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 2,
+      "language": "pt",
+      "file": "covers/capa-antonio-bicicleta-jpg-pt.webp",
+      "title": "ANTONIO E SUA BICICLETA",
+      "previousSHA256": "59465a1d09a8da7c77194ed28c5bc5de1ef5628df5bd3373708b45a0d41c9500",
+      "generatedSHA256": "679d21f2c96a5e6aa9d50a8446e08deb3a94293f89597a07c3a5eeec290fd039",
+      "publishedSHA256": "29b1e301f91d9f0c2bf6aed58ad8c953c0a2dd5e4354a6829355d13a0a765fcc",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 2,
+      "language": "en",
+      "file": "covers/capa-antonio-bicicleta-jpg-en.webp",
+      "title": "ANTONIO AND HIS BICYCLE",
+      "previousSHA256": "81378d6468e29c5ff694543beaf004552fff305a5a3610a0c25288b429cef901",
+      "generatedSHA256": "28bbde222cea758d070a55eec66b8cb0675a2c2e4e5f9c9140a949e555e334ae",
+      "publishedSHA256": "fc62fbd41810bde9cc35ee31229222d7e5b7c3b3952da1f75211ce388a752336",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 2,
+      "language": "es",
+      "file": "covers/capa-antonio-bicicleta-jpg-es.webp",
+      "title": "ANTONIO Y SU BICICLETA",
+      "previousSHA256": "c28b2e7a08d1be80f12666b77383b39a7d7b00ea44ac1a3769ede298c5bb097b",
+      "generatedSHA256": "5c0ff2e311949d9d89ef0859e0be4dfd221270c5f91d1fe57d77e9b05883745e",
+      "publishedSHA256": "46b246feb892392fc6c2648508b83aafc91adbc6e1cc150b0ff45675441660ec",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 5,
+      "language": "pt",
+      "file": "covers/capa-nicolas-maefilho-png-pt.webp",
+      "title": "NICOLAS, MEU PRIMEIRO AMOR",
+      "previousSHA256": "9fc8e9f00c9cf25daa1bd66b6a7f36f0d81e9f661d592b0d250ecca294812003",
+      "generatedSHA256": "5270c8ac22494a0bdb4b3b95dc990c27834e7d310505aae65391a7eeaf43fb4f",
+      "publishedSHA256": "4f577693fdbdb3c80059a78f4a0ae0902233d95c0bd350108bd39b554f404fe8",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 5,
+      "language": "en",
+      "file": "covers/capa-nicolas-maefilho-png-en.webp",
+      "title": "NICOLAS, MY FIRST LOVE",
+      "previousSHA256": "0ec6c4b381d30ad70c592da91358499013b935015295be2edc71b279513aee4e",
+      "generatedSHA256": "3a8fa4e7b2457f572f67893da45ca7d536be5d86bbb3765ba930889bdff172a5",
+      "publishedSHA256": "a298e15b2907cdf753a80de09a695f154f0f58d024171e3ce2dc232f8b892ee7",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 5,
+      "language": "es",
+      "file": "covers/capa-nicolas-maefilho-png-es.webp",
+      "title": "NICOLAS, MI PRIMER AMOR",
+      "previousSHA256": "2983e2512a07cdc9c15039c654035831c5764c37e812e2314980d3b24f6e18a6",
+      "generatedSHA256": "bfc8d17848e0f523f1477534c7688b973d0d64dc1040098e9cade7eb8d8e189b",
+      "publishedSHA256": "e6ff649572956669079b5c070ebc0357344600a269ccca2fdec63503430bfac6",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 7,
+      "language": "pt",
+      "file": "covers/capa-mamaepapaimatteo-png-pt.webp",
+      "title": "MAMÃE, PAPAI E MATTEO",
+      "previousSHA256": "66f1df017c045e8e062e7fe1ec8906360602d235517b1599ac11abc8847ef6b0",
+      "generatedSHA256": "2b16266c42a85cbf70641cfbd8eb7d31447238c6d9b64ee8173d461012da6f71",
+      "publishedSHA256": "d244945b3ced75a485f65efac45be0bd95046fd4290a48b895b8b93fc16ce48d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 7,
+      "language": "en",
+      "file": "covers/capa-mamaepapaimatteo-png-en.webp",
+      "title": "MOMMY, DADDY AND MATTEO",
+      "previousSHA256": "d41fefa93704c8748cd5bc38b92fa9e17382ff5baf08903c2f053d6a6dfb13dc",
+      "generatedSHA256": "d00fac5af1bd85cc705a60e266e5c79a428b1dc24e7a31624e708c6e2b0200a9",
+      "publishedSHA256": "0fad051cfa54862041a8e5f65be4914de91eafeccee4f5ad52c72cd553b98e36",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 7,
+      "language": "es",
+      "file": "covers/capa-mamaepapaimatteo-png-es.webp",
+      "title": "MAMÁ, PAPÁ Y MATTEO",
+      "previousSHA256": "10697ae7ff4423e4ae1477e34dd03155e10fb9fb3a8dca5c90c413a92179460c",
+      "generatedSHA256": "0f1ec98c9cd9f110ef7b66bbe8a9e2562c813e1e92690be02192514332c5fd09",
+      "publishedSHA256": "06f189d7677af6a2b8a9da09b24c5e269acaec5890b551ef72492617d63ee559",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 8,
+      "language": "pt",
+      "file": "covers/capa-amordebisavo-png-pt.webp",
+      "title": "AMOR DE BISAVÓ",
+      "previousSHA256": "41843dd066b7aa48de427ffe2931d7bb4b15cd833a1bd013772d9c79d0df666f",
+      "generatedSHA256": "a4ebf279d72b86224b7570a3de49b8f32c4c8158c6899c54fa0cc641959e1a43",
+      "publishedSHA256": "1ca38f5ad3c024e1891fdc0d8f89978bb6f124c1242a754c91da2115b6876ef5",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 8,
+      "language": "en",
+      "file": "covers/capa-amordebisavo-png-en.webp",
+      "title": "A GREAT-GRANDMOTHER’S LOVE",
+      "previousSHA256": "6fee8e042faf9f48648fed71f68be0e20c55d08d57df334a49465e40d1443673",
+      "generatedSHA256": "97a34e864d743176a015762103a704f4b6e1c3cc836de61a5b79f46caeb624ac",
+      "publishedSHA256": "7485adab0dd8df0edf761a5ae741aa0ec97d00171818c9d4ffc9a88d6aec6b61",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 8,
+      "language": "es",
+      "file": "covers/capa-amordebisavo-png-es.webp",
+      "title": "AMOR DE BISABUELA",
+      "previousSHA256": "15de130b5f21a838e61c77bc5a287161778f037d636364d9f9eee5aaf95d55c1",
+      "generatedSHA256": "d4bf43d13e41ec49e93a9f35cacbed5b1e200143cfe1d29b63bdefebb7a810b4",
+      "publishedSHA256": "daaad7e21f3f00e53717dab09d6568d750e57e011248fac3c08bb256f53ac965",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 9,
+      "language": "pt",
+      "file": "covers/capa-natalmemetata-png-pt.webp",
+      "title": "NATAL COM A MEME E O TATA",
+      "previousSHA256": "aae7c791aeb776d14481121e21f7f8fce106be617d01c0c8c82c2702e9aef68b",
+      "generatedSHA256": "2bb3b262d2c7427741798007d42d2020f3581e298eb1579c53a2cb915cb55981",
+      "publishedSHA256": "23f349916d5bf479e4f2ea7b5348a2933792ef820594296a6c4b24993ac99468",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 9,
+      "language": "en",
+      "file": "covers/capa-natalmemetata-png-en.webp",
+      "title": "CHRISTMAS WITH TATA AND MEME",
+      "previousSHA256": "3cbfe09120312728fbeddf839bef3878a080cb531aa4b465a866c45d1e10fadc",
+      "generatedSHA256": "2dbf42eef3d58be6f24265ba0af582f4602adb2cbb30f0b83c8bead9981cce33",
+      "publishedSHA256": "ef6037a5b2f82b3a68159770059d13c3cd30fbd1180c25dea916cf1485fd1fbd",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 9,
+      "language": "es",
+      "file": "covers/capa-natalmemetata-png-es.webp",
+      "title": "NAVIDAD CON TATA Y MEME",
+      "previousSHA256": "e9830bc2b91827f353a9b6d9e53782bd92332e11de9a350aea7a0f6b692d7168",
+      "generatedSHA256": "3845f1ea22adcc57cbff1232f2e86fb42edc6baf025568ab663e447ac8283065",
+      "publishedSHA256": "4a0a852ea289dd7693ddde2f30a2701d6db6a6cf52f965d4eb32f6bd5e01a0bf",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 10,
+      "language": "pt",
+      "file": "covers/capa-nanoaventuras-png-pt.webp",
+      "title": "NANO E SUAS AVENTURAS",
+      "previousSHA256": "a3c4cb008a1711b4ef3b75d8bc4b2c079f33511551a49e32ef2b4303ee42038d",
+      "generatedSHA256": "e607d196bb7d9d842d5ea10a646f64168e1bd404a4e74003defa4b412c592d2d",
+      "publishedSHA256": "ab09b8dd52890b917afef628db1d09f1dde4bc03a53b87ebd188a1c4233bd32a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 10,
+      "language": "en",
+      "file": "covers/capa-nanoaventuras-png-en.webp",
+      "title": "NANO AND HIS ADVENTURES",
+      "previousSHA256": "c909108f1609e6568ab97947a36371ed8f4f2fdc7147a9a62ac07c2a3b094a83",
+      "generatedSHA256": "2932177d359a85f2d95da0c63797bd223fac217bba65296e8b0e293bb2084da7",
+      "publishedSHA256": "014ae5118fb484e1298005e2c9cd310ee952b049bae6eee4114b755c6161c8ac",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 10,
+      "language": "es",
+      "file": "covers/capa-nanoaventuras-png-es.webp",
+      "title": "NANO Y SUS AVENTURAS",
+      "previousSHA256": "56b697619a4444444b33a9d7519b0ff6bde9b4ba42deab24db899333bb9a9fb1",
+      "generatedSHA256": "d0e33eeb94341060ed2ebf2d5838c9d993b077bf62de898bb5acca15804080b7",
+      "publishedSHA256": "f1b99a50743aed29e1c65f362a1b1fb886b9041e5e91ceae656bf9cffa8a1c58",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 11,
+      "language": "pt",
+      "file": "covers/capa-maya-cachorra-pt-jpg-pt.webp",
+      "title": "MAYA, MINHA CACHORRA CARINHOSA",
+      "previousSHA256": "0eaf81400a0a963c0a29700f37b26ef2d5bc49d5b6e3013e87821c70f25360f9",
+      "generatedSHA256": "3bf714117c87e2ab64d9b1747ae46819dbb16139c618ea3a9079d6d8ffc1b9a1",
+      "publishedSHA256": "d0ef3a3173434abe05de0fe87f86c4fec0dd9453e17b593c11d68e338a40a858",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 11,
+      "language": "en",
+      "file": "covers/capa-maya-cachorra-pt-jpg-en.webp",
+      "title": "MAYA, MY LOVING DOG",
+      "previousSHA256": "6fcf65e95632a50034ec8437fbe8998d959de320acc2aea595c30d5687c31da4",
+      "generatedSHA256": "f05acdae341de26e6bfdf22b061e531b37c08531c65b44f5f87cf6e2c14904d7",
+      "publishedSHA256": "2d57ccfc442e72410e4fd296ca771453ec89491a2ea1d6a71ba3ba4b9abff722",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 11,
+      "language": "es",
+      "file": "covers/capa-maya-cachorra-pt-jpg-es.webp",
+      "title": "MAYA, MI PERRITA CARIÑOSA",
+      "previousSHA256": "a843c2c6c6eb28bae0b23ef0f25243299f77743ca89e534933c2401eb5c26c56",
+      "generatedSHA256": "163b3825e1cb6b28774fb3d34baa02541b291d5ac8b450a8b991d7146ee60eb3",
+      "publishedSHA256": "9db3c5d8eea4dd7a78baf415730060a60e8519f8dc42cbec62783687ccc8bf33",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 12,
+      "language": "pt",
+      "file": "covers/capa-mako-amigofiel-jpg-pt.webp",
+      "title": "MAKO, MEU AMIGO FIEL",
+      "previousSHA256": "1ba3536c8dac246274381e408c7818c80b7cf2b0bd86832f5e5e97ba19b3e30a",
+      "generatedSHA256": "e237246d6e2ff7b3b07efff47ba6e417342304e5584d90add3e4aef146d56713",
+      "publishedSHA256": "5cbaa370cf93aae51db33c8fe465a8e9035ce992aca9413a1352153e291b59af",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 12,
+      "language": "en",
+      "file": "covers/capa-mako-amigofiel-jpg-en.webp",
+      "title": "MAKO, MY LOYAL FRIEND",
+      "previousSHA256": "b10e224938425c3bf48bca26e9aab446a1e23f01fde44a27f2b9c22814fe3b05",
+      "generatedSHA256": "c1b6db6fa01ba45ad7807d1670cca1de778067516976784c7530b1b368f7f679",
+      "publishedSHA256": "c3928facde88bef2caaac9cf9736136d9f08c10d8d6003ea0f139ea34048d115",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 12,
+      "language": "es",
+      "file": "covers/capa-mako-amigofiel-jpg-es.webp",
+      "title": "MAKO, MI AMIGO FIEL",
+      "previousSHA256": "f82acf93495876e822e81279b3a06ae33dd8748a75a5af7931b46f43f9fe7d03",
+      "generatedSHA256": "995505ca063a38209b6dc9a7002a4a77dd92f1329dd57847f893de782ce12a72",
+      "publishedSHA256": "df5331c81634b34f2c6975311e2de2c6381d64100a29202407f0a822786fc464",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 14,
+      "language": "pt",
+      "file": "covers/capa-raquel-papai-png-pt.webp",
+      "title": "RAQUEL E PAPAI: AVENTURAS PARA SEMPRE",
+      "previousSHA256": "5212198dc74f62f56aef68d86ce92b30e90720bbbd91d23fef3bc161eccf380d",
+      "generatedSHA256": "e16245463a8b2019fe60c40899754d9768008f5d4d9724e7c909c0938a1e1f99",
+      "publishedSHA256": "7d0af4095a717a5f4ff8af2fa676be13fff48c1a96ae5822d1706072554fcebd",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 14,
+      "language": "en",
+      "file": "covers/capa-raquel-papai-png-en.webp",
+      "title": "RAQUEL AND DAD: ADVENTURES FOREVER",
+      "previousSHA256": "4cbfe56faff0d3778e0406a32729a3bec7819a2e2c61b6ac02b929e8db957579",
+      "generatedSHA256": "1aff91ac8d0cd322d522275b3fc41c61e03f6c1b86521c62dc84655b94255c80",
+      "publishedSHA256": "15222d10b0e2a84f8b231c7ff1077eddb7bb682dbd17d50789f745978e963a4d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 14,
+      "language": "es",
+      "file": "covers/capa-raquel-papai-png-es.webp",
+      "title": "RAQUEL Y PAPÁ: AVENTURAS PARA SIEMPRE",
+      "previousSHA256": "9ce4262036583e086e61c90b3487d0d5839898e1feb8e22ba96bdd1ae9ace7d6",
+      "generatedSHA256": "8586bf6bde49c0d802699a52f65b05060e7318a3df1019770ab407418a582074",
+      "publishedSHA256": "0cf29be790103b394505949cfb814ca5b94e0968bdb1a3414009eee483bc434d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 15,
+      "language": "pt",
+      "file": "covers/capa-rebeca-png-pt.webp",
+      "title": "REBECA, A PEQUENA GRANDE HEROÍNA",
+      "previousSHA256": "eb12d290af3a9a494cc3f11af55d403fa66144672213d79f6a97c994d8cbe745",
+      "generatedSHA256": "a05ea2f2ecfbef1866b77fea3eb4fa20f71c33fedcfffe8b2814f75b5ae68878",
+      "publishedSHA256": "e48fdc4b4c306962e1c63976de8155869e09d5e5337f73017e73434c426cf64c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 15,
+      "language": "en",
+      "file": "covers/capa-rebeca-png-en.webp",
+      "title": "REBECA, THE LITTLE GREAT HEROINE",
+      "previousSHA256": "5478f40561a5f2a05ad7635d2d6af0e2a6a30f68043859f5667d468399cea3b8",
+      "generatedSHA256": "f93f4a7ea0c279b6718527e0e64f30449132cc36e22b1d0e9888394b686014b0",
+      "publishedSHA256": "07de9d9dc35abaa97b57c039bcd269693a17d8b1f51ac50bae1536068bffa935",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 15,
+      "language": "es",
+      "file": "covers/capa-rebeca-png-es.webp",
+      "title": "REBECA, LA PEQUEÑA GRAN HEROÍNA",
+      "previousSHA256": "13081152b12744881a239cf68c2bcb917c7192e03a9cc8c6b7642a0c1e359d92",
+      "generatedSHA256": "2306b4e0a3e52bd34b71bd5208bcfe969aac08194dd4b101b1b46d2607b866bf",
+      "publishedSHA256": "8be018993fd26359f8a16d21e83fd5c35437f8265dbb6a23f780271a53a58ee9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 18,
+      "language": "pt",
+      "file": "covers/capa-noe-png-pt.webp",
+      "title": "NOÉ NA TERRA DOS DINOSSAUROS",
+      "previousSHA256": "fd3e723558aada14f209cdfb3eb311a37c7035d50c4715331f37b81f7dd3922c",
+      "generatedSHA256": "12736c82c84fcc63b70e546065e0c529794b96e110a3dabcca0cd0435003d408",
+      "publishedSHA256": "1e2a393d828c642c242bf06811ab7bc9ce77b1726511fc633ec63c23c5690f22",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 18,
+      "language": "en",
+      "file": "covers/capa-noe-png-en.webp",
+      "title": "NOÉ IN THE LAND OF DINOSAURS",
+      "previousSHA256": "1df6518c8284686628ab0dfc2aea4f9e7c6c5a3f3f73d0b77531b60c4d2fa146",
+      "generatedSHA256": "bb83fb87e80f62782d9eeb9739b6b5fc0af3366a782ca11cbf45673bcc97610a",
+      "publishedSHA256": "6b8c3742973e01648140f81e02827acc15150d37950b091b9eca7311f1fae009",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 18,
+      "language": "es",
+      "file": "covers/capa-noe-png-es.webp",
+      "title": "NOÉ EN LA TIERRA DE LOS DINOSAURIOS",
+      "previousSHA256": "027436b1244c90bf36526e73f100ca344329aa3570aafadbffc100ad70612ef4",
+      "generatedSHA256": "bd505641c5a450abe7a732548918f28e855912251fcf085fec3ce18bf3fdcf2f",
+      "publishedSHA256": "fcc7dd862f8c10bd37afb8d58bb564071951a16b5289b2eec1a92e99944e07f0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 19,
+      "language": "pt",
+      "file": "covers/capa-amordetia-png-pt.webp",
+      "title": "AMOR DE TIA",
+      "previousSHA256": "bbdfc2a10270d388c902a65e2e3d789f7cda1e4e4dd86a9b9dce59be87dff8d3",
+      "generatedSHA256": "27e39c0ee2cd781a165971b90655f78797439648c52627f5c5d2a4e4d7ec9fa1",
+      "publishedSHA256": "46b13653a12e745eed39db50de5544ab947cafa5afaad9394fddc53d22af2058",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 19,
+      "language": "en",
+      "file": "covers/capa-amordetia-png-en.webp",
+      "title": "AN AUNT’S LOVE",
+      "previousSHA256": "165bb0b232a753f83c9f8aeeddee8495d272482ea4297765566065136c2428c0",
+      "generatedSHA256": "44eefe97fcfbe5231b2d3d9cc61e22a4cfeb67be437773f58872436e832e8f75",
+      "publishedSHA256": "836c39e0dbc29d4649133fd3dd6184e7ae42769db1d24013c78b180fb64f5815",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 19,
+      "language": "es",
+      "file": "covers/capa-amordetia-png-es.webp",
+      "title": "EL AMOR DE LA TÍA",
+      "previousSHA256": "bf3551ea52c1887a69f469e930d2a549f01c89a82fb079ad51fe24ac90c21c06",
+      "generatedSHA256": "1b1c4d076ccbbe54493dcbe06bb2c297e1230933aadedd992cbef507e9ade275",
+      "publishedSHA256": "f65db91f91b88ad58d7e3e22d5073ee28673411cebdd9290aeb51038b6856d6f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 20,
+      "language": "pt",
+      "file": "covers/capa-davi-pastor-png-pt.webp",
+      "title": "DAVI, O MENINO PASTOR",
+      "previousSHA256": "4997ba9a44fc467cd2c4afc5933772b5a1e6078ec1d7e673e6ddd70135af3718",
+      "generatedSHA256": "d2ca4810f3fdadafce928496c5eba6e823766a99e68bc932e65770938446707c",
+      "publishedSHA256": "0ac3fddc4cee841a3f81cc302d32b1c4f122a97f4dc9a4872fbe506eccc88ca8",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 20,
+      "language": "en",
+      "file": "covers/capa-davi-pastor-png-en.webp",
+      "title": "DAVID, THE SHEPHERD BOY",
+      "previousSHA256": "e1396165b6c5213bf7ebfff3e40836ec76c01d2c56a8f52dda638aac012cd775",
+      "generatedSHA256": "ff79d728ed9267b743ea62f269f2682ecfadfaea768510d384c3459747ad26e3",
+      "publishedSHA256": "fb709e03720422a46157dcfc6a4b6bc9e6f5122bcf2a07a2346b10e88a41f9cc",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 20,
+      "language": "es",
+      "file": "covers/capa-davi-pastor-png-es.webp",
+      "title": "DAVID, EL NIÑO PASTOR",
+      "previousSHA256": "273f8d8f02838b4ff641bdf9e7d65115023e6dfab0ceb8a4d98c2469a6355ff1",
+      "generatedSHA256": "d896ebed1a74d7584966c93871850e086198b664f95920f675bc120971390a90",
+      "publishedSHA256": "0e08ffd2bfa9aa84a7fab6c0fe3494c37c4e6890774688785e3dfd0ce2301e3d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 22,
+      "language": "pt",
+      "file": "covers/capa-enzo-primo-png-pt.webp",
+      "title": "ENZO, MEU PRIMO PREDILETO",
+      "previousSHA256": "d27ba380a59b7dcfc2bd6830839c4244668d556b7967a466fd0c8daaecae0237",
+      "generatedSHA256": "74010ccb713b8ed6d21b9249085cad7b3ac45e34ef2bc186e448c7a3cecf4528",
+      "publishedSHA256": "d555a38908e099338911349dfc9a7f3d0b006974a9da19d678d4cdae0eaa19ba",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 22,
+      "language": "en",
+      "file": "covers/capa-enzo-primo-png-en.webp",
+      "title": "ENZO, MY FAVORITE COUSIN",
+      "previousSHA256": "51cec3d298f312e7e71d844d3f05b1d9054010b3e2b070ba2862dbab25a14554",
+      "generatedSHA256": "425e878ba58d6e9a015f3f096bd95d14ba68918dbb91c0ead378f51c85a714d5",
+      "publishedSHA256": "5d06b3ba1ed528d732144e285c71a62ad2293a36de2961f1f547315a824ec574",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 22,
+      "language": "es",
+      "file": "covers/capa-enzo-primo-png-es.webp",
+      "title": "ENZO, MI PRIMO FAVORITO",
+      "previousSHA256": "3c07cb75759b31347c77449d65c11f2efbfa63ae057dcd0593f813d274c5b98d",
+      "generatedSHA256": "7a0d3a6a718e47d8b35b52d0843c7f353c73f2999b4e9e78cd2380858e639973",
+      "publishedSHA256": "6676ccdc954a2e71156ec2e5a8b19ab64f3eafcfffc0f264ca94b8947af4c89b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 23,
+      "language": "pt",
+      "file": "covers/capa-lucas-max-png-pt.webp",
+      "title": "LUCAS E SEU AMIGO MAX",
+      "previousSHA256": "02ec7ba7848f7ce1387a08f0ef0e888199fd909b3ce45275e388c3a80a236b8d",
+      "generatedSHA256": "c4494ac86cfd637f68cbce63fc4e315758ae2da1f788b598046fb2bbe8f9fdbb",
+      "publishedSHA256": "4d7e1fc69c262ea5ba5efcc806c5f91dcf7075af5ac8b62eb45443acb353097e",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 23,
+      "language": "en",
+      "file": "covers/capa-lucas-max-png-en.webp",
+      "title": "LUCAS AND HIS FRIEND MAX",
+      "previousSHA256": "f153a8235ca2a99d0ed3dfc632a335c493c27763b7e15572c0b49a1a332b5afa",
+      "generatedSHA256": "4147ca791006d83ac5df477569f46329bb3944e4e082253a2ceb1640175257c7",
+      "publishedSHA256": "c6228874c4985d416acb896056cd9ce57a41caca32203fc69e67240bb1bf26e1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 23,
+      "language": "es",
+      "file": "covers/capa-lucas-max-png-es.webp",
+      "title": "LUCAS Y SU AMIGO MAX",
+      "previousSHA256": "124b55ed8beb9e7e61eeddaaa39fcb697d950d924a97d0b9c4d93572d49a64c8",
+      "generatedSHA256": "5fc8fe92cbd69377f54e660ac02636386cc44e274aabb6a9385c451a6feb5b69",
+      "publishedSHA256": "86dd9382c53c8d57cc168e7ef16f7a6968dd9042bc1e278529218743f5ed97b4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 24,
+      "language": "pt",
+      "file": "covers/capa-esther-higiene-png-pt.webp",
+      "title": "ESTHER E OS SUPERPODERES DA HIGIENE",
+      "previousSHA256": "7993f54447aa4080cf6792137fcc86745b917425d9dd1ae5c272bc6948defdc5",
+      "generatedSHA256": "620a207a13cc34006d053ae03c82df325f8c6898b221df5fb767874cbe9baf84",
+      "publishedSHA256": "cb469d42383b592fc8c64e2758136a5caef9fd328f3f8f907917645368ce4ff7",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 24,
+      "language": "en",
+      "file": "covers/capa-esther-higiene-png-en.webp",
+      "title": "ESTHER AND THE SUPERPOWERS OF HYGIENE",
+      "previousSHA256": "de17016a1e3342b529a46d4bf22baf1fd378ab44c1ad17d8642640457d7c75d4",
+      "generatedSHA256": "67c54c8f3a97d073ae05acf891d2be31ce488da2e7a698b98e864b972ed35166",
+      "publishedSHA256": "b72af9c0e5697801dd66ed3b981ef1339198b93dbcc2fbbe65d1cc6233c28b3f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 24,
+      "language": "es",
+      "file": "covers/capa-esther-higiene-png-es.webp",
+      "title": "ESTHER Y LOS SUPERPODERES DE LA HIGIENE",
+      "previousSHA256": "4ba39755449aaae7932e68d0adf5344c50f619b6a7fb6e14ee976f3f65938ece",
+      "generatedSHA256": "65f97ca918e5aafbadf14455ff173ed55a7dc20cdc2cbc626404dc603272e4b9",
+      "publishedSHA256": "81870f5a37ca4989a1b479dbce4a4ecb57bf1a294ae4a81a67c9450179d7d2d0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 25,
+      "language": "pt",
+      "file": "covers/capa-construtor-png-pt.webp",
+      "title": "PEQUENO CONSTRUTOR, GRANDE EMPREENDEDOR",
+      "previousSHA256": "bd5679158392fb2fcf6571f3a784177f2410052d99c483a6330a621b6ac9cd15",
+      "generatedSHA256": "02d34a08ecfdc9d187f5d056fea1cc3869fdca07e51ce8f2e430b76dd14636dc",
+      "publishedSHA256": "d4be5f82a0cc430d98dd13d7e2dda3efe097af9542ad29b8c4fe991a6f584e27",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 25,
+      "language": "en",
+      "file": "covers/capa-construtor-png-en.webp",
+      "title": "LITTLE BUILDER, BIG ENTREPRENEUR",
+      "previousSHA256": "e149b4bac62695c95ebd5134968fedddef0a391dd581e289f2573e2bd6f27195",
+      "generatedSHA256": "761c65e16dafc8a94260df0d7d3ab9077c2492a06ce0a633cf78e66af90731c1",
+      "publishedSHA256": "9c77e51024727d0b2a42e8a1913ae3f77733e2ae083fd7de30f1d3445b0e12ba",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 25,
+      "language": "es",
+      "file": "covers/capa-construtor-png-es.webp",
+      "title": "PEQUEÑO CONSTRUCTOR, GRAN EMPRENDEDOR",
+      "previousSHA256": "3a8f249ce3650514133e30d7a595701d61354a88c4fcc1dd17470c942eaab7d6",
+      "generatedSHA256": "3c73435bdb1345c5f04441f2cb4514e488b81651022a68b24e88c2a697f0d8f2",
+      "publishedSHA256": "5a37539059babfd700e1949cf7bf6af15063768094f30ca411ceae45ce1d6e8d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 26,
+      "language": "pt",
+      "file": "covers/capa-heroi-bombeiro-png-pt.webp",
+      "title": "MEU HERÓI FAVORITO, O BOMBEIRO",
+      "previousSHA256": "710938af2413d089246f1336cca9d2097a1eb94a6f646a7bb763e8d563c1f5f5",
+      "generatedSHA256": "0f11979988fe62985b8b80d8d2c02692d1361f5f8234d73f96ffdf5d6e41fb08",
+      "publishedSHA256": "7363da4e19302a89d4f66bfca14a47f38a7ca4d4d4c500cca01068e05f1dfa23",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 26,
+      "language": "en",
+      "file": "covers/capa-heroi-bombeiro-png-en.webp",
+      "title": "MY FAVORITE HERO, THE FIREFIGHTER",
+      "previousSHA256": "409d70d285da2e628e6a85b2231e870c41ada7195ccfc46cbec58bfde262ba72",
+      "generatedSHA256": "8e13593a7ddcde03d53b85776209235b88acd2a1c275dff009528267895e370c",
+      "publishedSHA256": "daed9517a0a338afd7cd98d5f25658f968f733ce820cae653e0d9eb83cadc209",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 26,
+      "language": "es",
+      "file": "covers/capa-heroi-bombeiro-png-es.webp",
+      "title": "MI HÉROE FAVORITO, EL BOMBERO",
+      "previousSHA256": "72187773260fb1edd46ca1f36e3f2eac4678d4ea13ca9f353b028718a024f01a",
+      "generatedSHA256": "d08582faf4af5d12580c577218b4884b1753268c5e0ef19b81c82b4a68d77e15",
+      "publishedSHA256": "0254828cfca52efda04247e66419982cf79bac03636d479276e2aa618f3c5045",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 27,
+      "language": "pt",
+      "file": "covers/capa-heroi-policia-png-pt.webp",
+      "title": "MEU HERÓI FAVORITO, O POLICIAL",
+      "previousSHA256": "5dd6a62f00b1b35d6c58884e7c7415b8bcb4e932f0048fab270b4ddb1b58d15d",
+      "generatedSHA256": "cd260f4bfba5808ac7b7debf94d90e430201e7aad0aad2101496264661a9d3c7",
+      "publishedSHA256": "8d160a7a14e78709527c8fb1bb89690e673c07e9622790bae3f421892caa38f1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 27,
+      "language": "en",
+      "file": "covers/capa-heroi-policia-png-en.webp",
+      "title": "MY FAVORITE HERO, THE POLICE OFFICER",
+      "previousSHA256": "878efd8c56a0380e9250c5eb0651ab9dbfe6c2e20301877bb4e05448b629fae4",
+      "generatedSHA256": "e01627b9abd1b91e89a62bcf89f69e69b31850fed64ee2a0f28ce7d0f8c1d164",
+      "publishedSHA256": "2039a9ce3655df59b600f0cb89d42bca7e1b4c2faa62fe19c093543d518afdd8",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 27,
+      "language": "es",
+      "file": "covers/capa-heroi-policia-png-es.webp",
+      "title": "MI HÉROE FAVORITO, EL POLICÍA",
+      "previousSHA256": "74e064714f0026756d905f031a8ac1108dc599667b5ff6238abba8b90069325f",
+      "generatedSHA256": "7630e2f3f6970f1c2053b92d9fd4742facbea4d65e46daafbb8c742be6d8f743",
+      "publishedSHA256": "2ab6ca0f895d8fda424c8013264fd84a58c7195b44ea0adc3a7061e7b1a82af0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 28,
+      "language": "pt",
+      "file": "covers/capa-heroi-aranha-png-pt.webp",
+      "title": "MEU HERÓI FAVORITO, A ARANHA",
+      "previousSHA256": "3b42b67326391e61743b33ca3bdede6c5ce41df0782cde276e8e782ae4c61d9c",
+      "generatedSHA256": "1457cd16348ef49caab78ffb4d1241035f342a7e66ae1d01c3812c0e3b03ad2f",
+      "publishedSHA256": "4e5efcff03300fa79a58ed11c69c031ade0b342adfb03ca1b89ba83e593ea78a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 28,
+      "language": "en",
+      "file": "covers/capa-heroi-aranha-png-en.webp",
+      "title": "MY FAVORITE HERO, THE SPIDER",
+      "previousSHA256": "95d5cded4cde4b4d9e4c57e4aa717b8bbdf202cfe60c537422042e9e500f27c2",
+      "generatedSHA256": "be564523b8683954918fb91ed98fa37437ee72d53cc6bf22cdd7e8109f84f208",
+      "publishedSHA256": "2babecc530e8b7a6ee5117fe42c4593d5437b4e1a371df9c62e8a51c28c8b10b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 28,
+      "language": "es",
+      "file": "covers/capa-heroi-aranha-png-es.webp",
+      "title": "MI HÉROE FAVORITO, LA ARAÑA",
+      "previousSHA256": "58d857c6614b350e11f35612e5ae7096ce806147319915291ddfaaf88650683a",
+      "generatedSHA256": "892b2cf3316ce246f9619ad3b19b2cfa9380a09cfe5ea440191f64a826d50e42",
+      "publishedSHA256": "8d2d9c9d256e913085cdb849b34dc0ee639c6ea144b36369456589dce759645d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 29,
+      "language": "pt",
+      "file": "covers/capa-tia-especial-png-pt.webp",
+      "title": "TIA ESPECIAL, NÃO EXISTE IGUAL",
+      "previousSHA256": "82992f8b2b5029bd44e71b227afccfa757ca544a019e3ad10ffdaba0bf7c4cf5",
+      "generatedSHA256": "55128a374d9da8d8da642d7e8c43050c4667cc3a46c3e20f6647f193daa085af",
+      "publishedSHA256": "6adb44121c1a9ee414f471e5204572048537a53b1a4910ce351007f9e817ead9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 29,
+      "language": "en",
+      "file": "covers/capa-tia-especial-png-en.webp",
+      "title": "A SPECIAL AUNT, ONE OF A KIND",
+      "previousSHA256": "22f88515964b203455304a16f1bc2f49638d8ac3cb22d3f1f90aae0210793141",
+      "generatedSHA256": "e11807e7a42264056da6ae7d206f128bc73a42fe39ba4d3d233cbf8cfc55695f",
+      "publishedSHA256": "7fbde1104c6832604075312986fe95d40ea6db9590c69fb9ba27028b34465e64",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 29,
+      "language": "es",
+      "file": "covers/capa-tia-especial-png-es.webp",
+      "title": "UNA TÍA ESPECIAL, NO HAY OTRA IGUAL",
+      "previousSHA256": "85fec9b1a52d12d5a7c46d8fe3063a8debf7150b0f4cdb409206877a0dbdaa8a",
+      "generatedSHA256": "6c5c6df1ebdf1e798e2c8c2211ffa07bcfb567ca828e79bf291ffeaac86491dd",
+      "publishedSHA256": "8b3ca2edc3eee03ed2e15d58a44c034416c87447944b31b6066b7e7fe707655e",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 30,
+      "language": "pt",
+      "file": "covers/capa-amor-de-avo-png-pt.webp",
+      "title": "AMOR DE AVÔ, MEU PORTO SEGURO",
+      "previousSHA256": "e50c08a02b29dddee722c7386ff48a1b1b3821d8c6811cc1cd8c6c403cf78512",
+      "generatedSHA256": "d51280a41a463a70d3e3e9684938181ae3f08d4d35d18fd3f32dc87e027a8662",
+      "publishedSHA256": "e28ff090f438467be3c599be3d78bc8406713c861fcb0afff390d846570a7216",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 30,
+      "language": "en",
+      "file": "covers/capa-amor-de-avo-png-en.webp",
+      "title": "GRANDPA’S LOVE, MY SAFE HARBOR",
+      "previousSHA256": "2608793ff7386909447bbe3e61f0981ecf057fdecf0c5651ffaae9f4cdb225c6",
+      "generatedSHA256": "cf95c34567468a047e64f8333ab72001113bd177f0e11e0a86d06772d4a376b3",
+      "publishedSHA256": "c8fe4d625dff2ce0f85f17b8aedecc6de28b7a9d7ad06960a2e1521a4719978a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 30,
+      "language": "es",
+      "file": "covers/capa-amor-de-avo-png-es.webp",
+      "title": "EL AMOR DEL ABUELO, MI PUERTO SEGURO",
+      "previousSHA256": "56ba05112a967d53ae462554301a0a4b1c6d628ed757f5ef7a27921fd52c2f4e",
+      "generatedSHA256": "dbf97ae8e3e4e2aa40e00366976c7f4fae4109971234bb8f23a9b43e1a1b0616",
+      "publishedSHA256": "b1ebc65444362945d182cac564a4af1d164b98d1b8a5198a994de7babb5dcd5c",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 31,
+      "language": "pt",
+      "file": "covers/capa-pascoa-png-pt.webp",
+      "title": "FELIZ PÁSCOA",
+      "previousSHA256": "b684bc5c9b9ea6fc255a731c988b86b48ed075967eb59b60cad246639096eda9",
+      "generatedSHA256": "10c3341a3c4c16c4c5c5fa3033a2c5296161c20b4f97816f4c5aa7644d2bb2c0",
+      "publishedSHA256": "ff636620b7765fad3d4f2798cf58ceb24d9d8b08621e0a0997cd633e3148a250",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 31,
+      "language": "en",
+      "file": "covers/capa-pascoa-png-en.webp",
+      "title": "HAPPY EASTER",
+      "previousSHA256": "9383dabcfc5148d47381bbc426acb0d55cc3773ded464bf1e83d74f222f1e1d2",
+      "generatedSHA256": "877bfcab492cd358cf5d1ee955a742fca362fb90901f16fb74279ca4a71bb966",
+      "publishedSHA256": "7d889a3bf229961c5451f6941cad01fbd1628738482e96a915ebe391589c6a5f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 31,
+      "language": "es",
+      "file": "covers/capa-pascoa-png-es.webp",
+      "title": "FELIZ PASCUA",
+      "previousSHA256": "80df0643d5e616a0d3d6d9d48e46667fbdca6ff67c1028b622b65aeaa8f21094",
+      "generatedSHA256": "d943d78f5fa0954e19c6aec125ff0b8769dd86ac9607b915b837a54dc110f6c2",
+      "publishedSHA256": "3b556e18ccdab3189692cfafb87c1f83d0ce8a0a0d4d9cda0d606e2fa07403f4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 33,
+      "language": "pt",
+      "file": "covers/realistic-capa-aventura-v1-pt.webp",
+      "title": "MINHA GRANDE AVENTURA",
+      "previousSHA256": "37e7314846447735253697ea1e384785adfdb29f1047644c7afec57ec121dbd3",
+      "generatedSHA256": "61b23a317787498845b38f74b724079058e9678cf9d9a4d190829d54e8375c6e",
+      "publishedSHA256": "faf5cb020da2d71bd4f3567fff5e0f8b9cfe8f422ba87834c565a4d4d8805ec4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 33,
+      "language": "en",
+      "file": "covers/realistic-capa-aventura-v1-en.webp",
+      "title": "MY GREAT ADVENTURE",
+      "previousSHA256": "b4dbf1df817d4eb7b1922e2db272994d2dfc2ab07fa80989e4018be16c7fe448",
+      "generatedSHA256": "1a153814a165858f9f70a2b77ceef8a45f9a7a59083ae39e0687e44757e0cdf3",
+      "publishedSHA256": "d53e9cb1a669c33313c535445e5db09887e0d696e80d832e1d008ca8af2903c3",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 33,
+      "language": "es",
+      "file": "covers/realistic-capa-aventura-v1-es.webp",
+      "title": "MI GRAN AVENTURA",
+      "previousSHA256": "8d8481fac1ffa2632bcb377f29f7f103cb394ae64d862b440858d31feb3defb9",
+      "generatedSHA256": "f05b7597451458547d7a3ecdeb7e026176293b8f14188fbb08c8eb45e5579b8c",
+      "publishedSHA256": "3379308a0db7028e9ccdbc21d6c8bd72b0b41eb4a5a301864368903540794464",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 34,
+      "language": "pt",
+      "file": "covers/capa-bruno-animais-png-pt.webp",
+      "title": "BRUNO EM UMA AVENTURA ANIMAL",
+      "previousSHA256": "1f23eda2ce6b4a920f696434c45cd799dc589c991448e00abeaceaf795d843c1",
+      "generatedSHA256": "8f120fa1c829a1a2ec7b495d5a2af9ef7ba997381cd9f4f4b6f3fbc050861070",
+      "publishedSHA256": "1af5801a99004258814ea9d10a5bb814fc4b626255048556b64cbc34e0721765",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 34,
+      "language": "en",
+      "file": "covers/capa-bruno-animais-png-en.webp",
+      "title": "BRUNO ON AN ANIMAL ADVENTURE",
+      "previousSHA256": "fb077fa0d248cf36a66ef1117614090b0ec6bef66557bd50b14cd02e7573f06d",
+      "generatedSHA256": "2adb3c47f0bbdcaafaf07f9f2f07cb2be4362e2da773c4d9f8b65f6738e3a8b9",
+      "publishedSHA256": "0f85f64ccc56f0e55d6dc9dc56bf136cd893c39b23a9d7e4496279f35c7dcaed",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 34,
+      "language": "es",
+      "file": "covers/capa-bruno-animais-png-es.webp",
+      "title": "BRUNO EN UNA AVENTURA ANIMAL",
+      "previousSHA256": "6461670a95f9ca30abb6abee1f48a7b077c0a5ead7a90c818ca6c7c7a205b604",
+      "generatedSHA256": "d158d667c352552b55f9abcef0949b8f18e6b8e43f22db0fa5904d1a91bbf2cc",
+      "publishedSHA256": "4edb4317d895ab17bffbb4e3330a2a50f079e442d27f0ef010f05b4b6655d0fa",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 35,
+      "language": "pt",
+      "file": "covers/realistic-capa-gael-economia-v1-pt.webp",
+      "title": "APRENDENDO ECONOMIA COM O GAEL",
+      "previousSHA256": "9b24bad06282849d5bceba747c3839c716916cada170cf6158a38d2123a315ed",
+      "generatedSHA256": "71b02d6cca8b77b57e4cda107b6a495cb598209c98d2850b4d9e02554537b503",
+      "publishedSHA256": "e6ad5c4d9bdd829c582baa9c00cd8286058680e8d34531f12642d424eaaf360f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 35,
+      "language": "en",
+      "file": "covers/realistic-capa-gael-economia-v1-en.webp",
+      "title": "LEARNING SAVINGS WITH GAEL",
+      "previousSHA256": "2bd16bfb416f297c2b0ff1f10a4c43c169142b76f79b540a4b8b1f4b67037a0c",
+      "generatedSHA256": "e80c28523fcd955fe56ac0043443a75c5cf3a4d9744adb44580a37a46775c887",
+      "publishedSHA256": "bb14edd96fcb2299458f015a8c1f20e3c320050a1ea266c196f61a858eff244f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 35,
+      "language": "es",
+      "file": "covers/realistic-capa-gael-economia-v1-es.webp",
+      "title": "APRENDIENDO ECONOMÍA CON GAEL",
+      "previousSHA256": "39a45e2c11f90c6f5f16552b54bf844154e6beaecd9782700925869fb64a402c",
+      "generatedSHA256": "fdf13855f0fff6b5bc5d19b71a955cd43befcb52a62027a3e1b60f8d6989a75e",
+      "publishedSHA256": "dab4765f81cf9b3cfab54aa0593567ec5adaec1d7ee26772634b7f82603789dd",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 36,
+      "language": "pt",
+      "file": "covers/capa-mariajesus-hockey-pt.webp",
+      "title": "MARIA JESUS E A DISCIPLINA NO HOCKEY NA GRAMA",
+      "previousSHA256": "fafa540765a28fddaef4729b21a5a868b7080f2ab760cdb42c87461ea62eb2f8",
+      "generatedSHA256": "2d2186483a403702293504fffca529e27b93b4c2db216cf8fee4d5bc50a21174",
+      "publishedSHA256": "d9cadec74f80e371e0cc7f3411514d6038a3a6aa72c16c962729074d8b5dff1a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 36,
+      "language": "en",
+      "file": "covers/capa-mariajesus-hockey-en.webp",
+      "title": "MARIA JESUS AND DISCIPLINE IN FIELD HOCKEY",
+      "previousSHA256": "2f4b0598951f6b01a05bc86ca5dc5d40e1cdc514bca0f43c9db4a1029c12da14",
+      "generatedSHA256": "9f84d74b049d022595340691d66e0bd4969117d05ce6b25cb34e84d5caded367",
+      "publishedSHA256": "b4d88d5411cf78eb2c6725e5be6fb0c6941f17046fbbc546eb5b901f45cf6e79",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 36,
+      "language": "es",
+      "file": "covers/capa-mariajesus-hockey-es.webp",
+      "title": "MARIA JESUS Y LA DISCIPLINA EN EL HOCKEY SOBRE CÉSPED",
+      "previousSHA256": "8eac5ff791025bf3e8b63bb0d065ea9c9a2eccbd4ad5f372a4988d18b2b65cc7",
+      "generatedSHA256": "7c6144d3b80a1e77391dc373b1f0d9f7fb520e5c5c06b65d541492a3a002758e",
+      "publishedSHA256": "238b383997c765a3797f2b4d54f350089f1e5e24e161000fcf3f09ff87ef06a2",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 37,
+      "language": "pt",
+      "file": "covers/capa-quatro-geracoes-jpg-pt.webp",
+      "title": "QUATRO GERAÇÕES DE AMOR, NOSSO MAIOR VALOR",
+      "previousSHA256": "59a7c6ed4460cf635dc665d17044be385e699baa3da6972fde628e9a97b30263",
+      "generatedSHA256": "a98eadf0898eb89547a53187701a1ea1f41978d334be1a92851dabdb0afd8ba7",
+      "publishedSHA256": "466cdcacce1a61d0bde0ca5ca78b5a6ab3a1e6d2f770f2e63d22781b67f12526",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 37,
+      "language": "en",
+      "file": "covers/capa-quatro-geracoes-jpg-en.webp",
+      "title": "FOUR GENERATIONS OF LOVE, OUR GREATEST TREASURE",
+      "previousSHA256": "3ba8ed75e9ed2abc9792493bde01060961e14fc9d14aad12a65673b5bd36a1ca",
+      "generatedSHA256": "7cb131f11ece20d4e00c9948557610a5fe5bffb1117f33dc367660e3d68436fb",
+      "publishedSHA256": "c55b92176b641d220206593beb4d0ba28e864fb0ad3c7f386f3d704a8addf028",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 37,
+      "language": "es",
+      "file": "covers/capa-quatro-geracoes-jpg-es.webp",
+      "title": "CUATRO GENERACIONES DE AMOR, NUESTRO MAYOR TESORO",
+      "previousSHA256": "9d90579b61202f060fda22da15b89d302624eb5b623efd39f0fab49eda4b6788",
+      "generatedSHA256": "d34b28b4443cf5f2a933207805da3fc7d5a2c293321afca151ceb752aff32886",
+      "publishedSHA256": "bda35357e425fc8d0595b8a7b798057adf7048038d131e254ef3176f7a9b100a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 38,
+      "language": "pt",
+      "file": "covers/capa-pedro-amem-se-png-pt.webp",
+      "title": "AMEM-SE SINCERAMENTE UNS AOS OUTROS",
+      "previousSHA256": "9435360bec73512efe1df300312d5df01afa48e8380dfe96c27c1059971fb8c0",
+      "generatedSHA256": "4b3b5c266f63799fda307c62af54e077ecba48695bb493a6a919b27a6bf65e62",
+      "publishedSHA256": "fde869717eb7f27d1a405bf51b80e7f2f43afa237a6568c01d55e684eec0b36b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 38,
+      "language": "en",
+      "file": "covers/capa-pedro-amem-se-png-en.webp",
+      "title": "LOVE ONE ANOTHER SINCERELY",
+      "previousSHA256": "bd53a5b72bda5acc0610ca81f06096be94322f7ed6b17b658a920afbcf4f70d1",
+      "generatedSHA256": "fd92e4d87665c9508c7d219980337c2d46305fe05c6d0a3c573adba6b33f8e6f",
+      "publishedSHA256": "e4674b9ccc91a212a3676a56d888adf8dda0572581189362887e6423d772e284",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 38,
+      "language": "es",
+      "file": "covers/capa-pedro-amem-se-png-es.webp",
+      "title": "ÁMENSE SINCERAMENTE UNOS A OTROS",
+      "previousSHA256": "4f9eb9d12b4cbd905d9e1b1f91a92e3f7e01735e1cd2300a2e9ce755bb8792e5",
+      "generatedSHA256": "4c074e6b5687e00400ab68e91752f9b3cc9da62668231da2c191ce2e47d69412",
+      "publishedSHA256": "3e375009bf2da497a5788c028303349e8a27421be132a0d8166e13acc789c1a8",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 39,
+      "language": "pt",
+      "file": "covers/capa-meus-sobrinhos-png-pt.webp",
+      "title": "MEUS SOBRINHOS, MINHA ALEGRIA",
+      "previousSHA256": "84ee0f882de253c8bb3b37e4f6a9ba21cb6af2a1e5464b9bbf494c4fe4b238e6",
+      "generatedSHA256": "94f573330f4c870f3c839b6f15ffee730de17ce7995a6a1fa93482c8c8fb9b3f",
+      "publishedSHA256": "e2b65ae74bdde4702741721992a1bf79d402946b855530d61501ffe243dfcc00",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 39,
+      "language": "en",
+      "file": "covers/capa-meus-sobrinhos-png-en.webp",
+      "title": "MY NEPHEWS, MY JOY",
+      "previousSHA256": "7f87b0431db4b853d67b9a90a203952aae2c23a81dededaf01c6fe2966e18f69",
+      "generatedSHA256": "d4e771cb52203334b5b53bb9656acadfbf1f759155197fe9beb0c99652bf6b8b",
+      "publishedSHA256": "804f91a9af1f7abce1a7f78c6e42ed896a42a5d6fe66b90d9fde0e888dc72c59",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 39,
+      "language": "es",
+      "file": "covers/capa-meus-sobrinhos-png-es.webp",
+      "title": "MIS SOBRINOS, MI ALEGRÍA",
+      "previousSHA256": "17f282fd9c022f718da40c2eb85357d9553f3c829cf718eed48d4fd95749f0aa",
+      "generatedSHA256": "437f62626eded229b69421622d42cdd1e90861abaee8862de8d3360be6789002",
+      "publishedSHA256": "7cd9d3d4aea7995874a59a4c74bdbf56dc2b9ae422c282e3f7e06d3a8cbb7f2f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 40,
+      "language": "pt",
+      "file": "covers/capa-tio-favorito-png-pt.webp",
+      "title": "TIO FAVORITO E SEM IGUAL, VOCÊ É SENSACIONAL!",
+      "previousSHA256": "e86b9f4f8c51f9b1d2792b4e7d0341638ea6f428f14567f97f2d4a0a22218e60",
+      "generatedSHA256": "dace63bf1bf0a354b5f2c8d70a974a0153bcbd61aa1dfeaaaa65c4da2688ebe9",
+      "publishedSHA256": "90d9de45e359e7d6af6a03527a3c2e11cf3e563095beaa35cefc57ce4540caed",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 40,
+      "language": "en",
+      "file": "covers/capa-tio-favorito-png-en.webp",
+      "title": "FAVORITE UNCLE, ONE OF A KIND, YOU ARE AMAZING!",
+      "previousSHA256": "538b326d1e4791f16d3efca659420aa3b2c7c587f0bcb9dedfb64d2312a7661f",
+      "generatedSHA256": "fd48640d7e123629c0d72a4e9ed535fd08288387266bb9d40f6b4fd0db4575c8",
+      "publishedSHA256": "2a5502f3d5cec5e700429ab6fbe8eb19078548082e3a3a8de51cb6d6132fe9f3",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 40,
+      "language": "es",
+      "file": "covers/capa-tio-favorito-png-es.webp",
+      "title": "TÍO FAVORITO Y SIN IGUAL, ¡ERES SENSACIONAL!",
+      "previousSHA256": "7a9514c84db17f15bc1ca39054bc6cc26f8bb41d49bf0c493eefff6f682c3db7",
+      "generatedSHA256": "1a62b80ba816617ca2006e9b465ec67a29c9ba9c9769f951230e7e1f56122e43",
+      "publishedSHA256": "08db92badce364842a9cf813b994a9238d387e2bf5016dba441647a053d66546",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 41,
+      "language": "pt",
+      "file": "covers/capa-grace-aniversario-png-pt.webp",
+      "title": "FELIZ ANIVERSÁRIO, GRACE",
+      "previousSHA256": "7ace31cfdbd1ecb34533985663c2f38e9a3dc00696e41dd1897fe90254e0d67d",
+      "generatedSHA256": "c568152071f997dbfef9141c8a2f08aa31e6f2f594c5dc1fc66784fd15a59768",
+      "publishedSHA256": "1d229649653c8e945577380679882661db0d8202144cd29dba8123160cea649d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 41,
+      "language": "en",
+      "file": "covers/capa-grace-aniversario-png-en.webp",
+      "title": "HAPPY BIRTHDAY, GRACE",
+      "previousSHA256": "0d4a031d14f9e58ad8ccc18fb897359023493ad16a318d90724e1ffe2c023dcc",
+      "generatedSHA256": "7a6f5a175a7ec51d1f82ae248579d343a3ac003d46abd0c4c82036799dbcd0c7",
+      "publishedSHA256": "f7976c50073e0a1ca68d4f27709ca292912da757471ecc75dd4424a250a51ac4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 41,
+      "language": "es",
+      "file": "covers/capa-grace-aniversario-png-es.webp",
+      "title": "FELIZ CUMPLEAÑOS, GRACE",
+      "previousSHA256": "91c95ef69ee5d7432a24192cc5152db7b7cbd7fca25d38b8e5f78ff1002047fd",
+      "generatedSHA256": "9fc383daec18cc5b8eb4a3c51fe2dcd0ebcd45f8ae1bbe08a53e828978909eb2",
+      "publishedSHA256": "cbe3810bd4d4315ef2aba985853bc18eaae2a3735c0f08118a394bae014371c0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 42,
+      "language": "pt",
+      "file": "covers/capa-grace-andar-png-pt.webp",
+      "title": "APRENDENDO A ANDAR COM A GRACE",
+      "previousSHA256": "f44f3e06675542041c83ee38c4d4dde03b61f3d5ce41319740e0f7c26a1c91a1",
+      "generatedSHA256": "cc9aa3ccf39d8ec5c3cc700d7fa3196b651ad3da47caf8a6e69a22183b1c0e70",
+      "publishedSHA256": "b2f694c252835f0ea27981cf42cae62b40871db1c1b0c24e6aa3bc4ca25773e2",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 42,
+      "language": "en",
+      "file": "covers/capa-grace-andar-png-en.webp",
+      "title": "LEARNING TO WALK WITH GRACE",
+      "previousSHA256": "fad866f0046ee9327130c697b86ea8cb4e521e53cf20251847323469391dc666",
+      "generatedSHA256": "b0e28b22b40df6cc9ac6c4ef417b402e10ff4bfb5825cf85d223d45c7b5e096b",
+      "publishedSHA256": "6766c1dc18e70b88d590c7977bdb8450791717a0e6ea0899fc75c509b679dc65",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 42,
+      "language": "es",
+      "file": "covers/capa-grace-andar-png-es.webp",
+      "title": "APRENDIENDO A CAMINAR CON GRACE",
+      "previousSHA256": "0a90ec96978e7e3590acaf9f11069a6372f513c4cfe71ad372b2b6cc8dc3fc90",
+      "generatedSHA256": "f42f5d346e3ba70181aac206652fd584ec4c2638d7bdc8efcbf8aec16a18adc0",
+      "publishedSHA256": "ba6d911942d40947a743e053acb394917da11c9be7de764581fba675c9473f7f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 43,
+      "language": "pt",
+      "file": "covers/capa-maria-fundo-do-mar-png-pt.webp",
+      "title": "MARIA E OS SEGREDOS DO FUNDO DO MAR",
+      "previousSHA256": "c7223a21032973a054112dd1bf5100ac584225896dc53ea1ffcbc947820ec8c3",
+      "generatedSHA256": "ab3e6362d9593a595914b186f212c279cef876795d1258776db1d63c253e391d",
+      "publishedSHA256": "7cb9f6561760aad9ff74c143a72876c9d9de04de275566323e43bfcae5c65938",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 43,
+      "language": "en",
+      "file": "covers/capa-maria-fundo-do-mar-png-en.webp",
+      "title": "MARIA AND THE SECRETS OF THE DEEP SEA",
+      "previousSHA256": "7aab10cf3fd05adf80e064e2547faa8e8fe8c680004f2a69ebdb43c78e611488",
+      "generatedSHA256": "ab83be7cbeded9b1ebcc5d0583e357daf08c5d58a4f1582b4ea3f563fc86a8e8",
+      "publishedSHA256": "9742bc661b4797d3d11791649bb735cdd026c5538e224b449172ee8aeb33c6d0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 43,
+      "language": "es",
+      "file": "covers/capa-maria-fundo-do-mar-png-es.webp",
+      "title": "MARIA Y LOS SECRETOS DEL FONDO DEL MAR",
+      "previousSHA256": "cf31af350e22ad1ab731b4a91c3d008074958e9c09ffd222c8efb88b3541b597",
+      "generatedSHA256": "31c6455ac4e615d5750016e01c77a14f3f75f135bff9c2aa4ec32b206fc607e3",
+      "publishedSHA256": "5acb4e5eb2e75a9db085839c11e2fabade0e369e7ab062f32aa09c5f0c2b83b9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 44,
+      "language": "pt",
+      "file": "covers/capa-mamae-e-eu-png-pt.webp",
+      "title": "MAMÃE E EU, PRESENTE QUE DEUS ME DEU",
+      "previousSHA256": "1955d666939084d91333755f46461d6495b171eea7412243e51dce1318f38229",
+      "generatedSHA256": "a77a94f8cf43dd4e268ca156cec81c92277956ef4da38324adc0b63470a7fa00",
+      "publishedSHA256": "ac5d6e09a4443433dc1ca49e76a8b91eb2e682a5c62168421778a5e8bd8551c6",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 44,
+      "language": "en",
+      "file": "covers/capa-mamae-e-eu-png-en.webp",
+      "title": "MOMMY AND ME, A GIFT GOD GAVE TO ME",
+      "previousSHA256": "fb9277b2a2856d67bca8b86370c3eaf7651b6745e951a5b9adf0f60f7732ce03",
+      "generatedSHA256": "844678748431e8e27766770d705204f7cd8fc0ec26847dae633284506fa125f8",
+      "publishedSHA256": "a2a792a1cdbf2fcad05bf4f01825b8421e08cb74809d90738770ea9bc34a9fef",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 44,
+      "language": "es",
+      "file": "covers/capa-mamae-e-eu-png-es.webp",
+      "title": "MAMÁ Y YO, EL REGALO QUE DIOS ME DIO",
+      "previousSHA256": "a10b0d691604be26573084eebddce19281b33b5d4b1010940315a1cef6e66f52",
+      "generatedSHA256": "0b98182061e66e7c06615b61257b5b24647ad1bb7b7fe3594b45faf16f0b1670",
+      "publishedSHA256": "5bf54fae11dcfbe43a2b82f4f291770bdf75519361977bb8a08bac4fb4e71c54",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 45,
+      "language": "pt",
+      "file": "covers/capa-feliz-natal-png-pt.webp",
+      "title": "FELIZ NATAL A TODOS",
+      "previousSHA256": "321bf3e70f9fc368a27b33202eb6dbaab7dbdb137bef1c4a52f6332d48798f03",
+      "generatedSHA256": "2c509c5c3856d9e18edde2d5ca5f35ea3741d445cf3147fbec17c0bbc8d6c3b8",
+      "publishedSHA256": "de69858fe37c231977105cf87c6a5573d07022b1dcb85d23cb0abc8809fa807b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 45,
+      "language": "en",
+      "file": "covers/capa-feliz-natal-png-en.webp",
+      "title": "MERRY CHRISTMAS TO ALL",
+      "previousSHA256": "9aace5630b661e47c72ac3ea7f33375ce736cda40138131bdce82bce7b00de6b",
+      "generatedSHA256": "6e5b7d1b8af81afbeca57bf5ee2e58dba1b524507a21cd99333d3e5b2bf0bb0b",
+      "publishedSHA256": "99d82f56bcc062a54a50d033e4641b6f9d91514443dbc9767db588999ee4c3e9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 45,
+      "language": "es",
+      "file": "covers/capa-feliz-natal-png-es.webp",
+      "title": "FELIZ NAVIDAD A TODOS",
+      "previousSHA256": "0ec9d66f23adea950a1057fa087ab41b668e617a9d235c5c42dbe6a4e9a82151",
+      "generatedSHA256": "44966e950a0bad6aea47b0f2bd2da2e007b9701290a1b7f5c7ab3c6d894c3c58",
+      "publishedSHA256": "de0a61ef43d4bbf7428d9eccfcb41e11e253fc35e7eb5601eada3b678c095fb2",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 46,
+      "language": "pt",
+      "file": "covers/capa-vovo-vida-leve-png-pt.webp",
+      "title": "VOVÔ, COM VOCÊ A VIDA É SEMPRE MAIS LEVE E FELIZ",
+      "previousSHA256": "4a6e739fdea4f067b120d55cdb3787b37b45c5e428ce2bca9542e6a7315c0f50",
+      "generatedSHA256": "430ff162e4d98ae6d8ec272cf491da4226395be0e6872a75dead5ab98f38c721",
+      "publishedSHA256": "b206612c05e7f52c3bcb4e23a025e0daa922749fb3a2fe1c3ee15d7950d8c03a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 46,
+      "language": "en",
+      "file": "covers/capa-vovo-vida-leve-png-en.webp",
+      "title": "GRANDPA, WITH YOU LIFE IS ALWAYS LIGHTER AND HAPPIER",
+      "previousSHA256": "fe3f330d05fa99eeb7ddda858d36fdf3c131cd50e08d8baab61f873a409f03eb",
+      "generatedSHA256": "e142b3f1459032777b40fa3a837f9a3c332f7d8a7c37f1c1b30117165ee5de62",
+      "publishedSHA256": "929e4bf48139fa7ec09d0f374155f02584736cd59a637e3f279a27576e4a6616",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 46,
+      "language": "es",
+      "file": "covers/capa-vovo-vida-leve-png-es.webp",
+      "title": "ABUELO, CONTIGO LA VIDA SIEMPRE ES MÁS LIGERA Y FELIZ",
+      "previousSHA256": "abcf5b7b4217296d9b84546943c8c08d44d44151308fc81de40b7c569c03ec16",
+      "generatedSHA256": "5ba8c6103c82c7f675ee1153a06efd7b2b9d28a4ae264ea15bfa63404b2cadf7",
+      "publishedSHA256": "73f7cf83598fadb80446a9584449152dcbeef729ef18becf209700cb4400c24a",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 47,
+      "language": "pt",
+      "file": "covers/capa-tome-jesus-png-pt.webp",
+      "title": "TOMÉ DUVIDOU, MAS JESUS O ABRAÇOU E GUARDOU O SEU CORAÇÃO",
+      "previousSHA256": "e67bcd5ab63eb2e6f10e5c518308f5e2a8b1730280b65e40aa967bca746741f4",
+      "generatedSHA256": "a7bed8db382b506c9e17fbd5cd90c65610689a1d50116cd370e14b5b315fd074",
+      "publishedSHA256": "27a59f424db29e7405b181228ec3564573468e5fff7400277b14bf0c97b182d1",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 47,
+      "language": "en",
+      "file": "covers/capa-tome-jesus-png-en.webp",
+      "title": "THOMAS DOUBTED, BUT JESUS EMBRACED HIM AND GUARDED HIS HEART",
+      "previousSHA256": "6412160af40f89602d2ef84c2ffbc4ad337fc7cb294be9122833dd4609561d3c",
+      "generatedSHA256": "ddc7d6005504cfd864db89def2cc49ab22b8a43846fcb05cdbd6ea0bd875ddcd",
+      "publishedSHA256": "49887820bceda8fb5e6378f2cc5817b5ea047355178b33d897b5b18ca44ce0ab",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 47,
+      "language": "es",
+      "file": "covers/capa-tome-jesus-png-es.webp",
+      "title": "TOMÁS DUDÓ, PERO JESÚS LO ABRAZÓ Y GUARDÓ SU CORAZÓN",
+      "previousSHA256": "bb3fd6f725d6b6cb7a3b8a613b9b9db99214222a3159d4de4c29b685e5563ccf",
+      "generatedSHA256": "8c6ceb423dcb01be6b15b3f37896e224bd19abd7c43921875384863ad902e7ba",
+      "publishedSHA256": "abd583b3c3550c5452384b2b52ab870dadc8951a5f6acd120153b6ee3d9acb75",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 49,
+      "language": "pt",
+      "file": "covers/capa-ana-espaco-png-pt.webp",
+      "title": "ANA EM UMA AVENTURA PELO ESPAÇO",
+      "previousSHA256": "b64735d5dfe295b7f95a72f3a37cc26052a206ca8e7ec361395ed59479338c8d",
+      "generatedSHA256": "157ab7195005a50630e7c1082564281f31ae20d674777a6c4c64f5e1a541869f",
+      "publishedSHA256": "6e5b0435648d2d9cbdcdf887c4373eede04226b51cff564cfcf6b8b019412764",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 49,
+      "language": "en",
+      "file": "covers/capa-ana-espaco-png-en.webp",
+      "title": "ANA ON AN ADVENTURE THROUGH SPACE",
+      "previousSHA256": "72e49bb286ae9bf5815dd9f594a0bfa446faa3e7d0d69e2289c26a2e84ef9c69",
+      "generatedSHA256": "ef8d4060f26c87501e872a265b249fd5196bcf7990e86c7a13e75c28cfe2cc58",
+      "publishedSHA256": "88c804231b9a1fa3999b8d4e94a5c44753ed71ad559a93912a765bbf8c1588f5",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 49,
+      "language": "es",
+      "file": "covers/capa-ana-espaco-png-es.webp",
+      "title": "ANA EN UNA AVENTURA POR EL ESPACIO",
+      "previousSHA256": "67c5301743926ec4135bc24fd544ff4d5e64a464961b2b222733c39243ef6364",
+      "generatedSHA256": "e3f15311c8ab4d5de39e25391873af869717fa21bbeb05c5e920a0f664b0239a",
+      "publishedSHA256": "b1ae10747890a7abd0212e0c2ceaeb2b5ec431defc148a99712bcbdcafc7d601",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 51,
+      "language": "pt",
+      "file": "covers/capa-nonna-90-anos-png-pt.webp",
+      "title": "FELIZ 90 ANOS, NONNA",
+      "previousSHA256": "9876b9118ce7a89188dc78be6e59e5d8e8a391057a302808d620c81779e0d96c",
+      "generatedSHA256": "468bcee94cc6f482cb02f5d651d810cdbf00b062f8f7c950158d2e949edbbd75",
+      "publishedSHA256": "7f96674f14076ba0894c884b06cc3a37b4be550ba36516f4effd89a3195ee0d0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 51,
+      "language": "en",
+      "file": "covers/capa-nonna-90-anos-png-en.webp",
+      "title": "HAPPY 90TH BIRTHDAY, NONNA",
+      "previousSHA256": "d6a2984a187dd2d9566dc206504b0f8ed5e0af2170d95d7b8b4e6b93551929d0",
+      "generatedSHA256": "36f41802d3b2e58f8e2c69184245096dd6723470d5e3b348f54da879a3ceb6d1",
+      "publishedSHA256": "457573222931a75aa22d7cd0926958afbce31852f18847daf561b0f3541182d4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 51,
+      "language": "es",
+      "file": "covers/capa-nonna-90-anos-png-es.webp",
+      "title": "FELICES 90 AÑOS, NONNA",
+      "previousSHA256": "fea4a1a9b0598e089c634bd679004df211965344c398baa28378b95742b0676b",
+      "generatedSHA256": "8fd9603ba488b71a9d7b2125502a338e44317b2eba7a832da61f6dce856ec840",
+      "publishedSHA256": "554c96949736bd6b2f20258724eaa545d1a362b2675ea97fbc7689b9c61b30a7",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 52,
+      "language": "pt",
+      "file": "covers/capa-amor-vovo-motor-png-pt.webp",
+      "title": "AMOR DE VOVÔ É IGUAL A MOTOR BEM CUIDADO: DURA PARA SEMPRE.",
+      "previousSHA256": "1b82f8aaa63d62147e92a141a226d485c343d20decc546e09fc08fd90db3b45d",
+      "generatedSHA256": "b5df1832e97122ac4f04307e5dea6ea01b5e1b85354b5e12ccba8d6e8e2bf8f6",
+      "publishedSHA256": "4df0db75bea34d97bc601faa88edafffb9b938eee2a76fcdcbde046f8f262c0d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 52,
+      "language": "en",
+      "file": "covers/capa-amor-vovo-motor-png-en.webp",
+      "title": "A GRANDPA’S LOVE IS LIKE A WELL-KEPT ENGINE: IT LASTS FOREVER.",
+      "previousSHA256": "7d963f88d5d75ef1d2e98b6c652cb94064b9ed9bdbc08e3bfe275aad434b7bfe",
+      "generatedSHA256": "ceef9d6a610ff0f245ae543ecf3cf3b143b81afd7f0041cd20b956a58528b2a4",
+      "publishedSHA256": "c57e61811ab87d8ea7aca99c4301b2988608cb580784720d00e3f27e31057a64",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 52,
+      "language": "es",
+      "file": "covers/capa-amor-vovo-motor-png-es.webp",
+      "title": "EL AMOR DEL ABUELO ES COMO UN MOTOR BIEN CUIDADO: DURA PARA SIEMPRE.",
+      "previousSHA256": "3c59b610643d748ea60d9af9049c9ec02d369036eafdda8c20498eeb8d22768f",
+      "generatedSHA256": "9c73296a0a04dc83b9c52f4ba15e2ecde59e8fd69131d709e83d4d80fabe74d3",
+      "publishedSHA256": "f69d616bf3f290918144cedc2c3f243d1a25e234f210ff5495e08c2286335c9d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 53,
+      "language": "pt",
+      "file": "covers/capa-brilho-bailarina-png-pt.webp",
+      "title": "BRILHO QUE FASCINA, ALMA DE BAILARINA",
+      "previousSHA256": "4cf0780a1ed17a4eacab47b758be7d48c06103e2011c911adc0ec990190cf114",
+      "generatedSHA256": "8bd0984caeb51ce3500af2f263ed77eb03f058f7d0c73cbc2c96f2845b61be5f",
+      "publishedSHA256": "3ef0aed0dfc1789cac5631d0dd8281e0f9a9e6f0da49893abd7c962bf1d46f50",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 53,
+      "language": "en",
+      "file": "covers/capa-brilho-bailarina-png-en.webp",
+      "title": "A GLOW THAT CAPTIVATES, A DANCER AT HEART",
+      "previousSHA256": "13b7b4df923f57c391ccb4579fd3c59502cab9d9db7bda52dd2651386473a52b",
+      "generatedSHA256": "13d7a43d8e1e2cb39a1e42d657a3023fe21fa0b8406b152a6953ba41bf0511ab",
+      "publishedSHA256": "6c9757486ce6ab88bc2dcecf9276722898a7e39d3f76d6f5d821def3bf2310bc",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 53,
+      "language": "es",
+      "file": "covers/capa-brilho-bailarina-png-es.webp",
+      "title": "UN BRILLO QUE FASCINA, ALMA DE BAILARINA",
+      "previousSHA256": "a33b53fb317657b872fe95e48d6a1fd9c8f77e2628c1e345290a4fa79b3daccb",
+      "generatedSHA256": "2cdc6fc7040a313dca1c38223c633dfdbf1837c8719c25dc36a1e17c2693a3db",
+      "publishedSHA256": "e22980c1d16ab3adf757715c43e2c306fbbf37ec099bd2e4e6340e2ee72351b6",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 54,
+      "language": "pt",
+      "file": "covers/capa-amor-que-cresce-jpg-pt.webp",
+      "title": "AMOR QUE CRESCE E ME ENOBRECE",
+      "previousSHA256": "5ab2c78bf9c8b587570da3a30ffcb53c603f7aa16da643b03bfa62aaf4435566",
+      "generatedSHA256": "ba57e29885277fcacd4b84dd92dfc59358f0c8e4832cd23deeff6f1bb793a6ed",
+      "publishedSHA256": "cbf75b7ef10ef08a736e4c22b40a57efdec1e1b20c5672176ed52a17753eb534",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 54,
+      "language": "en",
+      "file": "covers/capa-amor-que-cresce-jpg-en.webp",
+      "title": "A LOVE THAT GROWS AND ENNOBLES ME",
+      "previousSHA256": "84872a26db5320ce43b4246c049037bfa1775e8406bf2de0cfb0b251a8b57073",
+      "generatedSHA256": "870d0ddb34831dea43310470dba9d5e58988edb2a4ea5a06812109df1a876b2f",
+      "publishedSHA256": "3f3e76bfcd51a4333a87379f4f133d36e9ed58eb37c70bba42cce31c1034ee02",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 54,
+      "language": "es",
+      "file": "covers/capa-amor-que-cresce-jpg-es.webp",
+      "title": "UN AMOR QUE CRECE Y ME ENNOBLECE",
+      "previousSHA256": "ff5850bfc7431b88d62211226553f2470f0255fb61493b85cd024cbbb94eb711",
+      "generatedSHA256": "fce2f540e0d512dc7759b33335f8da4a608ed93cda60256c8f5558973a19b85d",
+      "publishedSHA256": "970130ea0fa996c310971ac30029859cbcbd2528de044e9406060ba708d9669e",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 55,
+      "language": "pt",
+      "file": "covers/capa-matteo-nas-nuvens-png-pt.webp",
+      "title": "FELIZ ANIVERSÁRIO, MATTEO!",
+      "previousSHA256": "5f3972c520cadfe47990f1ff5d1eb1cf1936de891b355d94f112b054992fede4",
+      "generatedSHA256": "4d1d9d9dd0bd309a668f13be4949ae96358f0474fc23e6e396aeb49eb36b4003",
+      "publishedSHA256": "32b44ca59aa0dd1cc1e1c6a470c894561ea7cc8409ccfc7b10731d0e011348e9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 55,
+      "language": "en",
+      "file": "covers/capa-matteo-nas-nuvens-png-en.webp",
+      "title": "HAPPY BIRTHDAY, MATTEO!",
+      "previousSHA256": "e27e4bd2e42ed00b780e544f7a832a4e00ed87649c093442f1820cfaef20f4d0",
+      "generatedSHA256": "2f4f2de95f6125139213605f6dc362422b9e5330f8b58876f45cc11768a200f0",
+      "publishedSHA256": "11930f4260b905188efea4df321a2555a43cf43c25c69f1ba473782d9492f671",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 55,
+      "language": "es",
+      "file": "covers/capa-matteo-nas-nuvens-png-es.webp",
+      "title": "¡FELIZ CUMPLEAÑOS, MATTEO!",
+      "previousSHA256": "faec5d9f83b9560860a149bd4446f6d8bc6c754de0121a98dd13ea9825322b6f",
+      "generatedSHA256": "5a28033786a58a87e11b20e1ab5a63533ccfddd7c2d7680a18def494421c7c3c",
+      "publishedSHA256": "c6094f2ba116ac82d45335a3bd0b3d0d4d459955f9b1460fedb70f2cfe76acbc",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 56,
+      "language": "pt",
+      "file": "covers/capa-vovo-docura-jpg-pt.webp",
+      "title": "VOVÓ, SUA DOÇURA FAZ DA VIDA UMA AVENTURA",
+      "previousSHA256": "aec5c671e19ce9d5b388a238785197fef3190392e041677ccc59b33f0b658d45",
+      "generatedSHA256": "078aadbbe9f7f43e54212b8c3025a8f0b7a7aa9f7c4edee481fcf7bbdc446d7c",
+      "publishedSHA256": "a7698ac356e9b45275b6b4778b48bcac018e6a8f28ee642a56473d663b633efb",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 56,
+      "language": "en",
+      "file": "covers/capa-vovo-docura-jpg-en.webp",
+      "title": "GRANDMA, YOUR SWEETNESS TURNS LIFE INTO AN ADVENTURE",
+      "previousSHA256": "c0614d4a17df8136f7445bd958c28dfe48536c8d60d8aed325b1358f5e78cf42",
+      "generatedSHA256": "fc05f6ca9ce6953a6c04cf49d04de96d454328f66ef5ef4448e880f6acdc5766",
+      "publishedSHA256": "e4fe2e427e38b25707b3a81da8c1a761d44f54b6bbcd2b6b9dd849bd7ecb1eb0",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 56,
+      "language": "es",
+      "file": "covers/capa-vovo-docura-jpg-es.webp",
+      "title": "ABUELA, TU DULZURA CONVIERTE LA VIDA EN UNA AVENTURA",
+      "previousSHA256": "7b9d074c1d401ccfaa2b2610a3ef56abe11de9bf7d8614eefa1b7174b78bdd42",
+      "generatedSHA256": "17fc7142e58930e67f5e27033544770416af288a24e5b41ace47617bb41b4af3",
+      "publishedSHA256": "446b7908dd67702df993d1fe4a57f79edcef08802c6bbb3a7917a386a2efaf3b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 59,
+      "language": "pt",
+      "file": "covers/capa-feliz-natal-familia-png-pt.webp",
+      "title": "FELIZ NATAL, FAMÍLIA!",
+      "previousSHA256": "4d43b6cb5a3d264a52ad1b3e7b4c5fa3c9e3d7431360bfd59436f2897b4d2b3f",
+      "generatedSHA256": "27b9eca08dbb0535a74f0de6c9016f5741820283693701470924a288272fcfc2",
+      "publishedSHA256": "671e1ba0fd3b86d58066bdb44000005ec18b0f53c934d1d036917db42dedcd09",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 59,
+      "language": "en",
+      "file": "covers/capa-feliz-natal-familia-png-en.webp",
+      "title": "MERRY CHRISTMAS, FAMILY!",
+      "previousSHA256": "c043f433628428476798e89e91af7ea8d4bf672906c93df85b460e5bc116324e",
+      "generatedSHA256": "8d0c89eaa365d9dabe875a023416bb0ea6bb56035f2bfc3a95051236cf3ab289",
+      "publishedSHA256": "866f601929a58c4130f500ced2bfbe008537dc2b8272348db406d3a0275790d9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 59,
+      "language": "es",
+      "file": "covers/capa-feliz-natal-familia-png-es.webp",
+      "title": "¡FELIZ NAVIDAD, FAMILIA!",
+      "previousSHA256": "0e6a5a67083d20e899b1e95ea009e8ab86026dcf05052ecffd13396106585dee",
+      "generatedSHA256": "6ffd7b8617781454e3a4da31726cf999af043839cbda7a00088cc66de137073c",
+      "publishedSHA256": "920185b0047740e321e997759583d47b293657c5ce9b20117adf54e35e30d8b8",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 60,
+      "language": "pt",
+      "file": "covers/capa-enzo-dinossauro-png-pt.webp",
+      "title": "SEGREDOS DO DINOSSAURO, ENZO, ENTRE O PASSADO E O FUTURO",
+      "previousSHA256": "71e54a9887bda6a2969a7833647f5b65b644311b1eecc09f972f2b14b4419ebf",
+      "generatedSHA256": "2dc1da86043b3151502937b2dffd559006afbfc11d679c87cc88c7d047fb167a",
+      "publishedSHA256": "78daf617944999156bc85bb6a7ebfddb024bc1754070f1239a0255f146b88ae6",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 60,
+      "language": "en",
+      "file": "covers/capa-enzo-dinossauro-png-en.webp",
+      "title": "DINOSAUR SECRETS, ENZO, BETWEEN THE PAST AND THE FUTURE",
+      "previousSHA256": "b72aa85dcd32e92558b5e8c69dd70669e538c259b9a141251fba82b3b265b76d",
+      "generatedSHA256": "777774c71176151ae40bb4884039a7188b5e94b8d946d8dd8838202c0cb61725",
+      "publishedSHA256": "1a38cac62d9ac4c771627e4abe862856d6317e11381e77fcf36ae5e4cec4ef90",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 60,
+      "language": "es",
+      "file": "covers/capa-enzo-dinossauro-png-es.webp",
+      "title": "SECRETOS DEL DINOSAURIO, ENZO, ENTRE EL PASADO Y EL FUTURO",
+      "previousSHA256": "c8275abbd74bdec8e846abdb94676d76365d162ad313ee0064398c2c9f20338c",
+      "generatedSHA256": "a4b7242fd278c2d624bd7bb5c0113894d5b2e943b92945aed78c56f733a97dfa",
+      "publishedSHA256": "966334b9c1a46500567dd77cd791e5953f0ca47a3920e23c47b8abb0b480fb28",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 62,
+      "language": "pt",
+      "file": "covers/realistic-capa-sofia-princesa-v1-pt.webp",
+      "title": "SOFIA, A PRINCESA QUE CULTIVAVA GENTILEZA",
+      "previousSHA256": "4d492383a68be63201f5ee4ce70a31492ed285e425cd3366b29649c02bd3b660",
+      "generatedSHA256": "40a116a74b590598efc51a33b12e3ed6641d874efd048e0a004ec5ae0b7851d8",
+      "publishedSHA256": "5be195530e0243564ad34857ce279197e39b00a77a8ee3b2a5052f2559cde150",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 62,
+      "language": "en",
+      "file": "covers/realistic-capa-sofia-princesa-v1-en.webp",
+      "title": "SOFIA, THE PRINCESS WHO GREW KINDNESS",
+      "previousSHA256": "efd5974caac93f9bc1acc041cf544b20dcf4537930cf16897a8524edb57fe4a2",
+      "generatedSHA256": "df4c00d7bfb7917716325a30dcecaf63c6a8ec2f8a10ddb0ed2f50dc38d9c8b1",
+      "publishedSHA256": "d2a7ad2bd69327a634a3d1056240894c7dbf588257b29ec1b614ea100662d6bb",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 62,
+      "language": "es",
+      "file": "covers/realistic-capa-sofia-princesa-v1-es.webp",
+      "title": "SOFIA, LA PRINCESA QUE CULTIVABA LA BONDAD",
+      "previousSHA256": "0d0df4f9eaf6636363f1c40147d846a0390433b37d6f6d2e7311730b2912b2f3",
+      "generatedSHA256": "81e5605461a730552d4d4caeea178b6ce88b9efff71d9dc0a1965ffad0d7e902",
+      "publishedSHA256": "c811bf36d2c7b700efd149944695b7a9afb2e5674b6dd09bc972b753817ffa05",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 63,
+      "language": "pt",
+      "file": "covers/realistic-capa-lia-cores-v1-pt.webp",
+      "title": "LIA E O JARDIM DAS CORES",
+      "previousSHA256": "c7663b610b2df24caa84e6214a3923566f543e05776b711d31a2bce65ff61354",
+      "generatedSHA256": "4502c99a3f4d6c71091f5d21fd0586ade20babc476115619eda039fe779bf2e4",
+      "publishedSHA256": "cb2cab4e7dbf411a8dab33f6b9df9a746baa28c833ca8ac05440358b1b0e6e55",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 63,
+      "language": "en",
+      "file": "covers/realistic-capa-lia-cores-v1-en.webp",
+      "title": "LIA AND THE GARDEN OF COLORS",
+      "previousSHA256": "bb473a1966de1eb1c53c4374efb685e6a7ede0b8aa4c00df3f3b16471f63545a",
+      "generatedSHA256": "4e832d1bf7bdb463038a4d260b74fd80bc9a749bb455a229c265d7921cd07f7e",
+      "publishedSHA256": "d88bd2d36daac05e52155c3107855315d07d912b33b99e4547ddcc12d3ceee4b",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 63,
+      "language": "es",
+      "file": "covers/realistic-capa-lia-cores-v1-es.webp",
+      "title": "LIA Y EL JARDÍN DE LOS COLORES",
+      "previousSHA256": "3dc6a6e394522a9630c1b7410eb2562e01445a937a468abb66eab6c91a96c69a",
+      "generatedSHA256": "0ed1faaeee32c7a28564c4ca303189981abd1d6043aa8d6845ddcbf8f7910360",
+      "publishedSHA256": "93962cd484e74adfc1e45dfb0f5993f8cdc04f27e6886aaf0ed25bde6b9fcb93",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 64,
+      "language": "pt",
+      "file": "covers/realistic-capa-bento-compartilhar-v1-pt.webp",
+      "title": "BENTO E A BRINCADEIRA QUE CRESCEU",
+      "previousSHA256": "9d15ec05966311909f56d6b6d639c78a958e19e6de07fa73e51a1d1b48eae701",
+      "generatedSHA256": "2908d8fd3b52a26594d03802399f29500f515460224954428bd20f4f786c2ce7",
+      "publishedSHA256": "806f9fc3d3ac3d3e9ea3d70b944ea9698fe6872ce9ca0c4120e2f277472622dc",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 64,
+      "language": "en",
+      "file": "covers/realistic-capa-bento-compartilhar-v1-en.webp",
+      "title": "BENTO AND THE GAME THAT GREW",
+      "previousSHA256": "cc712b0152383e55d59b8f97d4e8cceee406dad537f9e7ed920fabc56ba699e7",
+      "generatedSHA256": "f9443361ae7110ade0ca138c61aa9cdac35deb8d1965d1e7ee6cc63a03090ae0",
+      "publishedSHA256": "779b8af98352119d6fc8f5bed7977524952b9df6f2d180b4ef8780634a3ba3a7",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 64,
+      "language": "es",
+      "file": "covers/realistic-capa-bento-compartilhar-v1-es.webp",
+      "title": "BENTO Y EL JUEGO QUE CRECIÓ",
+      "previousSHA256": "e93efe64ab91a232a4aa52ad2641da67650cffd085bbb1788fb58eb5d5bea436",
+      "generatedSHA256": "867495fd8aac6331172c176d6d78efa0374f1aca7369a6838d27c23505d03e12",
+      "publishedSHA256": "065e04b9d466522d306c4d0e9fdbc650fb6d673c9ce298ca1c0fe4fc9b95de81",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 65,
+      "language": "pt",
+      "file": "covers/realistic-capa-nina-boa-noite-v1-pt.webp",
+      "title": "BOA NOITE, LUA! BOA NOITE, NINA!",
+      "previousSHA256": "7d9e2c85e4e9fde5bbbb76d62004f91ef382bb9fe99057294bbbb38ae6b835f4",
+      "generatedSHA256": "8ffdc30d557a388e6efdca95919ba7038002c6c7e925b05ce9061c5922be9f6f",
+      "publishedSHA256": "0ff87544370d7a9ee64629a87690f8f7f93d714d4533a556ca597e58acb15504",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 65,
+      "language": "en",
+      "file": "covers/realistic-capa-nina-boa-noite-v1-en.webp",
+      "title": "GOOD NIGHT, MOON! GOOD NIGHT, NINA!",
+      "previousSHA256": "00eaa91f3ec5e951e043b0b4f40b6d8e8e05f99e500e49d1d99fb9f39efe4624",
+      "generatedSHA256": "96ad5c4db27a6853490b7d6bec195c84501ef2a4ff699fd2cdca3c8a66a13086",
+      "publishedSHA256": "d4e95ed64c972a37c555aafb6bf41e0b841996aa539da543a82c850c651e62d9",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 65,
+      "language": "es",
+      "file": "covers/realistic-capa-nina-boa-noite-v1-es.webp",
+      "title": "¡BUENAS NOCHES, LUNA! ¡BUENAS NOCHES, NINA!",
+      "previousSHA256": "4521c0f0b73e051e3ebea5a52250d748053c79d98b04926b193de660f3bbfb60",
+      "generatedSHA256": "78cca36296ec71b3f5c2f687356067c43bd44cc23ac645eff79821af7fd1a305",
+      "publishedSHA256": "bd98dacc1c7cff9bd836b0ec0ff583082b57b7a6177a9480d351d481f6885a3e",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 66,
+      "language": "pt",
+      "file": "covers/realistic-capa-theo-sentimentos-v1-pt.webp",
+      "title": "THEO E AS CORES DO CORAÇÃO",
+      "previousSHA256": "5e476d912901bc2e388ac87a15767c139e66564553371fe31b2c58b35bf0f6f9",
+      "generatedSHA256": "4837ba40d6425991e6b926ce4e3fe24901f607b37889c346625c5cc217cf1a5d",
+      "publishedSHA256": "5a114c868f89f5c21942ca78b48389b3fb9dd205ebcb0f1f0140dff803c1b76e",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 66,
+      "language": "en",
+      "file": "covers/realistic-capa-theo-sentimentos-v1-en.webp",
+      "title": "THEO AND THE COLORS OF THE HEART",
+      "previousSHA256": "c05db784203631d414a2683557cf4be6a463fa206f4de6c3d3024a3964698ef8",
+      "generatedSHA256": "f0215b5336742c404ff7ca477b8ace7e394ccfe6d29ce5769150a79c336e26eb",
+      "publishedSHA256": "f0566123387199bf4788226a82cf3fd0228ae2252c1d2e364e01dd9f838f995e",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 66,
+      "language": "es",
+      "file": "covers/realistic-capa-theo-sentimentos-v1-es.webp",
+      "title": "THEO Y LOS COLORES DEL CORAZÓN",
+      "previousSHA256": "01e9d6a7de6cddf2b0ee87c52c554e54ea6e004752226ce52ede66691b0dc9c3",
+      "generatedSHA256": "1ba0dabd338b18a8ef7ebf68ea8479701dd781106cb98617256cfd0355cae34f",
+      "publishedSHA256": "5c77bc3f54f874edce8e3f53e35394cc5edb6a81b326f5f9c853fdd2d04cecb4",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 67,
+      "language": "pt",
+      "file": "covers/realistic-capa-clara-miguel-casamento-v1-pt.webp",
+      "title": "CLARA E MIGUEL, NOSSO SIM PARA SEMPRE",
+      "previousSHA256": "6d43b0be1c90d23c065e994512a96e92de45e866e214ff5eba4f3fdb6eb57016",
+      "generatedSHA256": "b91365eeaece13e7ed63c526264e55075d7d752ea6149770a1b52d6ab6bd7963",
+      "publishedSHA256": "99b983aadd40d214ec0a0e9b32ef1cae1222c3f16baec7f41df754462a1600aa",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 67,
+      "language": "en",
+      "file": "covers/realistic-capa-clara-miguel-casamento-v1-en.webp",
+      "title": "CLARA AND MIGUEL, OUR FOREVER YES",
+      "previousSHA256": "0ea5d01173e5fc1f3a69ca88174ea21f2a383cc15a4ee15e4f9644c4a3dff69c",
+      "generatedSHA256": "8504bf685d2948a2099102e43c7df80747b2e8705bb6294f94eb87a7c728c25d",
+      "publishedSHA256": "6b23b75919ff27ffdb19d1cdd73e2f911fcfad716b172af27520b025244e151d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 67,
+      "language": "es",
+      "file": "covers/realistic-capa-clara-miguel-casamento-v1-es.webp",
+      "title": "CLARA Y MIGUEL, NUESTRO SÍ PARA SIEMPRE",
+      "previousSHA256": "a89252e20dca370cb733566f782433e7accd0cd70a2f14a3ef9d31b01a5ba445",
+      "generatedSHA256": "9d66bc034ee8f2bf35557190abd63f3297012336aabeb2261212defe3fb2979b",
+      "publishedSHA256": "594b0f4bf5beb443a372efb3dc404d28b571c53e9ea107c20a4c1c4acb1312f2",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 68,
+      "language": "pt",
+      "file": "covers/realistic-capa-davi-brasil-v1-pt.webp",
+      "title": "DAVI, O CRAQUE DO BRASIL",
+      "previousSHA256": "2d0701630a5f5148352420fdff308c852bd368151732d9e8796535b36cf8fa03",
+      "generatedSHA256": "4eb7f4b3373cbd46a432745c25590121203d85f179ea3ca144ea60914173620f",
+      "publishedSHA256": "f52d16e27d1a7d196d6e1741d035a0bd0a83c6e72aa8d1728d33b2b9e163ca3d",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 68,
+      "language": "en",
+      "file": "covers/realistic-capa-davi-brasil-v1-en.webp",
+      "title": "DAVI, BRAZIL’S SOCCER STAR",
+      "previousSHA256": "1c893de1c8667b13c220096f729aef9789e981caf32767e1795ac8192785b2e2",
+      "generatedSHA256": "d6ed7e42025099ae12d26a49f5ee2fea99874d34a4247dbe128fbd38417f2e4e",
+      "publishedSHA256": "d69a1ecbbbb567a2545ff3aabaa5218581eb0415242e4ed0d47a109eba6eca84",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "index": 68,
+      "language": "es",
+      "file": "covers/realistic-capa-davi-brasil-v1-es.webp",
+      "title": "DAVI, EL CRACK DE BRASIL",
+      "previousSHA256": "0d51d1ffe551b4afbaa343533f6a15db8a3c9550b5f957fef773bcd8c2059409",
+      "generatedSHA256": "342792cb05de902e9ca1de59f1b64ecdfd708a12d8cbef20e487e2b301bfa0a1",
+      "publishedSHA256": "a6f3dad2bd4dd94062596009cd2fa51ac72108e401d58bf2db37fc4c6179e56f",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    }
+  ]
+}
