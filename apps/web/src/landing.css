@@ -3394,8 +3394,13 @@ img.ex-tab-cover {
 .faq-chev { flex-shrink: 0; }
 #catalogo.catalog-page > .ktitle { min-height: 1lh; }
 .promise-card { min-width: 0; overflow-wrap: anywhere; }
-.promise-card h3 { min-height: 3lh; }
-.promise-card p { min-height: 8lh; }
+/* Sem altura mínima fixa: o .locale-copy já reserva a altura do idioma mais longo. */
+.promise-card { align-items: center; text-align: center; padding: 20px 18px; }
+.promise-card .promise-ic { margin-bottom: 10px; }
+.promise-card h3 { width: 100%; margin-bottom: 6px; line-height: 1.25; }
+.promise-card p { width: 100%; }
+.promise-section .promise-heading { line-height: 1.15; margin-bottom: 10px; }
+.promise-section .ksub { margin-bottom: 22px; }
 @media (max-width: 600px) {
   .promise-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -3470,6 +3475,28 @@ img.ex-tab-cover {
 [data-theme="light"] .kid .price-card dd { color: #0D2D6E; }
 [data-theme="light"] .kid .price-card dl > div, [data-theme="light"] .kid .price-card .price-note { border-color: #e6ebf5; }
 @media (max-width: 900px) { .price-grid { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; } }
+/* Valores: P-Book, E-Book e V-Book, capas Hard/Soft, os dois digitais juntos e o botão Criar. */
+.price-tag { align-self: flex-start; margin: 0 0 8px; padding: 3px 11px; border-radius: 999px; background: var(--yellow); color: #1f3568; font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .82rem; letter-spacing: .3px; }
+.price-covers { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.price-covers li { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid #26315a; }
+.price-covers strong { color: #e9eefb; font-size: .98rem; }
+.price-covers span { color: #9fabce; font-size: .88rem; line-height: 1.45; }
+.price-card .price-note { margin-top: auto; }
+.price-combo { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 24px; margin-top: 18px; padding: 16px 20px; background: #172140; border: 2px solid #26315a; border-radius: 20px; text-align: left; }
+.price-combo > strong { color: #e9eefb; font-family: 'Baloo 2', cursive; font-size: 1.2rem; }
+.price-combo dl { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 28px; }
+.price-combo dl > div { display: flex; align-items: baseline; gap: 10px; }
+.price-combo dt { color: #c5d0ea; font-size: .98rem; }
+.price-combo dd { margin: 0; color: var(--yellow); font-weight: 800; font-size: 1.12rem; white-space: nowrap; }
+.price-combo p { grid-column: 1 / -1; margin: 0; color: #9fabce; font-size: .88rem; line-height: 1.45; }
+.price-cta { display: flex; justify-content: center; margin-top: 22px; }
+[data-theme="light"] .kid .price-covers li { border-color: #e6ebf5; }
+[data-theme="light"] .kid .price-covers strong, [data-theme="light"] .kid .price-combo > strong { color: var(--ink); }
+[data-theme="light"] .kid .price-covers span, [data-theme="light"] .kid .price-combo p { color: #6b6890; }
+[data-theme="light"] .kid .price-combo { background: #fff; border-color: #e6ebf5; }
+[data-theme="light"] .kid .price-combo dt { color: #3d3a5c; }
+[data-theme="light"] .kid .price-combo dd { color: #0D2D6E; }
+@media (max-width: 900px) { .price-combo { grid-template-columns: 1fr; max-width: 520px; margin-inline: auto; box-sizing: border-box; } }
 
 /* Capas sem o título embaixo: o título fica só para leitores de tela (menu de livros e cards do catálogo). */
 .kid .kcat-feat > span:last-child,

@@ -2357,79 +2357,120 @@ const FORMAT_COPY: Record<Lang, {
   },
 };
 // Seção "Valores" da landing: os mesmos preços de FORMAT_COPY e de PRICE_EXTRA_* / PRICE_DIGITAL_* (config.py / Render).
-type PriceGroup = { title: string; lead: string; rows: [string, string][]; note: string };
-const PRICES_COPY: Record<Lang, { title: string; sub: string; groups: PriceGroup[] }> = {
+// Três formatos: P-Book (impresso), E-Book (PDF) e V-Book (vídeo). Só os nomes mudaram em 23/11/2026; os valores são os mesmos.
+type PriceGroup = { tag: string; title: string; lead: string; rows: [string, string][]; covers?: [string, string][]; note: string };
+type PricesCopy = { title: string; sub: string; groups: PriceGroup[]; combo: { title: string; rows: [string, string][]; note: string }; cta: string };
+const PRICES_COPY: Record<Lang, PricesCopy> = {
   pt: {
     title: "Valores",
-    sub: "Você vê a prévia e a história antes de pagar. Escolha uma das três formas de receber.",
+    sub: "Você vê a prévia e a história antes de pagar. Escolha o melhor formato para presentear ou guardar a sua história.",
     groups: [
       {
+        tag: "P-Book",
         title: "Livro Impresso",
-        lead: "O livro físico, com 16 páginas.",
+        lead: "O livro físico, com 16 páginas de papel encadernadas e capa. Feito para presentear ou colecionar.",
         rows: [["20 × 20 cm", "R$ 177"]],
-        note: "Capa dura ou flexível pelo mesmo valor. O frete não está incluído.",
+        covers: [
+          ["Capa Hard (dura)", FORMAT_COPY.pt.hardText],
+          ["Capa Soft (flexível)", FORMAT_COPY.pt.softText],
+        ],
+        note: "Capa Hard ou Soft pelo mesmo valor. O frete não está incluído.",
       },
       {
-        title: "Impresso + Digital",
-        lead: "Some a versão digital ao livro impresso.",
-        rows: [["E-book (o livro em PDF)", "+ R$ 29"], ["História animada (o livro em vídeo)", "+ R$ 89"], ["Os dois", "+ R$ 99"]],
-        note: "É opcional e você escolhe na hora do pedido.",
+        tag: "E-Book",
+        title: "PDF",
+        lead: "O livro em PDF, com o mesmo visual em qualquer tela: celular, tablet ou computador. Bom para compartilhar e usar em lembranças de aniversário, chá de bebê, noivado e casamento.",
+        rows: [["Junto com o livro impresso", "+ R$ 29"], ["Só o E-Book, sem impressão", "R$ 119"]],
+        note: "Fica pronto na plataforma, sem frete.",
       },
       {
-        title: "Só Digital",
-        lead: "Sem livro impresso e sem frete.",
-        rows: [["E-book (o livro em PDF)", "R$ 119"], ["História animada (o livro em vídeo)", "R$ 209"], ["Os dois", "R$ 219"]],
-        note: "Sem o livro impresso, o valor já inclui a criação do livro.",
+        tag: "V-Book",
+        title: "Vídeo Book",
+        lead: "O livro em vídeo: a história animada, página por página, para assistir e compartilhar.",
+        rows: [["Junto com o livro impresso", "+ R$ 89"], ["Só o V-Book, sem impressão", "R$ 209"]],
+        note: "Fica pronto na plataforma, sem frete.",
       },
     ],
+    combo: {
+      title: "E-Book + V-Book",
+      rows: [["Junto com o livro impresso", "+ R$ 99"], ["Só digital, sem impressão", "R$ 219"]],
+      note: "Sem o livro impresso, o valor já inclui a criação do livro.",
+    },
+    cta: "Criar",
   },
   en: {
     title: "Prices",
-    sub: "You see the preview and the story before paying. Choose one of three ways to receive it.",
+    sub: "You see the preview and the story before paying. Choose the best format to gift or keep your story.",
     groups: [
       {
+        tag: "P-Book",
         title: "Printed Book",
-        lead: "The physical book, with 16 pages.",
+        lead: "The physical book, with 16 bound paper pages and a cover. Made to gift or collect.",
         rows: [["20 × 20 cm", "$33.91"]],
-        note: "Hard or soft cover for the same price. Shipping is not included.",
+        covers: [
+          ["Hard cover", FORMAT_COPY.en.hardText],
+          ["Soft cover", FORMAT_COPY.en.softText],
+        ],
+        note: "Hard or Soft cover for the same price. Shipping is not included.",
       },
       {
-        title: "Printed + Digital",
-        lead: "Add the digital version to the printed book.",
-        rows: [["E-book (the book as a PDF)", "+ $5.56"], ["Animated story (the book as a video)", "+ $17.05"], ["Both", "+ $18.97"]],
-        note: "It is optional and you choose when you order.",
+        tag: "E-Book",
+        title: "PDF",
+        lead: "The book as a PDF, with the same look on any screen: phone, tablet or computer. Good to share and to use in birthday, baby shower, engagement and wedding keepsakes.",
+        rows: [["With the printed book", "+ $5.56"], ["E-Book only, no printing", "$22.80"]],
+        note: "Ready on the platform, no shipping.",
       },
       {
-        title: "Digital Only",
-        lead: "No printed book and no shipping.",
-        rows: [["E-book (the book as a PDF)", "$22.80"], ["Animated story (the book as a video)", "$40.04"], ["Both", "$41.95"]],
-        note: "Without the printed book, the price already includes creating the book.",
+        tag: "V-Book",
+        title: "Video Book",
+        lead: "The book as a video: the animated story, page by page, to watch and share.",
+        rows: [["With the printed book", "+ $17.05"], ["V-Book only, no printing", "$40.04"]],
+        note: "Ready on the platform, no shipping.",
       },
     ],
+    combo: {
+      title: "E-Book + V-Book",
+      rows: [["With the printed book", "+ $18.97"], ["Digital only, no printing", "$41.95"]],
+      note: "Without the printed book, the price already includes creating the book.",
+    },
+    cta: "Create",
   },
   es: {
     title: "Precios",
-    sub: "Ves la vista previa y la historia antes de pagar. Elige una de las tres formas de recibirlo.",
+    sub: "Ves la vista previa y la historia antes de pagar. Elige el mejor formato para regalar o guardar tu historia.",
     groups: [
       {
+        tag: "P-Book",
         title: "Libro Impreso",
-        lead: "El libro físico, con 16 páginas.",
+        lead: "El libro físico, con 16 páginas de papel encuadernadas y tapa. Hecho para regalar o coleccionar.",
         rows: [["20 × 20 cm", "30,10 €"]],
-        note: "Tapa dura o blanda por el mismo precio. El envío no está incluido.",
+        covers: [
+          ["Tapa Hard (dura)", FORMAT_COPY.es.hardText],
+          ["Tapa Soft (blanda)", FORMAT_COPY.es.softText],
+        ],
+        note: "Tapa Hard o Soft por el mismo precio. El envío no está incluido.",
       },
       {
-        title: "Impreso + Digital",
-        lead: "Suma la versión digital al libro impreso.",
-        rows: [["E-book (el libro en PDF)", "+ 4,93 €"], ["Historia animada (el libro en video)", "+ 15,14 €"], ["Los dos", "+ 16,84 €"]],
-        note: "Es opcional y lo eliges al hacer el pedido.",
+        tag: "E-Book",
+        title: "PDF",
+        lead: "El libro en PDF, con el mismo aspecto en cualquier pantalla: móvil, tableta u ordenador. Bueno para compartir y usar en recuerdos de cumpleaños, baby shower, compromiso y boda.",
+        rows: [["Junto con el libro impreso", "+ 4,93 €"], ["Solo el E-Book, sin impresión", "20,24 €"]],
+        note: "Queda listo en la plataforma, sin envío.",
       },
       {
-        title: "Solo Digital",
-        lead: "Sin libro impreso y sin envío.",
-        rows: [["E-book (el libro en PDF)", "20,24 €"], ["Historia animada (el libro en video)", "35,54 €"], ["Los dos", "37,24 €"]],
-        note: "Sin el libro impreso, el precio ya incluye la creación del libro.",
+        tag: "V-Book",
+        title: "Video Book",
+        lead: "El libro en video: la historia animada, página a página, para ver y compartir.",
+        rows: [["Junto con el libro impreso", "+ 15,14 €"], ["Solo el V-Book, sin impresión", "35,54 €"]],
+        note: "Queda listo en la plataforma, sin envío.",
       },
     ],
+    combo: {
+      title: "E-Book + V-Book",
+      rows: [["Junto con el libro impreso", "+ 16,84 €"], ["Solo digital, sin impresión", "37,24 €"]],
+      note: "Sin el libro impreso, el precio ya incluye la creación del libro.",
+    },
+    cta: "Crear",
   },
 };
 export type CatalogCardBook = {
@@ -2832,7 +2873,7 @@ export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?:
   const passoImgs = example === "father"
     ? ["passo-meupai-protagonista-v3.png", "passo-meupai-familia-v3.png", passoBook]
     : example === "cartoon"
-      ? ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", passoBook]
+      ? ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo-v2.jpg", passoBook]
       : ["passo-protagonista-v2.webp", "passo-familia-v2.webp", passoBook];
   const framing = example !== "father" && import.meta.env.DEV && new URLSearchParams(window.location.search).has("enquadrar");
   return (
@@ -3590,7 +3631,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </p>
         <div className="price-grid">
           {PRICES_COPY[lang].groups.map((group) => (
-            <div className="price-card reveal" key={group.title}>
+            <div className="price-card reveal" key={group.tag}>
+              <span className="price-tag">{group.tag}</span>
               <h3>{group.title}</h3>
               <p className="price-lead">{group.lead}</p>
               <dl>
@@ -3601,9 +3643,31 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   </div>
                 ))}
               </dl>
+              {group.covers && (
+                <ul className="price-covers">
+                  {group.covers.map(([name, text]) => (
+                    <li key={name}><strong>{name}</strong><span>{text}</span></li>
+                  ))}
+                </ul>
+              )}
               <p className="price-note">{group.note}</p>
             </div>
           ))}
+        </div>
+        <div className="price-combo reveal" data-testid="landing-prices-combo">
+          <strong>{PRICES_COPY[lang].combo.title}</strong>
+          <dl>
+            {PRICES_COPY[lang].combo.rows.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p>{PRICES_COPY[lang].combo.note}</p>
+        </div>
+        <div className="price-cta">
+          <Link to={createHref} className="kbtn kbtn-primary big" data-testid="landing-prices-cta">{PRICES_COPY[lang].cta}</Link>
         </div>
       </section>
 
@@ -3625,8 +3689,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             return (
               <div className="promise-card reveal" key={pr.t}>
                 <span className="promise-ic"><Icon /></span>
-                <h3>{pr.t}</h3>
-                <p>{pr.p}</p>
+                <h3 className="locale-copy" data-copy-a={I18N[lang === "pt" ? "en" : "pt"].promise[i].t} data-copy-b={I18N[lang === "es" ? "en" : "es"].promise[i].t}><span>{pr.t}</span></h3>
+                <p className="locale-copy" data-copy-a={I18N[lang === "pt" ? "en" : "pt"].promise[i].p} data-copy-b={I18N[lang === "es" ? "en" : "es"].promise[i].p}><span>{pr.p}</span></p>
               </div>
             );
           })}

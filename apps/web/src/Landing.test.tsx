@@ -333,9 +333,15 @@ describe("Landing — catálogo", () => {
     expect(within(prices).getByRole("heading", { name: "Valores" })).toBeInTheDocument();
     expect(within(prices).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
       "Livro Impresso",
-      "Impresso + Digital",
-      "Só Digital",
+      "PDF",
+      "Vídeo Book",
     ]);
+    expect(prices.textContent).toContain("P-Book");
+    expect(prices.textContent).toContain("E-Book");
+    expect(prices.textContent).toContain("V-Book");
+    expect(within(prices).getByText("Capa Hard (dura)")).toBeInTheDocument();
+    expect(within(prices).getByText("Capa Soft (flexível)")).toBeInTheDocument();
+    expect(within(prices).getByTestId("landing-prices-cta")).toHaveTextContent("Criar");
     for (const value of ["R$ 177", "+ R$ 29", "+ R$ 89", "+ R$ 99", "R$ 119", "R$ 209", "R$ 219"]) {
       expect(within(prices).getByText(value)).toBeInTheDocument();
     }
@@ -887,7 +893,7 @@ describe("Landing — CTAs e links", () => {
     const cartoonPasso = document.getElementById("passo") as HTMLElement;
     expect(within(cartoonPasso).getByRole("heading", { name: "Passo a Passo" })).toBeInTheDocument();
     expect(cartoonPasso.querySelector(".howex-card figcaption")?.textContent).toMatch(/herói da história/i);
-    for (const file of ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo.jpg", localizedExample("cartoon-capa-bisavo.jpg", "pt")]) {
+    for (const file of ["passo-cartoon-matteo.jpg", "passo-cartoon-bisavo-v2.jpg", localizedExample("cartoon-capa-bisavo.jpg", "pt")]) {
       expect(cartoonPasso.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 

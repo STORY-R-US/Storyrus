@@ -56,6 +56,8 @@ export type StudioCopy = {
   dedication: string;
   dedicationPh: string;
   suggestDedication: string;
+  dedicationUse: string;
+  dedicationUsed: string;
   dedicationSuggestions: (name: string) => string[];
   bookSize: string;
   bookSizeM: string;
@@ -427,8 +429,11 @@ const pt: StudioCopy = {
   dedication: "Dedicatória (2ª página do livro)",
   dedicationPh: "Ex.: Para a Lila, com todo o amor da mamãe.",
   suggestDedication: "Sugerir Dedicatória",
+  dedicationUse: "Usar esta",
+  dedicationUsed: "Escolhida",
   dedicationSuggestions: (name) => [
-    `Para ${name || "você"}, com todo o amor. Que esta história seja uma lembrança dos momentos felizes que vivemos juntos.`,
+    `Para ${name || "você"}, com todo o amor. Que esta história seja uma lembrança viva do nosso carinho, hoje e para sempre.`,
+    `Para ${name || "você"}, com todo o amor. Que esta história seja uma lembrança viva do nosso carinho, hoje e para todo o sempre.`,
     `Para ${name || "você"}, que transforma pequenos momentos em grandes aventuras. Com carinho, hoje e sempre.`,
     `Para ${name || "você"}, um livro para guardar, sonhar e descobrir. Que nunca faltem histórias bonitas no seu caminho.`,
   ],
@@ -719,8 +724,11 @@ const en: StudioCopy = {
   dedication: "Dedication (book page 2)",
   dedicationPh: "e.g. For Lila, with all of Mom's love.",
   suggestDedication: "Suggest Dedication",
+  dedicationUse: "Use this one",
+  dedicationUsed: "Chosen",
   dedicationSuggestions: (name) => [
-    `For ${name || "you"}, with all our love. May this story remind you of the happy moments we share.`,
+    `For ${name || "you"}, with all our love. May this story be a living keepsake of our affection, today and always.`,
+    `For ${name || "you"}, with all our love. May this story be a living keepsake of our affection, today and forevermore.`,
     `For ${name || "you"}, who turns small moments into great adventures. With love, today and always.`,
     `For ${name || "you"}, a book to treasure, dream and discover. May your journey always be filled with beautiful stories.`,
   ],
@@ -1011,8 +1019,11 @@ const es: StudioCopy = {
   dedication: "Dedicatoria (2.ª página del libro)",
   dedicationPh: "Ej.: Para Lila, con todo el amor de mamá.",
   suggestDedication: "Sugerir Dedicatoria",
+  dedicationUse: "Usar esta",
+  dedicationUsed: "Elegida",
   dedicationSuggestions: (name) => [
-    `Para ${name || "ti"}, con todo nuestro amor. Que esta historia te recuerde los momentos felices que compartimos.`,
+    `Para ${name || "ti"}, con todo nuestro amor. Que esta historia sea un recuerdo vivo de nuestro cariño, hoy y siempre.`,
+    `Para ${name || "ti"}, con todo nuestro amor. Que esta historia sea un recuerdo vivo de nuestro cariño, hoy y por siempre jamás.`,
     `Para ${name || "ti"}, que transforma pequeños momentos en grandes aventuras. Con cariño, hoy y siempre.`,
     `Para ${name || "ti"}, un libro para guardar, soñar y descubrir. Que nunca falten historias bonitas en tu camino.`,
   ],
