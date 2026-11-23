@@ -311,14 +311,13 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
   const candidate = topicMentions ? topic
     : lang === "en" ? `${name} and ${topic}` : lang === "es" ? `${name} y ${topic}` : `${name} e ${topic}`;
   const themedTitle = topic ? (topicMentions > 1 || comparable(candidate) === comparable(title) ? fallback : candidate) : "";
-  const patterns = lang === "en"
+  const generic = lang === "en"
     ? [
         `The story of ${name}`,
         `The great adventure of ${name}`,
         `${name} and a world of discoveries`,
         `A book about ${name}`,
         `A story for ${name}`,
-        themedTitle,
       ]
     : lang === "es"
       ? [
@@ -327,7 +326,6 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
           `${name} y un mundo de descubrimientos`,
           `El libro de ${name}`,
           `Una historia para ${name}`,
-          themedTitle,
         ]
       : [
           `A história de ${name}`,
@@ -335,12 +333,58 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
           `${name} e um mundo de descobertas`,
           `O livro de ${name}`,
           `Uma história para ${name}`,
-          themedTitle,
         ];
-  const current = title.trim().toLocaleLowerCase();
-  return [...new Set(patterns.map((item) => item.trim()).filter(Boolean))]
-    .filter((item) => item.toLocaleLowerCase() !== current)
-    .slice(0, 6);
+  // As opções acompanham o assunto do livro (tema ou título atual, sem o nome),
+  // para não oferecer títulos genéricos que não condizem com o livro.
+  const nameWords = comparable(name).split(" ");
+  const titleHasName = new RegExp(`(?:^| )${comparable(name)}(?= |$)`).test(comparable(title));
+  const subjectWords = (topic || (titleHasName ? title : "")).replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const kept: string[] = [];
+  for (let i = 0; i < subjectWords.length; i++) {
+    if (nameWords.every((word, j) => comparable(subjectWords[i + j] || "") === word)) i += nameWords.length - 1;
+    else kept.push(subjectWords[i]);
+  }
+  const connectors = new Set(["e", "and", "y", "com", "with", "con", "de", "do", "da", "of", "del"]);
+  while (kept.length && (connectors.has(kept[0].toLocaleLowerCase()) || !comparable(kept[0]))) kept.shift();
+  while (kept.length && (connectors.has(kept[kept.length - 1].toLocaleLowerCase()) || !comparable(kept[kept.length - 1]))) kept.pop();
+  const subject = kept.join(" ").replace(/^[\s,:;.\-–—]+|[\s,:;\-–—]+$/g, "");
+  const Subject = subject.charAt(0).toLocaleUpperCase() + subject.slice(1);
+  const themed = subject.length < 3 ? [] : lang === "en"
+    ? [
+        `${name}: ${Subject}`,
+        `${Subject} with ${name}`,
+        `The story of ${name}: ${Subject}`,
+        `${name}'s book: ${Subject}`,
+        `${Subject}: a story about ${name}`,
+        `${Subject}: a book for ${name}`,
+      ]
+    : lang === "es"
+      ? [
+          `${name}: ${Subject}`,
+          `${Subject} con ${name}`,
+          `La historia de ${name}: ${Subject}`,
+          `El libro de ${name}: ${Subject}`,
+          `${Subject}: una historia de ${name}`,
+          `${Subject}: un libro para ${name}`,
+        ]
+      : [
+          `${name}: ${Subject}`,
+          `${Subject} com ${name}`,
+          `A história de ${name}: ${Subject}`,
+          `O livro de ${name}: ${Subject}`,
+          `${Subject}: uma história de ${name}`,
+          `${Subject}: um livro para ${name}`,
+        ];
+  const current = comparable(title);
+  const seen = new Set<string>([current, comparable(themedTitle)]);
+  const unique = (items: string[]) => items.map((item) => item.trim()).filter((item) => {
+    const key = comparable(item);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const last = themedTitle && comparable(themedTitle) !== current ? [themedTitle] : [];
+  return [...unique([...themed, ...generic]).slice(0, 6 - last.length), ...last];
 }
 
 function verseLines(text: string): string[] {

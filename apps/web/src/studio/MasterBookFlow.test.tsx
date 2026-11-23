@@ -31,6 +31,13 @@ describe("Sugestão de título pelo tema", () => {
     expect(normalized.match(/andre/g)).toHaveLength(1);
   });
 
+  it("as opções acompanham o assunto do título atual", () => {
+    const options = extraTitleOptions("pt", "ANA CLARA", "ANA CLARA   DESENHAR E PINTAR", "");
+    expect(options.slice(0, 5).every((option) => /desenhar e pintar/i.test(option))).toBe(true);
+    expect(options).not.toContain("A grande aventura de ANA CLARA");
+    expect(extraTitleOptions("pt", "Lia", "Uma história especial", "")).toContain("A grande aventura de Lia");
+  });
+
   it("mantém o tema quando ele já contém o nome uma vez", () => {
     expect(extraTitleOptions("pt", "André", "Uma história especial", "Andre no computador")[5])
       .toBe("Andre no computador");
@@ -335,11 +342,11 @@ describe("Studio approval stages", () => {
     render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     await userEvent.click(screen.getByText("Outras opções de título", { selector: "summary" }));
     expect(screen.getByRole("list", { name: "Outras opções de título" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "A história de Lia Usar este título" }));
-    expect(screen.getByTestId("studio-preview-title")).toHaveValue("A história de Lia");
+    await userEvent.click(screen.getByRole("button", { name: "As estrelas com Lia Usar este título" }));
+    expect(screen.getByTestId("studio-preview-title")).toHaveValue("As estrelas com Lia");
     expect(save).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: "Atualizar título" }));
-    await waitFor(() => expect(save).toHaveBeenCalledWith("master", "A história de Lia"));
+    await waitFor(() => expect(save).toHaveBeenCalledWith("master", "As estrelas com Lia"));
   });
 
   it("não mostra o ajuste solto da imagem na prévia pronta", () => {

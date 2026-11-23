@@ -289,6 +289,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [orderSent, setOrderSent] = useState(false);
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
+  const [dedicationOptionsOpen, setDedicationOptionsOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -1613,10 +1614,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   const suggestions = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
                   const next = (suggestions.indexOf(dedication) + 1) % suggestions.length;
                   setDedication(suggestions[next]);
+                  setDedicationOptionsOpen(true);
                 }}
               >
                 {t.suggestDedication}
               </button>
+              {dedicationOptionsOpen && (
+                <ol className="studio-dedication-options" data-testid="studio-dedication-options">
+                  {t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200)).map((text) => (
+                    <li key={text}>
+                      <button type="button" className={dedication === text ? "is-selected" : ""} aria-pressed={dedication === text}
+                        disabled={fieldsLocked} onClick={() => setDedication(text)}>
+                        <span>{text}</span>
+                        <span className="studio-dedication-choice">{dedication === text ? t.dedicationUsed : t.dedicationUse}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </div>
           )}
 

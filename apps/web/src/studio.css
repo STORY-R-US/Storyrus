@@ -2330,3 +2330,21 @@
 
 .studio-app .studio-art-book.has-cover { width: 178px; height: 178px; background: #102f4c; }
 .studio-app .studio-art-book.has-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Apresentação do Estúdio (23/11/2026): texto novo, mais longo; frase de destaque entre o título e o parágrafo. */
+.studio-app .studio-intro { gap: clamp(20px, 4vw, 44px); }
+.studio-app .studio-intro h1 { max-width: 600px; font-size: clamp(2rem, 3.6vw, 2.9rem); line-height: 1.1; text-wrap: balance; }
+.studio-app .studio-intro-note { display: block; margin-top: 16px; font-size: 1rem; }
+.studio-app .studio-intro-copy > p:not(.studio-eyebrow) { max-width: 560px; margin: 8px 0 0; }
+@media (max-width: 759px) {
+  .studio-app .studio-intro h1 { max-width: none; font-size: 2.05rem; }
+  .studio-app .studio-intro-note { font-size: .92rem; }
+}
+
+/* Dedicatória: opções prontas para escolher. */
+.studio-app .studio-dedication-options { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.studio-app .studio-dedication-options button { display: flex; gap: 12px; align-items: center; width: 100%; padding: 12px 14px; border-radius: 13px; border: 1px solid var(--studio-input-border); background: var(--studio-input-bg); color: var(--ink); font: inherit; font-size: .9rem; line-height: 1.45; text-align: left; cursor: pointer; }
+.studio-app .studio-dedication-options button > span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.studio-app .studio-dedication-options button.is-selected { border-color: var(--studio-accent); }
+.studio-app .studio-dedication-options button:disabled { cursor: default; opacity: .6; }
+.studio-app .studio-dedication-choice { flex: none; color: var(--studio-accent); font-size: .78rem; font-weight: 800; white-space: nowrap; }
