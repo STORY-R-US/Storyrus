@@ -9,6 +9,7 @@ import { api } from "../api";
 import type { Job, Project } from "../types";
 import type { StudioAssets } from "./assets";
 import { useStudioI18n } from "./useStudioI18n";
+import { tidyTitleCase } from "./titleCase";
 import { capitalizeChildName } from "./childName";
 import { generationError, uncertainGeneration, internalGenerationIssue } from "./generationError";
 
@@ -306,18 +307,18 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
   const comparable = (value: string) => value.normalize("NFKD").replace(/\p{M}/gu, "")
     .toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   const topicMentions = comparable(topic).match(new RegExp(`(?:^| )${comparable(name)}(?= |$)`, "g"))?.length || 0;
-  const fallback = lang === "en" ? `A new adventure with ${name}`
-    : lang === "es" ? `Una nueva aventura con ${name}` : `${name}: uma nova aventura`;
+  const fallback = lang === "en" ? `A New Adventure with ${name}`
+    : lang === "es" ? `Una nueva aventura con ${name}` : `${name}: Uma Nova Aventura`;
   const candidate = topicMentions ? topic
     : lang === "en" ? `${name} and ${topic}` : lang === "es" ? `${name} y ${topic}` : `${name} e ${topic}`;
   const themedTitle = topic ? (topicMentions > 1 || comparable(candidate) === comparable(title) ? fallback : candidate) : "";
   const generic = lang === "en"
     ? [
-        `The story of ${name}`,
-        `The great adventure of ${name}`,
-        `${name} and a world of discoveries`,
-        `A book about ${name}`,
-        `A story for ${name}`,
+        `The Story of ${name}`,
+        `The Great Adventure of ${name}`,
+        `${name} and a World of Discoveries`,
+        `A Book About ${name}`,
+        `A Story for ${name}`,
       ]
     : lang === "es"
       ? [
@@ -328,11 +329,11 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
           `Una historia para ${name}`,
         ]
       : [
-          `A história de ${name}`,
-          `A grande aventura de ${name}`,
-          `${name} e um mundo de descobertas`,
-          `O livro de ${name}`,
-          `Uma história para ${name}`,
+          `A História de ${name}`,
+          `A Grande Aventura de ${name}`,
+          `${name} e um Mundo de Descobertas`,
+          `O Livro de ${name}`,
+          `Uma História para ${name}`,
         ];
   // As opções acompanham o assunto do livro (tema ou título atual, sem o nome),
   // para não oferecer títulos genéricos que não condizem com o livro.
@@ -353,10 +354,10 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
     ? [
         `${name}: ${Subject}`,
         `${Subject} with ${name}`,
-        `The story of ${name}: ${Subject}`,
-        `${name}'s book: ${Subject}`,
-        `${Subject}: a story about ${name}`,
-        `${Subject}: a book for ${name}`,
+        `The Story of ${name}: ${Subject}`,
+        `${name}'s Book: ${Subject}`,
+        `${Subject}: A Story About ${name}`,
+        `${Subject}: A Book for ${name}`,
       ]
     : lang === "es"
       ? [
@@ -370,10 +371,10 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
       : [
           `${name}: ${Subject}`,
           `${Subject} com ${name}`,
-          `A história de ${name}: ${Subject}`,
-          `O livro de ${name}: ${Subject}`,
-          `${Subject}: uma história de ${name}`,
-          `${Subject}: um livro para ${name}`,
+          `A História de ${name}: ${Subject}`,
+          `O Livro de ${name}: ${Subject}`,
+          `${Subject}: Uma História de ${name}`,
+          `${Subject}: Um Livro para ${name}`,
         ];
   const current = comparable(title);
   const seen = new Set<string>([current, comparable(themedTitle)]);
@@ -384,7 +385,7 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
     return true;
   });
   const last = themedTitle && comparable(themedTitle) !== current ? [themedTitle] : [];
-  return [...unique([...themed, ...generic]).slice(0, 6 - last.length), ...last];
+  return [...unique([...themed, ...generic]).slice(0, 6 - last.length), ...last].map(tidyTitleCase);
 }
 
 function verseLines(text: string): string[] {
@@ -455,13 +456,13 @@ export function MasterBookFlow({
   useEffect(() => {
     if (suggesting) suggestionField.current?.focus();
   }, [suggesting]);
-  const [editTitle, setEditTitle] = useState(project.book_profile?.title || "");
+  const [editTitle, setEditTitle] = useState(tidyTitleCase(project.book_profile?.title || ""));
   const [childDraft, setChildDraft] = useState(() => childDraftFrom(project));
   useEffect(() => {
     setChildDraft(childDraftFrom(project));
   }, [project]);
   useEffect(() => {
-    setEditTitle(project.book_profile?.title || "");
+    setEditTitle(tidyTitleCase(project.book_profile?.title || ""));
   }, [project.book_profile?.title]);
   const [editTheme, setEditTheme] = useState(
     project.purchase_flow?.theme_description || project.theme || "",
@@ -661,7 +662,7 @@ export function MasterBookFlow({
   ) : null;
   async function applyTitle(event: FormEvent) {
     event.preventDefault();
-    const title = editTitle.trim();
+    const title = tidyTitleCase(editTitle);
     if (!title || title === savedTitle) return;
     await run(() => api.updatePreviewTitle(project.id, title));
   }
@@ -854,6 +855,7 @@ export function MasterBookFlow({
                 maxLength={120}
                 data-testid="studio-preview-title"
                 onChange={(e) => setEditTitle(e.target.value)}
+                onBlur={() => setEditTitle(tidyTitleCase(editTitle))}
               />
             </label>
             <button

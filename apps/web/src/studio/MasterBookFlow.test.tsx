@@ -34,8 +34,9 @@ describe("Sugestão de título pelo tema", () => {
   it("as opções acompanham o assunto do título atual", () => {
     const options = extraTitleOptions("pt", "ANA CLARA", "ANA CLARA   DESENHAR E PINTAR", "");
     expect(options.slice(0, 5).every((option) => /desenhar e pintar/i.test(option))).toBe(true);
-    expect(options).not.toContain("A grande aventura de ANA CLARA");
-    expect(extraTitleOptions("pt", "Lia", "Uma história especial", "")).toContain("A grande aventura de Lia");
+    expect(options[0]).toBe("Desenhar e Pintar com Ana Clara");
+    expect(options).not.toContain("A Grande Aventura de Ana Clara");
+    expect(extraTitleOptions("pt", "Lia", "Uma história especial", "")).toContain("A Grande Aventura de Lia");
   });
 
   it("mantém o tema quando ele já contém o nome uma vez", () => {
