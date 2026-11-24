@@ -243,7 +243,7 @@ describe("Landing — catálogo", () => {
     expect(cards[0].querySelector(".cat-notes-sizes")).toContainElement(within(cards[0]).getByText("Livro 20 Páginas"));
     expect(cards[0].querySelector(".cat-badges")).not.toBeInTheDocument();
     const noteLabels = [...cards[0].querySelectorAll(".cat-notes button")].map((button) => button.textContent);
-    expect(noteLabels).toEqual(["HARDR$ 329", "SOFTR$ 309"]);
+    expect(noteLabels).toEqual(["HARDR$ 259", "SOFTR$ 229"]);
     expect(cards[0].textContent).toContain("20 × 20 cm");
     expect(cards[0].textContent).not.toContain("15 × 15 cm");
     expect(cards[0].textContent).not.toContain("R$ 177");
@@ -326,8 +326,8 @@ describe("Landing — catálogo", () => {
     expect(studioTarget(within(card).getByTestId("landing-personalize").getAttribute("href"))).toContain("capa=soft");
 
     // Cada capa mostra o seu valor no botão amarelo.
-    expect(within(card).getByRole("button", { name: /^HARD/ })).toHaveTextContent("R$ 329");
-    expect(within(card).getByRole("button", { name: /^SOFT/ })).toHaveTextContent("R$ 309");
+    expect(within(card).getByRole("button", { name: /^HARD/ })).toHaveTextContent("R$ 259");
+    expect(within(card).getByRole("button", { name: /^SOFT/ })).toHaveTextContent("R$ 229");
     expect(card.textContent).toContain("Frete não incluído.");
     expect(card.textContent).not.toContain("mesmo valor");
     expect(within(card).getByTestId("catalog-all-prices")).toHaveAttribute("href", "/#valores");
@@ -341,8 +341,8 @@ describe("Landing — catálogo", () => {
     expect(prices.textContent).toContain("P-Book");
     expect(prices.textContent).toContain("E-Book");
     expect(prices.textContent).toContain("V-Book");
-    expect(within(prices).getByTestId("landing-price-hard")).toHaveTextContent("HARDR$ 329");
-    expect(within(prices).getByTestId("landing-price-soft")).toHaveTextContent("SOFTR$ 309");
+    expect(within(prices).getByTestId("landing-price-hard")).toHaveTextContent("HARDR$ 259");
+    expect(within(prices).getByTestId("landing-price-soft")).toHaveTextContent("SOFTR$ 229");
     expect(within(prices).getByTestId("landing-prices-book")).toHaveTextContent("Livro 20 Páginas");
     expect(prices.textContent).toContain("Frete não incluído.");
     expect(prices.textContent).not.toContain("mesmo valor");
@@ -375,8 +375,8 @@ describe("Landing — catálogo", () => {
     expect(enSrcs.some((src) => src.includes("capa-amor-vovo-motor"))).toBe(true);
     expect(enCatalog.textContent).toContain("Martin, The Great Goalkeeper");
     expect(enCatalog.textContent).toContain("Grandpa's Love, My Safe Harbor");
-    expect(enCatalog.textContent).toContain("$63.03");
-    expect(enCatalog.textContent).toContain("$59.20");
+    expect(enCatalog.textContent).toContain("$49.62");
+    expect(enCatalog.textContent).toContain("$43.87");
     expect(enCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
 
     await user.click(screen.getByTestId("landing-lang-es"));
@@ -391,8 +391,8 @@ describe("Landing — catálogo", () => {
     expect(within(esCatalog).getAllByRole("button", { name: /^HARD/ }).length).toBeGreaterThan(0);
     expect(within(esCatalog).getAllByText(/resistente y duradera/i).length).toBeGreaterThan(0);
     expect(esCatalog.textContent).toContain("20 × 20 cm");
-    expect(esCatalog.textContent).toContain("55,95 €");
-    expect(esCatalog.textContent).toContain("52,55 €");
+    expect(esCatalog.textContent).toContain("44,05 €");
+    expect(esCatalog.textContent).toContain("38,95 €");
     expect(esCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
   });
 

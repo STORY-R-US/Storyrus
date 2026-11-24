@@ -145,8 +145,8 @@ class Settings(BaseSettings):
     # Páginas de miolo dos livros novos (16 ou 20). Os criados antes guardam 16.
     book_pages: int = 20
     # Impresso. Milímetros, perfil e pacote ficam vazios até a gráfica e a Ana
-    # enviarem os números. Preços aprovados em 24/11/2026 (20 páginas, 30% de margem):
-    # 20×20 capa dura R$ 329 e capa flexível R$ 309. O P (15×15) saiu do site.
+    # enviarem os números. Preços aprovados em 24/11/2026 (20 páginas, 30% de margem, impressão a R$ 40 na dura e R$ 25 na flexível):
+    # 20×20 capa dura R$ 259 e capa flexível R$ 229. O P (15×15) saiu do site.
     # Miolo de referência: sangria 5 mm e margem interna de 5 mm.
     print_bleed_mm: float | None = 5
     print_safety_mm: float | None = 5
@@ -162,8 +162,8 @@ class Settings(BaseSettings):
     print_price_p_cents: int = 15700
     print_price_m_cents: int = 17700
     # 20×20 por capa. Nomes novos para nenhum valor antigo salvo no Render valer no lugar.
-    print_price_hard_cents: int = 32900
-    print_price_soft_cents: int = 30900
+    print_price_hard_cents: int = 25900
+    print_price_soft_cents: int = 22900
     print_allow_p_hardcover: bool = False
     # Extras do impresso e compra só digital (centavos BRL), aprovados em 24/11/2026.
     price_extra_ebook_cents: int = 2900

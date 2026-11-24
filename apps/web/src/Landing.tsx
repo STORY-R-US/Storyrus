@@ -2302,7 +2302,7 @@ function FlipBook({
 }
 
 // Livro de 20 páginas, 20 × 20 cm (o 15 × 15 cm saiu do site em 20/11/2026). Preços aprovados em 24/11/2026:
-// capa dura R$ 329 e capa flexível R$ 309 (PRINT_PRICE_HARD/SOFT_CENTS); extras e só digital iguais a
+// capa dura R$ 259 e capa flexível R$ 229 (PRINT_PRICE_HARD/SOFT_CENTS); extras e só digital iguais a
 // PRICE_EXTRA_* e PRICE_DIGITAL_* (config.py / Render).
 // Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
 const FORMAT_COPY: Record<Lang, {
@@ -2322,8 +2322,8 @@ const FORMAT_COPY: Record<Lang, {
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
-    priceHard: "R$ 329",
-    priceSoft: "R$ 309",
+    priceHard: "R$ 259",
+    priceSoft: "R$ 229",
     freight: "Frete não incluído.",
     allPrices: "Ver todos os valores",
     hardText: "Resistente e durável. Utilizada em edições especiais ou colecionáveis.",
@@ -2334,8 +2334,8 @@ const FORMAT_COPY: Record<Lang, {
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
-    priceHard: "$63.03",
-    priceSoft: "$59.20",
+    priceHard: "$49.62",
+    priceSoft: "$43.87",
     freight: "Shipping not included.",
     allPrices: "See all prices",
     hardText: "Sturdy and durable. Used for special or collectible editions.",
@@ -2346,15 +2346,15 @@ const FORMAT_COPY: Record<Lang, {
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
-    priceHard: "55,95 €",
-    priceSoft: "52,55 €",
+    priceHard: "44,05 €",
+    priceSoft: "38,95 €",
     freight: "Envío no incluido.",
     allPrices: "Ver todos los precios",
     hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Ligera y flexible. Común en libros y ediciones económicas.",
   },
 };
-/** Botão amarelo da capa com o valor dentro: "HARD · R$ 329". */
+/** Botão amarelo da capa com o valor dentro: "HARD · R$ 259". */
 function coverPill(copy: (typeof FORMAT_COPY)[Lang], choice: "hard" | "soft", test = false) {
   const price = test ? "R$ 0,50" : choice === "hard" ? copy.priceHard : copy.priceSoft;
   return (

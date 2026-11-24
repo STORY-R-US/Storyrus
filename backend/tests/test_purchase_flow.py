@@ -129,7 +129,7 @@ def test_owner_confirms_payment_and_starts_the_book(auth_client):
     assert confirmed.status_code == 200, confirmed.text
     body = confirmed.json()
     assert body["payment_status"] == "paid"
-    assert body["amount_cents"] == 30900  # 20×20 capa flexível
+    assert body["amount_cents"] == 22900  # 20×20 capa flexível
     project = auth_client.get(f"/v1/projects/{pid}").json()
     assert project["purchase_flow"]["stage"] == "generating_book"
     with session(auth_client) as db:

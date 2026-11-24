@@ -38,11 +38,11 @@ def test_order_shows_prices_and_defaults_to_print_only(auth_client):
     order = auth_client.get(f"/v1/projects/{pid}/print-order").json()
     assert order["fulfillment"] == "print"
     assert order["extra_ebook"] is False and order["extra_video"] is False
-    # Capa flexível (soft) no projeto de teste: R$ 309.
-    assert order["book_price_cents"] == 30900
-    assert order["items_price_cents"] == 30900
+    # Capa flexível (soft) no projeto de teste: R$ 229.
+    assert order["book_price_cents"] == 22900
+    assert order["items_price_cents"] == 22900
     assert order["prices"] == {
-        "book": {"hard": 32900, "soft": 30900},
+        "book": {"hard": 25900, "soft": 22900},
         "extra": {"ebook": 2900, "video": 10900, "bundle": 11900},
         "digital": {"ebook": 17700, "video": 28900, "bundle": 29900},
     }
@@ -52,14 +52,14 @@ def test_print_with_both_extras_charges_the_bundle(auth_client):
     pid = approve(auth_client)
     r = choose(auth_client, pid, fulfillment="print", ebook=True, video=True)
     assert r.status_code == 200, r.text
-    assert r.json()["items_price_cents"] == 30900 + 11900
+    assert r.json()["items_price_cents"] == 22900 + 11900
     assert (
         auth_client.put(f"/v1/projects/{pid}/print-order/address", json=ADDRESS).status_code == 200
     )
     make_admin(auth_client)
     paid = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
     assert paid.status_code == 200, paid.text
-    assert paid.json()["amount_cents"] == 30900 + 11900
+    assert paid.json()["amount_cents"] == 22900 + 11900
     assert choose(auth_client, pid, fulfillment="print").status_code == 409
 
 

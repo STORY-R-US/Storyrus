@@ -1,6 +1,6 @@
 """Tabela do impresso, dos extras digitais e da compra só digital.
 
-Desde 24/11/2026 o 20×20 tem um valor por capa: dura R$ 329 e flexível R$ 309.
+Desde 24/11/2026 o 20×20 tem um valor por capa: dura R$ 259 e flexível R$ 229.
 """
 
 from __future__ import annotations
