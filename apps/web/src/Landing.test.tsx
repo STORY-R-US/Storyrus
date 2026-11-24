@@ -991,7 +991,12 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(12);
+    // O catálogo mostra todos os livros de uma vez, com as subcategorias dentro de cada faixa.
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(59);
+    expect(screen.queryByTestId("catalog-more")).not.toBeInTheDocument();
+    expect([...document.querySelectorAll(".catalog-shelf .catalog-bar-name")].map((el) => el.textContent)).toEqual(["Ocasiões Especiais", "Temáticas", "Você e Eu", "Educativo"]);
+    const subTitles = [...document.querySelectorAll("h3.catalog-subgroup-title")].map((el) => el.textContent);
+    for (const name of ["Natal", "Dinossauros", "Família", "Hora de Dormir"]) expect(subTitles).toContain(name);
     expect(screen.queryByTestId("catalog-category")).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();

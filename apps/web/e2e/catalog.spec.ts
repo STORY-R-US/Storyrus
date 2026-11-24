@@ -5,7 +5,9 @@ for (const lang of ["pt", "en", "es"]) {
     await page.addInitScript((value) => localStorage.setItem("lang", value), lang);
     await page.route(/https:\/\/ipapi\.co\//, (route) => route.abort());
     await page.goto("/catalogo");
-    await expect(page.getByTestId("landing-catalog-card")).toHaveCount(12);
+    await expect(page.getByTestId("landing-catalog-card")).toHaveCount(59);
+    await expect(page.getByTestId("catalog-more")).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(page.getByTestId("catalog-category")).toHaveCount(0);
     await page.goto("/");
     await page.goto("/catalogo#aventuras-sport");
