@@ -2370,3 +2370,67 @@
 .studio-app .studio-summary > div { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 12px; }
 .studio-app .studio-summary dt { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--studio-label); }
 .studio-app .studio-summary dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+
+/* 24/11 — Apresentação, "Como funciona" e "Crie a sua história" com a mesma largura
+   (a do painel "Como funciona") e formulário em passos numerados, um cartão por pergunta. */
+.studio-app .studio-page > :is(.studio-intro, .studio-card) {
+  max-width: none;
+  margin-inline: var(--page-gutter, 22px);
+}
+.studio-app .studio-page > .studio-intro {
+  margin-top: 20px;
+  padding: 32px clamp(20px, 4vw, 44px) 36px;
+  border-radius: 28px;
+  background: #121a33;
+  border: 1.5px solid #26315a;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .35);
+}
+[data-theme="light"] .studio-app .studio-page > .studio-intro {
+  background: #fff;
+  border-color: #e6ebf5;
+  box-shadow: 0 14px 32px rgba(31, 53, 104, .1);
+}
+
+.studio-app .studio-step {
+  margin-top: 20px;
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 20px;
+  border: 1.5px solid var(--studio-surface-border);
+  background: var(--studio-soft);
+}
+.studio-app .studio-step > .studio-section-title {
+  margin: 0 0 18px;
+  padding-top: 0;
+  border-top: 0;
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+.studio-app .studio-step > .studio-section-title > span {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: #f5c84b;
+  color: #1a2340;
+  font-size: 1.05rem;
+}
+.studio-app .studio-step-final { border-color: #f5c84b; }
+.studio-app .studio-step-final .studio-summary { background: transparent; }
+.studio-app .studio-step .studio-dedication-field { margin-top: 0; }
+.studio-app .studio-step .studio-block-photo .studio-drop { min-height: 150px; }
+
+.studio-app .studio-step details.studio-privacy-notice {
+  display: block;
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+}
+.studio-app .studio-step details.studio-privacy-notice summary { font-size: .85rem; }
+.studio-app .studio-step details.studio-privacy-notice h4 { margin: 12px 0 6px; }
+
+@media (max-width: 540px) {
+  .studio-app .studio-page > .studio-intro { padding: 22px 16px 26px; border-radius: 20px; }
+  .studio-app .studio-step { padding: 16px 14px; border-radius: 16px; }
+  .studio-app .studio-step > .studio-section-title { font-size: 1.15rem; }
+  .studio-app .studio-step > .studio-section-title > span { width: 34px; height: 34px; }
+}
