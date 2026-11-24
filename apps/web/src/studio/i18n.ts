@@ -56,6 +56,7 @@ export type StudioCopy = {
   dedication: string;
   dedicationPh: string;
   suggestDedication: string;
+  improveDedication: string;
   dedicationUse: string;
   dedicationUsed: string;
   dedicationSuggestions: (name: string) => string[];
@@ -417,18 +418,19 @@ const pt: StudioCopy = {
   themeFree: "Insira o tema desejado",
   themeFreePh: "Ex.: Matteo e seu Herói Favorito",
   themeHint:
-    "Quer incluir mais alguém na história (papai, mamãe, irmãos, o pet da família)? Descreva aqui e envie, no campo de foto abaixo, uma imagem que mostre essas pessoas ou animais.",
+    "Quer incluir mais alguém, como a mãe ou o irmão? Conte aqui e envie a foto dessa pessoa no bloco 1.",
   photoField: "Foto do protagonista",
   photoFieldHint: "Envie mais de uma foto.",
   photoCharacters: "Foto de um ou mais personagens",
   photoCharactersHint: "Envie fotos do protagonista da sua história. Escolha quem fará parte do seu livro. Adicione fotos de um ou mais personagens relacionadas à história que deseja criar.",
-  photoDrop: "Envie fotos do protagonista da sua história.",
-  photoDropHint: "Escolha quem fará parte do seu livro. Adicione fotos de um ou mais personagens relacionadas à história que deseja criar.",
+  photoDrop: "Envie fotos nítidas do protagonista.",
+  photoDropHint: "Pode incluir outras pessoas do livro, como a mãe ou o irmão.",
   photoRemove: "Remover",
   photoSelected: (n) => (n === 1 ? "1 foto selecionada. Envie mais fotos da mesma pessoa, em outros ângulos: o personagem fica mais parecido." : `${n} fotos selecionadas. Usamos todas para deixar o personagem mais parecido.`),
   dedication: "Dedicatória (2ª página do livro)",
   dedicationPh: "Ex.: Para a Lila, com todo o amor da mamãe.",
   suggestDedication: "Sugerir Dedicatória",
+  improveDedication: "Melhorar Dedicatória",
   dedicationUse: "Usar esta",
   dedicationUsed: "Escolhida",
   dedicationSuggestions: (name) => [
@@ -568,7 +570,7 @@ const pt: StudioCopy = {
   changesReceived: "Recebemos seu pedido de alterações.",
   storyPagesTitle: "História",
   otherCharacters: "Outros personagens (opcional)",
-  otherCharactersPh: "Ex.: mamãe, irmão, Totó",
+  otherCharactersPh: "Ex.: mamãe, irmão",
   otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
   gender: "Gênero",
   genderF: "Feminino",
@@ -712,18 +714,19 @@ const en: StudioCopy = {
   themeFree: "Enter the desired theme",
   themeFreePh: "e.g. Matteo and his Favorite Hero",
   themeHint:
-    "Want to include someone else in the story (dad, mom, siblings, the family pet)? Describe it here and upload a photo below that shows them.",
+    "Want to include someone else, like mom or a brother? Tell us here and add their photo in block 1.",
   photoField: "Hero photo",
   photoFieldHint: "Send more than one photo.",
   photoCharacters: "Photo of one or more characters",
   photoCharactersHint: "Send photos of your story's main character. Choose who will be in your book. Add photos of one or more characters related to the story you want to create.",
-  photoDrop: "Send photos of your story's main character.",
-  photoDropHint: "Choose who will be in your book. Add photos of one or more characters related to the story you want to create.",
+  photoDrop: "Send clear photos of the main character.",
+  photoDropHint: "You can add other people from the book, like mom or a brother.",
   photoRemove: "Remove",
   photoSelected: (n) => (n === 1 ? "1 photo selected. Add more photos of the same person from other angles: the character will look more like them." : `${n} photos selected. We use all of them to make the character look more like the real person.`),
   dedication: "Dedication (book page 2)",
   dedicationPh: "e.g. For Lila, with all of Mom's love.",
   suggestDedication: "Suggest Dedication",
+  improveDedication: "Improve Dedication",
   dedicationUse: "Use this one",
   dedicationUsed: "Chosen",
   dedicationSuggestions: (name) => [
@@ -863,7 +866,7 @@ const en: StudioCopy = {
   changesReceived: "We received your change request.",
   storyPagesTitle: "Story",
   otherCharacters: "Other characters (optional)",
-  otherCharactersPh: "e.g. mom, brother, Toto",
+  otherCharactersPh: "e.g. mom, brother",
   otherCharactersHint: "Separate names with commas. The child is already the main character.",
   gender: "Gender",
   genderF: "Female",
@@ -1007,18 +1010,19 @@ const es: StudioCopy = {
   themeFree: "Ingresa el tema deseado",
   themeFreePh: "Ej.: Matteo y su Héroe Favorito",
   themeHint:
-    "¿Quieres incluir a alguien más en la historia (papá, mamá, hermanos, la mascota)? Descríbelo aquí y sube abajo una foto que los muestre.",
+    "¿Quieres incluir a alguien más, como mamá o un hermano? Cuéntalo aquí y sube su foto en el bloque 1.",
   photoField: "Foto del protagonista",
   photoFieldHint: "Envía más de una foto.",
   photoCharacters: "Foto de uno o más personajes",
   photoCharactersHint: "Envía fotos del protagonista de tu historia. Elige quién formará parte de tu libro. Añade fotos de uno o más personajes relacionadas con la historia que quieres crear.",
-  photoDrop: "Envía fotos del protagonista de tu historia.",
-  photoDropHint: "Elige quién formará parte de tu libro. Añade fotos de uno o más personajes relacionadas con la historia que quieres crear.",
+  photoDrop: "Envía fotos nítidas del protagonista.",
+  photoDropHint: "Puedes incluir a otras personas del libro, como mamá o un hermano.",
   photoRemove: "Quitar",
   photoSelected: (n) => (n === 1 ? "1 foto seleccionada. Envía más fotos de la misma persona, desde otros ángulos: el personaje se parecerá más." : `${n} fotos seleccionadas. Usamos todas para que el personaje se parezca más.`),
   dedication: "Dedicatoria (2.ª página del libro)",
   dedicationPh: "Ej.: Para Lila, con todo el amor de mamá.",
   suggestDedication: "Sugerir Dedicatoria",
+  improveDedication: "Mejorar Dedicatoria",
   dedicationUse: "Usar esta",
   dedicationUsed: "Elegida",
   dedicationSuggestions: (name) => [
@@ -1158,7 +1162,7 @@ const es: StudioCopy = {
   changesReceived: "Recibimos tu pedido de cambios.",
   storyPagesTitle: "Historia",
   otherCharacters: "Otros personajes (opcional)",
-  otherCharactersPh: "Ej.: mamá, hermano, Totó",
+  otherCharactersPh: "Ej.: mamá, hermano",
   otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",
   gender: "Género",
   genderF: "Femenino",

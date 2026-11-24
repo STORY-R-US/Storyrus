@@ -246,6 +246,26 @@ const IcMoon = ({ className }: IconProps) => (
   </Svg>
 );
 
+
+const FLOW = {
+  pt: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Dados do protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatória", resumo: "Resumo do pedido", sumHero: "Protagonista", sumSuggest: "Vamos sugerir", sumPhotos: "Fotos" },
+  en: { educativo: "Educational", format: "20 × 20 cm · 20 pages", dados: "Main character", tema: "Theme", titulo: "Title", dedicatoria: "Dedication", resumo: "Order summary", sumHero: "Main character", sumSuggest: "We will suggest one", sumPhotos: "Photos" },
+  es: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Datos del protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatoria", resumo: "Resumen del pedido", sumHero: "Protagonista", sumSuggest: "Te sugerimos uno", sumPhotos: "Fotos" },
+} as const;
+
+/** Melhora a dedicatória escrita pela família sem IA: arruma espaços, maiúscula e ponto, cita o nome e fecha com carinho. */
+function polishDedication(text: string, name: string, lang: "pt" | "en" | "es"): string {
+  let s = text.replace(/\s+/g, " ").trim();
+  if (!s) return s;
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  if (!/[.!?…]$/.test(s)) s += ".";
+  const who = name.trim();
+  if (who && !s.toLowerCase().includes(who.toLowerCase())) s = `${lang === "en" ? "For" : "Para"} ${who}: ${s}`;
+  const warm = lang === "en" ? /love/i : /amor/i;
+  if (!warm.test(s)) s += lang === "en" ? " With all our love, today and always." : lang === "es" ? " Con todo nuestro amor, hoy y siempre." : " Com todo o amor, hoje e sempre.";
+  return s.slice(0, 200);
+}
+
 export function Studio({ onLogout }: { onLogout?: () => void }) {
   const langState = useStudioLangState();
   return (
@@ -1497,7 +1517,97 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {showBook && (
           <>
-          <h3 className="studio-section-title"><span>01</span>{studioDesignCopy(lang).characters}</h3>
+          <section className="studio-details-box" aria-labelledby="studio-details-heading">
+            <h3 id="studio-details-heading">{studioDesignCopy(lang).details}</h3>
+            <div className="studio-choices">
+            <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
+              <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>
+              <div className="studio-actions langs">
+                {([['pt-BR', 'Português'], ['en', 'English'], ['es', 'Español']] as const).map(([code, label]) => {
+                  const primaryLanguage = lang === "pt" ? "pt-BR" : lang;
+                  const selected = code === primaryLanguage || bookLanguages.includes(code);
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      className={selected ? "studio-pick is-on" : "studio-pick"}
+                      aria-pressed={selected}
+                      disabled={fieldsLocked || code === primaryLanguage}
+                      onClick={() =>
+                        setBookLanguages((cur) =>
+                          cur.includes(code) ? cur.filter((item) => item !== code) : [...cur, code],
+                        )
+                      }
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="studio-choice" role="group" aria-label={t.artStyle}>
+              <span className="studio-choice-label">{t.artStyle}</span>
+              <div className="studio-actions">
+                {(["realista", "cartoon"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={artMode === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={artMode === choice}
+                    disabled={fieldsLocked || Boolean(selectedCatalogId)}
+                    onClick={() => { if (!selectedCatalogId) setArtMode(choice); }}
+                  >
+                    {choice === "cartoon" ? t.artCartoon : t.artRealistic}
+                  </button>
+                ))}
+                <a className="studio-pick studio-pick-link" href="/catalogo#educativo" data-testid="studio-educativo">
+                  {FLOW[lang].educativo}
+                </a>
+              </div>
+            </div>
+
+            <div className="studio-choice" role="group" aria-label={t.coverType}>
+              <span className="studio-choice-label">{t.coverType}</span>
+              <div className="studio-actions">
+                {(["hard", "soft"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={coverType === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={coverType === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setCoverType(choice)}
+                  >
+                    {choice === "hard" ? t.coverHard : t.coverSoft}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="studio-choice studio-format" role="group" aria-label={t.bookSize}>
+              <span className="studio-choice-label">{t.bookSize}</span>
+              <p className="studio-format-fixed" data-testid="studio-format">{FLOW[lang].format}</p>
+            </div>
+            </div>
+          </section>
+
+          {selectedCatalogId && catalogModel(selectedCatalogId) && <section className="studio-chosen" data-testid="studio-selected-catalog-model">
+            <p>{lang === "pt" ? "Modelo do Catálogo" : lang === "en" ? "Catalog model" : "Modelo del Catálogo"}: <strong>{catalogModel(selectedCatalogId)!.titles[lang]}</strong></p>
+            <p className="muted">{lang === "pt" ? "O modelo define o visual. Você pode mudar o título inteiro e o tema." : lang === "en" ? "The model defines the visual style. You can change the full title and theme." : "El modelo define el estilo visual. Puedes cambiar el título completo y el tema."}</p>
+            <button type="button" className="kbtn kbtn-soft" disabled={busy || previewChainActive} data-testid="studio-leave-catalog" onClick={() => {
+              if (project) { resetProject(); return; }
+              setSelectedCatalogId(null); setOnlyName(false); setTemaId("");
+              titlePreset.current = null; alsoHero.current = null; presetApplied.current = true;
+              window.history.replaceState({}, "", "/app");
+            }}>{project
+              ? (lang === "pt" ? "Desistir deste modelo e começar outro livro" : lang === "en" ? "Leave this model and start another book" : "Dejar este modelo y empezar otro libro")
+              : (lang === "pt" ? "Sair deste modelo e criar livremente" : lang === "en" ? "Leave this model and create freely" : "Salir de este modelo y crear libremente")}</button>
+            {project && <p className="muted">{lang === "pt" ? "O projeto atual continua salvo na sua conta. Esta opção abre uma nova criação livre." : lang === "en" ? "Your current project stays saved in your account. This opens a new free creation." : "El proyecto actual sigue guardado en tu cuenta. Esta opción abre una nueva creación libre."}</p>}
+            {!catalogModel(selectedCatalogId)!.available ? <p role="alert">{unavailableCatalogCopy(lang)}</p> : <CatalogDesignSamples model={{name: catalogModel(selectedCatalogId)!.titles[lang], sources: catalogModel(selectedCatalogId)!.sources}} lang={lang} />}
+          </section>}
+          <h3 className="studio-section-title"><span>01</span>{FLOW[lang].dados}</h3>
+          <div className={fieldsLocked ? "studio-block" : "studio-block studio-block-split"}>
+            <div className="studio-block-fields">
           <div className="studio-grid two">
             <label className="studio-field">
               {primary.name}
@@ -1592,204 +1702,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   data-testid="studio-extra-names"
                 />
               </label>
-              <p className="muted field-hint">{primary.extras}</p>
             </>
           )}
-
-          {!onlyName && (
-            <div className="studio-dedication-field">
-              <label className="studio-field">
-                {t.dedication}
-                <input
-                  disabled={fieldsLocked}
-                  value={dedication}
-                  onChange={(e) => setDedication(e.target.value)}
-                  placeholder={t.dedicationPh}
-                  maxLength={200}
-                />
-              </label>
-              <button
-                type="button"
-                className="kbtn kbtn-soft studio-suggest-dedication"
-                disabled={fieldsLocked}
-                onClick={() => {
-                  const suggestions = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
-                  const next = (suggestions.indexOf(dedication) + 1) % suggestions.length;
-                  setDedication(suggestions[next]);
-                  setDedicationOptionsOpen(true);
-                }}
-              >
-                {t.suggestDedication}
-              </button>
-              {dedicationOptionsOpen && (
-                <ol className="studio-dedication-options" data-testid="studio-dedication-options">
-                  {t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200)).map((text) => (
-                    <li key={text}>
-                      <button type="button" className={dedication === text ? "is-selected" : ""} aria-pressed={dedication === text}
-                        disabled={fieldsLocked} onClick={() => setDedication(text)}>
-                        <span>{text}</span>
-                        <span className="studio-dedication-choice">{dedication === text ? t.dedicationUsed : t.dedicationUse}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-              )}
             </div>
-          )}
-
-          <label className="studio-field">
-            {t.bookTitle}
-            <input
-              id="studio-field-title"
-              aria-label={t.bookTitle}
-              disabled={fieldsLocked}
-              value={bookTitle}
-              onChange={(e) => {
-                titleTouched.current = true;
-                setBookTitle(e.target.value);
-                if (e.target.value.trim()) clearMissing("title");
-              }}
-              onBlur={() => setBookTitle(tidyTitleCase(bookTitle))}
-              placeholder={t.bookTitlePh}
-              maxLength={120}
-              aria-invalid={missing.title || undefined}
-              aria-describedby={missing.title ? "studio-field-title-error" : undefined}
-              className={missing.title ? "is-invalid" : undefined}
-            />
-            {fieldAlert("title", t.errTitle)}
-            <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
-          </label>
-
-          {onlyName ? (
-            <p className="studio-chosen" role="status" data-testid="studio-locked-theme">
-              <span>{t.themeLocked}</span>
-              <b>{themeText || bookTitle}</b>
-            </p>
-          ) : (
-            <>
-              <label className="studio-field">
-                {t.themeFree}
-                <textarea
-                  id="studio-field-theme"
-                  aria-label={t.themeFree}
-                  disabled={fieldsLocked}
-                  value={themeText}
-                  onChange={(e) => {
-                    setThemeText(e.target.value);
-                    if (e.target.value.trim()) clearMissing("theme");
-                  }}
-                  placeholder={t.themeFreePh}
-                  maxLength={500}
-                  rows={3}
-                  aria-invalid={missing.theme || undefined}
-                  aria-describedby={missing.theme ? "studio-field-theme-error" : undefined}
-                  className={missing.theme ? "is-invalid" : undefined}
-                />
-                {fieldAlert("theme", t.errTheme)}
-              </label>
-              <p className="muted field-hint">{t.themeHint}</p>
-            </>
-          )}
-
-          {selectedCatalogId && catalogModel(selectedCatalogId) && <section className="studio-chosen" data-testid="studio-selected-catalog-model">
-            <p>{lang === "pt" ? "Modelo do Catálogo" : lang === "en" ? "Catalog model" : "Modelo del Catálogo"}: <strong>{catalogModel(selectedCatalogId)!.titles[lang]}</strong></p>
-            <p className="muted">{lang === "pt" ? "O modelo define o visual. Você pode mudar o título inteiro e o tema." : lang === "en" ? "The model defines the visual style. You can change the full title and theme." : "El modelo define el estilo visual. Puedes cambiar el título completo y el tema."}</p>
-            <button type="button" className="kbtn kbtn-soft" disabled={busy || previewChainActive} data-testid="studio-leave-catalog" onClick={() => {
-              if (project) { resetProject(); return; }
-              setSelectedCatalogId(null); setOnlyName(false); setTemaId("");
-              titlePreset.current = null; alsoHero.current = null; presetApplied.current = true;
-              window.history.replaceState({}, "", "/app");
-            }}>{project
-              ? (lang === "pt" ? "Desistir deste modelo e começar outro livro" : lang === "en" ? "Leave this model and start another book" : "Dejar este modelo y empezar otro libro")
-              : (lang === "pt" ? "Sair deste modelo e criar livremente" : lang === "en" ? "Leave this model and create freely" : "Salir de este modelo y crear libremente")}</button>
-            {project && <p className="muted">{lang === "pt" ? "O projeto atual continua salvo na sua conta. Esta opção abre uma nova criação livre." : lang === "en" ? "Your current project stays saved in your account. This opens a new free creation." : "El proyecto actual sigue guardado en tu cuenta. Esta opción abre una nueva creación libre."}</p>}
-            {!catalogModel(selectedCatalogId)!.available ? <p role="alert">{unavailableCatalogCopy(lang)}</p> : <CatalogDesignSamples model={{name: catalogModel(selectedCatalogId)!.titles[lang], sources: catalogModel(selectedCatalogId)!.sources}} lang={lang} />}
-          </section>}
-          <h3 className="studio-section-title"><span>02</span>{studioDesignCopy(lang).details}</h3>
-          <div className="studio-choices">
-            <div className="studio-choice" role="group" aria-label={lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}>
-              <span className="studio-choice-label">{lang === "pt" ? "Idiomas do livro" : lang === "en" ? "Book languages" : "Idiomas del libro"}</span>
-              <div className="studio-actions langs">
-                {([['pt-BR', 'Português'], ['en', 'English'], ['es', 'Español']] as const).map(([code, label]) => {
-                  const primaryLanguage = lang === "pt" ? "pt-BR" : lang;
-                  const selected = code === primaryLanguage || bookLanguages.includes(code);
-                  return (
-                    <button
-                      key={code}
-                      type="button"
-                      className={selected ? "studio-pick is-on" : "studio-pick"}
-                      aria-pressed={selected}
-                      disabled={fieldsLocked || code === primaryLanguage}
-                      onClick={() =>
-                        setBookLanguages((cur) =>
-                          cur.includes(code) ? cur.filter((item) => item !== code) : [...cur, code],
-                        )
-                      }
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="studio-choice" role="group" aria-label={t.artStyle}>
-              <span className="studio-choice-label">{t.artStyle}</span>
-              <div className="studio-actions">
-                {(["realista", "cartoon"] as const).map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    className={artMode === choice ? "studio-pick is-on" : "studio-pick"}
-                    aria-pressed={artMode === choice}
-                    disabled={fieldsLocked || Boolean(selectedCatalogId)}
-                    onClick={() => { if (!selectedCatalogId) setArtMode(choice); }}
-                  >
-                    {choice === "cartoon" ? t.artCartoon : t.artRealistic}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="studio-choice" role="group" aria-label={t.coverType}>
-              <span className="studio-choice-label">{t.coverType}</span>
-              <div className="studio-actions">
-                {(["hard", "soft"] as const).map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    className={coverType === choice ? "studio-pick is-on" : "studio-pick"}
-                    aria-pressed={coverType === choice}
-                    disabled={fieldsLocked}
-                    onClick={() => setCoverType(choice)}
-                  >
-                    {choice === "hard" ? t.coverHard : t.coverSoft}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="studio-choice" role="group" aria-label={t.bookSize}>
-              <span className="studio-choice-label">{t.bookSize}</span>
-              <div className="studio-actions">
-                {(["M"] as const).map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    className={bookSize === choice ? "studio-pick is-on" : "studio-pick"}
-                    aria-pressed={bookSize === choice}
-                    disabled={fieldsLocked}
-                    onClick={() => setBookSize(choice)}
-                  >
-                    {t.bookSizeM}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {!fieldsLocked && (
-            <>
-              <h3 className="studio-section-title"><span>03</span>{studioDesignCopy(lang).photos}</h3>
+            {!fieldsLocked && (
+              <div className="studio-block-photo">
               <aside className="studio-privacy-notice" aria-labelledby="studio-privacy-heading">
                 <span className="studio-privacy-symbol" aria-hidden="true">✓</span>
                 <div>
@@ -1859,6 +1776,127 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   </ul>
                 </>
               ) : null}
+              </div>
+            )}
+          </div>
+
+          <h3 className="studio-section-title"><span>02</span>{FLOW[lang].tema}</h3>
+          {onlyName ? (
+            <p className="studio-chosen" role="status" data-testid="studio-locked-theme">
+              <span>{t.themeLocked}</span>
+              <b>{themeText || bookTitle}</b>
+            </p>
+          ) : (
+            <>
+              <label className="studio-field">
+                {t.themeFree}
+                <textarea
+                  id="studio-field-theme"
+                  aria-label={t.themeFree}
+                  disabled={fieldsLocked}
+                  value={themeText}
+                  onChange={(e) => {
+                    setThemeText(e.target.value);
+                    if (e.target.value.trim()) clearMissing("theme");
+                  }}
+                  placeholder={t.themeFreePh}
+                  maxLength={500}
+                  rows={3}
+                  aria-invalid={missing.theme || undefined}
+                  aria-describedby={missing.theme ? "studio-field-theme-error" : undefined}
+                  className={missing.theme ? "is-invalid" : undefined}
+                />
+                {fieldAlert("theme", t.errTheme)}
+              </label>
+              <p className="muted field-hint">{t.themeHint}</p>
+            </>
+          )}
+
+          <h3 className="studio-section-title"><span>03</span>{FLOW[lang].titulo}</h3>
+          <label className="studio-field">
+            {t.bookTitle}
+            <input
+              id="studio-field-title"
+              aria-label={t.bookTitle}
+              disabled={fieldsLocked}
+              value={bookTitle}
+              onChange={(e) => {
+                titleTouched.current = true;
+                setBookTitle(e.target.value);
+                if (e.target.value.trim()) clearMissing("title");
+              }}
+              onBlur={() => setBookTitle(tidyTitleCase(bookTitle))}
+              placeholder={t.bookTitlePh}
+              maxLength={120}
+              aria-invalid={missing.title || undefined}
+              aria-describedby={missing.title ? "studio-field-title-error" : undefined}
+              className={missing.title ? "is-invalid" : undefined}
+            />
+            {fieldAlert("title", t.errTitle)}
+            <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
+          </label>
+
+          {!onlyName && <h3 className="studio-section-title"><span>04</span>{FLOW[lang].dedicatoria}</h3>}
+          {!onlyName && (
+            <div className="studio-dedication-field">
+              <label className="studio-field">
+                {t.dedication}
+                <textarea
+                  disabled={fieldsLocked}
+                  value={dedication}
+                  onChange={(e) => setDedication(e.target.value)}
+                  placeholder={t.dedicationPh}
+                  maxLength={200}
+                  rows={4}
+                  data-testid="studio-dedication"
+                />
+              </label>
+              <button
+                type="button"
+                className="kbtn kbtn-soft studio-suggest-dedication"
+                disabled={fieldsLocked}
+                data-testid="studio-suggest-dedication"
+                onClick={() => {
+                  const suggestions = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
+                  const own = dedication.trim() && !suggestions.includes(dedication);
+                  if (own) {
+                    setDedication(polishDedication(dedication, childName, lang));
+                    return;
+                  }
+                  const next = (suggestions.indexOf(dedication) + 1) % suggestions.length;
+                  setDedication(suggestions[next]);
+                  setDedicationOptionsOpen(true);
+                }}
+              >
+                {dedication.trim() ? t.improveDedication : t.suggestDedication}
+              </button>
+              {dedicationOptionsOpen && (
+                <ol className="studio-dedication-options" data-testid="studio-dedication-options">
+                  {t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200)).map((text) => (
+                    <li key={text}>
+                      <button type="button" className={dedication === text ? "is-selected" : ""} aria-pressed={dedication === text}
+                        disabled={fieldsLocked} onClick={() => setDedication(text)}>
+                        <span>{text}</span>
+                        <span className="studio-dedication-choice">{dedication === text ? t.dedicationUsed : t.dedicationUse}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          )}
+
+          {!fieldsLocked && (
+            <>
+              <h3 className="studio-section-title"><span>{onlyName ? "04" : "05"}</span>{FLOW[lang].resumo}</h3>
+              <dl className="studio-summary" data-testid="studio-summary">
+                <div><dt>{FLOW[lang].sumHero}</dt><dd>{childName.trim() ? `${childName.trim()}${childAge !== "" ? `, ${childAge}` : ""}` : "—"}</dd></div>
+                <div><dt>{FLOW[lang].tema}</dt><dd>{themeText.trim() || bookTitle.trim() || "—"}</dd></div>
+                <div><dt>{FLOW[lang].titulo}</dt><dd>{bookTitle.trim() || FLOW[lang].sumSuggest}</dd></div>
+                {!onlyName && <div><dt>{FLOW[lang].dedicatoria}</dt><dd>{dedication.trim() || "—"}</dd></div>}
+                <div><dt>{t.artStyle}</dt><dd>{artMode === "cartoon" ? t.artCartoon : t.artRealistic} · {coverType === "hard" ? t.coverHard : t.coverSoft} · {FLOW[lang].format}</dd></div>
+                <div><dt>{FLOW[lang].sumPhotos}</dt><dd>{photos.length}</dd></div>
+              </dl>
               <label className={missing.consent ? "studio-consent is-invalid" : "studio-consent"}>
                 <input
                   id="studio-field-consent"

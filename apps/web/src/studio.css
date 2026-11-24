@@ -2351,3 +2351,22 @@
 .studio-app .studio-dedication-options button.is-selected { border-color: var(--studio-accent); }
 .studio-app .studio-dedication-options button:disabled { cursor: default; opacity: .6; }
 .studio-app .studio-dedication-choice { flex: none; color: var(--studio-accent); font-size: .78rem; font-weight: 800; white-space: nowrap; }
+
+/* Estúdio em blocos (24/11): detalhes em amarelo no topo, foto ao lado dos dados, resumo no fim. */
+.studio-app .studio-details-box { margin: 26px 0 8px; padding: 22px; border-radius: 20px; border: 2px solid #f5c84b; background: #f5c84b14; }
+.studio-app .studio-details-box > h3 { margin: 0 0 16px; color: #f5c84b; font-size: 1.2rem; font-weight: 700; }
+[data-theme="light"] .studio-app .studio-details-box { background: #fff7d6; border-color: #e9b72c; }
+[data-theme="light"] .studio-app .studio-details-box > h3 { color: #8a6400; }
+.studio-app .studio-details-box .studio-choices { margin-top: 0; }
+.studio-app .studio-pick-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.studio-app .studio-format-fixed { margin: 10px 0 0; font-weight: 700; color: var(--ink); }
+.studio-app .studio-block-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 28px; align-items: start; }
+.studio-app .studio-block-fields > * + * { margin-top: 18px; }
+.studio-app .studio-block-photo > * + * { margin-top: 14px; }
+.studio-app .studio-block-photo .studio-drop { min-height: 180px; }
+@media (max-width: 760px) { .studio-app .studio-block-split { grid-template-columns: 1fr; } }
+.studio-app .studio-dedication-field textarea { min-height: 7.5em; resize: vertical; }
+.studio-app .studio-summary { display: grid; gap: 10px; margin: 0 0 20px; padding: 18px 20px; border-radius: 16px; background: var(--studio-soft); border: 1px solid var(--studio-surface-border); }
+.studio-app .studio-summary > div { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 12px; }
+.studio-app .studio-summary dt { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--studio-label); }
+.studio-app .studio-summary dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }

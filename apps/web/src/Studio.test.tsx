@@ -162,11 +162,13 @@ describe("Studio — ordem dos campos", () => {
     await user.type(dedication, "Uma dedicatória escrita por mim.");
     await user.type(screen.getByLabelText(/nome do protagonista/i), " Souza");
     expect(dedication).toHaveValue("Uma dedicatória escrita por mim.");
+    await user.click(screen.getByRole("button", { name: "Melhorar Dedicatória" }));
+    expect((dedication as HTMLTextAreaElement).value).toMatch(/^Para Lila Souza: Uma dedicatória escrita por mim\. Com todo o amor/);
     expect(create).not.toHaveBeenCalled();
     expect(state.credits).toBe(10);
   });
 
-  it("mostra personagens, dedicatória, título, tema, tipo, fotos e gerar nessa ordem", async () => {
+  it("mostra detalhes, dados com foto, tema, título, dedicatória, resumo e gerar nessa ordem", async () => {
     const user = userEvent.setup();
     render(<Studio />);
     await openBook(user);
@@ -183,13 +185,17 @@ describe("Studio — ordem dos campos", () => {
     const earlier = (a: Node, b: Node) =>
       Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
+    const summary = screen.getByTestId("studio-summary");
+
+    expect(earlier(artStyle, name)).toBe(true);
     expect(earlier(name, extras)).toBe(true);
-    expect(earlier(extras, dedication)).toBe(true);
-    expect(earlier(dedication, title)).toBe(true);
-    expect(earlier(title, theme)).toBe(true);
-    expect(earlier(theme, artStyle)).toBe(true);
-    expect(earlier(artStyle, photos)).toBe(true);
-    expect(earlier(photos, generate)).toBe(true);
+    expect(earlier(extras, photos)).toBe(true);
+    expect(earlier(photos, theme)).toBe(true);
+    expect(earlier(theme, title)).toBe(true);
+    expect(earlier(title, dedication)).toBe(true);
+    expect(earlier(dedication, summary)).toBe(true);
+    expect(earlier(summary, generate)).toBe(true);
+    expect(screen.getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
   });
 });
 
@@ -319,15 +325,14 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/idade do pai/i)).toHaveValue(null);
     expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /15 × 15 cm/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /20 × 20 cm/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByTestId("studio-format")).toHaveTextContent("20 × 20 cm · 20 páginas");
     expect(screen.getByRole("button", { name: /capa flexível/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
     expect(screen.queryByLabelText(/^quantidade de livros$/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
     expect(screen.getByText(/foto de um ou mais personagens/i)).toBeInTheDocument();
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/envie fotos do protagonista da sua história/i);
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/escolha quem fará parte do seu livro/i);
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/adicione fotos de um ou mais personagens/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/envie fotos nítidas do protagonista/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/como a mãe ou o irmão/i);
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
   });
 
