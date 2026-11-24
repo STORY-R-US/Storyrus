@@ -10,9 +10,13 @@ import { SiteBackNav } from "./SiteBackNav";
 import { CatalogBrowser } from "./CatalogBrowser";
 import {
   CatalogBookCard,
+  CatalogMenus,
+  PAIR_SUB_ID,
   catalogCategory,
   catalogCoverFile,
   catalogEntry,
+  catalogMenuCats,
+  catalogMenuSections,
   catalogPageCopy,
   catalogSections,
 } from "./Landing";
@@ -59,8 +63,10 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
   }, [theme]);
   const copy = catalogPageCopy(lang);
   const closeMenu = () => setMenuOpen(false);
+  const cartoon = new URLSearchParams(useLocation().search).get("modo") === "cartoon";
+  const variant = cartoon ? "cartoon" : "photo";
+  const catalogHref = cartoon ? "/catalogo?modo=cartoon" : "/catalogo";
   const links = [
-    { href: "/catalogo", label: copy.cats, color: "#9b8cff" },
     { href: "/", label: copy.realistic, color: "#7aa2ff" },
     { href: "/cartoon", label: copy.cartoon, color: "#3ecf8e" },
     { href: "/#como", label: copy.passo, color: "#f08a4b" },
@@ -75,6 +81,7 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={copy.cats}>
+                <CatalogMenus lang={lang} variant={variant} onNavigate={closeMenu} />
                 {links.map((item) => (
                   <Link key={item.href} to={item.href} className="kcat-btn" style={{ "--cat": item.color } as CSSProperties} onClick={closeMenu}>
                     <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
@@ -103,6 +110,13 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
           <div className="kmobile-tools"><button type="button" className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             <ThemeIcon theme={theme} /><span className="theme-toggle-label">{theme === "dark" ? copy.themeLight : copy.themeDark}</span>
           </button></div>
+          <Link to={catalogHref} className="kmobile-link" onClick={closeMenu}>{copy.cats}</Link>
+          {catalogMenuCats(lang, variant).map((cat) => (
+            <Link key={cat.id} to={cat.href} className="kmobile-link kmobile-link-cat" onClick={closeMenu}>
+              <span className="kcat-dot" style={{ background: cat.color }} />
+              {cat.name}
+            </Link>
+          ))}
           {links.map((item) => (
             <Link key={item.href} to={item.href} className="kmobile-link" onClick={closeMenu}>{item.label}</Link>
           ))}
@@ -132,11 +146,8 @@ function CatalogSectionTitle({
   as?: "h1" | "h2";
 }) {
   return (
-    <Tag className="catalog-section-title">
-      <span className="kcat-btn catalog-section-pill">
-        <span className="kcat-dot" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />
-        {name}
-      </span>
+    <Tag className="catalog-section-title catalog-bar" style={{ "--group": color } as CSSProperties}>
+      <span className="catalog-bar-name">{name}</span>
     </Tag>
   );
 }
@@ -148,12 +159,16 @@ export function CatalogPage() {
   const { hash, search } = useLocation();
   const cartoon = new URLSearchParams(search).get("modo") === "cartoon";
   const sections = catalogSections(lang, cartoon ? "cartoon" : "photo");
+  const aliases = catalogMenuSections(lang, cartoon ? "cartoon" : "photo").flatMap((section) =>
+    section.subs.filter((sub) => sub.id === PAIR_SUB_ID).map((sub) => (
+      { id: `${section.id}-${sub.id}`, name: sub.name, color: section.color, books: sub.books }
+    )));
   return (
     <div className="kid">
       <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
-        <CatalogBrowser books={sections.flatMap((section) => section.books)} sections={sections} hash={hash} lang={lang}
+        <CatalogBrowser books={sections.flatMap((section) => section.books)} sections={sections} aliases={aliases} hash={hash} lang={lang}
           renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} modo={cartoon ? "cartoon" : "realista"} />} />
       </main>
     </div>

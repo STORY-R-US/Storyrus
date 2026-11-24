@@ -2817,12 +2817,12 @@ export function catalogEntry(lang: Lang, index: number) {
   const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
   return { ...card, sectionId: section?.id ?? "aventuras" };
 }
-export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "photo"): CatalogSection[] {
+export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "photo", today: Date = new Date()): CatalogSection[] {
   const names = I18N[lang].cats;
   const sections: CatalogSection[] = NAV_CAT_META.map((meta, i) => {
     const catCopy = names[i];
     const sectionThemes = CATALOG_SECTION_THEMES[meta.id] ?? [];
-    const subs = meta.subs.flatMap((subMeta, j) => {
+    const dated = meta.subs.flatMap((subMeta, j) => {
       const theme = themeFromHref(subMeta.href);
       if (!theme || !sectionThemes.includes(theme)) return [];
       const books = sortCatalogBooks(
@@ -2835,11 +2835,20 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
       );
       if (!books.length) return [];
       return [{
-        id: theme,
-        name: catalogSubLabel(catCopy?.subs[j] ?? theme),
-        books,
+        when: "when" in subMeta ? (subMeta.when as OccasionWhen) : null,
+        sub: {
+          id: theme,
+          name: catalogSubLabel(catCopy?.subs[j] ?? theme),
+          books,
+        },
       }];
     });
+    if (meta.id === "ocasioes") {
+      // Datas comemorativas: a mais próxima primeiro; as sem data (Aniversário) ficam no fim.
+      const at = (when: OccasionWhen | null) => (when ? nextOccasionDate(when, today).getTime() : Number.POSITIVE_INFINITY);
+      dated.sort((a, b) => at(a.when) - at(b.when));
+    }
+    const subs: CatalogSubSection[] = dated.map((entry) => entry.sub);
     if (meta.id === "voce-e-eu") {
       const books = sortCatalogBooks([19, 29, 39, 40].flatMap((index) => {
         const card = toCatalogCard(lang, index, variant);
@@ -2863,9 +2872,157 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
   });
   return sections;
 }
+/** Temas de dupla (mamãe, papai, avós, irmãos, tios) que o menu junta num item só: "Você e Eu". */
+const PAIR_SUB_IDS = new Set(["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "irmaos_primos", "tio_tia"]);
+export const PAIR_SUB_ID = "duplas";
+/** Categorias como o menu mostra: as duplas de "Você e Eu" viram um único tema. */
+export function catalogMenuSections(lang: Lang, variant: "photo" | "cartoon" = "photo", today: Date = new Date()): CatalogSection[] {
+  return catalogSections(lang, variant, today).map((section) => {
+    if (section.id !== "voce-e-eu") return section;
+    const pairs = section.subs.filter((sub) => PAIR_SUB_IDS.has(sub.id));
+    if (!pairs.length) return section;
+    const books = sortCatalogBooks([...new Map(pairs.flatMap((sub) => sub.books).map((book) => [book.catalogI, book])).values()]);
+    return {
+      ...section,
+      subs: [{ id: PAIR_SUB_ID, name: section.name, books }, ...section.subs.filter((sub) => !PAIR_SUB_IDS.has(sub.id))],
+    };
+  });
+}
 
 /** O menu mostra só os primeiros livros de cada tema; o resto fica em "Ver todos". */
 const MENU_BOOK_LIMIT = 4;
+/** No menu do computador as capas têm o tamanho do livro do carrossel: cabem 3 lado a lado. */
+const MENU_COVER_LIMIT = 3;
+type MenuBook = { label: string; href: string; img: string };
+export type CatalogMenuCat = {
+  id: string;
+  name: string;
+  color: string;
+  href: string;
+  subs: { label: string; href: string; books: MenuBook[] }[];
+  feats: MenuBook[];
+};
+export function catalogMenuCats(lang: Lang, variant: "photo" | "cartoon" = "photo"): CatalogMenuCat[] {
+  const base = variant === "cartoon" ? "/catalogo?modo=cartoon" : "/catalogo";
+  const menuBook = (book: CatalogCardBook): MenuBook => ({
+    label: book.t,
+    href: `/livro/${book.catalogI}${variant === "cartoon" ? "?modo=cartoon" : ""}`,
+    img: book.img,
+  });
+  return catalogMenuSections(lang, variant).filter((section) => section.books.length).map((section) => ({
+    id: section.id,
+    name: section.name,
+    color: section.color,
+    href: `${base}#${section.id}`,
+    subs: section.subs.map((sub) => ({
+      label: sub.name,
+      href: `${base}#${section.id}-${sub.id}`,
+      books: sub.books.map(menuBook),
+    })),
+    feats: section.books.slice(0, MENU_BOOK_LIMIT).map(menuBook),
+  }));
+}
+/** Menus "Livros" e "Educativo" da barra do topo; iguais na home, no catálogo e na página do livro. */
+export function CatalogMenus({ lang, variant = "photo", onNavigate }: {
+  lang: Lang;
+  variant?: "photo" | "cartoon";
+  onNavigate?: () => void;
+}) {
+  const t = I18N[lang];
+  const base = variant === "cartoon" ? "/catalogo?modo=cartoon" : "/catalogo";
+  const cats = catalogMenuCats(lang, variant);
+  const [open, setOpen] = useState<string | null>(null);
+  const [hover, setHover] = useState<{ cat: string; sub: number | null } | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(null);
+      setHover(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  const go = () => {
+    setOpen(null);
+    setHover(null);
+    onNavigate?.();
+  };
+  const menus = [
+    { key: "livros", label: t.cats_label, color: "#9b8cff", href: base, cats: cats.filter((cat) => cat.id !== "educativo"), panelId: "cat-panel", featsId: "landing-cat-feats" },
+    ...cats.filter((cat) => cat.id === "educativo").map((cat) => (
+      { key: cat.id, label: cat.name, color: cat.color, href: cat.href, cats: [cat], panelId: "cat-panel-educativo", featsId: "landing-cat-feats-educativo" }
+    )),
+  ];
+  return (
+    <>
+      {menus.map((menu) => {
+        const single = menu.cats.length === 1;
+        // Sem tema apontado, o painel aberto já mostra as capas da primeira categoria (sem área vazia).
+        const hoverCat = menu.cats.find((cat) => cat.id === hover?.cat) ?? (open === menu.key ? menu.cats[0] : null);
+        const activeSub = hoverCat && hover?.cat === hoverCat.id && hover.sub != null ? hoverCat.subs[hover.sub] : null;
+        const shown = (activeSub?.books ?? hoverCat?.feats ?? []).slice(0, MENU_COVER_LIMIT);
+        const allHref = activeSub?.href ?? (hoverCat && (single || hover?.cat === hoverCat.id) ? hoverCat.href : menu.href);
+        return (
+          <div
+            key={menu.key}
+            className={`kcat${open === menu.key ? " open" : ""}`}
+            onMouseEnter={() => setOpen(menu.key)}
+            onMouseLeave={() => { setOpen(null); setHover(null); }}
+          >
+            <Link to={menu.href} className="kcat-btn" style={{ "--cat": menu.color } as CSSProperties} onClick={go}>
+              <span className="kcat-dot" style={{ background: menu.color, boxShadow: `0 0 10px ${menu.color}` }} />
+              {menu.label}
+            </Link>
+            <div className="kcat-panel kcat-panel-all" id={menu.panelId}>
+              <div className={`kcat-groups${single ? " is-single" : ""}`} style={{ "--cols": menu.cats.length } as CSSProperties}>
+                {menu.cats.map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="kcat-group"
+                    style={{ "--group": cat.color } as CSSProperties}
+                    onMouseEnter={() => setHover((cur) => (cur?.cat === cat.id ? cur : { cat: cat.id, sub: null }))}
+                  >
+                    {single ? null : (
+                      <Link to={cat.href} className="kcat-group-name is-chip" onClick={go}>
+                        <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
+                        {cat.name}
+                      </Link>
+                    )}
+                    <ul className="kcat-subs">
+                      {cat.subs.map((sub, j) => (
+                        <li key={sub.href} className={hover?.cat === cat.id && hover.sub === j ? "on" : ""}>
+                          <Link
+                            to={sub.href}
+                            onClick={go}
+                            onMouseEnter={() => setHover({ cat: cat.id, sub: j })}
+                            onFocus={() => setHover({ cat: cat.id, sub: j })}
+                          ><SubLabel label={sub.label} /></Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <div className="kcat-feats" data-testid={menu.featsId}>
+                {shown.map((feat) => (
+                  <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={go}>
+                    <span className="kcat-feat-cover">
+                      <img src={exUrl(feat.img)} alt="" loading="lazy" />
+                    </span>
+                    <span>{feat.label}</span>
+                  </Link>
+                ))}
+                {activeSub && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
+                <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={go}>{t.view_all}</Link>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+}
 
 export function PhotoSteps({ lang, example = "father" }: { lang: Lang; example?: "father" | "studio" | "cartoon" }) {
   const t = I18N[lang];
@@ -2926,9 +3083,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [navOpen, setNavOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement | null>(null);
-  const [openCat, setOpenCat] = useState<number | null>(null);
-  const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
-  const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
   const [mobileSub, setMobileSub] = useState<{ cat: number; sub: number } | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -3009,20 +3163,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   // Navigation and catalog share the same inventory and editorial categories.
   const catalogBase = variant === "cartoon" ? "/catalogo?modo=cartoon" : "/catalogo";
-  const menuBook = (book: CatalogCardBook) => ({
-    label: book.t,
-    href: `/livro/${book.catalogI}${variant === "cartoon" ? "?modo=cartoon" : ""}`,
-    img: book.img,
-  });
-  const shownCats = catalogSections(lang, variant).filter((section) => section.books.length).map((section) => ({
-    ...section,
-    subs: section.subs.map((sub) => ({
-      label: sub.name,
-      href: `${catalogBase}#${section.id}-${sub.id}`,
-      books: sub.books.map(menuBook),
-    })),
-    feats: section.books.slice(0, 4).map(menuBook),
-  }));
+  const shownCats = catalogMenuCats(lang, variant);
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
@@ -3110,48 +3251,39 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   }, [coverFont]);
 
   useEffect(() => {
-    if (!navOpen && openCat === null && !accountOpen) return;
+    if (!navOpen && !accountOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNavOpen(false);
         setMobileCat(null);
         setMobileSub(null);
-        setOpenCat(null);
-        setSubHover(null);
-        setFeatCat(null);
         setAccountOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navOpen, openCat, accountOpen]);
+  }, [navOpen, accountOpen]);
 
   useEffect(() => {
-    if (openCat === null && !navOpen && !accountOpen) return;
+    if (!navOpen && !accountOpen) return;
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node | null;
       if (accountOpen && (!target || !accountRef.current?.contains(target))) {
         setAccountOpen(false);
       }
       if (target && headerRef.current?.contains(target)) return;
-      setOpenCat(null);
-      setSubHover(null);
-      setFeatCat(null);
       setNavOpen(false);
       setMobileCat(null);
       setMobileSub(null);
     };
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
-  }, [navOpen, openCat, accountOpen]);
+  }, [navOpen, accountOpen]);
 
   const closeNav = () => {
     setNavOpen(false);
     setMobileCat(null);
     setMobileSub(null);
-    setOpenCat(null);
-    setSubHover(null);
-    setFeatCat(null);
     setAccountOpen(false);
   };
 
@@ -3176,75 +3308,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
-                <div
-                  className={`kcat${openCat === 0 ? " open" : ""}`}
-                  onMouseEnter={() => setOpenCat(0)}
-                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); setFeatCat(null); }}
-                >
-                  <Link
-                    to={catalogBase}
-                    className="kcat-btn"
-                    style={{ "--cat": "#9b8cff" } as CSSProperties}
-                    onClick={closeNav}
-                  >
-                    <span className="kcat-dot" style={{ background: "#9b8cff", boxShadow: "0 0 10px #9b8cff" }} />
-                    {t.cats_label}
-                  </Link>
-                  <div className="kcat-panel kcat-panel-all" id="cat-panel">
-                    <div className="kcat-groups">
-                      {shownCats.map((cat, i) => (
-                        <div
-                          key={cat.id}
-                          className="kcat-group"
-                          style={{ "--group": cat.color } as CSSProperties}
-                          onMouseEnter={() => {
-                            setFeatCat(i);
-                            setSubHover((cur) => (cur?.cat === i ? cur : null));
-                          }}
-                        >
-                          <Link to={`${catalogBase}#${cat.id}`} className="kcat-group-name is-chip" onClick={closeNav}>
-                            <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
-                            {cat.name}
-                          </Link>
-                          <ul className="kcat-subs">
-                            {cat.subs.map((sub, j) => (
-                              <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
-                                <Link
-                                  to={sub.href}
-                                  onClick={closeNav}
-                                  onMouseEnter={() => setSubHover({ cat: i, sub: j })}
-                                  onFocus={() => setSubHover({ cat: i, sub: j })}
-                                ><SubLabel label={sub.label} /></Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="kcat-feats" data-testid="landing-cat-feats">
-                      {(() => {
-                        const hoverCat = subHover ? shownCats[subHover.cat] : featCat != null ? shownCats[featCat] : null;
-                        const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
-                        const shown = (activeSub?.books ?? hoverCat?.feats ?? []).slice(0, MENU_BOOK_LIMIT);
-                        const allHref = activeSub?.href ?? (hoverCat ? `${catalogBase}#${hoverCat.id}` : catalogBase);
-                        return (
-                          <>
-                            {shown.map((feat) => (
-                              <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
-                                <span className="kcat-feat-cover">
-                                  <img src={exUrl(feat.img)} alt="" />
-                                </span>
-                                <span>{feat.label}</span>
-                              </Link>
-                            ))}
-                            {activeSub && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
-                            <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
+                <CatalogMenus lang={lang} variant={variant} onNavigate={closeNav} />
                 <Link to="/" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} aria-current={variant === "cartoon" ? undefined : "page"} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.95)" }} />
                   {t.realistic_link}
@@ -3371,7 +3435,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             {shownCats.map((cat, i) => (
               <div key={cat.id} className={`kmobile-cat${mobileCat === i ? " open" : ""}`} style={{ "--group": cat.color } as CSSProperties}>
                 <div className="kmobile-cat-btn">
-                  <Link to={`${catalogBase}#${cat.id}`} onClick={closeNav}>
+                  <Link to={cat.href} onClick={closeNav}>
                     <span className="kcat-dot" style={{ background: cat.color }} />
                     {cat.name}
                   </Link>
