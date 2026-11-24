@@ -2917,9 +2917,11 @@ export function catalogMenuCats(lang: Lang, variant: "photo" | "cartoon" = "phot
   }));
 }
 /** Menus "Livros" e "Educativo" da barra do topo; iguais na home, no catálogo e na página do livro. */
-export function CatalogMenus({ lang, variant = "photo", onNavigate }: {
+export function CatalogMenus({ lang, variant = "photo", only, onNavigate }: {
   lang: Lang;
   variant?: "photo" | "cartoon";
+  /** Um menu só: "livros" fica no começo da barra e "educativo" logo depois de Cartoon. */
+  only?: "livros" | "educativo";
   onNavigate?: () => void;
 }) {
   const t = I18N[lang];
@@ -2950,7 +2952,7 @@ export function CatalogMenus({ lang, variant = "photo", onNavigate }: {
   ];
   return (
     <>
-      {menus.map((menu) => {
+      {menus.filter((menu) => !only || menu.key === only).map((menu) => {
         const single = menu.cats.length === 1;
         // Sem tema apontado, o painel aberto já mostra as capas da primeira categoria (sem área vazia).
         const hoverCat = menu.cats.find((cat) => cat.id === hover?.cat) ?? (open === menu.key ? menu.cats[0] : null);
@@ -3302,7 +3304,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
-                <CatalogMenus lang={lang} variant={variant} onNavigate={closeNav} />
+                <CatalogMenus lang={lang} variant={variant} only="livros" onNavigate={closeNav} />
                 <Link to="/" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} aria-current={variant === "cartoon" ? undefined : "page"} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.95)" }} />
                   {t.realistic_link}
@@ -3311,6 +3313,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
                   {t.cartoon_link}
                 </Link>
+                <CatalogMenus lang={lang} variant={variant} only="educativo" onNavigate={closeNav} />
                 <a href="#como" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f08a4b", boxShadow: "0 0 10px rgba(240,138,75,.9)" }} />
                   {t.passo_title}

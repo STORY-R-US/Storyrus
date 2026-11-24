@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from "react";
+import { Fragment, useState, useEffect, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -81,12 +81,16 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={copy.cats}>
-                <CatalogMenus lang={lang} variant={variant} onNavigate={closeMenu} />
+                <CatalogMenus lang={lang} variant={variant} only="livros" onNavigate={closeMenu} />
                 {links.map((item) => (
-                  <Link key={item.href} to={item.href} className="kcat-btn" style={{ "--cat": item.color } as CSSProperties} onClick={closeMenu}>
-                    <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
-                    {item.label}
-                  </Link>
+                  <Fragment key={item.href}>
+                    <Link to={item.href} className="kcat-btn" style={{ "--cat": item.color } as CSSProperties} onClick={closeMenu}>
+                      <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
+                      {item.label}
+                    </Link>
+                    {/* Educativo logo depois de Cartoon, como na home. */}
+                    {item.href === "/cartoon" && <CatalogMenus lang={lang} variant={variant} only="educativo" onNavigate={closeMenu} />}
+                  </Fragment>
                 ))}
               </nav>
             </div>
