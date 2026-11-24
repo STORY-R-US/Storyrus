@@ -3621,6 +3621,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             loading={isActiveSeries ? "eager" : "lazy"}
                             decoding="async"
                             data-testid={copy === 0 ? `landing-hero-slide-${i}` : undefined}
+                            onLoad={(e) => {
+                              const im = e.currentTarget;
+                              im.dataset.wide = im.naturalWidth > im.naturalHeight * 1.5 ? "1" : "0";
+                            }}
                           />
                         </button>
                       );
