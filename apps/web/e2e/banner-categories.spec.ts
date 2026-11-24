@@ -18,14 +18,15 @@ for (const lang of ["pt", "en", "es"]) {
       if (mobile) await dinosaurs.locator("..").getByRole("button").click();
       else await dinosaurs.hover();
       const feats = mobile ? dinosaurs.locator("../..").locator(".kmobile-feats") : page.getByTestId("landing-cat-feats");
-      await expect(feats.locator(".kcat-feat")).toHaveCount(2);
-      for (const id of [18, 60]) await expect(feats.locator(`a[href="/livro/${id}"]`)).toBeVisible();
+      const featuredDinosaurs = mobile ? [18, 60, 69, 70] : [18, 60, 69];
+      await expect(feats.locator(".kcat-feat")).toHaveCount(featuredDinosaurs.length);
+      for (const id of featuredDinosaurs) await expect(feats.locator(`a[href="/livro/${id}"]`)).toBeVisible();
       await expect.poll(() => feats.locator("img").evaluateAll(images => images.every(img => (img as HTMLImageElement).naturalWidth > 0))).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       if (lang === "pt") await page.screenshot({ path: `test-results/banner-dinosaurs-${width}.png` });
       await dinosaurs.click();
       await expect(page.locator(".catalog-sub-title")).toHaveAttribute("id", "aventuras-dinosaurs");
-      await expect(page.getByTestId("landing-catalog-card")).toHaveCount(2);
+      await expect(page.getByTestId("landing-catalog-card")).toHaveCount(4);
       await page.locator('a.cat-book-link[href="/livro/60"]').click();
       await expect(page.getByTestId("book-series-cover")).toBeVisible();
 
