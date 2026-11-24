@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { localizedExample } from "../localizedExamples";
 import { PreviewImageViewer } from "./PreviewImageViewer";
 
 type Lang = "pt" | "en" | "es";
@@ -21,10 +22,13 @@ export function CatalogDesignSamples({ model, lang }: { model: Model; lang: Lang
   return <details className="catalog-book-design-samples">
     <summary>{t.sample}: {model.name}</summary>
     <div className="catalog-book-design-trio">
-      {(["cover", "page", "holding"] as const).filter((role) => Boolean(model.sources[role])).map((role) => <figure key={role}>
-        <img src={`/exemplos/${model.sources[role]}`} alt={`${model.name} · ${t[role]}`} loading="lazy" />
-        <figcaption>{t[role]} <button type="button" onClick={() => setExpanded({ url: `/exemplos/${model.sources[role]}`, title: `${model.name} · ${t[role]}` })}>{t.enlarge}</button></figcaption>
-      </figure>)}
+      {(["cover", "page", "holding"] as const).filter((role) => Boolean(model.sources[role])).map((role) => {
+        const url = `/exemplos/${localizedExample(model.sources[role], lang)}`;
+        return <figure key={role}>
+          <img src={url} alt={`${model.name} · ${t[role]}`} loading="lazy" />
+          <figcaption>{t[role]} <button type="button" onClick={() => setExpanded({ url, title: `${model.name} · ${t[role]}` })}>{t.enlarge}</button></figcaption>
+        </figure>;
+      })}
     </div>
     {expanded && <PreviewImageViewer src={expanded.url} title={expanded.title} lang={lang} onClose={() => setExpanded(null)} />}
   </details>;

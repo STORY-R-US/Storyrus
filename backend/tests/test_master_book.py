@@ -3425,6 +3425,8 @@ async def test_new_cover_uses_catalog_finish_and_keeps_project_photo(
         ("catalog-realistic-0", "bale"),
         ("catalog-realistic-1", "praia"),
         ("catalog-realistic-6", "espaco"),
+        ("catalog-realistic-69", "bale"),
+        ("catalog-realistic-87", "praia"),
     ],
 )
 async def test_selected_individual_catalog_profile_reaches_cover_and_interior_provider(
@@ -3433,6 +3435,15 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
     from app.services import book_design
 
     studio, calls, _ = reference_studio
+    reviews = []
+    text_class = type(handlers.get_text_provider())
+    validate = text_class.validate_editorial_preview
+
+    async def observed_review(self, **kwargs):
+        reviews.append(kwargs)
+        return await validate(self, **kwargs)
+
+    monkeypatch.setattr(text_class, "validate_editorial_preview", observed_review)
     client, db, pid, _ = studio
     book_profile.update(db.get(Project, uuid.UUID(pid)), title="", theme_description=theme)
     db.commit()
@@ -3449,6 +3460,8 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
     ]["pt-BR"].replace(design["example_name"] or "\0", project.child_name)
     assert "SELECTED CATALOG COVER" in calls[0]["prompt"]
     assert "PROJECT-ONLY REFERENCES: all attached" not in calls[0]["prompt"]
+    assert any("Cenário contínuo de ponta a ponta" in review["prompt"] for review in reviews)
+    assert any(book_design.reference(design, "cover") in review["style_refs"] for review in reviews)
     from app.services import scene_richness
 
     before = len(calls)
@@ -3469,6 +3482,34 @@ async def test_selected_individual_catalog_profile_reaches_cover_and_interior_pr
         assert "THEMATIC SCENERY CONTRACT" in call["prompt"]
         assert f'"family": "{scene_richness.family(theme)}"' in call["prompt"]
     assert not (project.purchase_flow or {}).get("preview_approved_at")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("index", [62, 67])
+async def test_resumed_v4_catalog_id_keeps_approved_cover_without_regeneration(
+    reference_studio, index
+):
+    from app.services import book_design
+
+    studio, calls, _ = reference_studio
+    _, db, pid, store = studio
+    project = db.get(Project, uuid.UUID(pid))
+    model = f"catalog-realistic-{index}"
+    frozen = book_design.snapshot(model, version=4)
+    book_profile.update(project, book_design=frozen, title="")
+    db.commit()
+    request = {"catalog_design_id": model, "cover_only": True}
+    await _run(studio, "preview", request, key="v4-original-cover")
+    proof = project.book_profile["cover_calibration"]
+    approved_pixels = store[proof["flat_key"]]
+    assert len(calls) == 1
+    retry = await _run(studio, "preview", request, key="v4-resumed-cover")
+    assert retry.status == "DONE", retry.error
+    assert retry.cost_credits == 0
+    assert len(calls) == 1
+    assert book_design.resolve(project.book_profile) == frozen
+    assert project.book_profile["cover_calibration"]["sha256"] == proof["sha256"]
+    assert store[proof["flat_key"]] == approved_pixels
 
 
 @pytest.mark.asyncio

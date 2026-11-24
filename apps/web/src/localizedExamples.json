@@ -1570,5 +1570,1517 @@
   "realistic-foto-bruno-animais-v1-pt.webp": {
     "en": "realistic-foto-bruno-animais-v1-en.webp",
     "es": "realistic-foto-bruno-animais-v1-es.webp"
+  },
+  "catalog-20261124/62/cover-pt.webp": {
+    "en": "catalog-20261124/62/cover-en.webp",
+    "es": "catalog-20261124/62/cover-es.webp"
+  },
+  "catalog_models/realistic-62-cover-20261124.webp": {
+    "pt": "catalog-20261124/62/cover-pt.webp",
+    "en": "catalog-20261124/62/cover-en.webp",
+    "es": "catalog-20261124/62/cover-es.webp"
+  },
+  "catalog-20261124/62/page-pt.webp": {
+    "en": "catalog-20261124/62/page-en.webp",
+    "es": "catalog-20261124/62/page-es.webp"
+  },
+  "catalog_models/realistic-62-page-20261124.webp": {
+    "pt": "catalog-20261124/62/page-pt.webp",
+    "en": "catalog-20261124/62/page-en.webp",
+    "es": "catalog-20261124/62/page-es.webp"
+  },
+  "catalog-20261124/62/holding-pt.webp": {
+    "en": "catalog-20261124/62/holding-en.webp",
+    "es": "catalog-20261124/62/holding-es.webp"
+  },
+  "catalog_models/realistic-62-holding-20261124.webp": {
+    "pt": "catalog-20261124/62/holding-pt.webp",
+    "en": "catalog-20261124/62/holding-en.webp",
+    "es": "catalog-20261124/62/holding-es.webp"
+  },
+  "catalog-20261124/63/cover-pt.webp": {
+    "en": "catalog-20261124/63/cover-en.webp",
+    "es": "catalog-20261124/63/cover-es.webp"
+  },
+  "catalog_models/realistic-63-cover-20261124.webp": {
+    "pt": "catalog-20261124/63/cover-pt.webp",
+    "en": "catalog-20261124/63/cover-en.webp",
+    "es": "catalog-20261124/63/cover-es.webp"
+  },
+  "catalog-20261124/63/page-pt.webp": {
+    "en": "catalog-20261124/63/page-en.webp",
+    "es": "catalog-20261124/63/page-es.webp"
+  },
+  "catalog_models/realistic-63-page-20261124.webp": {
+    "pt": "catalog-20261124/63/page-pt.webp",
+    "en": "catalog-20261124/63/page-en.webp",
+    "es": "catalog-20261124/63/page-es.webp"
+  },
+  "catalog-20261124/63/holding-pt.webp": {
+    "en": "catalog-20261124/63/holding-en.webp",
+    "es": "catalog-20261124/63/holding-es.webp"
+  },
+  "catalog_models/realistic-63-holding-20261124.webp": {
+    "pt": "catalog-20261124/63/holding-pt.webp",
+    "en": "catalog-20261124/63/holding-en.webp",
+    "es": "catalog-20261124/63/holding-es.webp"
+  },
+  "catalog-20261124/64/cover-pt.webp": {
+    "en": "catalog-20261124/64/cover-en.webp",
+    "es": "catalog-20261124/64/cover-es.webp"
+  },
+  "catalog_models/realistic-64-cover-20261124.webp": {
+    "pt": "catalog-20261124/64/cover-pt.webp",
+    "en": "catalog-20261124/64/cover-en.webp",
+    "es": "catalog-20261124/64/cover-es.webp"
+  },
+  "catalog-20261124/64/page-pt.webp": {
+    "en": "catalog-20261124/64/page-en.webp",
+    "es": "catalog-20261124/64/page-es.webp"
+  },
+  "catalog_models/realistic-64-page-20261124.webp": {
+    "pt": "catalog-20261124/64/page-pt.webp",
+    "en": "catalog-20261124/64/page-en.webp",
+    "es": "catalog-20261124/64/page-es.webp"
+  },
+  "catalog-20261124/64/holding-pt.webp": {
+    "en": "catalog-20261124/64/holding-en.webp",
+    "es": "catalog-20261124/64/holding-es.webp"
+  },
+  "catalog_models/realistic-64-holding-20261124.webp": {
+    "pt": "catalog-20261124/64/holding-pt.webp",
+    "en": "catalog-20261124/64/holding-en.webp",
+    "es": "catalog-20261124/64/holding-es.webp"
+  },
+  "catalog-20261124/65/cover-pt.webp": {
+    "en": "catalog-20261124/65/cover-en.webp",
+    "es": "catalog-20261124/65/cover-es.webp"
+  },
+  "catalog_models/realistic-65-cover-20261124.webp": {
+    "pt": "catalog-20261124/65/cover-pt.webp",
+    "en": "catalog-20261124/65/cover-en.webp",
+    "es": "catalog-20261124/65/cover-es.webp"
+  },
+  "catalog-20261124/65/page-pt.webp": {
+    "en": "catalog-20261124/65/page-en.webp",
+    "es": "catalog-20261124/65/page-es.webp"
+  },
+  "catalog_models/realistic-65-page-20261124.webp": {
+    "pt": "catalog-20261124/65/page-pt.webp",
+    "en": "catalog-20261124/65/page-en.webp",
+    "es": "catalog-20261124/65/page-es.webp"
+  },
+  "catalog-20261124/65/holding-pt.webp": {
+    "en": "catalog-20261124/65/holding-en.webp",
+    "es": "catalog-20261124/65/holding-es.webp"
+  },
+  "catalog_models/realistic-65-holding-20261124.webp": {
+    "pt": "catalog-20261124/65/holding-pt.webp",
+    "en": "catalog-20261124/65/holding-en.webp",
+    "es": "catalog-20261124/65/holding-es.webp"
+  },
+  "catalog-20261124/66/cover-pt.webp": {
+    "en": "catalog-20261124/66/cover-en.webp",
+    "es": "catalog-20261124/66/cover-es.webp"
+  },
+  "catalog_models/realistic-66-cover-20261124.webp": {
+    "pt": "catalog-20261124/66/cover-pt.webp",
+    "en": "catalog-20261124/66/cover-en.webp",
+    "es": "catalog-20261124/66/cover-es.webp"
+  },
+  "catalog-20261124/66/page-pt.webp": {
+    "en": "catalog-20261124/66/page-en.webp",
+    "es": "catalog-20261124/66/page-es.webp"
+  },
+  "catalog_models/realistic-66-page-20261124.webp": {
+    "pt": "catalog-20261124/66/page-pt.webp",
+    "en": "catalog-20261124/66/page-en.webp",
+    "es": "catalog-20261124/66/page-es.webp"
+  },
+  "catalog-20261124/66/holding-pt.webp": {
+    "en": "catalog-20261124/66/holding-en.webp",
+    "es": "catalog-20261124/66/holding-es.webp"
+  },
+  "catalog_models/realistic-66-holding-20261124.webp": {
+    "pt": "catalog-20261124/66/holding-pt.webp",
+    "en": "catalog-20261124/66/holding-en.webp",
+    "es": "catalog-20261124/66/holding-es.webp"
+  },
+  "catalog-20261124/67/cover-pt.webp": {
+    "en": "catalog-20261124/67/cover-en.webp",
+    "es": "catalog-20261124/67/cover-es.webp"
+  },
+  "catalog_models/realistic-67-cover-20261124.webp": {
+    "pt": "catalog-20261124/67/cover-pt.webp",
+    "en": "catalog-20261124/67/cover-en.webp",
+    "es": "catalog-20261124/67/cover-es.webp"
+  },
+  "catalog-20261124/67/page-pt.webp": {
+    "en": "catalog-20261124/67/page-en.webp",
+    "es": "catalog-20261124/67/page-es.webp"
+  },
+  "catalog_models/realistic-67-page-20261124.webp": {
+    "pt": "catalog-20261124/67/page-pt.webp",
+    "en": "catalog-20261124/67/page-en.webp",
+    "es": "catalog-20261124/67/page-es.webp"
+  },
+  "catalog-20261124/67/holding-pt.webp": {
+    "en": "catalog-20261124/67/holding-en.webp",
+    "es": "catalog-20261124/67/holding-es.webp"
+  },
+  "catalog_models/realistic-67-holding-20261124.webp": {
+    "pt": "catalog-20261124/67/holding-pt.webp",
+    "en": "catalog-20261124/67/holding-en.webp",
+    "es": "catalog-20261124/67/holding-es.webp"
+  },
+  "catalog-20261124/69/cover-pt.webp": {
+    "en": "catalog-20261124/69/cover-en.webp",
+    "es": "catalog-20261124/69/cover-es.webp"
+  },
+  "catalog_models/realistic-69-cover-20261124.webp": {
+    "pt": "catalog-20261124/69/cover-pt.webp",
+    "en": "catalog-20261124/69/cover-en.webp",
+    "es": "catalog-20261124/69/cover-es.webp"
+  },
+  "catalog-20261124/69/page-pt.webp": {
+    "en": "catalog-20261124/69/page-en.webp",
+    "es": "catalog-20261124/69/page-es.webp"
+  },
+  "catalog_models/realistic-69-page-20261124.webp": {
+    "pt": "catalog-20261124/69/page-pt.webp",
+    "en": "catalog-20261124/69/page-en.webp",
+    "es": "catalog-20261124/69/page-es.webp"
+  },
+  "catalog-20261124/69/holding-pt.webp": {
+    "en": "catalog-20261124/69/holding-en.webp",
+    "es": "catalog-20261124/69/holding-es.webp"
+  },
+  "catalog_models/realistic-69-holding-20261124.webp": {
+    "pt": "catalog-20261124/69/holding-pt.webp",
+    "en": "catalog-20261124/69/holding-en.webp",
+    "es": "catalog-20261124/69/holding-es.webp"
+  },
+  "catalog-20261124/70/cover-pt.webp": {
+    "en": "catalog-20261124/70/cover-en.webp",
+    "es": "catalog-20261124/70/cover-es.webp"
+  },
+  "catalog_models/realistic-70-cover-20261124.webp": {
+    "pt": "catalog-20261124/70/cover-pt.webp",
+    "en": "catalog-20261124/70/cover-en.webp",
+    "es": "catalog-20261124/70/cover-es.webp"
+  },
+  "catalog-20261124/70/page-pt.webp": {
+    "en": "catalog-20261124/70/page-en.webp",
+    "es": "catalog-20261124/70/page-es.webp"
+  },
+  "catalog_models/realistic-70-page-20261124.webp": {
+    "pt": "catalog-20261124/70/page-pt.webp",
+    "en": "catalog-20261124/70/page-en.webp",
+    "es": "catalog-20261124/70/page-es.webp"
+  },
+  "catalog-20261124/70/holding-pt.webp": {
+    "en": "catalog-20261124/70/holding-en.webp",
+    "es": "catalog-20261124/70/holding-es.webp"
+  },
+  "catalog_models/realistic-70-holding-20261124.webp": {
+    "pt": "catalog-20261124/70/holding-pt.webp",
+    "en": "catalog-20261124/70/holding-en.webp",
+    "es": "catalog-20261124/70/holding-es.webp"
+  },
+  "catalog-20261124/71/cover-pt.webp": {
+    "en": "catalog-20261124/71/cover-en.webp",
+    "es": "catalog-20261124/71/cover-es.webp"
+  },
+  "catalog_models/realistic-71-cover-20261124.webp": {
+    "pt": "catalog-20261124/71/cover-pt.webp",
+    "en": "catalog-20261124/71/cover-en.webp",
+    "es": "catalog-20261124/71/cover-es.webp"
+  },
+  "catalog-20261124/71/page-pt.webp": {
+    "en": "catalog-20261124/71/page-en.webp",
+    "es": "catalog-20261124/71/page-es.webp"
+  },
+  "catalog_models/realistic-71-page-20261124.webp": {
+    "pt": "catalog-20261124/71/page-pt.webp",
+    "en": "catalog-20261124/71/page-en.webp",
+    "es": "catalog-20261124/71/page-es.webp"
+  },
+  "catalog-20261124/71/holding-pt.webp": {
+    "en": "catalog-20261124/71/holding-en.webp",
+    "es": "catalog-20261124/71/holding-es.webp"
+  },
+  "catalog_models/realistic-71-holding-20261124.webp": {
+    "pt": "catalog-20261124/71/holding-pt.webp",
+    "en": "catalog-20261124/71/holding-en.webp",
+    "es": "catalog-20261124/71/holding-es.webp"
+  },
+  "catalog-20261124/72/cover-pt.webp": {
+    "en": "catalog-20261124/72/cover-en.webp",
+    "es": "catalog-20261124/72/cover-es.webp"
+  },
+  "catalog_models/realistic-72-cover-20261124.webp": {
+    "pt": "catalog-20261124/72/cover-pt.webp",
+    "en": "catalog-20261124/72/cover-en.webp",
+    "es": "catalog-20261124/72/cover-es.webp"
+  },
+  "catalog-20261124/72/page-pt.webp": {
+    "en": "catalog-20261124/72/page-en.webp",
+    "es": "catalog-20261124/72/page-es.webp"
+  },
+  "catalog_models/realistic-72-page-20261124.webp": {
+    "pt": "catalog-20261124/72/page-pt.webp",
+    "en": "catalog-20261124/72/page-en.webp",
+    "es": "catalog-20261124/72/page-es.webp"
+  },
+  "catalog-20261124/72/holding-pt.webp": {
+    "en": "catalog-20261124/72/holding-en.webp",
+    "es": "catalog-20261124/72/holding-es.webp"
+  },
+  "catalog_models/realistic-72-holding-20261124.webp": {
+    "pt": "catalog-20261124/72/holding-pt.webp",
+    "en": "catalog-20261124/72/holding-en.webp",
+    "es": "catalog-20261124/72/holding-es.webp"
+  },
+  "catalog-20261124/73/cover-pt.webp": {
+    "en": "catalog-20261124/73/cover-en.webp",
+    "es": "catalog-20261124/73/cover-es.webp"
+  },
+  "catalog_models/realistic-73-cover-20261124.webp": {
+    "pt": "catalog-20261124/73/cover-pt.webp",
+    "en": "catalog-20261124/73/cover-en.webp",
+    "es": "catalog-20261124/73/cover-es.webp"
+  },
+  "catalog-20261124/73/page-pt.webp": {
+    "en": "catalog-20261124/73/page-en.webp",
+    "es": "catalog-20261124/73/page-es.webp"
+  },
+  "catalog_models/realistic-73-page-20261124.webp": {
+    "pt": "catalog-20261124/73/page-pt.webp",
+    "en": "catalog-20261124/73/page-en.webp",
+    "es": "catalog-20261124/73/page-es.webp"
+  },
+  "catalog-20261124/73/holding-pt.webp": {
+    "en": "catalog-20261124/73/holding-en.webp",
+    "es": "catalog-20261124/73/holding-es.webp"
+  },
+  "catalog_models/realistic-73-holding-20261124.webp": {
+    "pt": "catalog-20261124/73/holding-pt.webp",
+    "en": "catalog-20261124/73/holding-en.webp",
+    "es": "catalog-20261124/73/holding-es.webp"
+  },
+  "catalog-20261124/74/cover-pt.webp": {
+    "en": "catalog-20261124/74/cover-en.webp",
+    "es": "catalog-20261124/74/cover-es.webp"
+  },
+  "catalog_models/realistic-74-cover-20261124.webp": {
+    "pt": "catalog-20261124/74/cover-pt.webp",
+    "en": "catalog-20261124/74/cover-en.webp",
+    "es": "catalog-20261124/74/cover-es.webp"
+  },
+  "catalog-20261124/74/page-pt.webp": {
+    "en": "catalog-20261124/74/page-en.webp",
+    "es": "catalog-20261124/74/page-es.webp"
+  },
+  "catalog_models/realistic-74-page-20261124.webp": {
+    "pt": "catalog-20261124/74/page-pt.webp",
+    "en": "catalog-20261124/74/page-en.webp",
+    "es": "catalog-20261124/74/page-es.webp"
+  },
+  "catalog-20261124/74/holding-pt.webp": {
+    "en": "catalog-20261124/74/holding-en.webp",
+    "es": "catalog-20261124/74/holding-es.webp"
+  },
+  "catalog_models/realistic-74-holding-20261124.webp": {
+    "pt": "catalog-20261124/74/holding-pt.webp",
+    "en": "catalog-20261124/74/holding-en.webp",
+    "es": "catalog-20261124/74/holding-es.webp"
+  },
+  "catalog-20261124/75/cover-pt.webp": {
+    "en": "catalog-20261124/75/cover-en.webp",
+    "es": "catalog-20261124/75/cover-es.webp"
+  },
+  "catalog_models/realistic-75-cover-20261124.webp": {
+    "pt": "catalog-20261124/75/cover-pt.webp",
+    "en": "catalog-20261124/75/cover-en.webp",
+    "es": "catalog-20261124/75/cover-es.webp"
+  },
+  "catalog-20261124/75/page-pt.webp": {
+    "en": "catalog-20261124/75/page-en.webp",
+    "es": "catalog-20261124/75/page-es.webp"
+  },
+  "catalog_models/realistic-75-page-20261124.webp": {
+    "pt": "catalog-20261124/75/page-pt.webp",
+    "en": "catalog-20261124/75/page-en.webp",
+    "es": "catalog-20261124/75/page-es.webp"
+  },
+  "catalog-20261124/75/holding-pt.webp": {
+    "en": "catalog-20261124/75/holding-en.webp",
+    "es": "catalog-20261124/75/holding-es.webp"
+  },
+  "catalog_models/realistic-75-holding-20261124.webp": {
+    "pt": "catalog-20261124/75/holding-pt.webp",
+    "en": "catalog-20261124/75/holding-en.webp",
+    "es": "catalog-20261124/75/holding-es.webp"
+  },
+  "catalog-20261124/76/cover-pt.webp": {
+    "en": "catalog-20261124/76/cover-en.webp",
+    "es": "catalog-20261124/76/cover-es.webp"
+  },
+  "catalog_models/realistic-76-cover-20261124.webp": {
+    "pt": "catalog-20261124/76/cover-pt.webp",
+    "en": "catalog-20261124/76/cover-en.webp",
+    "es": "catalog-20261124/76/cover-es.webp"
+  },
+  "catalog-20261124/76/page-pt.webp": {
+    "en": "catalog-20261124/76/page-en.webp",
+    "es": "catalog-20261124/76/page-es.webp"
+  },
+  "catalog_models/realistic-76-page-20261124.webp": {
+    "pt": "catalog-20261124/76/page-pt.webp",
+    "en": "catalog-20261124/76/page-en.webp",
+    "es": "catalog-20261124/76/page-es.webp"
+  },
+  "catalog-20261124/76/holding-pt.webp": {
+    "en": "catalog-20261124/76/holding-en.webp",
+    "es": "catalog-20261124/76/holding-es.webp"
+  },
+  "catalog_models/realistic-76-holding-20261124.webp": {
+    "pt": "catalog-20261124/76/holding-pt.webp",
+    "en": "catalog-20261124/76/holding-en.webp",
+    "es": "catalog-20261124/76/holding-es.webp"
+  },
+  "catalog-20261124/77/cover-pt.webp": {
+    "en": "catalog-20261124/77/cover-en.webp",
+    "es": "catalog-20261124/77/cover-es.webp"
+  },
+  "catalog_models/realistic-77-cover-20261124.webp": {
+    "pt": "catalog-20261124/77/cover-pt.webp",
+    "en": "catalog-20261124/77/cover-en.webp",
+    "es": "catalog-20261124/77/cover-es.webp"
+  },
+  "catalog-20261124/77/page-pt.webp": {
+    "en": "catalog-20261124/77/page-en.webp",
+    "es": "catalog-20261124/77/page-es.webp"
+  },
+  "catalog_models/realistic-77-page-20261124.webp": {
+    "pt": "catalog-20261124/77/page-pt.webp",
+    "en": "catalog-20261124/77/page-en.webp",
+    "es": "catalog-20261124/77/page-es.webp"
+  },
+  "catalog-20261124/77/holding-pt.webp": {
+    "en": "catalog-20261124/77/holding-en.webp",
+    "es": "catalog-20261124/77/holding-es.webp"
+  },
+  "catalog_models/realistic-77-holding-20261124.webp": {
+    "pt": "catalog-20261124/77/holding-pt.webp",
+    "en": "catalog-20261124/77/holding-en.webp",
+    "es": "catalog-20261124/77/holding-es.webp"
+  },
+  "catalog-20261124/78/cover-pt.webp": {
+    "en": "catalog-20261124/78/cover-en.webp",
+    "es": "catalog-20261124/78/cover-es.webp"
+  },
+  "catalog_models/realistic-78-cover-20261124.webp": {
+    "pt": "catalog-20261124/78/cover-pt.webp",
+    "en": "catalog-20261124/78/cover-en.webp",
+    "es": "catalog-20261124/78/cover-es.webp"
+  },
+  "catalog-20261124/78/page-pt.webp": {
+    "en": "catalog-20261124/78/page-en.webp",
+    "es": "catalog-20261124/78/page-es.webp"
+  },
+  "catalog_models/realistic-78-page-20261124.webp": {
+    "pt": "catalog-20261124/78/page-pt.webp",
+    "en": "catalog-20261124/78/page-en.webp",
+    "es": "catalog-20261124/78/page-es.webp"
+  },
+  "catalog-20261124/78/holding-pt.webp": {
+    "en": "catalog-20261124/78/holding-en.webp",
+    "es": "catalog-20261124/78/holding-es.webp"
+  },
+  "catalog_models/realistic-78-holding-20261124.webp": {
+    "pt": "catalog-20261124/78/holding-pt.webp",
+    "en": "catalog-20261124/78/holding-en.webp",
+    "es": "catalog-20261124/78/holding-es.webp"
+  },
+  "catalog-20261124/79/cover-pt.webp": {
+    "en": "catalog-20261124/79/cover-en.webp",
+    "es": "catalog-20261124/79/cover-es.webp"
+  },
+  "catalog_models/realistic-79-cover-20261124.webp": {
+    "pt": "catalog-20261124/79/cover-pt.webp",
+    "en": "catalog-20261124/79/cover-en.webp",
+    "es": "catalog-20261124/79/cover-es.webp"
+  },
+  "catalog-20261124/79/page-pt.webp": {
+    "en": "catalog-20261124/79/page-en.webp",
+    "es": "catalog-20261124/79/page-es.webp"
+  },
+  "catalog_models/realistic-79-page-20261124.webp": {
+    "pt": "catalog-20261124/79/page-pt.webp",
+    "en": "catalog-20261124/79/page-en.webp",
+    "es": "catalog-20261124/79/page-es.webp"
+  },
+  "catalog-20261124/79/holding-pt.webp": {
+    "en": "catalog-20261124/79/holding-en.webp",
+    "es": "catalog-20261124/79/holding-es.webp"
+  },
+  "catalog_models/realistic-79-holding-20261124.webp": {
+    "pt": "catalog-20261124/79/holding-pt.webp",
+    "en": "catalog-20261124/79/holding-en.webp",
+    "es": "catalog-20261124/79/holding-es.webp"
+  },
+  "catalog-20261124/80/cover-pt.webp": {
+    "en": "catalog-20261124/80/cover-en.webp",
+    "es": "catalog-20261124/80/cover-es.webp"
+  },
+  "catalog_models/realistic-80-cover-20261124.webp": {
+    "pt": "catalog-20261124/80/cover-pt.webp",
+    "en": "catalog-20261124/80/cover-en.webp",
+    "es": "catalog-20261124/80/cover-es.webp"
+  },
+  "catalog-20261124/80/page-pt.webp": {
+    "en": "catalog-20261124/80/page-en.webp",
+    "es": "catalog-20261124/80/page-es.webp"
+  },
+  "catalog_models/realistic-80-page-20261124.webp": {
+    "pt": "catalog-20261124/80/page-pt.webp",
+    "en": "catalog-20261124/80/page-en.webp",
+    "es": "catalog-20261124/80/page-es.webp"
+  },
+  "catalog-20261124/80/holding-pt.webp": {
+    "en": "catalog-20261124/80/holding-en.webp",
+    "es": "catalog-20261124/80/holding-es.webp"
+  },
+  "catalog_models/realistic-80-holding-20261124.webp": {
+    "pt": "catalog-20261124/80/holding-pt.webp",
+    "en": "catalog-20261124/80/holding-en.webp",
+    "es": "catalog-20261124/80/holding-es.webp"
+  },
+  "catalog-20261124/81/cover-pt.webp": {
+    "en": "catalog-20261124/81/cover-en.webp",
+    "es": "catalog-20261124/81/cover-es.webp"
+  },
+  "catalog_models/realistic-81-cover-20261124.webp": {
+    "pt": "catalog-20261124/81/cover-pt.webp",
+    "en": "catalog-20261124/81/cover-en.webp",
+    "es": "catalog-20261124/81/cover-es.webp"
+  },
+  "catalog-20261124/81/page-pt.webp": {
+    "en": "catalog-20261124/81/page-en.webp",
+    "es": "catalog-20261124/81/page-es.webp"
+  },
+  "catalog_models/realistic-81-page-20261124.webp": {
+    "pt": "catalog-20261124/81/page-pt.webp",
+    "en": "catalog-20261124/81/page-en.webp",
+    "es": "catalog-20261124/81/page-es.webp"
+  },
+  "catalog-20261124/81/holding-pt.webp": {
+    "en": "catalog-20261124/81/holding-en.webp",
+    "es": "catalog-20261124/81/holding-es.webp"
+  },
+  "catalog_models/realistic-81-holding-20261124.webp": {
+    "pt": "catalog-20261124/81/holding-pt.webp",
+    "en": "catalog-20261124/81/holding-en.webp",
+    "es": "catalog-20261124/81/holding-es.webp"
+  },
+  "catalog-20261124/82/cover-pt.webp": {
+    "en": "catalog-20261124/82/cover-en.webp",
+    "es": "catalog-20261124/82/cover-es.webp"
+  },
+  "catalog_models/realistic-82-cover-20261124.webp": {
+    "pt": "catalog-20261124/82/cover-pt.webp",
+    "en": "catalog-20261124/82/cover-en.webp",
+    "es": "catalog-20261124/82/cover-es.webp"
+  },
+  "catalog-20261124/82/page-pt.webp": {
+    "en": "catalog-20261124/82/page-en.webp",
+    "es": "catalog-20261124/82/page-es.webp"
+  },
+  "catalog_models/realistic-82-page-20261124.webp": {
+    "pt": "catalog-20261124/82/page-pt.webp",
+    "en": "catalog-20261124/82/page-en.webp",
+    "es": "catalog-20261124/82/page-es.webp"
+  },
+  "catalog-20261124/82/holding-pt.webp": {
+    "en": "catalog-20261124/82/holding-en.webp",
+    "es": "catalog-20261124/82/holding-es.webp"
+  },
+  "catalog_models/realistic-82-holding-20261124.webp": {
+    "pt": "catalog-20261124/82/holding-pt.webp",
+    "en": "catalog-20261124/82/holding-en.webp",
+    "es": "catalog-20261124/82/holding-es.webp"
+  },
+  "catalog-20261124/83/cover-pt.webp": {
+    "en": "catalog-20261124/83/cover-en.webp",
+    "es": "catalog-20261124/83/cover-es.webp"
+  },
+  "catalog_models/realistic-83-cover-20261124.webp": {
+    "pt": "catalog-20261124/83/cover-pt.webp",
+    "en": "catalog-20261124/83/cover-en.webp",
+    "es": "catalog-20261124/83/cover-es.webp"
+  },
+  "catalog-20261124/83/page-pt.webp": {
+    "en": "catalog-20261124/83/page-en.webp",
+    "es": "catalog-20261124/83/page-es.webp"
+  },
+  "catalog_models/realistic-83-page-20261124.webp": {
+    "pt": "catalog-20261124/83/page-pt.webp",
+    "en": "catalog-20261124/83/page-en.webp",
+    "es": "catalog-20261124/83/page-es.webp"
+  },
+  "catalog-20261124/83/holding-pt.webp": {
+    "en": "catalog-20261124/83/holding-en.webp",
+    "es": "catalog-20261124/83/holding-es.webp"
+  },
+  "catalog_models/realistic-83-holding-20261124.webp": {
+    "pt": "catalog-20261124/83/holding-pt.webp",
+    "en": "catalog-20261124/83/holding-en.webp",
+    "es": "catalog-20261124/83/holding-es.webp"
+  },
+  "catalog-20261124/84/cover-pt.webp": {
+    "en": "catalog-20261124/84/cover-en.webp",
+    "es": "catalog-20261124/84/cover-es.webp"
+  },
+  "catalog_models/realistic-84-cover-20261124.webp": {
+    "pt": "catalog-20261124/84/cover-pt.webp",
+    "en": "catalog-20261124/84/cover-en.webp",
+    "es": "catalog-20261124/84/cover-es.webp"
+  },
+  "catalog-20261124/84/page-pt.webp": {
+    "en": "catalog-20261124/84/page-en.webp",
+    "es": "catalog-20261124/84/page-es.webp"
+  },
+  "catalog_models/realistic-84-page-20261124.webp": {
+    "pt": "catalog-20261124/84/page-pt.webp",
+    "en": "catalog-20261124/84/page-en.webp",
+    "es": "catalog-20261124/84/page-es.webp"
+  },
+  "catalog-20261124/84/holding-pt.webp": {
+    "en": "catalog-20261124/84/holding-en.webp",
+    "es": "catalog-20261124/84/holding-es.webp"
+  },
+  "catalog_models/realistic-84-holding-20261124.webp": {
+    "pt": "catalog-20261124/84/holding-pt.webp",
+    "en": "catalog-20261124/84/holding-en.webp",
+    "es": "catalog-20261124/84/holding-es.webp"
+  },
+  "catalog-20261124/85/cover-pt.webp": {
+    "en": "catalog-20261124/85/cover-en.webp",
+    "es": "catalog-20261124/85/cover-es.webp"
+  },
+  "catalog_models/realistic-85-cover-20261124.webp": {
+    "pt": "catalog-20261124/85/cover-pt.webp",
+    "en": "catalog-20261124/85/cover-en.webp",
+    "es": "catalog-20261124/85/cover-es.webp"
+  },
+  "catalog-20261124/85/page-pt.webp": {
+    "en": "catalog-20261124/85/page-en.webp",
+    "es": "catalog-20261124/85/page-es.webp"
+  },
+  "catalog_models/realistic-85-page-20261124.webp": {
+    "pt": "catalog-20261124/85/page-pt.webp",
+    "en": "catalog-20261124/85/page-en.webp",
+    "es": "catalog-20261124/85/page-es.webp"
+  },
+  "catalog-20261124/85/holding-pt.webp": {
+    "en": "catalog-20261124/85/holding-en.webp",
+    "es": "catalog-20261124/85/holding-es.webp"
+  },
+  "catalog_models/realistic-85-holding-20261124.webp": {
+    "pt": "catalog-20261124/85/holding-pt.webp",
+    "en": "catalog-20261124/85/holding-en.webp",
+    "es": "catalog-20261124/85/holding-es.webp"
+  },
+  "catalog-20261124/86/cover-pt.webp": {
+    "en": "catalog-20261124/86/cover-en.webp",
+    "es": "catalog-20261124/86/cover-es.webp"
+  },
+  "catalog_models/realistic-86-cover-20261124.webp": {
+    "pt": "catalog-20261124/86/cover-pt.webp",
+    "en": "catalog-20261124/86/cover-en.webp",
+    "es": "catalog-20261124/86/cover-es.webp"
+  },
+  "catalog-20261124/86/page-pt.webp": {
+    "en": "catalog-20261124/86/page-en.webp",
+    "es": "catalog-20261124/86/page-es.webp"
+  },
+  "catalog_models/realistic-86-page-20261124.webp": {
+    "pt": "catalog-20261124/86/page-pt.webp",
+    "en": "catalog-20261124/86/page-en.webp",
+    "es": "catalog-20261124/86/page-es.webp"
+  },
+  "catalog-20261124/86/holding-pt.webp": {
+    "en": "catalog-20261124/86/holding-en.webp",
+    "es": "catalog-20261124/86/holding-es.webp"
+  },
+  "catalog_models/realistic-86-holding-20261124.webp": {
+    "pt": "catalog-20261124/86/holding-pt.webp",
+    "en": "catalog-20261124/86/holding-en.webp",
+    "es": "catalog-20261124/86/holding-es.webp"
+  },
+  "catalog-20261124/87/cover-pt.webp": {
+    "en": "catalog-20261124/87/cover-en.webp",
+    "es": "catalog-20261124/87/cover-es.webp"
+  },
+  "catalog_models/realistic-87-cover-20261124.webp": {
+    "pt": "catalog-20261124/87/cover-pt.webp",
+    "en": "catalog-20261124/87/cover-en.webp",
+    "es": "catalog-20261124/87/cover-es.webp"
+  },
+  "catalog-20261124/87/page-pt.webp": {
+    "en": "catalog-20261124/87/page-en.webp",
+    "es": "catalog-20261124/87/page-es.webp"
+  },
+  "catalog_models/realistic-87-page-20261124.webp": {
+    "pt": "catalog-20261124/87/page-pt.webp",
+    "en": "catalog-20261124/87/page-en.webp",
+    "es": "catalog-20261124/87/page-es.webp"
+  },
+  "catalog-20261124/87/holding-pt.webp": {
+    "en": "catalog-20261124/87/holding-en.webp",
+    "es": "catalog-20261124/87/holding-es.webp"
+  },
+  "catalog_models/realistic-87-holding-20261124.webp": {
+    "pt": "catalog-20261124/87/holding-pt.webp",
+    "en": "catalog-20261124/87/holding-en.webp",
+    "es": "catalog-20261124/87/holding-es.webp"
+  },
+  "catalog-20261124/88/cover-pt.webp": {
+    "en": "catalog-20261124/88/cover-en.webp",
+    "es": "catalog-20261124/88/cover-es.webp"
+  },
+  "catalog_models/realistic-88-cover-20261124.webp": {
+    "pt": "catalog-20261124/88/cover-pt.webp",
+    "en": "catalog-20261124/88/cover-en.webp",
+    "es": "catalog-20261124/88/cover-es.webp"
+  },
+  "catalog-20261124/88/page-pt.webp": {
+    "en": "catalog-20261124/88/page-en.webp",
+    "es": "catalog-20261124/88/page-es.webp"
+  },
+  "catalog_models/realistic-88-page-20261124.webp": {
+    "pt": "catalog-20261124/88/page-pt.webp",
+    "en": "catalog-20261124/88/page-en.webp",
+    "es": "catalog-20261124/88/page-es.webp"
+  },
+  "catalog-20261124/88/holding-pt.webp": {
+    "en": "catalog-20261124/88/holding-en.webp",
+    "es": "catalog-20261124/88/holding-es.webp"
+  },
+  "catalog_models/realistic-88-holding-20261124.webp": {
+    "pt": "catalog-20261124/88/holding-pt.webp",
+    "en": "catalog-20261124/88/holding-en.webp",
+    "es": "catalog-20261124/88/holding-es.webp"
+  },
+  "catalog-20261124/89/cover-pt.webp": {
+    "en": "catalog-20261124/89/cover-en.webp",
+    "es": "catalog-20261124/89/cover-es.webp"
+  },
+  "catalog_models/realistic-89-cover-20261124.webp": {
+    "pt": "catalog-20261124/89/cover-pt.webp",
+    "en": "catalog-20261124/89/cover-en.webp",
+    "es": "catalog-20261124/89/cover-es.webp"
+  },
+  "catalog-20261124/89/page-pt.webp": {
+    "en": "catalog-20261124/89/page-en.webp",
+    "es": "catalog-20261124/89/page-es.webp"
+  },
+  "catalog_models/realistic-89-page-20261124.webp": {
+    "pt": "catalog-20261124/89/page-pt.webp",
+    "en": "catalog-20261124/89/page-en.webp",
+    "es": "catalog-20261124/89/page-es.webp"
+  },
+  "catalog-20261124/89/holding-pt.webp": {
+    "en": "catalog-20261124/89/holding-en.webp",
+    "es": "catalog-20261124/89/holding-es.webp"
+  },
+  "catalog_models/realistic-89-holding-20261124.webp": {
+    "pt": "catalog-20261124/89/holding-pt.webp",
+    "en": "catalog-20261124/89/holding-en.webp",
+    "es": "catalog-20261124/89/holding-es.webp"
+  },
+  "catalog-20261124/90/cover-pt.webp": {
+    "en": "catalog-20261124/90/cover-en.webp",
+    "es": "catalog-20261124/90/cover-es.webp"
+  },
+  "catalog_models/realistic-90-cover-20261124.webp": {
+    "pt": "catalog-20261124/90/cover-pt.webp",
+    "en": "catalog-20261124/90/cover-en.webp",
+    "es": "catalog-20261124/90/cover-es.webp"
+  },
+  "catalog-20261124/90/page-pt.webp": {
+    "en": "catalog-20261124/90/page-en.webp",
+    "es": "catalog-20261124/90/page-es.webp"
+  },
+  "catalog_models/realistic-90-page-20261124.webp": {
+    "pt": "catalog-20261124/90/page-pt.webp",
+    "en": "catalog-20261124/90/page-en.webp",
+    "es": "catalog-20261124/90/page-es.webp"
+  },
+  "catalog-20261124/90/holding-pt.webp": {
+    "en": "catalog-20261124/90/holding-en.webp",
+    "es": "catalog-20261124/90/holding-es.webp"
+  },
+  "catalog_models/realistic-90-holding-20261124.webp": {
+    "pt": "catalog-20261124/90/holding-pt.webp",
+    "en": "catalog-20261124/90/holding-en.webp",
+    "es": "catalog-20261124/90/holding-es.webp"
+  },
+  "catalog-20261124/91/cover-pt.webp": {
+    "en": "catalog-20261124/91/cover-en.webp",
+    "es": "catalog-20261124/91/cover-es.webp"
+  },
+  "catalog_models/realistic-91-cover-20261124.webp": {
+    "pt": "catalog-20261124/91/cover-pt.webp",
+    "en": "catalog-20261124/91/cover-en.webp",
+    "es": "catalog-20261124/91/cover-es.webp"
+  },
+  "catalog-20261124/91/page-pt.webp": {
+    "en": "catalog-20261124/91/page-en.webp",
+    "es": "catalog-20261124/91/page-es.webp"
+  },
+  "catalog_models/realistic-91-page-20261124.webp": {
+    "pt": "catalog-20261124/91/page-pt.webp",
+    "en": "catalog-20261124/91/page-en.webp",
+    "es": "catalog-20261124/91/page-es.webp"
+  },
+  "catalog-20261124/91/holding-pt.webp": {
+    "en": "catalog-20261124/91/holding-en.webp",
+    "es": "catalog-20261124/91/holding-es.webp"
+  },
+  "catalog_models/realistic-91-holding-20261124.webp": {
+    "pt": "catalog-20261124/91/holding-pt.webp",
+    "en": "catalog-20261124/91/holding-en.webp",
+    "es": "catalog-20261124/91/holding-es.webp"
+  },
+  "catalog-20261124/92/cover-pt.webp": {
+    "en": "catalog-20261124/92/cover-en.webp",
+    "es": "catalog-20261124/92/cover-es.webp"
+  },
+  "catalog_models/realistic-92-cover-20261124.webp": {
+    "pt": "catalog-20261124/92/cover-pt.webp",
+    "en": "catalog-20261124/92/cover-en.webp",
+    "es": "catalog-20261124/92/cover-es.webp"
+  },
+  "catalog-20261124/92/page-pt.webp": {
+    "en": "catalog-20261124/92/page-en.webp",
+    "es": "catalog-20261124/92/page-es.webp"
+  },
+  "catalog_models/realistic-92-page-20261124.webp": {
+    "pt": "catalog-20261124/92/page-pt.webp",
+    "en": "catalog-20261124/92/page-en.webp",
+    "es": "catalog-20261124/92/page-es.webp"
+  },
+  "catalog-20261124/92/holding-pt.webp": {
+    "en": "catalog-20261124/92/holding-en.webp",
+    "es": "catalog-20261124/92/holding-es.webp"
+  },
+  "catalog_models/realistic-92-holding-20261124.webp": {
+    "pt": "catalog-20261124/92/holding-pt.webp",
+    "en": "catalog-20261124/92/holding-en.webp",
+    "es": "catalog-20261124/92/holding-es.webp"
+  },
+  "catalog-20261124/93/cover-pt.webp": {
+    "en": "catalog-20261124/93/cover-en.webp",
+    "es": "catalog-20261124/93/cover-es.webp"
+  },
+  "catalog_models/realistic-93-cover-20261124.webp": {
+    "pt": "catalog-20261124/93/cover-pt.webp",
+    "en": "catalog-20261124/93/cover-en.webp",
+    "es": "catalog-20261124/93/cover-es.webp"
+  },
+  "catalog-20261124/93/page-pt.webp": {
+    "en": "catalog-20261124/93/page-en.webp",
+    "es": "catalog-20261124/93/page-es.webp"
+  },
+  "catalog_models/realistic-93-page-20261124.webp": {
+    "pt": "catalog-20261124/93/page-pt.webp",
+    "en": "catalog-20261124/93/page-en.webp",
+    "es": "catalog-20261124/93/page-es.webp"
+  },
+  "catalog-20261124/93/holding-pt.webp": {
+    "en": "catalog-20261124/93/holding-en.webp",
+    "es": "catalog-20261124/93/holding-es.webp"
+  },
+  "catalog_models/realistic-93-holding-20261124.webp": {
+    "pt": "catalog-20261124/93/holding-pt.webp",
+    "en": "catalog-20261124/93/holding-en.webp",
+    "es": "catalog-20261124/93/holding-es.webp"
+  },
+  "catalog-20261124/94/cover-pt.webp": {
+    "en": "catalog-20261124/94/cover-en.webp",
+    "es": "catalog-20261124/94/cover-es.webp"
+  },
+  "catalog_models/realistic-94-cover-20261124.webp": {
+    "pt": "catalog-20261124/94/cover-pt.webp",
+    "en": "catalog-20261124/94/cover-en.webp",
+    "es": "catalog-20261124/94/cover-es.webp"
+  },
+  "catalog-20261124/94/page-pt.webp": {
+    "en": "catalog-20261124/94/page-en.webp",
+    "es": "catalog-20261124/94/page-es.webp"
+  },
+  "catalog_models/realistic-94-page-20261124.webp": {
+    "pt": "catalog-20261124/94/page-pt.webp",
+    "en": "catalog-20261124/94/page-en.webp",
+    "es": "catalog-20261124/94/page-es.webp"
+  },
+  "catalog-20261124/94/holding-pt.webp": {
+    "en": "catalog-20261124/94/holding-en.webp",
+    "es": "catalog-20261124/94/holding-es.webp"
+  },
+  "catalog_models/realistic-94-holding-20261124.webp": {
+    "pt": "catalog-20261124/94/holding-pt.webp",
+    "en": "catalog-20261124/94/holding-en.webp",
+    "es": "catalog-20261124/94/holding-es.webp"
+  },
+  "catalog-20261124/95/cover-pt.webp": {
+    "en": "catalog-20261124/95/cover-en.webp",
+    "es": "catalog-20261124/95/cover-es.webp"
+  },
+  "catalog_models/realistic-95-cover-20261124.webp": {
+    "pt": "catalog-20261124/95/cover-pt.webp",
+    "en": "catalog-20261124/95/cover-en.webp",
+    "es": "catalog-20261124/95/cover-es.webp"
+  },
+  "catalog-20261124/95/page-pt.webp": {
+    "en": "catalog-20261124/95/page-en.webp",
+    "es": "catalog-20261124/95/page-es.webp"
+  },
+  "catalog_models/realistic-95-page-20261124.webp": {
+    "pt": "catalog-20261124/95/page-pt.webp",
+    "en": "catalog-20261124/95/page-en.webp",
+    "es": "catalog-20261124/95/page-es.webp"
+  },
+  "catalog-20261124/95/holding-pt.webp": {
+    "en": "catalog-20261124/95/holding-en.webp",
+    "es": "catalog-20261124/95/holding-es.webp"
+  },
+  "catalog_models/realistic-95-holding-20261124.webp": {
+    "pt": "catalog-20261124/95/holding-pt.webp",
+    "en": "catalog-20261124/95/holding-en.webp",
+    "es": "catalog-20261124/95/holding-es.webp"
+  },
+  "catalog-20261124/96/cover-pt.webp": {
+    "en": "catalog-20261124/96/cover-en.webp",
+    "es": "catalog-20261124/96/cover-es.webp"
+  },
+  "catalog_models/realistic-96-cover-20261124.webp": {
+    "pt": "catalog-20261124/96/cover-pt.webp",
+    "en": "catalog-20261124/96/cover-en.webp",
+    "es": "catalog-20261124/96/cover-es.webp"
+  },
+  "catalog-20261124/96/page-pt.webp": {
+    "en": "catalog-20261124/96/page-en.webp",
+    "es": "catalog-20261124/96/page-es.webp"
+  },
+  "catalog_models/realistic-96-page-20261124.webp": {
+    "pt": "catalog-20261124/96/page-pt.webp",
+    "en": "catalog-20261124/96/page-en.webp",
+    "es": "catalog-20261124/96/page-es.webp"
+  },
+  "catalog-20261124/96/holding-pt.webp": {
+    "en": "catalog-20261124/96/holding-en.webp",
+    "es": "catalog-20261124/96/holding-es.webp"
+  },
+  "catalog_models/realistic-96-holding-20261124.webp": {
+    "pt": "catalog-20261124/96/holding-pt.webp",
+    "en": "catalog-20261124/96/holding-en.webp",
+    "es": "catalog-20261124/96/holding-es.webp"
+  },
+  "catalog-20261124/97/cover-pt.webp": {
+    "en": "catalog-20261124/97/cover-en.webp",
+    "es": "catalog-20261124/97/cover-es.webp"
+  },
+  "catalog_models/realistic-97-cover-20261124.webp": {
+    "pt": "catalog-20261124/97/cover-pt.webp",
+    "en": "catalog-20261124/97/cover-en.webp",
+    "es": "catalog-20261124/97/cover-es.webp"
+  },
+  "catalog-20261124/97/page-pt.webp": {
+    "en": "catalog-20261124/97/page-en.webp",
+    "es": "catalog-20261124/97/page-es.webp"
+  },
+  "catalog_models/realistic-97-page-20261124.webp": {
+    "pt": "catalog-20261124/97/page-pt.webp",
+    "en": "catalog-20261124/97/page-en.webp",
+    "es": "catalog-20261124/97/page-es.webp"
+  },
+  "catalog-20261124/97/holding-pt.webp": {
+    "en": "catalog-20261124/97/holding-en.webp",
+    "es": "catalog-20261124/97/holding-es.webp"
+  },
+  "catalog_models/realistic-97-holding-20261124.webp": {
+    "pt": "catalog-20261124/97/holding-pt.webp",
+    "en": "catalog-20261124/97/holding-en.webp",
+    "es": "catalog-20261124/97/holding-es.webp"
+  },
+  "catalog-20261124/98/cover-pt.webp": {
+    "en": "catalog-20261124/98/cover-en.webp",
+    "es": "catalog-20261124/98/cover-es.webp"
+  },
+  "catalog_models/realistic-98-cover-20261124.webp": {
+    "pt": "catalog-20261124/98/cover-pt.webp",
+    "en": "catalog-20261124/98/cover-en.webp",
+    "es": "catalog-20261124/98/cover-es.webp"
+  },
+  "catalog-20261124/98/page-pt.webp": {
+    "en": "catalog-20261124/98/page-en.webp",
+    "es": "catalog-20261124/98/page-es.webp"
+  },
+  "catalog_models/realistic-98-page-20261124.webp": {
+    "pt": "catalog-20261124/98/page-pt.webp",
+    "en": "catalog-20261124/98/page-en.webp",
+    "es": "catalog-20261124/98/page-es.webp"
+  },
+  "catalog-20261124/98/holding-pt.webp": {
+    "en": "catalog-20261124/98/holding-en.webp",
+    "es": "catalog-20261124/98/holding-es.webp"
+  },
+  "catalog_models/realistic-98-holding-20261124.webp": {
+    "pt": "catalog-20261124/98/holding-pt.webp",
+    "en": "catalog-20261124/98/holding-en.webp",
+    "es": "catalog-20261124/98/holding-es.webp"
+  },
+  "catalog-20261124/99/cover-pt.webp": {
+    "en": "catalog-20261124/99/cover-en.webp",
+    "es": "catalog-20261124/99/cover-es.webp"
+  },
+  "catalog_models/realistic-99-cover-20261124.webp": {
+    "pt": "catalog-20261124/99/cover-pt.webp",
+    "en": "catalog-20261124/99/cover-en.webp",
+    "es": "catalog-20261124/99/cover-es.webp"
+  },
+  "catalog-20261124/99/page-pt.webp": {
+    "en": "catalog-20261124/99/page-en.webp",
+    "es": "catalog-20261124/99/page-es.webp"
+  },
+  "catalog_models/realistic-99-page-20261124.webp": {
+    "pt": "catalog-20261124/99/page-pt.webp",
+    "en": "catalog-20261124/99/page-en.webp",
+    "es": "catalog-20261124/99/page-es.webp"
+  },
+  "catalog-20261124/99/holding-pt.webp": {
+    "en": "catalog-20261124/99/holding-en.webp",
+    "es": "catalog-20261124/99/holding-es.webp"
+  },
+  "catalog_models/realistic-99-holding-20261124.webp": {
+    "pt": "catalog-20261124/99/holding-pt.webp",
+    "en": "catalog-20261124/99/holding-en.webp",
+    "es": "catalog-20261124/99/holding-es.webp"
+  },
+  "catalog-20261124/100/cover-pt.webp": {
+    "en": "catalog-20261124/100/cover-en.webp",
+    "es": "catalog-20261124/100/cover-es.webp"
+  },
+  "catalog_models/realistic-100-cover-20261124.webp": {
+    "pt": "catalog-20261124/100/cover-pt.webp",
+    "en": "catalog-20261124/100/cover-en.webp",
+    "es": "catalog-20261124/100/cover-es.webp"
+  },
+  "catalog-20261124/100/page-pt.webp": {
+    "en": "catalog-20261124/100/page-en.webp",
+    "es": "catalog-20261124/100/page-es.webp"
+  },
+  "catalog_models/realistic-100-page-20261124.webp": {
+    "pt": "catalog-20261124/100/page-pt.webp",
+    "en": "catalog-20261124/100/page-en.webp",
+    "es": "catalog-20261124/100/page-es.webp"
+  },
+  "catalog-20261124/100/holding-pt.webp": {
+    "en": "catalog-20261124/100/holding-en.webp",
+    "es": "catalog-20261124/100/holding-es.webp"
+  },
+  "catalog_models/realistic-100-holding-20261124.webp": {
+    "pt": "catalog-20261124/100/holding-pt.webp",
+    "en": "catalog-20261124/100/holding-en.webp",
+    "es": "catalog-20261124/100/holding-es.webp"
+  },
+  "catalog-20261124/101/cover-pt.webp": {
+    "en": "catalog-20261124/101/cover-en.webp",
+    "es": "catalog-20261124/101/cover-es.webp"
+  },
+  "catalog_models/realistic-101-cover-20261124.webp": {
+    "pt": "catalog-20261124/101/cover-pt.webp",
+    "en": "catalog-20261124/101/cover-en.webp",
+    "es": "catalog-20261124/101/cover-es.webp"
+  },
+  "catalog-20261124/101/page-pt.webp": {
+    "en": "catalog-20261124/101/page-en.webp",
+    "es": "catalog-20261124/101/page-es.webp"
+  },
+  "catalog_models/realistic-101-page-20261124.webp": {
+    "pt": "catalog-20261124/101/page-pt.webp",
+    "en": "catalog-20261124/101/page-en.webp",
+    "es": "catalog-20261124/101/page-es.webp"
+  },
+  "catalog-20261124/101/holding-pt.webp": {
+    "en": "catalog-20261124/101/holding-en.webp",
+    "es": "catalog-20261124/101/holding-es.webp"
+  },
+  "catalog_models/realistic-101-holding-20261124.webp": {
+    "pt": "catalog-20261124/101/holding-pt.webp",
+    "en": "catalog-20261124/101/holding-en.webp",
+    "es": "catalog-20261124/101/holding-es.webp"
+  },
+  "catalog-20261124/102/cover-pt.webp": {
+    "en": "catalog-20261124/102/cover-en.webp",
+    "es": "catalog-20261124/102/cover-es.webp"
+  },
+  "catalog_models/realistic-102-cover-20261124.webp": {
+    "pt": "catalog-20261124/102/cover-pt.webp",
+    "en": "catalog-20261124/102/cover-en.webp",
+    "es": "catalog-20261124/102/cover-es.webp"
+  },
+  "catalog-20261124/102/page-pt.webp": {
+    "en": "catalog-20261124/102/page-en.webp",
+    "es": "catalog-20261124/102/page-es.webp"
+  },
+  "catalog_models/realistic-102-page-20261124.webp": {
+    "pt": "catalog-20261124/102/page-pt.webp",
+    "en": "catalog-20261124/102/page-en.webp",
+    "es": "catalog-20261124/102/page-es.webp"
+  },
+  "catalog-20261124/102/holding-pt.webp": {
+    "en": "catalog-20261124/102/holding-en.webp",
+    "es": "catalog-20261124/102/holding-es.webp"
+  },
+  "catalog_models/realistic-102-holding-20261124.webp": {
+    "pt": "catalog-20261124/102/holding-pt.webp",
+    "en": "catalog-20261124/102/holding-en.webp",
+    "es": "catalog-20261124/102/holding-es.webp"
+  },
+  "catalog-20261124/103/cover-pt.webp": {
+    "en": "catalog-20261124/103/cover-en.webp",
+    "es": "catalog-20261124/103/cover-es.webp"
+  },
+  "catalog_models/realistic-103-cover-20261124.webp": {
+    "pt": "catalog-20261124/103/cover-pt.webp",
+    "en": "catalog-20261124/103/cover-en.webp",
+    "es": "catalog-20261124/103/cover-es.webp"
+  },
+  "catalog-20261124/103/page-pt.webp": {
+    "en": "catalog-20261124/103/page-en.webp",
+    "es": "catalog-20261124/103/page-es.webp"
+  },
+  "catalog_models/realistic-103-page-20261124.webp": {
+    "pt": "catalog-20261124/103/page-pt.webp",
+    "en": "catalog-20261124/103/page-en.webp",
+    "es": "catalog-20261124/103/page-es.webp"
+  },
+  "catalog-20261124/103/holding-pt.webp": {
+    "en": "catalog-20261124/103/holding-en.webp",
+    "es": "catalog-20261124/103/holding-es.webp"
+  },
+  "catalog_models/realistic-103-holding-20261124.webp": {
+    "pt": "catalog-20261124/103/holding-pt.webp",
+    "en": "catalog-20261124/103/holding-en.webp",
+    "es": "catalog-20261124/103/holding-es.webp"
+  },
+  "catalog-20261124/104/cover-pt.webp": {
+    "en": "catalog-20261124/104/cover-en.webp",
+    "es": "catalog-20261124/104/cover-es.webp"
+  },
+  "catalog_models/realistic-104-cover-20261124.webp": {
+    "pt": "catalog-20261124/104/cover-pt.webp",
+    "en": "catalog-20261124/104/cover-en.webp",
+    "es": "catalog-20261124/104/cover-es.webp"
+  },
+  "catalog-20261124/104/page-pt.webp": {
+    "en": "catalog-20261124/104/page-en.webp",
+    "es": "catalog-20261124/104/page-es.webp"
+  },
+  "catalog_models/realistic-104-page-20261124.webp": {
+    "pt": "catalog-20261124/104/page-pt.webp",
+    "en": "catalog-20261124/104/page-en.webp",
+    "es": "catalog-20261124/104/page-es.webp"
+  },
+  "catalog-20261124/104/holding-pt.webp": {
+    "en": "catalog-20261124/104/holding-en.webp",
+    "es": "catalog-20261124/104/holding-es.webp"
+  },
+  "catalog_models/realistic-104-holding-20261124.webp": {
+    "pt": "catalog-20261124/104/holding-pt.webp",
+    "en": "catalog-20261124/104/holding-en.webp",
+    "es": "catalog-20261124/104/holding-es.webp"
+  },
+  "catalog-20261124/105/cover-pt.webp": {
+    "en": "catalog-20261124/105/cover-en.webp",
+    "es": "catalog-20261124/105/cover-es.webp"
+  },
+  "catalog_models/realistic-105-cover-20261124.webp": {
+    "pt": "catalog-20261124/105/cover-pt.webp",
+    "en": "catalog-20261124/105/cover-en.webp",
+    "es": "catalog-20261124/105/cover-es.webp"
+  },
+  "catalog-20261124/105/page-pt.webp": {
+    "en": "catalog-20261124/105/page-en.webp",
+    "es": "catalog-20261124/105/page-es.webp"
+  },
+  "catalog_models/realistic-105-page-20261124.webp": {
+    "pt": "catalog-20261124/105/page-pt.webp",
+    "en": "catalog-20261124/105/page-en.webp",
+    "es": "catalog-20261124/105/page-es.webp"
+  },
+  "catalog-20261124/105/holding-pt.webp": {
+    "en": "catalog-20261124/105/holding-en.webp",
+    "es": "catalog-20261124/105/holding-es.webp"
+  },
+  "catalog_models/realistic-105-holding-20261124.webp": {
+    "pt": "catalog-20261124/105/holding-pt.webp",
+    "en": "catalog-20261124/105/holding-en.webp",
+    "es": "catalog-20261124/105/holding-es.webp"
+  },
+  "catalog-20261124/106/cover-pt.webp": {
+    "en": "catalog-20261124/106/cover-en.webp",
+    "es": "catalog-20261124/106/cover-es.webp"
+  },
+  "catalog_models/realistic-106-cover-20261124.webp": {
+    "pt": "catalog-20261124/106/cover-pt.webp",
+    "en": "catalog-20261124/106/cover-en.webp",
+    "es": "catalog-20261124/106/cover-es.webp"
+  },
+  "catalog-20261124/106/page-pt.webp": {
+    "en": "catalog-20261124/106/page-en.webp",
+    "es": "catalog-20261124/106/page-es.webp"
+  },
+  "catalog_models/realistic-106-page-20261124.webp": {
+    "pt": "catalog-20261124/106/page-pt.webp",
+    "en": "catalog-20261124/106/page-en.webp",
+    "es": "catalog-20261124/106/page-es.webp"
+  },
+  "catalog-20261124/106/holding-pt.webp": {
+    "en": "catalog-20261124/106/holding-en.webp",
+    "es": "catalog-20261124/106/holding-es.webp"
+  },
+  "catalog_models/realistic-106-holding-20261124.webp": {
+    "pt": "catalog-20261124/106/holding-pt.webp",
+    "en": "catalog-20261124/106/holding-en.webp",
+    "es": "catalog-20261124/106/holding-es.webp"
+  },
+  "catalog-20261124/107/cover-pt.webp": {
+    "en": "catalog-20261124/107/cover-en.webp",
+    "es": "catalog-20261124/107/cover-es.webp"
+  },
+  "catalog_models/realistic-107-cover-20261124.webp": {
+    "pt": "catalog-20261124/107/cover-pt.webp",
+    "en": "catalog-20261124/107/cover-en.webp",
+    "es": "catalog-20261124/107/cover-es.webp"
+  },
+  "catalog-20261124/107/page-pt.webp": {
+    "en": "catalog-20261124/107/page-en.webp",
+    "es": "catalog-20261124/107/page-es.webp"
+  },
+  "catalog_models/realistic-107-page-20261124.webp": {
+    "pt": "catalog-20261124/107/page-pt.webp",
+    "en": "catalog-20261124/107/page-en.webp",
+    "es": "catalog-20261124/107/page-es.webp"
+  },
+  "catalog-20261124/107/holding-pt.webp": {
+    "en": "catalog-20261124/107/holding-en.webp",
+    "es": "catalog-20261124/107/holding-es.webp"
+  },
+  "catalog_models/realistic-107-holding-20261124.webp": {
+    "pt": "catalog-20261124/107/holding-pt.webp",
+    "en": "catalog-20261124/107/holding-en.webp",
+    "es": "catalog-20261124/107/holding-es.webp"
+  },
+  "catalog-20261124/108/cover-pt.webp": {
+    "en": "catalog-20261124/108/cover-en.webp",
+    "es": "catalog-20261124/108/cover-es.webp"
+  },
+  "catalog_models/realistic-108-cover-20261124.webp": {
+    "pt": "catalog-20261124/108/cover-pt.webp",
+    "en": "catalog-20261124/108/cover-en.webp",
+    "es": "catalog-20261124/108/cover-es.webp"
+  },
+  "catalog-20261124/108/page-pt.webp": {
+    "en": "catalog-20261124/108/page-en.webp",
+    "es": "catalog-20261124/108/page-es.webp"
+  },
+  "catalog_models/realistic-108-page-20261124.webp": {
+    "pt": "catalog-20261124/108/page-pt.webp",
+    "en": "catalog-20261124/108/page-en.webp",
+    "es": "catalog-20261124/108/page-es.webp"
+  },
+  "catalog-20261124/108/holding-pt.webp": {
+    "en": "catalog-20261124/108/holding-en.webp",
+    "es": "catalog-20261124/108/holding-es.webp"
+  },
+  "catalog_models/realistic-108-holding-20261124.webp": {
+    "pt": "catalog-20261124/108/holding-pt.webp",
+    "en": "catalog-20261124/108/holding-en.webp",
+    "es": "catalog-20261124/108/holding-es.webp"
+  },
+  "catalog-20261124/109/cover-pt.webp": {
+    "en": "catalog-20261124/109/cover-en.webp",
+    "es": "catalog-20261124/109/cover-es.webp"
+  },
+  "catalog_models/realistic-109-cover-20261124.webp": {
+    "pt": "catalog-20261124/109/cover-pt.webp",
+    "en": "catalog-20261124/109/cover-en.webp",
+    "es": "catalog-20261124/109/cover-es.webp"
+  },
+  "catalog-20261124/109/page-pt.webp": {
+    "en": "catalog-20261124/109/page-en.webp",
+    "es": "catalog-20261124/109/page-es.webp"
+  },
+  "catalog_models/realistic-109-page-20261124.webp": {
+    "pt": "catalog-20261124/109/page-pt.webp",
+    "en": "catalog-20261124/109/page-en.webp",
+    "es": "catalog-20261124/109/page-es.webp"
+  },
+  "catalog-20261124/109/holding-pt.webp": {
+    "en": "catalog-20261124/109/holding-en.webp",
+    "es": "catalog-20261124/109/holding-es.webp"
+  },
+  "catalog_models/realistic-109-holding-20261124.webp": {
+    "pt": "catalog-20261124/109/holding-pt.webp",
+    "en": "catalog-20261124/109/holding-en.webp",
+    "es": "catalog-20261124/109/holding-es.webp"
+  },
+  "catalog-20261124/110/cover-pt.webp": {
+    "en": "catalog-20261124/110/cover-en.webp",
+    "es": "catalog-20261124/110/cover-es.webp"
+  },
+  "catalog_models/realistic-110-cover-20261124.webp": {
+    "pt": "catalog-20261124/110/cover-pt.webp",
+    "en": "catalog-20261124/110/cover-en.webp",
+    "es": "catalog-20261124/110/cover-es.webp"
+  },
+  "catalog-20261124/110/page-pt.webp": {
+    "en": "catalog-20261124/110/page-en.webp",
+    "es": "catalog-20261124/110/page-es.webp"
+  },
+  "catalog_models/realistic-110-page-20261124.webp": {
+    "pt": "catalog-20261124/110/page-pt.webp",
+    "en": "catalog-20261124/110/page-en.webp",
+    "es": "catalog-20261124/110/page-es.webp"
+  },
+  "catalog-20261124/110/holding-pt.webp": {
+    "en": "catalog-20261124/110/holding-en.webp",
+    "es": "catalog-20261124/110/holding-es.webp"
+  },
+  "catalog_models/realistic-110-holding-20261124.webp": {
+    "pt": "catalog-20261124/110/holding-pt.webp",
+    "en": "catalog-20261124/110/holding-en.webp",
+    "es": "catalog-20261124/110/holding-es.webp"
+  },
+  "catalog-20261124/111/cover-pt.webp": {
+    "en": "catalog-20261124/111/cover-en.webp",
+    "es": "catalog-20261124/111/cover-es.webp"
+  },
+  "catalog_models/realistic-111-cover-20261124.webp": {
+    "pt": "catalog-20261124/111/cover-pt.webp",
+    "en": "catalog-20261124/111/cover-en.webp",
+    "es": "catalog-20261124/111/cover-es.webp"
+  },
+  "catalog-20261124/111/page-pt.webp": {
+    "en": "catalog-20261124/111/page-en.webp",
+    "es": "catalog-20261124/111/page-es.webp"
+  },
+  "catalog_models/realistic-111-page-20261124.webp": {
+    "pt": "catalog-20261124/111/page-pt.webp",
+    "en": "catalog-20261124/111/page-en.webp",
+    "es": "catalog-20261124/111/page-es.webp"
+  },
+  "catalog-20261124/111/holding-pt.webp": {
+    "en": "catalog-20261124/111/holding-en.webp",
+    "es": "catalog-20261124/111/holding-es.webp"
+  },
+  "catalog_models/realistic-111-holding-20261124.webp": {
+    "pt": "catalog-20261124/111/holding-pt.webp",
+    "en": "catalog-20261124/111/holding-en.webp",
+    "es": "catalog-20261124/111/holding-es.webp"
+  },
+  "catalog-20261124/112/cover-pt.webp": {
+    "en": "catalog-20261124/112/cover-en.webp",
+    "es": "catalog-20261124/112/cover-es.webp"
+  },
+  "catalog_models/realistic-112-cover-20261124.webp": {
+    "pt": "catalog-20261124/112/cover-pt.webp",
+    "en": "catalog-20261124/112/cover-en.webp",
+    "es": "catalog-20261124/112/cover-es.webp"
+  },
+  "catalog-20261124/112/page-pt.webp": {
+    "en": "catalog-20261124/112/page-en.webp",
+    "es": "catalog-20261124/112/page-es.webp"
+  },
+  "catalog_models/realistic-112-page-20261124.webp": {
+    "pt": "catalog-20261124/112/page-pt.webp",
+    "en": "catalog-20261124/112/page-en.webp",
+    "es": "catalog-20261124/112/page-es.webp"
+  },
+  "catalog-20261124/112/holding-pt.webp": {
+    "en": "catalog-20261124/112/holding-en.webp",
+    "es": "catalog-20261124/112/holding-es.webp"
+  },
+  "catalog_models/realistic-112-holding-20261124.webp": {
+    "pt": "catalog-20261124/112/holding-pt.webp",
+    "en": "catalog-20261124/112/holding-en.webp",
+    "es": "catalog-20261124/112/holding-es.webp"
+  },
+  "catalog-20261124/113/cover-pt.webp": {
+    "en": "catalog-20261124/113/cover-en.webp",
+    "es": "catalog-20261124/113/cover-es.webp"
+  },
+  "catalog_models/realistic-113-cover-20261124.webp": {
+    "pt": "catalog-20261124/113/cover-pt.webp",
+    "en": "catalog-20261124/113/cover-en.webp",
+    "es": "catalog-20261124/113/cover-es.webp"
+  },
+  "catalog-20261124/113/page-pt.webp": {
+    "en": "catalog-20261124/113/page-en.webp",
+    "es": "catalog-20261124/113/page-es.webp"
+  },
+  "catalog_models/realistic-113-page-20261124.webp": {
+    "pt": "catalog-20261124/113/page-pt.webp",
+    "en": "catalog-20261124/113/page-en.webp",
+    "es": "catalog-20261124/113/page-es.webp"
+  },
+  "catalog-20261124/113/holding-pt.webp": {
+    "en": "catalog-20261124/113/holding-en.webp",
+    "es": "catalog-20261124/113/holding-es.webp"
+  },
+  "catalog_models/realistic-113-holding-20261124.webp": {
+    "pt": "catalog-20261124/113/holding-pt.webp",
+    "en": "catalog-20261124/113/holding-en.webp",
+    "es": "catalog-20261124/113/holding-es.webp"
+  },
+  "catalog-20261124/114/cover-pt.webp": {
+    "en": "catalog-20261124/114/cover-en.webp",
+    "es": "catalog-20261124/114/cover-es.webp"
+  },
+  "catalog_models/realistic-114-cover-20261124.webp": {
+    "pt": "catalog-20261124/114/cover-pt.webp",
+    "en": "catalog-20261124/114/cover-en.webp",
+    "es": "catalog-20261124/114/cover-es.webp"
+  },
+  "catalog-20261124/114/page-pt.webp": {
+    "en": "catalog-20261124/114/page-en.webp",
+    "es": "catalog-20261124/114/page-es.webp"
+  },
+  "catalog_models/realistic-114-page-20261124.webp": {
+    "pt": "catalog-20261124/114/page-pt.webp",
+    "en": "catalog-20261124/114/page-en.webp",
+    "es": "catalog-20261124/114/page-es.webp"
+  },
+  "catalog-20261124/114/holding-pt.webp": {
+    "en": "catalog-20261124/114/holding-en.webp",
+    "es": "catalog-20261124/114/holding-es.webp"
+  },
+  "catalog_models/realistic-114-holding-20261124.webp": {
+    "pt": "catalog-20261124/114/holding-pt.webp",
+    "en": "catalog-20261124/114/holding-en.webp",
+    "es": "catalog-20261124/114/holding-es.webp"
+  },
+  "catalog-20261124/115/cover-pt.webp": {
+    "en": "catalog-20261124/115/cover-en.webp",
+    "es": "catalog-20261124/115/cover-es.webp"
+  },
+  "catalog_models/realistic-115-cover-20261124.webp": {
+    "pt": "catalog-20261124/115/cover-pt.webp",
+    "en": "catalog-20261124/115/cover-en.webp",
+    "es": "catalog-20261124/115/cover-es.webp"
+  },
+  "catalog-20261124/115/page-pt.webp": {
+    "en": "catalog-20261124/115/page-en.webp",
+    "es": "catalog-20261124/115/page-es.webp"
+  },
+  "catalog_models/realistic-115-page-20261124.webp": {
+    "pt": "catalog-20261124/115/page-pt.webp",
+    "en": "catalog-20261124/115/page-en.webp",
+    "es": "catalog-20261124/115/page-es.webp"
+  },
+  "catalog-20261124/115/holding-pt.webp": {
+    "en": "catalog-20261124/115/holding-en.webp",
+    "es": "catalog-20261124/115/holding-es.webp"
+  },
+  "catalog_models/realistic-115-holding-20261124.webp": {
+    "pt": "catalog-20261124/115/holding-pt.webp",
+    "en": "catalog-20261124/115/holding-en.webp",
+    "es": "catalog-20261124/115/holding-es.webp"
+  },
+  "catalog-20261124/116/cover-pt.webp": {
+    "en": "catalog-20261124/116/cover-en.webp",
+    "es": "catalog-20261124/116/cover-es.webp"
+  },
+  "catalog_models/realistic-116-cover-20261124.webp": {
+    "pt": "catalog-20261124/116/cover-pt.webp",
+    "en": "catalog-20261124/116/cover-en.webp",
+    "es": "catalog-20261124/116/cover-es.webp"
+  },
+  "catalog-20261124/116/page-pt.webp": {
+    "en": "catalog-20261124/116/page-en.webp",
+    "es": "catalog-20261124/116/page-es.webp"
+  },
+  "catalog_models/realistic-116-page-20261124.webp": {
+    "pt": "catalog-20261124/116/page-pt.webp",
+    "en": "catalog-20261124/116/page-en.webp",
+    "es": "catalog-20261124/116/page-es.webp"
+  },
+  "catalog-20261124/116/holding-pt.webp": {
+    "en": "catalog-20261124/116/holding-en.webp",
+    "es": "catalog-20261124/116/holding-es.webp"
+  },
+  "catalog_models/realistic-116-holding-20261124.webp": {
+    "pt": "catalog-20261124/116/holding-pt.webp",
+    "en": "catalog-20261124/116/holding-en.webp",
+    "es": "catalog-20261124/116/holding-es.webp"
+  },
+  "catalog-20261124/117/cover-pt.webp": {
+    "en": "catalog-20261124/117/cover-en.webp",
+    "es": "catalog-20261124/117/cover-es.webp"
+  },
+  "catalog_models/realistic-117-cover-20261124.webp": {
+    "pt": "catalog-20261124/117/cover-pt.webp",
+    "en": "catalog-20261124/117/cover-en.webp",
+    "es": "catalog-20261124/117/cover-es.webp"
+  },
+  "catalog-20261124/117/page-pt.webp": {
+    "en": "catalog-20261124/117/page-en.webp",
+    "es": "catalog-20261124/117/page-es.webp"
+  },
+  "catalog_models/realistic-117-page-20261124.webp": {
+    "pt": "catalog-20261124/117/page-pt.webp",
+    "en": "catalog-20261124/117/page-en.webp",
+    "es": "catalog-20261124/117/page-es.webp"
+  },
+  "catalog-20261124/117/holding-pt.webp": {
+    "en": "catalog-20261124/117/holding-en.webp",
+    "es": "catalog-20261124/117/holding-es.webp"
+  },
+  "catalog_models/realistic-117-holding-20261124.webp": {
+    "pt": "catalog-20261124/117/holding-pt.webp",
+    "en": "catalog-20261124/117/holding-en.webp",
+    "es": "catalog-20261124/117/holding-es.webp"
+  },
+  "catalog-20261124/118/cover-pt.webp": {
+    "en": "catalog-20261124/118/cover-en.webp",
+    "es": "catalog-20261124/118/cover-es.webp"
+  },
+  "catalog_models/realistic-118-cover-20261124.webp": {
+    "pt": "catalog-20261124/118/cover-pt.webp",
+    "en": "catalog-20261124/118/cover-en.webp",
+    "es": "catalog-20261124/118/cover-es.webp"
+  },
+  "catalog-20261124/118/page-pt.webp": {
+    "en": "catalog-20261124/118/page-en.webp",
+    "es": "catalog-20261124/118/page-es.webp"
+  },
+  "catalog_models/realistic-118-page-20261124.webp": {
+    "pt": "catalog-20261124/118/page-pt.webp",
+    "en": "catalog-20261124/118/page-en.webp",
+    "es": "catalog-20261124/118/page-es.webp"
+  },
+  "catalog-20261124/118/holding-pt.webp": {
+    "en": "catalog-20261124/118/holding-en.webp",
+    "es": "catalog-20261124/118/holding-es.webp"
+  },
+  "catalog_models/realistic-118-holding-20261124.webp": {
+    "pt": "catalog-20261124/118/holding-pt.webp",
+    "en": "catalog-20261124/118/holding-en.webp",
+    "es": "catalog-20261124/118/holding-es.webp"
   }
 }

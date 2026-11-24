@@ -84,6 +84,11 @@ const PRESETS: Record<string, Record<StudioLang, Preset>> = {
     en: { title: "A Story of Our Family", theme: "Family: the love around the child, gathered in a story of their own." },
     es: { title: "Una Historia de Nuestra Familia", theme: "Familia: el cariño de quienes aman al niño, reunido en una historia solo de ellos." },
   },
+  irmaos_primos: {
+    pt: { title: "Uma História de Irmãos e Primos", theme: "Irmãos e primos: acolher, brincar e descobrir juntos, respeitando o espaço e o jeito de cada um." },
+    en: { title: "A Story of Siblings and Cousins", theme: "Siblings and cousins: welcoming, playing and discovering together while respecting each other's space and individuality." },
+    es: { title: "Una Historia de Hermanos y Primos", theme: "Hermanos y primos: recibir, jugar y descubrir juntos, respetando el espacio y la forma de ser de cada uno." },
+  },
   christmas: {
     pt: { title: "Um Natal em Família", theme: "Natal: luzes, abraço e o carinho da família para guardar para sempre." },
     en: { title: "A Family Christmas", theme: "Christmas: lights, a hug and the family's warmth to treasure forever." },

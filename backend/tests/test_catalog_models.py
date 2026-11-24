@@ -11,13 +11,13 @@ from app.schemas import PreviewRequestIn
 from app.services import book_design, editorial_profile
 from app.workers import editorial_render as render
 
-MODELS = book_design.definitions(4)["models"]
+MODELS = book_design.definitions(book_design.CURRENT_CATALOG_VERSION)["models"]
 
 
 @pytest.mark.parametrize("model", list(MODELS))
 def test_each_available_catalog_book_has_its_own_frozen_references_and_layout(model):
     design = book_design.snapshot(model)
-    assert design["version"] == 4
+    assert design["version"] == book_design.CURRENT_CATALOG_VERSION
     assert book_design.resolve({"book_design": design}) == design
     assert design["catalog_index"] == int(model.rsplit("-", 1)[1])
     for role in ("cover", "page", "holding"):
@@ -60,7 +60,9 @@ def test_catalog_title_changes_only_name_while_theme_remains_free(model):
     assert book_design.select(project, "auto") == selected
 
 
-@pytest.mark.parametrize("model", list(book_design.definitions(4)["unavailable"]))
+@pytest.mark.parametrize(
+    "model", list(book_design.definitions(book_design.CURRENT_CATALOG_VERSION)["unavailable"])
+)
 def test_missing_interior_is_blocked_before_generation(model):
     assert PreviewRequestIn(catalog_design_id=model).catalog_design_id == model
     with pytest.raises(HTTPException) as err:
@@ -77,7 +79,7 @@ def test_catalog_registry_matches_frontend_availability_and_reference_sources():
     retired = {"catalog-realistic-61"}
     assert retired.isdisjoint(web)
     assert set(MODELS) - retired == {k for k, v in web.items() if v["available"]}
-    assert set(book_design.definitions(4)["unavailable"]) == {
+    assert set(book_design.definitions(book_design.CURRENT_CATALOG_VERSION)["unavailable"]) == {
         k for k, v in web.items() if not v["available"]
     }
     for key, design in MODELS.items():

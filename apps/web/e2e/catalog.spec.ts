@@ -5,7 +5,7 @@ for (const lang of ["pt", "en", "es"]) {
     await page.addInitScript((value) => localStorage.setItem("lang", value), lang);
     await page.route(/https:\/\/ipapi\.co\//, (route) => route.abort());
     await page.goto("/catalogo");
-    await expect(page.getByTestId("landing-catalog-card")).toHaveCount(59);
+    await expect(page.getByTestId("landing-catalog-card")).toHaveCount(109);
     await expect(page.getByTestId("catalog-more")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(page.getByTestId("catalog-category")).toHaveCount(0);
@@ -31,7 +31,7 @@ test("ordem da vitrine", async ({ page }) => {
   const links = catalog.locator(".cat-book-link");
   await expect(links).toHaveCount(12);
   while (await page.getByTestId("catalog-more").count()) await page.getByTestId("catalog-more").click();
-  await expect(links).toHaveCount(59);
+  await expect(links).toHaveCount(109);
   await expect(catalog.locator('.cat-book-link[href="/livro/62"]')).toHaveCount(1);
   await expect(catalog.locator('.cat-book-link[href="/livro/63"]')).toHaveCount(1);
   expect((await links.evaluateAll((items) => items.map((item) => item.getAttribute("href")))).slice(0, 12)).toEqual([21, 30, 22, 20, 38, 47, 68, 0, 36, 28, 34, 57].map((id) => `/livro/${id}`));

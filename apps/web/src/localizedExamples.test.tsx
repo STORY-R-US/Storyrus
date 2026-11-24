@@ -53,7 +53,8 @@ describe("approved PT images in all languages", () => {
 
   it("has both translations and valid display assets for every PT master", () => {
     for (const [master, versions] of entries) {
-      expect(existsSync(resolve("public/exemplos", master)), master).toBe(true);
+      const ptFile = localizedExample(master, "pt");
+      expect(existsSync(resolve("public/exemplos", ptFile)), `${master}: pt`).toBe(true);
       for (const lang of ["en", "es"] as const) {
         expect(versions[lang], `${master}: missing ${lang} artwork`).not.toBe("");
         const file = localizedExample(master, lang);
@@ -83,7 +84,7 @@ describe("approved PT images in all languages", () => {
         videos: container.querySelectorAll("#videos .vid-card").length,
       });
       const pt = read();
-      expect(pt.books).toHaveLength(59);
+      expect(pt.books).toHaveLength(variant === "photo" ? 109 : 59);
       expect(pt.hero).toHaveLength(variant === "photo" ? 102 : 24);
       for (const lang of ["en", "es"] as const) {
         fireEvent.click(screen.getByTestId(`landing-lang-${lang}`));
@@ -100,7 +101,7 @@ describe("approved PT images in all languages", () => {
     }));
     for (const lang of ["en", "es"] as const) {
       expect(shelves(lang)).toEqual(shelves("pt"));
-      for (let i = 0; i < 68; i++) expect(Boolean(catalogEntry(lang, i)), `book ${i}`).toBe(Boolean(catalogEntry("pt", i)));
+      for (let i = 0; i <= 118; i++) expect(Boolean(catalogEntry(lang, i)), `book ${i}`).toBe(Boolean(catalogEntry("pt", i)));
     }
   });
 });

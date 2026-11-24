@@ -1362,9 +1362,9 @@
     },
     "example_name": "Sofia",
     "sources": {
-      "cover": "covers/realistic-capa-sofia-princesa-v1-pt.webp",
-      "page": "realistic-pagina-sofia-princesa-v1-pt.webp",
-      "holding": "realistic-foto-sofia-princesa-v1-pt.webp"
+      "cover": "catalog_models/realistic-62-cover-20261124.webp",
+      "page": "catalog_models/realistic-62-page-20261124.webp",
+      "holding": "catalog_models/realistic-62-holding-20261124.webp"
     }
   },
   "catalog-cartoon-62": {
@@ -1398,9 +1398,9 @@
     },
     "example_name": "Lia",
     "sources": {
-      "cover": "covers/realistic-capa-lia-cores-v1-pt.webp",
-      "page": "realistic-pagina-lia-cores-v1-pt.webp",
-      "holding": "realistic-foto-lia-cores-v1-pt.webp"
+      "cover": "catalog_models/realistic-63-cover-20261124.webp",
+      "page": "catalog_models/realistic-63-page-20261124.webp",
+      "holding": "catalog_models/realistic-63-holding-20261124.webp"
     }
   },
   "catalog-cartoon-63": {
@@ -1434,9 +1434,9 @@
     },
     "example_name": "Bento",
     "sources": {
-      "cover": "covers/realistic-capa-bento-compartilhar-v1-pt.webp",
-      "page": "realistic-pagina-bento-compartilhar-v1-pt.webp",
-      "holding": "realistic-foto-bento-compartilhar-v1-pt.webp"
+      "cover": "catalog_models/realistic-64-cover-20261124.webp",
+      "page": "catalog_models/realistic-64-page-20261124.webp",
+      "holding": "catalog_models/realistic-64-holding-20261124.webp"
     }
   },
   "catalog-cartoon-64": {
@@ -1470,9 +1470,9 @@
     },
     "example_name": "Nina",
     "sources": {
-      "cover": "covers/realistic-capa-nina-boa-noite-v1-pt.webp",
-      "page": "realistic-pagina-nina-boa-noite-v1-pt.webp",
-      "holding": "realistic-foto-nina-boa-noite-v1-pt.webp"
+      "cover": "catalog_models/realistic-65-cover-20261124.webp",
+      "page": "catalog_models/realistic-65-page-20261124.webp",
+      "holding": "catalog_models/realistic-65-holding-20261124.webp"
     }
   },
   "catalog-cartoon-65": {
@@ -1506,9 +1506,9 @@
     },
     "example_name": "Theo",
     "sources": {
-      "cover": "covers/realistic-capa-theo-sentimentos-v1-pt.webp",
-      "page": "realistic-pagina-theo-sentimentos-v1-pt.webp",
-      "holding": "realistic-foto-theo-sentimentos-v1-pt.webp"
+      "cover": "catalog_models/realistic-66-cover-20261124.webp",
+      "page": "catalog_models/realistic-66-page-20261124.webp",
+      "holding": "catalog_models/realistic-66-holding-20261124.webp"
     }
   },
   "catalog-cartoon-66": {
@@ -1542,9 +1542,9 @@
     },
     "example_name": "Clara e Miguel",
     "sources": {
-      "cover": "covers/realistic-capa-clara-miguel-casamento-v1-pt.webp",
-      "page": "realistic-pagina-clara-miguel-casamento-v1-pt.webp",
-      "holding": "realistic-foto-clara-miguel-casamento-v1-pt.webp"
+      "cover": "catalog_models/realistic-67-cover-20261124.webp",
+      "page": "catalog_models/realistic-67-page-20261124.webp",
+      "holding": "catalog_models/realistic-67-holding-20261124.webp"
     },
     "example_names": {
       "pt": "Clara e Miguel",
@@ -2150,5 +2150,970 @@
       "page": "cartoon-pagina-davi-brasil-v1-pt.webp",
       "holding": "cartoon-foto-davi-brasil-v1-pt.webp"
     }
+  },
+  "catalog-realistic-69": {
+    "id": "catalog-realistic-69",
+    "catalog_index": 69,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Léo e as Pegadas de um Gigante",
+      "en": "Léo and the Giant's Footprints",
+      "es": "Léo y las Huellas de un Gigante"
+    },
+    "example_name": "Léo",
+    "sources": {
+      "cover": "catalog_models/realistic-69-cover-20261124.webp",
+      "page": "catalog_models/realistic-69-page-20261124.webp",
+      "holding": "catalog_models/realistic-69-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-leo-pegadas-gigante"
+  },
+  "catalog-realistic-70": {
+    "id": "catalog-realistic-70",
+    "catalog_index": 70,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Beatriz e o Museu dos Dinossauros",
+      "en": "Beatriz and the Dinosaur Museum",
+      "es": "Beatriz y el Museo de los Dinosaurios"
+    },
+    "example_name": "Beatriz",
+    "sources": {
+      "cover": "catalog_models/realistic-70-cover-20261124.webp",
+      "page": "catalog_models/realistic-70-page-20261124.webp",
+      "holding": "catalog_models/realistic-70-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-beatriz-museu-dinossauros"
+  },
+  "catalog-realistic-71": {
+    "id": "catalog-realistic-71",
+    "catalog_index": 71,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Raul e o Recife Cheio de Vida",
+      "en": "Raul and the Reef Full of Life",
+      "es": "Raul y el Arrecife Lleno de Vida"
+    },
+    "example_name": "Raul",
+    "sources": {
+      "cover": "catalog_models/realistic-71-cover-20261124.webp",
+      "page": "catalog_models/realistic-71-page-20261124.webp",
+      "holding": "catalog_models/realistic-71-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-raul-recife-vida"
+  },
+  "catalog-realistic-72": {
+    "id": "catalog-realistic-72",
+    "catalog_index": 72,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Camila e a Tartaruga que Procurava seu Lar",
+      "en": "Camila and the Turtle Looking for Home",
+      "es": "Camila y la Tortuguita que Buscaba su Hogar"
+    },
+    "example_name": "Camila",
+    "sources": {
+      "cover": "catalog_models/realistic-72-cover-20261124.webp",
+      "page": "catalog_models/realistic-72-page-20261124.webp",
+      "holding": "catalog_models/realistic-72-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-camila-tartaruga-lar"
+  },
+  "catalog-realistic-73": {
+    "id": "catalog-realistic-73",
+    "catalog_index": 73,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Clara e a Praia que Voltou a Sorrir",
+      "en": "Clara and the Beach That Smiled Again",
+      "es": "Clara y la Playa que Volvió a Sonreír"
+    },
+    "example_name": "Clara",
+    "sources": {
+      "cover": "catalog_models/realistic-73-cover-20261124.webp",
+      "page": "catalog_models/realistic-73-page-20261124.webp",
+      "holding": "catalog_models/realistic-73-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-clara-praia-sorrir"
+  },
+  "catalog-realistic-74": {
+    "id": "catalog-realistic-74",
+    "catalog_index": 74,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Tomás e a Viagem pelos Planetas",
+      "en": "Tomás and the Journey Through the Planets",
+      "es": "Tomás y el Viaje por los Planetas"
+    },
+    "example_name": "Tomás",
+    "sources": {
+      "cover": "catalog_models/realistic-74-cover-20261124.webp",
+      "page": "catalog_models/realistic-74-page-20261124.webp",
+      "holding": "catalog_models/realistic-74-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-tomas-viagem-planetas"
+  },
+  "catalog-realistic-75": {
+    "id": "catalog-realistic-75",
+    "catalog_index": 75,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Aurora e os Mistérios da Lua",
+      "en": "Aurora and the Mysteries of the Moon",
+      "es": "Aurora y los Misterios de la Luna"
+    },
+    "example_name": "Aurora",
+    "sources": {
+      "cover": "catalog_models/realistic-75-cover-20261124.webp",
+      "page": "catalog_models/realistic-75-page-20261124.webp",
+      "holding": "catalog_models/realistic-75-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-aurora-misterios-lua"
+  },
+  "catalog-realistic-76": {
+    "id": "catalog-realistic-76",
+    "catalog_index": 76,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Felipe e o Mapa das Estrelas",
+      "en": "Felipe and the Map of the Stars",
+      "es": "Felipe y el Mapa de las Estrellas"
+    },
+    "example_name": "Felipe",
+    "sources": {
+      "cover": "catalog_models/realistic-76-cover-20261124.webp",
+      "page": "catalog_models/realistic-76-page-20261124.webp",
+      "holding": "catalog_models/realistic-76-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-felipe-mapa-estrelas"
+  },
+  "catalog-realistic-77": {
+    "id": "catalog-realistic-77",
+    "catalog_index": 77,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Princesa Helena e a Coragem de Tentar",
+      "en": "Princess Helena and the Courage to Try",
+      "es": "La Princesa Helena y el Valor de Intentarlo"
+    },
+    "example_name": "Helena",
+    "sources": {
+      "cover": "catalog_models/realistic-77-cover-20261124.webp",
+      "page": "catalog_models/realistic-77-page-20261124.webp",
+      "holding": "catalog_models/realistic-77-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-helena-coragem-tentar"
+  },
+  "catalog-realistic-78": {
+    "id": "catalog-realistic-78",
+    "catalog_index": 78,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Princesa Manuela e o Reino que Aprendeu a Escutar",
+      "en": "Princess Manuela and the Kingdom That Learned to Listen",
+      "es": "La Princesa Manuela y el Reino que Aprendió a Escuchar"
+    },
+    "example_name": "Manuela",
+    "sources": {
+      "cover": "catalog_models/realistic-78-cover-20261124.webp",
+      "page": "catalog_models/realistic-78-page-20261124.webp",
+      "holding": "catalog_models/realistic-78-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-manuela-reino-escutar"
+  },
+  "catalog-realistic-79": {
+    "id": "catalog-realistic-79",
+    "catalog_index": 79,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Princesa Júlia e o Castelo das Boas Ideias",
+      "en": "Princess Júlia and the Castle of Bright Ideas",
+      "es": "La Princesa Júlia y el Castillo de las Buenas Ideas"
+    },
+    "example_name": "Júlia",
+    "sources": {
+      "cover": "catalog_models/realistic-79-cover-20261124.webp",
+      "page": "catalog_models/realistic-79-page-20261124.webp",
+      "holding": "catalog_models/realistic-79-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-julia-castelo-ideias"
+  },
+  "catalog-realistic-80": {
+    "id": "catalog-realistic-80",
+    "catalog_index": 80,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "A Força de Guilherme Está em Ajudar",
+      "en": "Guilherme's Strength Is Helping Others",
+      "es": "La Fuerza de Guilherme Está en Ayudar"
+    },
+    "example_name": "Guilherme",
+    "sources": {
+      "cover": "catalog_models/realistic-80-cover-20261124.webp",
+      "page": "catalog_models/realistic-80-page-20261124.webp",
+      "holding": "catalog_models/realistic-80-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-guilherme-forca-ajudar"
+  },
+  "catalog-realistic-81": {
+    "id": "catalog-realistic-81",
+    "catalog_index": 81,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Papai e Eduardo: De Mãos Dadas, Novas Jornadas",
+      "en": "Dad and Eduardo: Hand in Hand on New Adventures",
+      "es": "Papá y Eduardo: De la Mano, Nuevas Aventuras"
+    },
+    "example_name": "Eduardo",
+    "sources": {
+      "cover": "catalog_models/realistic-81-cover-20261124.webp",
+      "page": "catalog_models/realistic-81-page-20261124.webp",
+      "holding": "catalog_models/realistic-81-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-eduardo-papai-jornadas"
+  },
+  "catalog-realistic-82": {
+    "id": "catalog-realistic-82",
+    "catalog_index": 82,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Papai, Seu Abraço É Meu Lugar",
+      "en": "Daddy, Your Hug Is Where I Belong",
+      "es": "Papá, Tu Abrazo Es Mi Lugar"
+    },
+    "example_name": "Laura",
+    "sources": {
+      "cover": "catalog_models/realistic-82-cover-20261124.webp",
+      "page": "catalog_models/realistic-82-page-20261124.webp",
+      "holding": "catalog_models/realistic-82-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-laura-papai-abraco-lugar"
+  },
+  "catalog-realistic-83": {
+    "id": "catalog-realistic-83",
+    "catalog_index": 83,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Bem-vindo, Ian: Um Novo Amor em Nosso Lar",
+      "en": "Welcome, Ian: A New Love in Our Home",
+      "es": "Bienvenido, Ian: Un Nuevo Amor en Nuestro Hogar"
+    },
+    "example_name": "Ian",
+    "sources": {
+      "cover": "catalog_models/realistic-83-cover-20261124.webp",
+      "page": "catalog_models/realistic-83-page-20261124.webp",
+      "holding": "catalog_models/realistic-83-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-ian-novo-amor-lar"
+  },
+  "catalog-realistic-84": {
+    "id": "catalog-realistic-84",
+    "catalog_index": 84,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "O Primeiro Sorriso de Benjamim",
+      "en": "Benjamim's First Smile",
+      "es": "La Primera Sonrisa de Benjamim"
+    },
+    "example_name": "Benjamim",
+    "sources": {
+      "cover": "catalog_models/realistic-84-cover-20261124.webp",
+      "page": "catalog_models/realistic-84-page-20261124.webp",
+      "holding": "catalog_models/realistic-84-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-benjamim-primeiro-sorriso"
+  },
+  "catalog-realistic-85": {
+    "id": "catalog-realistic-85",
+    "catalog_index": 85,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Letícia e os Abraços dos Primeiros Dias",
+      "en": "Letícia and the Cuddles of Her First Days",
+      "es": "Letícia y los Abrazos de Sus Primeros Días"
+    },
+    "example_name": "Letícia",
+    "sources": {
+      "cover": "catalog_models/realistic-85-cover-20261124.webp",
+      "page": "catalog_models/realistic-85-page-20261124.webp",
+      "holding": "catalog_models/realistic-85-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-leticia-abracos-primeiros-dias"
+  },
+  "catalog-realistic-86": {
+    "id": "catalog-realistic-86",
+    "catalog_index": 86,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "A Grande Missão de Rosa: Levar as Alianças",
+      "en": "Rosa's Special Mission: Carrying the Wedding Rings",
+      "es": "La Gran Misión de Rosa: Llevar los Anillos"
+    },
+    "example_name": "Rosa",
+    "sources": {
+      "cover": "catalog_models/realistic-86-cover-20261124.webp",
+      "page": "catalog_models/realistic-86-page-20261124.webp",
+      "holding": "catalog_models/realistic-86-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-rosa-missao-aliancas"
+  },
+  "catalog-realistic-87": {
+    "id": "catalog-realistic-87",
+    "catalog_index": 87,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Catarina e João: Do Primeiro Olhar ao Nosso Lar",
+      "en": "Catarina and João: From Our First Glance to Our Home",
+      "es": "Catarina y João: De la Primera Mirada a Nuestro Hogar"
+    },
+    "example_name": "Catarina e João",
+    "sources": {
+      "cover": "catalog_models/realistic-87-cover-20261124.webp",
+      "page": "catalog_models/realistic-87-page-20261124.webp",
+      "holding": "catalog_models/realistic-87-holding-20261124.webp"
+    },
+    "example_names": {
+      "pt": "Catarina e João",
+      "en": "Catarina and João",
+      "es": "Catarina y João"
+    },
+    "stable_slug": "sr-demo-catarina-joao-primeiro-olhar-lar"
+  },
+  "catalog-realistic-88": {
+    "id": "catalog-realistic-88",
+    "catalog_index": 88,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Dois Corações, uma Família em Construção",
+      "en": "Two Hearts, a Family in the Making",
+      "es": "Dos Corazones, una Familia en Construcción"
+    },
+    "example_name": "Paula e Ricardo",
+    "sources": {
+      "cover": "catalog_models/realistic-88-cover-20261124.webp",
+      "page": "catalog_models/realistic-88-page-20261124.webp",
+      "holding": "catalog_models/realistic-88-holding-20261124.webp"
+    },
+    "example_names": {
+      "pt": "Paula e Ricardo",
+      "en": "Paula and Ricardo",
+      "es": "Paula y Ricardo"
+    },
+    "stable_slug": "sr-demo-paula-ricardo-familia-construcao"
+  },
+  "catalog-realistic-89": {
+    "id": "catalog-realistic-89",
+    "catalog_index": 89,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Meu Irmão Chegou: o Amor se Multiplicou",
+      "en": "My Brother Is Here: Our Love Has Grown",
+      "es": "Llegó Mi Hermano: el Amor se Multiplicó"
+    },
+    "example_name": "Luana",
+    "sources": {
+      "cover": "catalog_models/realistic-89-cover-20261124.webp",
+      "page": "catalog_models/realistic-89-page-20261124.webp",
+      "holding": "catalog_models/realistic-89-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-luana-irmao-amor-multiplicou"
+  },
+  "catalog-realistic-90": {
+    "id": "catalog-realistic-90",
+    "catalog_index": 90,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Irmãos Diferentes, Companheiros para Sempre",
+      "en": "Different Siblings, Lifelong Companions",
+      "es": "Hermanos Diferentes, Compañeros para Siempre"
+    },
+    "example_name": "Gustavo e Renata",
+    "sources": {
+      "cover": "catalog_models/realistic-90-cover-20261124.webp",
+      "page": "catalog_models/realistic-90-page-20261124.webp",
+      "holding": "catalog_models/realistic-90-holding-20261124.webp"
+    },
+    "example_names": {
+      "pt": "Gustavo e Renata",
+      "en": "Gustavo and Renata",
+      "es": "Gustavo y Renata"
+    },
+    "stable_slug": "sr-demo-gustavo-renata-irmaos-diferentes"
+  },
+  "catalog-realistic-91": {
+    "id": "catalog-realistic-91",
+    "catalog_index": 91,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Bruna e os Primos: Um Time de Bons Amigos",
+      "en": "Bruna and Her Cousins: A Team of Good Friends",
+      "es": "Bruna y sus Primos: Un Equipo de Buenos Amigos"
+    },
+    "example_name": "Bruna",
+    "sources": {
+      "cover": "catalog_models/realistic-91-cover-20261124.webp",
+      "page": "catalog_models/realistic-91-page-20261124.webp",
+      "holding": "catalog_models/realistic-91-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-bruna-primos-time-amigos"
+  },
+  "catalog-realistic-92": {
+    "id": "catalog-realistic-92",
+    "catalog_index": 92,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Gabriela e a Páscoa de Partilhar",
+      "en": "Gabriela and an Easter to Share",
+      "es": "Gabriela y la Pascua de Compartir"
+    },
+    "example_name": "Gabriela",
+    "sources": {
+      "cover": "catalog_models/realistic-92-cover-20261124.webp",
+      "page": "catalog_models/realistic-92-page-20261124.webp",
+      "holding": "catalog_models/realistic-92-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-gabriela-pascoa-partilhar"
+  },
+  "catalog-realistic-93": {
+    "id": "catalog-realistic-93",
+    "catalog_index": 93,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "O Jardim de Páscoa de Rute",
+      "en": "Rute's Easter Garden",
+      "es": "El Jardín de Pascua de Rute"
+    },
+    "example_name": "Rute",
+    "sources": {
+      "cover": "catalog_models/realistic-93-cover-20261124.webp",
+      "page": "catalog_models/realistic-93-page-20261124.webp",
+      "holding": "catalog_models/realistic-93-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-rute-jardim-pascoa"
+  },
+  "catalog-realistic-94": {
+    "id": "catalog-realistic-94",
+    "catalog_index": 94,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Diana Descobre a Alegria da Ressurreição",
+      "en": "Diana Discovers the Joy of the Resurrection",
+      "es": "Diana Descubre la Alegría de la Resurrección"
+    },
+    "example_name": "Diana",
+    "sources": {
+      "cover": "catalog_models/realistic-94-cover-20261124.webp",
+      "page": "catalog_models/realistic-94-page-20261124.webp",
+      "holding": "catalog_models/realistic-94-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-diana-alegria-ressurreicao"
+  },
+  "catalog-realistic-95": {
+    "id": "catalog-realistic-95",
+    "catalog_index": 95,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Isadora e o Natal de Compartilhar",
+      "en": "Isadora and a Christmas to Share",
+      "es": "Isadora y la Navidad de Compartir"
+    },
+    "example_name": "Isadora",
+    "sources": {
+      "cover": "catalog_models/realistic-95-cover-20261124.webp",
+      "page": "catalog_models/realistic-95-page-20261124.webp",
+      "holding": "catalog_models/realistic-95-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-isadora-natal-compartilhar"
+  },
+  "catalog-realistic-96": {
+    "id": "catalog-realistic-96",
+    "catalog_index": 96,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "O Aniversário de Marcela: Crescer, Aprender e Agradecer",
+      "en": "Marcela's Birthday: Growing, Learning, and Giving Thanks",
+      "es": "El Cumpleaños de Marcela: Crecer, Aprender y Agradecer"
+    },
+    "example_name": "Marcela",
+    "sources": {
+      "cover": "catalog_models/realistic-96-cover-20261124.webp",
+      "page": "catalog_models/realistic-96-page-20261124.webp",
+      "holding": "catalog_models/realistic-96-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-marcela-aniversario-agradecer"
+  },
+  "catalog-realistic-97": {
+    "id": "catalog-realistic-97",
+    "catalog_index": 97,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Hugo Mistura Cores e Descobre Novos Tons",
+      "en": "Hugo Mixes Colors and Discovers New Shades",
+      "es": "Hugo Mezcla Colores y Descubre Nuevos Tonos"
+    },
+    "example_name": "Hugo",
+    "sources": {
+      "cover": "catalog_models/realistic-97-cover-20261124.webp",
+      "page": "catalog_models/realistic-97-page-20261124.webp",
+      "holding": "catalog_models/realistic-97-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-hugo-mistura-cores-e-descobre-novos-tons"
+  },
+  "catalog-realistic-98": {
+    "id": "catalog-realistic-98",
+    "catalog_index": 98,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Lara e o Arco-Íris da Arrumação",
+      "en": "Lara's Rainbow Cleanup",
+      "es": "Lara y el Arcoíris del Orden"
+    },
+    "example_name": "Lara",
+    "sources": {
+      "cover": "catalog_models/realistic-98-cover-20261124.webp",
+      "page": "catalog_models/realistic-98-page-20261124.webp",
+      "holding": "catalog_models/realistic-98-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-lara-e-o-arco-iris-da-arrumacao"
+  },
+  "catalog-realistic-99": {
+    "id": "catalog-realistic-99",
+    "catalog_index": 99,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Olívia e as Cores da Feira",
+      "en": "Olívia and the Colors of the Market",
+      "es": "Olívia y los Colores de la Feria"
+    },
+    "example_name": "Olívia",
+    "sources": {
+      "cover": "catalog_models/realistic-99-cover-20261124.webp",
+      "page": "catalog_models/realistic-99-page-20261124.webp",
+      "holding": "catalog_models/realistic-99-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-olivia-e-as-cores-da-feira"
+  },
+  "catalog-realistic-100": {
+    "id": "catalog-realistic-100",
+    "catalog_index": 100,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Caio e o Sorriso Bem Cuidado",
+      "en": "Caio Takes Care of His Smile",
+      "es": "Caio y su Sonrisa Bien Cuidada"
+    },
+    "example_name": "Caio",
+    "sources": {
+      "cover": "catalog_models/realistic-100-cover-20261124.webp",
+      "page": "catalog_models/realistic-100-page-20261124.webp",
+      "holding": "catalog_models/realistic-100-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-caio-e-o-sorriso-bem-cuidado"
+  },
+  "catalog-realistic-101": {
+    "id": "catalog-realistic-101",
+    "catalog_index": 101,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Cecília e as Mãos Prontas para Brincar",
+      "en": "Cecília Gets Her Hands Ready to Play",
+      "es": "Cecília y las Manos Listas para Jugar"
+    },
+    "example_name": "Cecília",
+    "sources": {
+      "cover": "catalog_models/realistic-101-cover-20261124.webp",
+      "page": "catalog_models/realistic-101-page-20261124.webp",
+      "holding": "catalog_models/realistic-101-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-cecilia-e-as-maos-prontas-para-brincar"
+  },
+  "catalog-realistic-102": {
+    "id": "catalog-realistic-102",
+    "catalog_index": 102,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Ravi e o Penico: Cada Passo no Seu Tempo",
+      "en": "Ravi and the Potty: Every Step in His Own Time",
+      "es": "Ravi y el Orinal: Cada Paso a su Tiempo"
+    },
+    "example_name": "Ravi",
+    "sources": {
+      "cover": "catalog_models/realistic-102-cover-20261124.webp",
+      "page": "catalog_models/realistic-102-page-20261124.webp",
+      "holding": "catalog_models/realistic-102-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-ravi-e-o-penico-cada-passo-no-seu-tempo"
+  },
+  "catalog-realistic-103": {
+    "id": "catalog-realistic-103",
+    "catalog_index": 103,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Luiza e o Dia em que a Raiva Chegou",
+      "en": "Luiza and the Day Anger Arrived",
+      "es": "Luiza y el Día en que Llegó el Enojo"
+    },
+    "example_name": "Luiza",
+    "sources": {
+      "cover": "catalog_models/realistic-103-cover-20261124.webp",
+      "page": "catalog_models/realistic-103-page-20261124.webp",
+      "holding": "catalog_models/realistic-103-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-luiza-e-o-dia-em-que-a-raiva-chegou"
+  },
+  "catalog-realistic-104": {
+    "id": "catalog-realistic-104",
+    "catalog_index": 104,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Otto e o Medo que Ficou Menor",
+      "en": "Otto and the Fear That Grew Smaller",
+      "es": "Otto y el Miedo que se Hizo Más Pequeño"
+    },
+    "example_name": "Otto",
+    "sources": {
+      "cover": "catalog_models/realistic-104-cover-20261124.webp",
+      "page": "catalog_models/realistic-104-page-20261124.webp",
+      "holding": "catalog_models/realistic-104-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-otto-e-o-medo-que-ficou-menor"
+  },
+  "catalog-realistic-105": {
+    "id": "catalog-realistic-105",
+    "catalog_index": 105,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Íris Descobre que Pode Pedir Ajuda",
+      "en": "Íris Discovers She Can Ask for Help",
+      "es": "Íris Descubre que Puede Pedir Ayuda"
+    },
+    "example_name": "Íris",
+    "sources": {
+      "cover": "catalog_models/realistic-105-cover-20261124.webp",
+      "page": "catalog_models/realistic-105-page-20261124.webp",
+      "holding": "catalog_models/realistic-105-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-iris-descobre-que-pode-pedir-ajuda"
+  },
+  "catalog-realistic-106": {
+    "id": "catalog-realistic-106",
+    "catalog_index": 106,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Samuel e o Caminho do Boa-Noite",
+      "en": "Samuel and the Path to Good Night",
+      "es": "Samuel y el Camino de las Buenas Noches"
+    },
+    "example_name": "Samuel",
+    "sources": {
+      "cover": "catalog_models/realistic-106-cover-20261124.webp",
+      "page": "catalog_models/realistic-106-page-20261124.webp",
+      "holding": "catalog_models/realistic-106-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-samuel-e-o-caminho-do-boa-noite"
+  },
+  "catalog-realistic-107": {
+    "id": "catalog-realistic-107",
+    "catalog_index": 107,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Amélia e o Abraço Antes de Dormir",
+      "en": "Amélia and the Bedtime Hug",
+      "es": "Amélia y el Abrazo Antes de Dormir"
+    },
+    "example_name": "Amélia",
+    "sources": {
+      "cover": "catalog_models/realistic-107-cover-20261124.webp",
+      "page": "catalog_models/realistic-107-page-20261124.webp",
+      "holding": "catalog_models/realistic-107-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-amelia-e-o-abraco-antes-de-dormir"
+  },
+  "catalog-realistic-108": {
+    "id": "catalog-realistic-108",
+    "catalog_index": 108,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Valentina e os Sons da Noite",
+      "en": "Valentina and the Sounds of the Night",
+      "es": "Valentina y los Sonidos de la Noche"
+    },
+    "example_name": "Valentina",
+    "sources": {
+      "cover": "catalog_models/realistic-108-cover-20261124.webp",
+      "page": "catalog_models/realistic-108-page-20261124.webp",
+      "holding": "catalog_models/realistic-108-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-valentina-e-os-sons-da-noite"
+  },
+  "catalog-realistic-109": {
+    "id": "catalog-realistic-109",
+    "catalog_index": 109,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Arthur Descobre a Vez de Cada Um",
+      "en": "Arthur Discovers Everyone Gets a Turn",
+      "es": "Arthur Descubre el Turno de Cada Uno"
+    },
+    "example_name": "Arthur",
+    "sources": {
+      "cover": "catalog_models/realistic-109-cover-20261124.webp",
+      "page": "catalog_models/realistic-109-page-20261124.webp",
+      "holding": "catalog_models/realistic-109-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-arthur-descobre-a-vez-de-cada-um"
+  },
+  "catalog-realistic-110": {
+    "id": "catalog-realistic-110",
+    "catalog_index": 110,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Melissa e os Brinquedos que Todos Cuidaram",
+      "en": "Melissa and the Toys Everyone Cared For",
+      "es": "Melissa y los Juguetes que Todos Cuidaron"
+    },
+    "example_name": "Melissa",
+    "sources": {
+      "cover": "catalog_models/realistic-110-cover-20261124.webp",
+      "page": "catalog_models/realistic-110-page-20261124.webp",
+      "holding": "catalog_models/realistic-110-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-melissa-e-os-brinquedos-que-todos-cuidaram"
+  },
+  "catalog-realistic-111": {
+    "id": "catalog-realistic-111",
+    "catalog_index": 111,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Daniel e a Construção Feita em União",
+      "en": "Daniel and the Bridge They Built Together",
+      "es": "Daniel y la Construcción que Hicieron Juntos"
+    },
+    "example_name": "Daniel",
+    "sources": {
+      "cover": "catalog_models/realistic-111-cover-20261124.webp",
+      "page": "catalog_models/realistic-111-page-20261124.webp",
+      "holding": "catalog_models/realistic-111-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-daniel-e-a-construcao-feita-em-uniao"
+  },
+  "catalog-realistic-112": {
+    "id": "catalog-realistic-112",
+    "catalog_index": 112,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Elisa Descobre o Corpo, da Cabeça ao Pé",
+      "en": "Elisa Discovers Her Body, from Head to Toe",
+      "es": "Elisa Descubre su Cuerpo, de la Cabeza a los Pies"
+    },
+    "example_name": "Elisa",
+    "sources": {
+      "cover": "catalog_models/realistic-112-cover-20261124.webp",
+      "page": "catalog_models/realistic-112-page-20261124.webp",
+      "holding": "catalog_models/realistic-112-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-elisa-descobre-o-corpo-da-cabeca-ao-pe"
+  },
+  "catalog-realistic-113": {
+    "id": "catalog-realistic-113",
+    "catalog_index": 113,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Isabel e a Festa dos Cinco Sentidos",
+      "en": "Isabel's Five Senses Celebration",
+      "es": "Isabel y la Fiesta de los Cinco Sentidos"
+    },
+    "example_name": "Isabel",
+    "sources": {
+      "cover": "catalog_models/realistic-113-cover-20261124.webp",
+      "page": "catalog_models/realistic-113-page-20261124.webp",
+      "holding": "catalog_models/realistic-113-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-isabel-e-a-festa-dos-cinco-sentidos"
+  },
+  "catalog-realistic-114": {
+    "id": "catalog-realistic-114",
+    "catalog_index": 114,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Victor e o Corpo que Merece Respeito",
+      "en": "Victor's Body Deserves Respect",
+      "es": "El Cuerpo de Victor Merece Respeto"
+    },
+    "example_name": "Victor",
+    "sources": {
+      "cover": "catalog_models/realistic-114-cover-20261124.webp",
+      "page": "catalog_models/realistic-114-page-20261124.webp",
+      "holding": "catalog_models/realistic-114-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-victor-e-o-corpo-que-merece-respeito"
+  },
+  "catalog-realistic-115": {
+    "id": "catalog-realistic-115",
+    "catalog_index": 115,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Elena e o Cofrinho dos Sonhos",
+      "en": "Elena and the Piggy Bank of Dreams",
+      "es": "Elena y la Alcancía de los Sueños"
+    },
+    "example_name": "Elena",
+    "sources": {
+      "cover": "catalog_models/realistic-115-cover-20261124.webp",
+      "page": "catalog_models/realistic-115-page-20261124.webp",
+      "holding": "catalog_models/realistic-115-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-elena-e-o-cofrinho-dos-sonhos"
+  },
+  "catalog-realistic-116": {
+    "id": "catalog-realistic-116",
+    "catalog_index": 116,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "Levi Aprende a Escolher: Querer, Precisar e Planejar",
+      "en": "Levi Learns to Choose: Wants, Needs, and Plans",
+      "es": "Levi Aprende a Elegir: Querer, Necesitar y Planear"
+    },
+    "example_name": "Levi",
+    "sources": {
+      "cover": "catalog_models/realistic-116-cover-20261124.webp",
+      "page": "catalog_models/realistic-116-page-20261124.webp",
+      "holding": "catalog_models/realistic-116-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-levi-aprende-a-escolher-querer-precisar-e-planejar"
+  },
+  "catalog-realistic-117": {
+    "id": "catalog-realistic-117",
+    "catalog_index": 117,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "A Feirinha de Marina: Criar, Trocar e Cuidar",
+      "en": "Marina's Little Market: Create, Trade, and Care",
+      "es": "La Pequeña Feria de Marina: Crear, Intercambiar y Cuidar"
+    },
+    "example_name": "Marina",
+    "sources": {
+      "cover": "catalog_models/realistic-117-cover-20261124.webp",
+      "page": "catalog_models/realistic-117-page-20261124.webp",
+      "holding": "catalog_models/realistic-117-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-a-feirinha-de-marina-criar-trocar-e-cuidar"
+  },
+  "catalog-realistic-118": {
+    "id": "catalog-realistic-118",
+    "catalog_index": 118,
+    "style": "realistic",
+    "available": true,
+    "reason": null,
+    "titles": {
+      "pt": "O Primeiro Colo de Noah: Um Encontro de Amor",
+      "en": "Noah's First Cuddle: A Meeting Filled with Love",
+      "es": "El Primer Abrazo de Noah: Un Encuentro de Amor"
+    },
+    "example_name": "Noah",
+    "sources": {
+      "cover": "catalog_models/realistic-118-cover-20261124.webp",
+      "page": "catalog_models/realistic-118-page-20261124.webp",
+      "holding": "catalog_models/realistic-118-holding-20261124.webp"
+    },
+    "stable_slug": "sr-demo-noah-primeiro-colo"
   }
 }
