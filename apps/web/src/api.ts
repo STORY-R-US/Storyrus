@@ -472,6 +472,9 @@ export const api = {
   async updatePreviewTitle(id: string, title: string) {
     return req<JobAccepted>(`/v1/projects/${id}/preview/title`, { method: "PUT", body: JSON.stringify({ title }) });
   },
+  async improveDedication(text: string, name: string, language: string) {
+    return req<{ dedication: string }>(`/v1/studio/dedication/improve`, { method: "POST", body: JSON.stringify({ text, name, language }) });
+  },
   async suggestPreviewTitles(id: string, guidance: string) {
     return req<{ titles: string[] }>(`/v1/projects/${id}/preview/title-suggestions`, { method: "POST", body: JSON.stringify({ guidance }) });
   },

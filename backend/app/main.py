@@ -20,6 +20,7 @@ from app.routers import (
     local_storage,
     print_orders,
     projects,
+    studio_text,
     usage,
     users,
     voices,
@@ -110,6 +111,7 @@ app.include_router(usage.router)
 app.include_router(users.router)
 app.include_router(print_orders.router)
 app.include_router(local_storage.router)
+app.include_router(studio_text.router)
 
 
 @app.get("/health", tags=["meta"])
