@@ -3640,6 +3640,8 @@ img.ex-tab-cover {
 /* Capa e foto quadradas nas pontas; o livro aberto no meio ocupa o dobro da largura, na mesma altura,
    sem as faixas brancas em cima e embaixo. Os poucos mockups quadrados são cortados para 2:1,
    puxando para cima para não cortar o texto da página. */
-.hero-series-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
-.hero-series-inner > .hero-shot:nth-child(2) { aspect-ratio: 2 / 1; }
-.hero-series-inner > .hero-shot:nth-child(2) img { object-fit: cover; object-position: 50% 30%; }
+/* Foto do meio: quadrada fica inteira (3 iguais); livro aberto 2:1 ocupa o dobro. */
+.hero-series-inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hero-series-inner:has(> .hero-shot:nth-child(2) img[data-wide="1"]) { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+.hero-series-inner > .hero-shot:nth-child(2):has(img[data-wide="1"]) { aspect-ratio: 2 / 1; }
+.hero-series-inner > .hero-shot:nth-child(2) img { object-fit: cover; object-position: 50% 50%; }
