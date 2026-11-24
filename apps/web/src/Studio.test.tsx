@@ -330,7 +330,7 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
     expect(screen.queryByLabelText(/^quantidade de livros$/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
-    expect(screen.getByText(/foto de um ou mais personagens/i)).toBeInTheDocument();
+    expect(screen.getByText(/envie as fotos do herói/i)).toBeInTheDocument();
     expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/envie fotos nítidas do protagonista/i);
     expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/como a mãe ou o irmão/i);
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
@@ -457,7 +457,7 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/idade do pet/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/nome do protagonista/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^feminino$/i, pressed: true })).toBeInTheDocument();
-    expect(screen.getByText(/foto de um ou mais personagens/i)).toBeInTheDocument();
+    expect(screen.getByText(/envie as fotos do herói/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /^masculino$/i }));
     expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();

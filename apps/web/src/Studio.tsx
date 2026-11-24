@@ -248,9 +248,9 @@ const IcMoon = ({ className }: IconProps) => (
 
 
 const FLOW = {
-  pt: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Dados do protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatória", resumo: "Resumo do pedido", sumHero: "Protagonista", sumSuggest: "Vamos sugerir", sumPhotos: "Fotos" },
-  en: { educativo: "Educational", format: "20 × 20 cm · 20 pages", dados: "Main character", tema: "Theme", titulo: "Title", dedicatoria: "Dedication", resumo: "Order summary", sumHero: "Main character", sumSuggest: "We will suggest one", sumPhotos: "Photos" },
-  es: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Datos del protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatoria", resumo: "Resumen del pedido", sumHero: "Protagonista", sumSuggest: "Te sugerimos uno", sumPhotos: "Fotos" },
+  pt: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Dados do protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatória", resumo: "Resumo do pedido", step: ["Quem é o herói da história?", "Envie as fotos do herói", "Sobre o que é a história?", "Qual vai ser o título?", "Quer escrever uma dedicatória?", "Confira e crie o seu livro"], sumHero: "Protagonista", sumSuggest: "Vamos sugerir", sumPhotos: "Fotos" },
+  en: { educativo: "Educational", format: "20 × 20 cm · 20 pages", dados: "Main character", tema: "Theme", titulo: "Title", dedicatoria: "Dedication", resumo: "Order summary", step: ["Who is the hero of the story?", "Send photos of the hero", "What is the story about?", "What will the title be?", "Would you like to write a dedication?", "Check and create your book"], sumHero: "Main character", sumSuggest: "We will suggest one", sumPhotos: "Photos" },
+  es: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Datos del protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatoria", resumo: "Resumen del pedido", step: ["¿Quién es el héroe de la historia?", "Envía las fotos del héroe", "¿De qué trata la historia?", "¿Cuál será el título?", "¿Quieres escribir una dedicatoria?", "Revisa y crea tu libro"], sumHero: "Protagonista", sumSuggest: "Te sugerimos uno", sumPhotos: "Fotos" },
 } as const;
 
 /** Melhora a dedicatória escrita pela família sem IA: arruma espaços, maiúscula e ponto, cita o nome e fecha com carinho. */
@@ -1083,6 +1083,16 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     );
   }
 
+  // Número de cada passo do formulário (fotos e dedicatória podem não aparecer).
+  const stepNo = (() => {
+    const hero = 1;
+    const photos = fieldsLocked ? 0 : hero + 1;
+    const theme = (photos || hero) + 1;
+    const title = theme + 1;
+    const dedication = onlyName ? 0 : title + 1;
+    return { hero, photos, theme, title, dedication, create: (dedication || title) + 1 };
+  })();
+
   return (
     <div className={`kid studio-app${orderSent ? " is-reviewing-project" : ""}`}>
       <header className="khead" role="banner">
@@ -1605,8 +1615,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             {project && <p className="muted">{lang === "pt" ? "O projeto atual continua salvo na sua conta. Esta opção abre uma nova criação livre." : lang === "en" ? "Your current project stays saved in your account. This opens a new free creation." : "El proyecto actual sigue guardado en tu cuenta. Esta opción abre una nueva creación libre."}</p>}
             {!catalogModel(selectedCatalogId)!.available ? <p role="alert">{unavailableCatalogCopy(lang)}</p> : <CatalogDesignSamples model={{name: catalogModel(selectedCatalogId)!.titles[lang], sources: catalogModel(selectedCatalogId)!.sources}} lang={lang} />}
           </section>}
-          <h3 className="studio-section-title"><span>01</span>{FLOW[lang].dados}</h3>
-          <div className={fieldsLocked ? "studio-block" : "studio-block studio-block-split"}>
+          <div className="studio-step" id="studio-step-hero">
+          <h3 className="studio-section-title"><span>{stepNo.hero}</span>{FLOW[lang].step[0]}</h3>
+          <div className="studio-block">
             <div className="studio-block-fields">
           <div className="studio-grid two">
             <label className="studio-field">
@@ -1705,20 +1716,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
             </div>
+          </div>
+          </div>
             {!fieldsLocked && (
+              <div className="studio-step" id="studio-step-photos">
+              <h3 className="studio-section-title"><span>{stepNo.photos}</span>{FLOW[lang].step[1]}</h3>
               <div className="studio-block-photo">
-              <aside className="studio-privacy-notice" aria-labelledby="studio-privacy-heading">
-                <span className="studio-privacy-symbol" aria-hidden="true">✓</span>
-                <div>
-                  <h4 id="studio-privacy-heading">{PRIVACY_NOTICE[lang].title}</h4>
-                  <p>{PRIVACY_NOTICE[lang].text}</p>
-                  <details><summary>{PRIVACY_NOTICE[lang].link}</summary>
-                    <p>{PRIVACY_NOTICE[lang].rights}</p>
-                    <a href={lang === "en" ? "/privacy" : "/privacidade"} target="_blank" rel="noreferrer">{t.privacyPolicy}</a>
-                  </details>
-                </div>
-              </aside>
-              <p className="studio-field">{t.photoCharacters}</p>
               <div
                 id="studio-field-photo"
                 tabIndex={-1}
@@ -1776,11 +1779,19 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   </ul>
                 </>
               ) : null}
+              <details className="studio-privacy-notice">
+                <summary>🔒 {PRIVACY_NOTICE[lang].link}</summary>
+                <h4>{PRIVACY_NOTICE[lang].title}</h4>
+                <p>{PRIVACY_NOTICE[lang].text}</p>
+                <p>{PRIVACY_NOTICE[lang].rights}</p>
+                <a href={lang === "en" ? "/privacy" : "/privacidade"} target="_blank" rel="noreferrer">{t.privacyPolicy}</a>
+              </details>
+              </div>
               </div>
             )}
-          </div>
 
-          <h3 className="studio-section-title"><span>02</span>{FLOW[lang].tema}</h3>
+          <div className="studio-step" id="studio-step-theme">
+          <h3 className="studio-section-title"><span>{stepNo.theme}</span>{FLOW[lang].step[2]}</h3>
           {onlyName ? (
             <p className="studio-chosen" role="status" data-testid="studio-locked-theme">
               <span>{t.themeLocked}</span>
@@ -1812,7 +1823,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
 
-          <h3 className="studio-section-title"><span>03</span>{FLOW[lang].titulo}</h3>
+          </div>
+
+          <div className="studio-step" id="studio-step-title">
+          <h3 className="studio-section-title"><span>{stepNo.title}</span>{FLOW[lang].step[3]}</h3>
           <label className="studio-field">
             {t.bookTitle}
             <input
@@ -1836,8 +1850,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
           </label>
 
-          {!onlyName && <h3 className="studio-section-title"><span>04</span>{FLOW[lang].dedicatoria}</h3>}
+          </div>
+
           {!onlyName && (
+            <div className="studio-step" id="studio-step-dedication">
+            <h3 className="studio-section-title"><span>{stepNo.dedication}</span>{FLOW[lang].step[4]}</h3>
             <div className="studio-dedication-field">
               <label className="studio-field">
                 {t.dedication}
@@ -1884,11 +1901,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </ol>
               )}
             </div>
+            </div>
           )}
 
           {!fieldsLocked && (
             <>
-              <h3 className="studio-section-title"><span>{onlyName ? "04" : "05"}</span>{FLOW[lang].resumo}</h3>
+              <div className="studio-step studio-step-final" id="studio-step-create">
+              <h3 className="studio-section-title"><span>{stepNo.create}</span>{FLOW[lang].step[5]}</h3>
               <dl className="studio-summary" data-testid="studio-summary">
                 <div><dt>{FLOW[lang].sumHero}</dt><dd>{childName.trim() ? `${childName.trim()}${childAge !== "" ? `, ${childAge}` : ""}` : "—"}</dd></div>
                 <div><dt>{FLOW[lang].tema}</dt><dd>{themeText.trim() || bookTitle.trim() || "—"}</dd></div>
@@ -1937,6 +1956,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               >
                 {t.createProject}
               </button>
+              </div>
             </>
           )}
           </>
