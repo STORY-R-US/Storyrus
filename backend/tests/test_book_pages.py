@@ -3,13 +3,18 @@
 import uuid
 
 import pytest
-from test_master_book import _png, _run, studio  # noqa: F401  (studio é fixture)
+import test_master_book as master
 
 from app.ai_clients.base import TextResult
 from app.config import settings
 from app.models import Project
 from app.services import book_profile
 from app.workers import book_render, handlers
+
+# Fixture e auxiliares da suíte do Estúdio.
+studio = master.studio
+_png = master._png
+_run = master._run
 
 
 @pytest.fixture

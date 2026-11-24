@@ -375,8 +375,8 @@ describe("Landing — catálogo", () => {
     expect(enSrcs.some((src) => src.includes("capa-amor-vovo-motor"))).toBe(true);
     expect(enCatalog.textContent).toContain("Martin, The Great Goalkeeper");
     expect(enCatalog.textContent).toContain("Grandpa's Love, My Safe Harbor");
-    expect(enCatalog.textContent).toContain("$33.91");
-    expect(enCatalog.textContent).not.toContain("$30.08");
+    expect(enCatalog.textContent).toContain("$63.03");
+    expect(enCatalog.textContent).toContain("$59.20");
     expect(enCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
 
     await user.click(screen.getByTestId("landing-lang-es"));
@@ -391,8 +391,8 @@ describe("Landing — catálogo", () => {
     expect(within(esCatalog).getAllByRole("button", { name: /^HARD/ }).length).toBeGreaterThan(0);
     expect(within(esCatalog).getAllByText(/resistente y duradera/i).length).toBeGreaterThan(0);
     expect(esCatalog.textContent).toContain("20 × 20 cm");
-    expect(esCatalog.textContent).toContain("30,10 €");
-    expect(esCatalog.textContent).not.toContain("26,70 €");
+    expect(esCatalog.textContent).toContain("55,95 €");
+    expect(esCatalog.textContent).toContain("52,55 €");
     expect(esCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
   });
 
@@ -1045,7 +1045,7 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("heading", { name: /resumo da história/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /detalhes do livro/i })).toBeInTheDocument();
     expect(screen.getByTestId("book-story")).toHaveTextContent(/harpa e as ovelhas/i);
-    expect(screen.getByText(/livro 16 páginas/i)).toBeInTheDocument();
+    expect(screen.getByText(/livro 20 páginas/i)).toBeInTheDocument();
     expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=biblico");
     expect(screen.getByTestId("site-back-nav")).toBeInTheDocument();
     expect(screen.getByTestId("site-back-home")).toHaveAttribute("href", "/");
