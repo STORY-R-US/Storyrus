@@ -760,7 +760,7 @@ const RELATED_CATALOG_THEMES: Record<number, readonly string[]> = {
   33: ["pets"], 34: ["adventure"],
   37: ["family_love", "grandfather_love"], 38: ["family_love"],
   39: ["tio_tia"], 40: ["tio_tia"],
-  44: ["family_love", "biblico"], 45: ["family_love"],
+  44: ["family_love"], 45: ["family_love"],
   46: ["family_love"], 51: ["grandparents_love", "family_love"],
   52: ["family_love"], 53: ["sport"], 54: ["family_love"],
   56: ["family_love"],
