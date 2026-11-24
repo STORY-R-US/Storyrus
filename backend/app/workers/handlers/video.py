@@ -108,7 +108,7 @@ STORY_PROMPT = (
 
 
 def _story_frames(db: Session, project: Project) -> list[tuple[str, str]]:
-    """Capa, as 16 páginas com texto e a contracapa do livro aprovado, em ordem."""
+    """Capa, as páginas com texto (16 ou 20) e a contracapa do livro aprovado, em ordem."""
     language = project.language or "pt-BR"
     editorial = (project.book_profile or {}).get("editorial")
     rows = db.scalars(
@@ -134,7 +134,9 @@ def _story_frames(db: Session, project: Project) -> list[tuple[str, str]]:
     if cover is None:
         raise ProviderError("Capa aprovada ausente para a história animada", transient=False)
     frames = [("capa", (cover.meta or {}).get("flat_cover_key") or cover.storage_key)]
-    for number in range(1, 17):
+    from app.services.book_profile import page_count
+
+    for number in range(1, page_count(project) + 1):
         page = latest("com_texto", number)
         if page is None:
             raise ProviderError(f"Página {number} ausente para a história animada", transient=False)

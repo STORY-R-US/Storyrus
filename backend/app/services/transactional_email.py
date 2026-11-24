@@ -570,7 +570,9 @@ def _shop_pdfs(db, project, order) -> list[tuple[str, bytes]] | None:
     if cover is None:
         return None
     pages: list[bytes] = []
-    for number in range(1, 17):
+    from app.services.book_profile import page_count
+
+    for number in range(1, page_count(project) + 1):
         asset = latest("com_texto", number)
         if asset is None:
             return None

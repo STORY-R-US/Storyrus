@@ -239,20 +239,20 @@ describe("Landing — catálogo", () => {
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     expect(within(catalog).queryByText(/mãos que consertam motores/i)).not.toBeInTheDocument();
     expect(within(cards[0]).queryByText(/capa mole ou capa dura/i)).not.toBeInTheDocument();
-    expect(within(cards[0]).getByText("Livro 16 Páginas")).toBeInTheDocument();
-    expect(cards[0].querySelector(".cat-notes-sizes")).toContainElement(within(cards[0]).getByText("Livro 16 Páginas"));
+    expect(within(cards[0]).getByText("Livro 20 Páginas")).toBeInTheDocument();
+    expect(cards[0].querySelector(".cat-notes-sizes")).toContainElement(within(cards[0]).getByText("Livro 20 Páginas"));
     expect(cards[0].querySelector(".cat-badges")).not.toBeInTheDocument();
     const noteLabels = [...cards[0].querySelectorAll(".cat-notes button")].map((button) => button.textContent);
-    expect(noteLabels).toEqual(["HARD", "SOFT"]);
+    expect(noteLabels).toEqual(["HARDR$ 259", "SOFTR$ 229"]);
     expect(cards[0].textContent).toContain("20 × 20 cm");
     expect(cards[0].textContent).not.toContain("15 × 15 cm");
-    expect(cards[0].textContent).toContain("R$ 177,00");
-    expect(cards[0].textContent).not.toContain("R$ 157,00");
-    expect(within(cards[0]).getAllByRole("button", { name: "HARD" })).toHaveLength(1);
+    expect(cards[0].textContent).not.toContain("R$ 177");
+    expect(cards[0].textContent).toContain("Frete não incluído.");
+    expect(within(cards[0]).getAllByRole("button", { name: /^HARD/ })).toHaveLength(1);
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
-    expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
+    expect(within(cards[0]).getAllByRole("button", { name: /^SOFT/ })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(59);
+    expect(within(catalog).getAllByRole("button", { name: /^HARD/ })).toHaveLength(59);
     expect(cards).toHaveLength(59);
     expect(cards.some((card) => card.textContent?.includes("Livro Teste"))).toBe(false);
     expect(within(catalog).getByText(/nano e suas aventuras/i)).toBeInTheDocument();
@@ -300,12 +300,12 @@ describe("Landing — catálogo", () => {
     expect(cards[cards.length - 3].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-construtor.png", "pt")));
     expect(cards[cards.length - 2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-heroi-bombeiro.png", "pt")));
     expect(cards[cards.length - 1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(localizedExample("capa-heroi-policia.png", "pt")));
-    expect(within(cards[0]).getByRole("button", { name: "HARD", pressed: true })).toBeInTheDocument();
-    expect(within(cards[0]).getByRole("button", { name: "SOFT", pressed: false })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: /^HARD/, pressed: true })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: /^SOFT/, pressed: false })).toBeInTheDocument();
     expect(within(cards[0]).queryByRole("button", { name: "M" })).not.toBeInTheDocument();
     expect(within(cards[0]).queryByRole("button", { name: "P" })).not.toBeInTheDocument();
     expect(cards[0].querySelector(".cat-book")).toHaveAttribute("data-size", "M");
-    expect(within(cards[4]).getByRole("button", { name: "HARD", pressed: true })).toBeInTheDocument();
+    expect(within(cards[4]).getByRole("button", { name: /^HARD/, pressed: true })).toBeInTheDocument();
   });
 
   it("troca descrição e valor ao escolher capa e tamanho", async () => {
@@ -315,19 +315,21 @@ describe("Landing — catálogo", () => {
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const card = within(catalog).getAllByTestId("landing-catalog-card")[0];
 
-    await user.click(within(card).getByRole("button", { name: "HARD" }));
-    expect(within(card).getByRole("button", { name: "HARD", pressed: true })).toBeInTheDocument();
-    expect(within(card).getByRole("button", { name: "SOFT", pressed: false })).toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: /^HARD/ }));
+    expect(within(card).getByRole("button", { name: /^HARD/, pressed: true })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: /^SOFT/, pressed: false })).toBeInTheDocument();
     expect(card.textContent).toContain("20 × 20 cm");
     expect(card.textContent).not.toContain("15 × 15 cm");
 
-    await user.click(within(card).getByRole("button", { name: "SOFT" }));
-    expect(within(card).getByRole("button", { name: "SOFT", pressed: true })).toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: /^SOFT/ }));
+    expect(within(card).getByRole("button", { name: /^SOFT/, pressed: true })).toBeInTheDocument();
     expect(studioTarget(within(card).getByTestId("landing-personalize").getAttribute("href"))).toContain("capa=soft");
 
-    expect(within(card).getByText("R$ 177,00.")).toHaveClass("is-price");
-    expect(within(card).queryByText("R$ 157,00.")).not.toBeInTheDocument();
-    expect(card.textContent).toContain("Valor do livro impresso, sem o frete. E-book e história animada são opcionais.");
+    // Cada capa mostra o seu valor no botão amarelo.
+    expect(within(card).getByRole("button", { name: /^HARD/ })).toHaveTextContent("R$ 259");
+    expect(within(card).getByRole("button", { name: /^SOFT/ })).toHaveTextContent("R$ 229");
+    expect(card.textContent).toContain("Frete não incluído.");
+    expect(card.textContent).not.toContain("mesmo valor");
     expect(within(card).getByTestId("catalog-all-prices")).toHaveAttribute("href", "/#valores");
     const prices = screen.getByTestId("landing-prices");
     expect(within(prices).getByRole("heading", { name: "Valores" })).toBeInTheDocument();
@@ -339,10 +341,13 @@ describe("Landing — catálogo", () => {
     expect(prices.textContent).toContain("P-Book");
     expect(prices.textContent).toContain("E-Book");
     expect(prices.textContent).toContain("V-Book");
-    expect(within(prices).getByText("Capa Hard (dura)")).toBeInTheDocument();
-    expect(within(prices).getByText("Capa Soft (flexível)")).toBeInTheDocument();
+    expect(within(prices).getByTestId("landing-price-hard")).toHaveTextContent("HARDR$ 259");
+    expect(within(prices).getByTestId("landing-price-soft")).toHaveTextContent("SOFTR$ 229");
+    expect(within(prices).getByTestId("landing-prices-book")).toHaveTextContent("Livro 20 Páginas");
+    expect(prices.textContent).toContain("Frete não incluído.");
+    expect(prices.textContent).not.toContain("mesmo valor");
     expect(within(prices).getByTestId("landing-prices-cta")).toHaveTextContent("Criar");
-    for (const value of ["R$ 177", "+ R$ 29", "+ R$ 89", "+ R$ 99", "R$ 119", "R$ 209", "R$ 219"]) {
+    for (const value of ["+ R$ 29", "R$ 177", "+ R$ 109", "R$ 289", "+ R$ 119", "R$ 299"]) {
       expect(within(prices).getByText(value)).toBeInTheDocument();
     }
 
@@ -370,8 +375,8 @@ describe("Landing — catálogo", () => {
     expect(enSrcs.some((src) => src.includes("capa-amor-vovo-motor"))).toBe(true);
     expect(enCatalog.textContent).toContain("Martin, The Great Goalkeeper");
     expect(enCatalog.textContent).toContain("Grandpa's Love, My Safe Harbor");
-    expect(enCatalog.textContent).toContain("$33.91");
-    expect(enCatalog.textContent).not.toContain("$30.08");
+    expect(enCatalog.textContent).toContain("$49.62");
+    expect(enCatalog.textContent).toContain("$43.87");
     expect(enCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
 
     await user.click(screen.getByTestId("landing-lang-es"));
@@ -383,11 +388,11 @@ describe("Landing — catálogo", () => {
     expect(esSrcs.some((src) => src.includes("capa-amor-de-avo"))).toBe(true);
     expect(esCatalog.textContent).toContain("El Amor Del Abuelo, Mi Puerto Seguro");
     expect(esCatalog.textContent).toContain("Feliz Cumpleaños, Matteo");
-    expect(within(esCatalog).getAllByRole("button", { name: "HARD" }).length).toBeGreaterThan(0);
+    expect(within(esCatalog).getAllByRole("button", { name: /^HARD/ }).length).toBeGreaterThan(0);
     expect(within(esCatalog).getAllByText(/resistente y duradera/i).length).toBeGreaterThan(0);
     expect(esCatalog.textContent).toContain("20 × 20 cm");
-    expect(esCatalog.textContent).toContain("30,10 €");
-    expect(esCatalog.textContent).not.toContain("26,70 €");
+    expect(esCatalog.textContent).toContain("44,05 €");
+    expect(esCatalog.textContent).toContain("38,95 €");
     expect(esCatalog.textContent?.replace(/R\$ 0,50/g, "")).not.toContain("R$");
   });
 
@@ -991,7 +996,12 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /^livros$/i })).toHaveAttribute("href", "/catalogo");
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(12);
+    // O catálogo mostra todos os livros de uma vez, com as subcategorias dentro de cada faixa.
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(59);
+    expect(screen.queryByTestId("catalog-more")).not.toBeInTheDocument();
+    expect([...document.querySelectorAll(".catalog-shelf .catalog-bar-name")].map((el) => el.textContent)).toEqual(["Ocasiões Especiais", "Temáticas", "Você e Eu", "Educativo"]);
+    const subTitles = [...document.querySelectorAll("h3.catalog-subgroup-title")].map((el) => el.textContent);
+    for (const name of ["Natal", "Dinossauros", "Família", "Hora de Dormir"]) expect(subTitles).toContain(name);
     expect(screen.queryByTestId("catalog-category")).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
@@ -1035,7 +1045,7 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("heading", { name: /resumo da história/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /detalhes do livro/i })).toBeInTheDocument();
     expect(screen.getByTestId("book-story")).toHaveTextContent(/harpa e as ovelhas/i);
-    expect(screen.getByText(/livro 16 páginas/i)).toBeInTheDocument();
+    expect(screen.getByText(/livro 20 páginas/i)).toBeInTheDocument();
     expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=biblico");
     expect(screen.getByTestId("site-back-nav")).toBeInTheDocument();
     expect(screen.getByTestId("site-back-home")).toHaveAttribute("href", "/");

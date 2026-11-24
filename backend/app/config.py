@@ -142,8 +142,11 @@ class Settings(BaseSettings):
     price_kling_per_second_usd: float = 0.10
     price_openai_image_usd: float = 0.04
 
+    # Páginas de miolo dos livros novos (16 ou 20). Os criados antes guardam 16.
+    book_pages: int = 20
     # Impresso. Milímetros, perfil e pacote ficam vazios até a gráfica e a Ana
-    # enviarem os números. Preço atual da vitrine: P R$ 157, M R$ 177.
+    # enviarem os números. Preços aprovados em 24/11/2026 (20 páginas, 30% de margem, impressão a R$ 40 na dura e R$ 25 na flexível):
+    # 20×20 capa dura R$ 259 e capa flexível R$ 229. O P (15×15) saiu do site.
     # Miolo de referência: sangria 5 mm e margem interna de 5 mm.
     print_bleed_mm: float | None = 5
     print_safety_mm: float | None = 5
@@ -158,15 +161,19 @@ class Settings(BaseSettings):
     print_package_length_cm: float | None = None
     print_price_p_cents: int = 15700
     print_price_m_cents: int = 17700
+    # 20×20 por capa. Nomes novos para nenhum valor antigo salvo no Render valer no lugar.
+    print_price_hard_cents: int = 25900
+    print_price_soft_cents: int = 22900
     print_allow_p_hardcover: bool = False
-    # Extras do impresso e compra só digital (centavos BRL). Ajustáveis no Render.
+    # Extras do impresso e compra só digital (centavos BRL), aprovados em 24/11/2026.
     price_extra_ebook_cents: int = 2900
-    price_extra_video_cents: int = 8900
-    price_extra_bundle_cents: int = 9900
-    price_digital_ebook_cents: int = 11900
-    price_digital_video_cents: int = 20900
-    price_digital_bundle_cents: int = 21900
-    # História animada vendida: capa, 16 páginas e contracapa, um clipe Kling por página.
+    price_extra_video_cents: int = 10900
+    price_extra_bundle_cents: int = 11900
+    price_digital_ebook_cents: int = 17700
+    price_digital_video_cents: int = 28900
+    price_digital_bundle_cents: int = 29900
+    # História animada vendida: capa, páginas (20 nos livros novos) e contracapa,
+    # um clipe Kling por página.
     story_video_clip_s: int = 5
     story_video_concurrency: int = 3
     story_video_poll_s: float = 30.0

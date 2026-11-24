@@ -1,6 +1,6 @@
 """Tabela do impresso, dos extras digitais e da compra só digital.
 
-A capa não altera o valor, como na vitrine.
+Desde 24/11/2026 o 20×20 tem um valor por capa: dura R$ 259 e flexível R$ 229.
 """
 
 from __future__ import annotations
@@ -17,14 +17,27 @@ PRINT = "print"
 DIGITAL = "digital"
 
 
-def book_price_cents(book_size: str | None, theme: str | None = None) -> int:
+def book_price_cents(
+    book_size: str | None, theme: str | None = None, cover_type: str | None = None
+) -> int:
     if book_size not in {"P", "M"}:
         raise ValueError(book_size or "")
     if theme == TEST_BOOK_THEME:
         return TEST_BOOK_CENTS
     if book_size == "P":
         return int(settings.print_price_p_cents)
-    return int(settings.print_price_m_cents)
+    # Sem capa escolhida, vale o valor da capa dura (o maior), nunca abaixo do real.
+    if cover_type == "soft":
+        return int(settings.print_price_soft_cents)
+    return int(settings.print_price_hard_cents)
+
+
+def cover_prices(theme: str | None = None) -> dict:
+    """Valor do 20×20 em cada capa, para o checkout mostrar os dois."""
+    return {
+        "hard": book_price_cents("M", theme, "hard"),
+        "soft": book_price_cents("M", theme, "soft"),
+    }
 
 
 def purchase_choice(project: Any) -> dict:
@@ -92,6 +105,7 @@ def digital_price_cents(ebook: bool, video: bool, theme: str | None = None) -> i
 def price_table(theme: str | None = None) -> dict:
     """Valores mostrados no checkout, sempre vindos do servidor."""
     return {
+        "book": cover_prices(theme),
         "extra": {
             "ebook": extras_price_cents(True, False, theme),
             "video": extras_price_cents(False, True, theme),

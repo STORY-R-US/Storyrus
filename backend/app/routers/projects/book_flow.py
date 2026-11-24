@@ -48,7 +48,7 @@ def approve_story(
 
 
 class PageIn(BaseModel):
-    page: int | None = Field(default=None, ge=1, le=16)
+    page: int | None = Field(default=None, ge=1, le=20)
     adjustment: str | None = Field(default=None, max_length=500)
 
 
@@ -76,7 +76,7 @@ def next_page(
     book_profile.require_stage(project, "avatar_approved", "page_ready", "book_ready")
     current = project.book_profile.get("current_page", 0)
     number = body.page if body and body.page else current + 1
-    if number > min(current + 1, 16):
+    if number > min(current + 1, book_profile.page_count(project)):
         raise HTTPException(409, "Gere as paginas em ordem, uma por vez")
     project.book_approved_at = None
     invalidate_print(db, project)

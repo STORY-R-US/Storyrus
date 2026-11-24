@@ -138,6 +138,8 @@ def start_story(
     if brief and brief.strip():
         payload = {"brief": brief.strip()[:2000]}
     if body and body.page:
+        if body.page > book_profile.page_count(project):
+            raise HTTPException(422, "Esta página não existe neste livro")
         payload = payload or {}
         payload["page"] = body.page
     job = jobs_svc.enqueue_job(
@@ -330,11 +332,12 @@ def set_story_text(
     if book_profile.enabled(project):
         from app.workers.handlers.common import _parse_pages, _parse_title
 
+        total = book_profile.page_count(project)
         if (
-            len(_parse_pages(text)) != 16
+            len(_parse_pages(text)) != total
             or _parse_title(text) != project.book_profile["locales"][project.language]["title"]
         ):
-            raise HTTPException(400, "Preserve o titulo aprovado e as 16 paginas")
+            raise HTTPException(400, f"Preserve o titulo aprovado e as {total} paginas")
         book_profile.update(
             project, stories={**project.book_profile["stories"], project.language: text}
         )

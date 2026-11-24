@@ -350,11 +350,11 @@ class StoryRequestIn(BaseModel):
     """Pedido de história com IA (brief opcional do formulário do Studio)."""
 
     brief: str | None = Field(default=None, max_length=2000)
-    page: int | None = Field(default=None, ge=1, le=16)
+    page: int | None = Field(default=None, ge=1, le=20)
 
 
 class StoryPageUndoIn(BaseModel):
-    page: int = Field(ge=1, le=16)
+    page: int = Field(ge=1, le=20)
 
 
 class PreviewRequestIn(BaseModel):

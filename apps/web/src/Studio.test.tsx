@@ -53,7 +53,8 @@ it("não reapresenta erro antigo de IA depois de uma nova prévia genérica conc
   vi.spyOn(api, "getAssets").mockResolvedValue({ character_url: null, realistic_url: null, extra_characters: [], page_images: [], ebook_url: null, video_url: null, narrated_video_url: null });
   window.history.replaceState({}, "", "/app?projeto=generic-ready");
   renderApp("/app?projeto=generic-ready");
-  expect(await screen.findByTestId("studio-test-mode")).toBeInTheDocument();
+  // O projeto é carregado depois da primeira tela; num PC ocupado leva mais de 1 s.
+  expect(await screen.findByTestId("studio-test-mode", {}, { timeout: 5000 })).toBeInTheDocument();
   expect(screen.queryByTestId("studio-error-report")).not.toBeInTheDocument();
   expect(screen.queryByText(/insufficient_quota/)).not.toBeInTheDocument();
 });

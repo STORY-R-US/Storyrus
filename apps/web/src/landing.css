@@ -3508,9 +3508,9 @@ img.ex-tab-cover {
 .kid .kcat-feat { position: relative; padding: 6px; }
 .kid .kcat-panel .kcat-feat-cover { max-width: 230px; }
 
-/* ---------- Menu de livros: fundo azul claro, colunas centralizadas e capas do tamanho do carrossel ---------- */
+/* ---------- Menu de livros: fundo da cor da página, colunas centralizadas e capas do tamanho do carrossel ---------- */
 .kid .kcat-panel {
-  background: #e3efff; border-color: #c5d9f6;
+  background: #0b1226; border-color: #26315a; box-shadow: 0 22px 48px rgba(0, 0, 0, .55);
   max-height: calc(100dvh - var(--khead-h, 120px) - 12px);
 }
 .kid .kcat-panel-all { gap: 14px; padding: 16px 22px 18px; justify-items: center; }
@@ -3518,12 +3518,23 @@ img.ex-tab-cover {
   grid-template-columns: repeat(var(--cols, 3), minmax(0, 250px));
   justify-content: center; align-items: start; gap: 10px 14px; width: 100%;
 }
-.kid .kcat-group { background: color-mix(in srgb, var(--group, #5aa6e8) 16%, #f4f9ff); padding: 10px 8px; }
+.kid .kcat-group { background: color-mix(in srgb, var(--group, #5aa6e8) 14%, #0b1226); padding: 10px 8px; }
 .kid .kcat-group-name { justify-content: center; margin: 0 2px 6px; }
 .kid .kcat-panel-all .kcat-subs a { text-align: center; padding: 5px 8px; }
+.kid .kcat-subs a { color: #d5def4; }
 .kid .kcat-subs a:hover,
 .kid .kcat-subs a:focus-visible,
-.kid .kcat-subs li.on a { background: #fff; }
+.kid .kcat-subs li.on a { background: #1c2748; color: #fff; }
+.kid .kcat-panel .kcat-sub-date { color: #9fabce; }
+.kid .kcat-panel .kcat-empty { color: #9fabce; }
+/* Tema claro: o painel acompanha o fundo claro da página. */
+[data-theme="light"] .kid .kcat-panel { background: #f3f8ff; border-color: #e6ebf5; box-shadow: 0 22px 48px rgba(31, 53, 104, .16); }
+[data-theme="light"] .kid .kcat-group { background: color-mix(in srgb, var(--group, #5aa6e8) 14%, #fff); }
+[data-theme="light"] .kid .kcat-subs a { color: #1f3568; }
+[data-theme="light"] .kid .kcat-subs a:hover,
+[data-theme="light"] .kid .kcat-subs a:focus-visible,
+[data-theme="light"] .kid .kcat-subs li.on a { background: #fff; color: #1f3568; }
+[data-theme="light"] .kid .kcat-panel .kcat-sub-date { color: #8a93b0; }
 .kid .kcat-groups.is-single { grid-template-columns: minmax(0, 760px); }
 .kid .kcat-groups.is-single .kcat-subs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px 6px; }
 .kid .kcat-panel-all .kcat-feats {
@@ -3576,3 +3587,59 @@ img.ex-tab-cover {
   .kid .catalog-bar { font-size: 1rem; padding: 10px 14px; }
   .catalog-bar-note { margin-left: 0; }
 }
+
+/* ---------- Catálogo: subcategorias dentro de cada faixa ---------- */
+.catalog-subs { grid-auto-flow: dense; }
+.catalog-subgroup {
+  display: grid; grid-template-columns: subgrid; gap: 28px 22px; align-content: start; min-width: 0;
+  grid-column: span 1;
+}
+.catalog-subgroup.span-2 { grid-column: span 2; }
+.catalog-subgroup.span-3 { grid-column: 1 / -1; }
+.catalog-subgroup-title {
+  grid-column: 1 / -1; margin: 0 0 -14px; padding: 0 2px 7px; min-width: 0;
+  color: #dbe5fb; font-size: 1rem; font-weight: 800; line-height: 1.3; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border-bottom: 2px solid color-mix(in srgb, var(--group, #7aa2ff) 55%, transparent);
+}
+[data-theme="light"] .kid .catalog-subgroup-title { color: #1f3568; }
+@media (max-width: 560px) {
+  .catalog-subgroup, .catalog-subgroup.span-2 { grid-column: 1 / -1; }
+}
+@supports not (grid-template-columns: subgrid) {
+  .catalog-subgroup, .catalog-subgroup.span-2 { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 1100px) { .catalog-subgroup { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .catalog-subgroup { grid-template-columns: 1fr; } }
+}
+/* ---------- Capa com o valor no botão amarelo (catálogo e Valores, 24/11/2026) ---------- */
+.cat-opt .cover-pill {
+  display: inline-flex; align-items: baseline; justify-content: center; gap: 6px;
+  /* Largura fixa: o valor em R$, US$ ou € não muda a quebra do texto ao lado. */
+  width: 9.6em; box-sizing: border-box; white-space: nowrap;
+  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px;
+  color: #c5d0ea; background: transparent; border: 1.5px solid #3a4a78; padding: 3px 9px; border-radius: 999px;
+}
+.cat-opt span.cover-pill { cursor: default; }
+.cat-opt .cover-pill.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
+.cover-pill-price { font-size: 1.08em; letter-spacing: 0; text-transform: none; }
+[data-theme="light"] .kid .cat-opt .cover-pill { color: #1f3568; border-color: #d5dced; }
+[data-theme="light"] .kid .cat-opt .cover-pill.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
+
+/* Valores: os quadros têm o mesmo visual do card do catálogo. */
+.price-card .price-book { margin: 0 0 4px; }
+.price-card .price-book .cat-note-grid { margin-top: 12px; }
+.price-card dl.price-box {
+  margin: 0 0 4px; padding: 4px 12px; border: 1px solid #31406e; border-radius: 16px; background: #10182f;
+}
+.price-card dl.price-box > div:first-child { border-top: none; }
+.price-card dl.price-box > div { border-top-color: #26315a; }
+[data-theme="light"] .kid .price-card dl.price-box { background: #f6f8fd; border-color: #e6ebf5; }
+.price-card .price-note { border-top: none; padding-top: 10px; }
+
+/* ---------- Carrossel do topo: a foto do meio é o livro aberto (página dupla, 2:1) ---------- */
+/* Capa e foto quadradas nas pontas; o livro aberto no meio ocupa o dobro da largura, na mesma altura,
+   sem as faixas brancas em cima e embaixo. Os poucos mockups quadrados são cortados para 2:1,
+   puxando para cima para não cortar o texto da página. */
+.hero-series-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+.hero-series-inner > .hero-shot:nth-child(2) { aspect-ratio: 2 / 1; }
+.hero-series-inner > .hero-shot:nth-child(2) img { object-fit: cover; object-position: 50% 30%; }

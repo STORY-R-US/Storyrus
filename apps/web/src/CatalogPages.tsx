@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from "react";
+import { Fragment, useState, useEffect, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -81,12 +81,16 @@ function CatalogSiteHeader({ lang, setLang }: { lang: Lang; setLang: (lang: Lang
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={copy.cats}>
-                <CatalogMenus lang={lang} variant={variant} onNavigate={closeMenu} />
+                <CatalogMenus lang={lang} variant={variant} only="livros" onNavigate={closeMenu} />
                 {links.map((item) => (
-                  <Link key={item.href} to={item.href} className="kcat-btn" style={{ "--cat": item.color } as CSSProperties} onClick={closeMenu}>
-                    <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
-                    {item.label}
-                  </Link>
+                  <Fragment key={item.href}>
+                    <Link to={item.href} className="kcat-btn" style={{ "--cat": item.color } as CSSProperties} onClick={closeMenu}>
+                      <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
+                      {item.label}
+                    </Link>
+                    {/* Educativo logo depois de Cartoon, como na home. */}
+                    {item.href === "/cartoon" && <CatalogMenus lang={lang} variant={variant} only="educativo" onNavigate={closeMenu} />}
+                  </Fragment>
                 ))}
               </nav>
             </div>
@@ -159,7 +163,8 @@ export function CatalogPage() {
   const { hash, search } = useLocation();
   const cartoon = new URLSearchParams(search).get("modo") === "cartoon";
   const sections = catalogSections(lang, cartoon ? "cartoon" : "photo");
-  const aliases = catalogMenuSections(lang, cartoon ? "cartoon" : "photo").flatMap((section) =>
+  const menuSections = catalogMenuSections(lang, cartoon ? "cartoon" : "photo");
+  const aliases = menuSections.flatMap((section) =>
     section.subs.filter((sub) => sub.id === PAIR_SUB_ID).map((sub) => (
       { id: `${section.id}-${sub.id}`, name: sub.name, color: section.color, books: sub.books }
     )));
@@ -168,7 +173,7 @@ export function CatalogPage() {
       <CatalogSiteHeader lang={lang} setLang={setLang} />
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
-        <CatalogBrowser books={sections.flatMap((section) => section.books)} sections={sections} aliases={aliases} hash={hash} lang={lang}
+        <CatalogBrowser books={sections.flatMap((section) => section.books)} sections={sections} subSections={menuSections} aliases={aliases} hash={hash} showAll lang={lang}
           renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} modo={cartoon ? "cartoon" : "realista"} />} />
       </main>
     </div>
@@ -188,7 +193,7 @@ export function CategoryCatalogPage() {
       <main className="ksection catalog-page" id="catalogo">
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <CatalogSectionTitle name={section.name} color={section.color} as="h1" />
-          <CatalogBrowser key={section.id} books={section.books} lang={lang}
+          <CatalogBrowser key={section.id} books={section.books} showAll lang={lang}
             renderBook={(book) => <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} />} />
         </section>
       </main>

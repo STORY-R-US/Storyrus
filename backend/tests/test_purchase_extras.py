@@ -38,10 +38,13 @@ def test_order_shows_prices_and_defaults_to_print_only(auth_client):
     order = auth_client.get(f"/v1/projects/{pid}/print-order").json()
     assert order["fulfillment"] == "print"
     assert order["extra_ebook"] is False and order["extra_video"] is False
-    assert order["items_price_cents"] == 17700
+    # Capa flexível (soft) no projeto de teste: R$ 229.
+    assert order["book_price_cents"] == 22900
+    assert order["items_price_cents"] == 22900
     assert order["prices"] == {
-        "extra": {"ebook": 2900, "video": 8900, "bundle": 9900},
-        "digital": {"ebook": 11900, "video": 20900, "bundle": 21900},
+        "book": {"hard": 25900, "soft": 22900},
+        "extra": {"ebook": 2900, "video": 10900, "bundle": 11900},
+        "digital": {"ebook": 17700, "video": 28900, "bundle": 29900},
     }
 
 
@@ -49,14 +52,14 @@ def test_print_with_both_extras_charges_the_bundle(auth_client):
     pid = approve(auth_client)
     r = choose(auth_client, pid, fulfillment="print", ebook=True, video=True)
     assert r.status_code == 200, r.text
-    assert r.json()["items_price_cents"] == 17700 + 9900
+    assert r.json()["items_price_cents"] == 22900 + 11900
     assert (
         auth_client.put(f"/v1/projects/{pid}/print-order/address", json=ADDRESS).status_code == 200
     )
     make_admin(auth_client)
     paid = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
     assert paid.status_code == 200, paid.text
-    assert paid.json()["amount_cents"] == 17700 + 9900
+    assert paid.json()["amount_cents"] == 22900 + 11900
     assert choose(auth_client, pid, fulfillment="print").status_code == 409
 
 
@@ -71,7 +74,7 @@ def test_digital_only_needs_no_address_and_skips_the_printer(auth_client, monkey
     r = choose(auth_client, pid, fulfillment="digital", ebook=True)
     assert r.status_code == 200, r.text
     assert r.json()["fulfillment"] == "digital"
-    assert r.json()["items_price_cents"] == 11900
+    assert r.json()["items_price_cents"] == 17700
     with session(auth_client) as db:
         order = get_print_order(db, uuid.UUID(pid))
         order.recipient_name = None
@@ -80,7 +83,7 @@ def test_digital_only_needs_no_address_and_skips_the_printer(auth_client, monkey
     make_admin(auth_client)
     paid = auth_client.post(f"/v1/projects/{pid}/print-order/confirm-payment")
     assert paid.status_code == 200, paid.text
-    assert paid.json()["amount_cents"] == 11900
+    assert paid.json()["amount_cents"] == 17700
     with session(auth_client) as db:
         p = db.get(Project, uuid.UUID(pid))
         purchase_flow.update(p, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready")

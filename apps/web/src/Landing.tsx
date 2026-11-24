@@ -2301,64 +2301,72 @@ function FlipBook({
   );
 }
 
-// M (20 × 20 cm) R$ 177; o P (15 × 15 cm) saiu do site em 20/11/2026. Extras e só digital: mesmos valores de PRICE_EXTRA_* e PRICE_DIGITAL_* (config.py / Render).
+// Livro de 20 páginas, 20 × 20 cm (o 15 × 15 cm saiu do site em 20/11/2026). Preços aprovados em 24/11/2026:
+// capa dura R$ 259 e capa flexível R$ 229 (PRINT_PRICE_HARD/SOFT_CENTS); extras e só digital iguais a
+// PRICE_EXTRA_* e PRICE_DIGITAL_* (config.py / Render).
 // Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
 const FORMAT_COPY: Record<Lang, {
   pages: string;
   hard: string;
   soft: string;
   sizeM: string;
-  sizeP: string;
-  priceM: string;
-  priceP: string;
-  extras: string;
+  priceHard: string;
+  priceSoft: string;
+  freight: string;
   allPrices: string;
   hardText: string;
   softText: string;
 }> = {
   pt: {
-    pages: "Livro 16 Páginas",
+    pages: "Livro 20 Páginas",
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
-    sizeP: "15 × 15 cm",
-    priceM: "R$ 177,00",
-    priceP: "R$ 157,00",
-    extras: "Valor do livro impresso, sem o frete. E-book e história animada são opcionais.",
+    priceHard: "R$ 259",
+    priceSoft: "R$ 229",
+    freight: "Frete não incluído.",
     allPrices: "Ver todos os valores",
     hardText: "Resistente e durável. Utilizada em edições especiais ou colecionáveis.",
     softText: "Leve e flexível. Comum em livros e edições econômicas.",
   },
   en: {
-    pages: "Book. 16 Pages.",
+    pages: "Book. 20 Pages.",
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
-    sizeP: "15 × 15 cm",
-    priceM: "$33.91",
-    priceP: "$30.08",
-    extras: "Printed book price, shipping not included. E-book and animated story are optional.",
+    priceHard: "$49.62",
+    priceSoft: "$43.87",
+    freight: "Shipping not included.",
     allPrices: "See all prices",
     hardText: "Sturdy and durable. Used for special or collectible editions.",
     softText: "Light and flexible. Common in books and economical editions.",
   },
   es: {
-    pages: "Libro. 16 Páginas.",
+    pages: "Libro. 20 Páginas.",
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
-    sizeP: "15 × 15 cm",
-    priceM: "30,10 €",
-    priceP: "26,70 €",
-    extras: "Precio del libro impreso, sin el envío. El e-book y la historia animada son opcionales.",
+    priceHard: "44,05 €",
+    priceSoft: "38,95 €",
+    freight: "Envío no incluido.",
     allPrices: "Ver todos los precios",
     hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Ligera y flexible. Común en libros y ediciones económicas.",
   },
 };
+/** Botão amarelo da capa com o valor dentro: "HARD · R$ 259". */
+function coverPill(copy: (typeof FORMAT_COPY)[Lang], choice: "hard" | "soft", test = false) {
+  const price = test ? "R$ 0,50" : choice === "hard" ? copy.priceHard : copy.priceSoft;
+  return (
+    <>
+      <span className="cover-pill-name">{choice === "hard" ? copy.hard : copy.soft}</span>
+      <span className="cover-pill-price">{price}</span>
+    </>
+  );
+}
 // Seção "Valores" da landing: os mesmos preços de FORMAT_COPY e de PRICE_EXTRA_* / PRICE_DIGITAL_* (config.py / Render).
-// Três formatos: P-Book (impresso), E-Book (PDF) e V-Book (vídeo). Só os nomes mudaram em 23/11/2026; os valores são os mesmos.
-type PriceGroup = { tag: string; title: string; lead: string; rows: [string, string][]; covers?: [string, string][]; note: string };
+// Três formatos: P-Book (impresso), E-Book (PDF) e V-Book (vídeo).
+type PriceGroup = { tag: string; title: string; lead: string; rows: [string, string][]; book?: boolean; note: string };
 type PricesCopy = { title: string; sub: string; groups: PriceGroup[]; combo: { title: string; rows: [string, string][]; note: string }; cta: string };
 const PRICES_COPY: Record<Lang, PricesCopy> = {
   pt: {
@@ -2368,32 +2376,29 @@ const PRICES_COPY: Record<Lang, PricesCopy> = {
       {
         tag: "P-Book",
         title: "Livro Impresso",
-        lead: "O livro físico, com 16 páginas de papel encadernadas e capa. Feito para presentear ou colecionar.",
-        rows: [["20 × 20 cm", "R$ 177"]],
-        covers: [
-          ["Capa Hard (dura)", FORMAT_COPY.pt.hardText],
-          ["Capa Soft (flexível)", FORMAT_COPY.pt.softText],
-        ],
-        note: "Capa Hard ou Soft pelo mesmo valor. O frete não está incluído.",
+        lead: "O livro físico, com 20 páginas de papel encadernadas e capa. Feito para presentear ou colecionar.",
+        rows: [],
+        book: true,
+        note: "Frete não incluído.",
       },
       {
         tag: "E-Book",
         title: "PDF",
         lead: "O livro em PDF, com o mesmo visual em qualquer tela: celular, tablet ou computador. Bom para compartilhar e usar em lembranças de aniversário, chá de bebê, noivado e casamento.",
-        rows: [["Junto com o livro impresso", "+ R$ 29"], ["Só o E-Book, sem impressão", "R$ 119"]],
+        rows: [["Junto com o livro impresso", "+ R$ 29"], ["Só o E-Book, sem impressão", "R$ 177"]],
         note: "Fica pronto na plataforma, sem frete.",
       },
       {
         tag: "V-Book",
         title: "Vídeo Book",
         lead: "O livro em vídeo: a história animada, página por página, para assistir e compartilhar.",
-        rows: [["Junto com o livro impresso", "+ R$ 89"], ["Só o V-Book, sem impressão", "R$ 209"]],
+        rows: [["Junto com o livro impresso", "+ R$ 109"], ["Só o V-Book, sem impressão", "R$ 289"]],
         note: "Fica pronto na plataforma, sem frete.",
       },
     ],
     combo: {
       title: "E-Book + V-Book",
-      rows: [["Junto com o livro impresso", "+ R$ 99"], ["Só digital, sem impressão", "R$ 219"]],
+      rows: [["Junto com o livro impresso", "+ R$ 119"], ["Só digital, sem impressão", "R$ 299"]],
       note: "Sem o livro impresso, o valor já inclui a criação do livro.",
     },
     cta: "Criar",
@@ -2405,32 +2410,29 @@ const PRICES_COPY: Record<Lang, PricesCopy> = {
       {
         tag: "P-Book",
         title: "Printed Book",
-        lead: "The physical book, with 16 bound paper pages and a cover. Made to gift or collect.",
-        rows: [["20 × 20 cm", "$33.91"]],
-        covers: [
-          ["Hard cover", FORMAT_COPY.en.hardText],
-          ["Soft cover", FORMAT_COPY.en.softText],
-        ],
-        note: "Hard or Soft cover for the same price. Shipping is not included.",
+        lead: "The physical book, with 20 bound paper pages and a cover. Made to gift or collect.",
+        rows: [],
+        book: true,
+        note: "Shipping not included.",
       },
       {
         tag: "E-Book",
         title: "PDF",
         lead: "The book as a PDF, with the same look on any screen: phone, tablet or computer. Good to share and to use in birthday, baby shower, engagement and wedding keepsakes.",
-        rows: [["With the printed book", "+ $5.56"], ["E-Book only, no printing", "$22.80"]],
+        rows: [["With the printed book", "+ $5.56"], ["E-Book only, no printing", "$33.91"]],
         note: "Ready on the platform, no shipping.",
       },
       {
         tag: "V-Book",
         title: "Video Book",
         lead: "The book as a video: the animated story, page by page, to watch and share.",
-        rows: [["With the printed book", "+ $17.05"], ["V-Book only, no printing", "$40.04"]],
+        rows: [["With the printed book", "+ $20.88"], ["V-Book only, no printing", "$55.36"]],
         note: "Ready on the platform, no shipping.",
       },
     ],
     combo: {
       title: "E-Book + V-Book",
-      rows: [["With the printed book", "+ $18.97"], ["Digital only, no printing", "$41.95"]],
+      rows: [["With the printed book", "+ $22.80"], ["Digital only, no printing", "$57.28"]],
       note: "Without the printed book, the price already includes creating the book.",
     },
     cta: "Create",
@@ -2442,32 +2444,29 @@ const PRICES_COPY: Record<Lang, PricesCopy> = {
       {
         tag: "P-Book",
         title: "Libro Impreso",
-        lead: "El libro físico, con 16 páginas de papel encuadernadas y tapa. Hecho para regalar o coleccionar.",
-        rows: [["20 × 20 cm", "30,10 €"]],
-        covers: [
-          ["Tapa Hard (dura)", FORMAT_COPY.es.hardText],
-          ["Tapa Soft (blanda)", FORMAT_COPY.es.softText],
-        ],
-        note: "Tapa Hard o Soft por el mismo precio. El envío no está incluido.",
+        lead: "El libro físico, con 20 páginas de papel encuadernadas y tapa. Hecho para regalar o coleccionar.",
+        rows: [],
+        book: true,
+        note: "Envío no incluido.",
       },
       {
         tag: "E-Book",
         title: "PDF",
         lead: "El libro en PDF, con el mismo aspecto en cualquier pantalla: móvil, tableta u ordenador. Bueno para compartir y usar en recuerdos de cumpleaños, baby shower, compromiso y boda.",
-        rows: [["Junto con el libro impreso", "+ 4,93 €"], ["Solo el E-Book, sin impresión", "20,24 €"]],
+        rows: [["Junto con el libro impreso", "+ 4,93 €"], ["Solo el E-Book, sin impresión", "30,10 €"]],
         note: "Queda listo en la plataforma, sin envío.",
       },
       {
         tag: "V-Book",
         title: "Video Book",
         lead: "El libro en video: la historia animada, página a página, para ver y compartir.",
-        rows: [["Junto con el libro impreso", "+ 15,14 €"], ["Solo el V-Book, sin impresión", "35,54 €"]],
+        rows: [["Junto con el libro impreso", "+ 18,54 €"], ["Solo el V-Book, sin impresión", "49,15 €"]],
         note: "Queda listo en la plataforma, sin envío.",
       },
     ],
     combo: {
       title: "E-Book + V-Book",
-      rows: [["Junto con el libro impreso", "+ 16,84 €"], ["Solo digital, sin impresión", "37,24 €"]],
+      rows: [["Junto con el libro impreso", "+ 20,24 €"], ["Solo digital, sin impresión", "50,85 €"]],
       note: "Sin el libro impreso, el precio ya incluye la creación del libro.",
     },
     cta: "Crear",
@@ -2606,21 +2605,16 @@ export function CatalogBookCard({
       <div className="cat-notes-sizes">
         <p className="cat-notes-lead">{copy.pages}</p>
         <p className="cat-note-line">
-          <span>
-            {copy.sizeM}:{" "}
-            <span className="is-price">
-              {book.catalogI === 58 ? "R$ 0,50" : copy.priceM}.
-            </span>
-          </span>
+          <span>{copy.sizeM}</span>
         </p>
         {book.catalogI !== 58 && (
           <p
             className="cat-note-extras locale-copy"
-            data-copy-a={`${otherFormats[0].extras} ${otherFormats[0].allPrices}`}
-            data-copy-b={`${otherFormats[1].extras} ${otherFormats[1].allPrices}`}
+            data-copy-a={`${otherFormats[0].freight} ${otherFormats[0].allPrices}`}
+            data-copy-b={`${otherFormats[1].freight} ${otherFormats[1].allPrices}`}
           >
             <span>
-              {copy.extras}{" "}
+              {copy.freight}{" "}
               <a href="/#valores" data-testid="catalog-all-prices">{copy.allPrices}</a>
             </span>
           </p>
@@ -2632,14 +2626,21 @@ export function CatalogBookCard({
             <span className="cat-opt">
               <button
                 type="button"
-                className={cover === choice ? "is-on" : ""}
+                className={`cover-pill${cover === choice ? " is-on" : ""}`}
                 aria-pressed={cover === choice}
                 onClick={() => setCover(choice)}
               >
-                {choice === "hard" ? copy.hard : copy.soft}
+                {coverPill(copy, choice, book.catalogI === 58)}
               </button>
             </span>
-            <p>{choice === "hard" ? copy.hardText : copy.softText}</p>
+            {/* Reserva a altura do idioma mais longo: o card tem a mesma altura em pt, en e es. */}
+            <p
+              className="locale-copy"
+              data-copy-a={choice === "hard" ? otherFormats[0].hardText : otherFormats[0].softText}
+              data-copy-b={choice === "hard" ? otherFormats[1].hardText : otherFormats[1].softText}
+            >
+              <span>{choice === "hard" ? copy.hardText : copy.softText}</span>
+            </p>
           </div>
         ))}
       </div>
@@ -2923,9 +2924,11 @@ export function catalogMenuCats(lang: Lang, variant: "photo" | "cartoon" = "phot
   }));
 }
 /** Menus "Livros" e "Educativo" da barra do topo; iguais na home, no catálogo e na página do livro. */
-export function CatalogMenus({ lang, variant = "photo", onNavigate }: {
+export function CatalogMenus({ lang, variant = "photo", only, onNavigate }: {
   lang: Lang;
   variant?: "photo" | "cartoon";
+  /** Um menu só: "livros" fica no começo da barra e "educativo" logo depois de Cartoon. */
+  only?: "livros" | "educativo";
   onNavigate?: () => void;
 }) {
   const t = I18N[lang];
@@ -2956,7 +2959,7 @@ export function CatalogMenus({ lang, variant = "photo", onNavigate }: {
   ];
   return (
     <>
-      {menus.map((menu) => {
+      {menus.filter((menu) => !only || menu.key === only).map((menu) => {
         const single = menu.cats.length === 1;
         // Sem tema apontado, o painel aberto já mostra as capas da primeira categoria (sem área vazia).
         const hoverCat = menu.cats.find((cat) => cat.id === hover?.cat) ?? (open === menu.key ? menu.cats[0] : null);
@@ -3308,7 +3311,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
-                <CatalogMenus lang={lang} variant={variant} onNavigate={closeNav} />
+                <CatalogMenus lang={lang} variant={variant} only="livros" onNavigate={closeNav} />
                 <Link to="/" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} aria-current={variant === "cartoon" ? undefined : "page"} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.95)" }} />
                   {t.realistic_link}
@@ -3317,6 +3320,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
                   {t.cartoon_link}
                 </Link>
+                <CatalogMenus lang={lang} variant={variant} only="educativo" onNavigate={closeNav} />
                 <a href="#como" className="kcat-btn" style={{ "--cat": "#f08a4b" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f08a4b", boxShadow: "0 0 10px rgba(240,138,75,.9)" }} />
                   {t.passo_title}
@@ -3699,20 +3703,40 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               <span className="price-tag">{group.tag}</span>
               <h3>{group.title}</h3>
               <p className="price-lead">{group.lead}</p>
-              <dl>
-                {group.rows.map(([label, value]) => (
-                  <div key={label}>
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
+              {group.book ? (
+                // Mesmo visual do card do catálogo: tamanho num quadro e as capas com o valor no botão amarelo.
+                <div className="cat-notes price-book" data-testid="landing-prices-book">
+                  <div className="cat-notes-sizes">
+                    <p className="cat-notes-lead">{FORMAT_COPY[lang].pages}</p>
+                    <p className="cat-note-line"><span>{FORMAT_COPY[lang].sizeM}</span></p>
                   </div>
-                ))}
-              </dl>
-              {group.covers && (
-                <ul className="price-covers">
-                  {group.covers.map(([name, text]) => (
-                    <li key={name}><strong>{name}</strong><span>{text}</span></li>
+                  <div className="cat-note-grid">
+                    {(["hard", "soft"] as const).map((choice) => (
+                      <div key={choice} className="cat-note-line">
+                        <span className="cat-opt">
+                          <span className="cover-pill is-on" data-testid={`landing-price-${choice}`}>{coverPill(FORMAT_COPY[lang], choice)}</span>
+                        </span>
+                        {/* Reserva a altura do idioma mais longo, como no card do catálogo. */}
+                        <p
+                          className="locale-copy"
+                          data-copy-a={FORMAT_COPY[lang === "pt" ? "en" : "pt"][choice === "hard" ? "hardText" : "softText"]}
+                          data-copy-b={FORMAT_COPY[lang === "es" ? "en" : "es"][choice === "hard" ? "hardText" : "softText"]}
+                        >
+                          <span>{choice === "hard" ? FORMAT_COPY[lang].hardText : FORMAT_COPY[lang].softText}</span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <dl className="price-box">
+                  {group.rows.map(([label, value]) => (
+                    <div key={label}>
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
                   ))}
-                </ul>
+                </dl>
               )}
               <p className="price-note">{group.note}</p>
             </div>
