@@ -3635,3 +3635,11 @@ img.ex-tab-cover {
 .price-card dl.price-box > div { border-top-color: #26315a; }
 [data-theme="light"] .kid .price-card dl.price-box { background: #f6f8fd; border-color: #e6ebf5; }
 .price-card .price-note { border-top: none; padding-top: 10px; }
+
+/* ---------- Carrossel do topo: a foto do meio é o livro aberto (página dupla, 2:1) ---------- */
+/* Capa e foto quadradas nas pontas; o livro aberto no meio ocupa o dobro da largura, na mesma altura,
+   sem as faixas brancas em cima e embaixo. Os poucos mockups quadrados são cortados para 2:1,
+   puxando para cima para não cortar o texto da página. */
+.hero-series-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+.hero-series-inner > .hero-shot:nth-child(2) { aspect-ratio: 2 / 1; }
+.hero-series-inner > .hero-shot:nth-child(2) img { object-fit: cover; object-position: 50% 30%; }

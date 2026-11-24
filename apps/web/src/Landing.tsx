@@ -3716,7 +3716,14 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                         <span className="cat-opt">
                           <span className="cover-pill is-on" data-testid={`landing-price-${choice}`}>{coverPill(FORMAT_COPY[lang], choice)}</span>
                         </span>
-                        <p>{choice === "hard" ? FORMAT_COPY[lang].hardText : FORMAT_COPY[lang].softText}</p>
+                        {/* Reserva a altura do idioma mais longo, como no card do catálogo. */}
+                        <p
+                          className="locale-copy"
+                          data-copy-a={FORMAT_COPY[lang === "pt" ? "en" : "pt"][choice === "hard" ? "hardText" : "softText"]}
+                          data-copy-b={FORMAT_COPY[lang === "es" ? "en" : "es"][choice === "hard" ? "hardText" : "softText"]}
+                        >
+                          <span>{choice === "hard" ? FORMAT_COPY[lang].hardText : FORMAT_COPY[lang].softText}</span>
+                        </p>
                       </div>
                     ))}
                   </div>
