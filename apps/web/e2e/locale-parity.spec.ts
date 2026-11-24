@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 for (const path of ["/", "/cartoon"]) {
   test(`PT, EN and ES keep identical books and complete images on ${path}`, async ({ page }) => {
+    test.setTimeout(120_000);
     await page.addInitScript(() => localStorage.setItem("lang", "pt"));
     await page.route("**/health", (route) => route.fulfill({ json: { status: "ok" } }));
     await page.goto(path);
@@ -22,12 +23,22 @@ for (const path of ["/", "/cartoon"]) {
       await page.getByTestId(`landing-lang-${lang}`).click();
       expect(await read()).toEqual(pt);
       const images = page.locator("img");
-      await images.evaluateAll((imgs) => imgs.forEach((img) => {
-        // Validate every deferred asset too, without requiring eager production loading.
-        if (img.dataset.src) img.src = img.dataset.src;
-        img.loading = "eager";
-      }));
-      await expect.poll(() => images.evaluateAll((imgs) => imgs.filter((img) => !img.complete || !img.naturalWidth).map((img) => img.src)), { timeout: 20_000 }).toEqual([]);
+      // The carousel intentionally clears inactive src values as it advances.
+      // Decode its declared assets independently instead of racing React's src updates.
+      const failed = await images.evaluateAll(async (imgs) => {
+        const sources = [...new Set(imgs.map((img) => img.dataset.src || img.getAttribute("src") || ""))];
+        const failures: string[] = [];
+        // Bound decoded-image memory on smaller laptops and CI workers.
+        for (const src of sources) {
+          if (!src) { failures.push("missing image source"); continue; }
+          const probe = new Image();
+          probe.src = src;
+          try { await probe.decode(); } catch { failures.push(src); }
+          probe.src = "";
+        }
+        return failures;
+      });
+      expect(failed).toEqual([]);
     }
   });
 }
@@ -36,6 +47,7 @@ for (const lang of ["pt", "en", "es"]) for (const width of [390, 1440]) {
   test(`Cartoon keeps its existing books in catalog order in ${lang} at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 950 });
     await page.addInitScript(value => localStorage.setItem("lang", value), lang);
+    await page.route("**/health", (route) => route.fulfill({ json: { status: "ok" } }));
     const readBooks = async (path: string) => {
       await page.goto(path);
       await expect(page.getByTestId("landing-hero-title")).toBeVisible();
