@@ -2633,7 +2633,14 @@ export function CatalogBookCard({
                 {coverPill(copy, choice, book.catalogI === 58)}
               </button>
             </span>
-            <p>{choice === "hard" ? copy.hardText : copy.softText}</p>
+            {/* Reserva a altura do idioma mais longo: o card tem a mesma altura em pt, en e es. */}
+            <p
+              className="locale-copy"
+              data-copy-a={choice === "hard" ? otherFormats[0].hardText : otherFormats[0].softText}
+              data-copy-b={choice === "hard" ? otherFormats[1].hardText : otherFormats[1].softText}
+            >
+              <span>{choice === "hard" ? copy.hardText : copy.softText}</span>
+            </p>
           </div>
         ))}
       </div>
