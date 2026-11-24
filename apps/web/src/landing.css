@@ -3600,3 +3600,27 @@ img.ex-tab-cover {
   @media (max-width: 1100px) { .catalog-subgroup { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 560px) { .catalog-subgroup { grid-template-columns: 1fr; } }
 }
+/* ---------- Capa com o valor no botão amarelo (catálogo e Valores, 24/11/2026) ---------- */
+.cat-opt .cover-pill {
+  display: inline-flex; align-items: baseline; justify-content: center; gap: 6px;
+  /* Largura fixa: o valor em R$, US$ ou € não muda a quebra do texto ao lado. */
+  width: 9.6em; box-sizing: border-box; white-space: nowrap;
+  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px;
+  color: #c5d0ea; background: transparent; border: 1.5px solid #3a4a78; padding: 3px 9px; border-radius: 999px;
+}
+.cat-opt span.cover-pill { cursor: default; }
+.cat-opt .cover-pill.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
+.cover-pill-price { font-size: 1.08em; letter-spacing: 0; text-transform: none; }
+[data-theme="light"] .kid .cat-opt .cover-pill { color: #1f3568; border-color: #d5dced; }
+[data-theme="light"] .kid .cat-opt .cover-pill.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
+
+/* Valores: os quadros têm o mesmo visual do card do catálogo. */
+.price-card .price-book { margin: 0 0 4px; }
+.price-card .price-book .cat-note-grid { margin-top: 12px; }
+.price-card dl.price-box {
+  margin: 0 0 4px; padding: 4px 12px; border: 1px solid #31406e; border-radius: 16px; background: #10182f;
+}
+.price-card dl.price-box > div:first-child { border-top: none; }
+.price-card dl.price-box > div { border-top-color: #26315a; }
+[data-theme="light"] .kid .price-card dl.price-box { background: #f6f8fd; border-color: #e6ebf5; }
+.price-card .price-note { border-top: none; padding-top: 10px; }

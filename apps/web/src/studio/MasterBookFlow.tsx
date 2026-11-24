@@ -34,7 +34,7 @@ const COPY = {
     suggest: "Sugerir melhoria",
     suggestField: "O que melhorar nesta imagem?",
     suggestSend: "Enviar sugestão",
-    finish: "As 16 páginas estão prontas.",
+    finish: "As {pages} páginas estão prontas.",
     download: "Abrir livro",
     approveBook: "Aprovar livro",
     retry: "Tentar novamente",
@@ -120,7 +120,7 @@ const COPY = {
     suggest: "Suggest an improvement",
     suggestField: "What should improve in this image?",
     suggestSend: "Send suggestion",
-    finish: "All 16 pages are ready.",
+    finish: "All {pages} pages are ready.",
     download: "Open book",
     approveBook: "Approve book",
     retry: "Try again",
@@ -206,7 +206,7 @@ const COPY = {
     suggest: "Sugerir mejora",
     suggestField: "¿Qué mejorar en esta imagen?",
     suggestSend: "Enviar sugerencia",
-    finish: "Las 16 páginas están listas.",
+    finish: "Las {pages} páginas están listas.",
     download: "Abrir libro",
     approveBook: "Aprobar libro",
     retry: "Intentar de nuevo",
@@ -470,6 +470,7 @@ export function MasterBookFlow({
   const [pageToAdjust, setPageToAdjust] = useState<number | null>(null);
   const [pageNotes, setPageNotes] = useState<Record<number, string>>({});
   const p = project.book_profile!;
+  const pageCount = p.page_count === 20 ? 20 : 16;
   const testMode = Boolean(project.test_mode || p.test_mode);
   const active =
     sending ||
@@ -577,7 +578,7 @@ export function MasterBookFlow({
               {blocks.map((block, index) => {
                 const page = block.kind === "page" ? Number(block.label.match(/\d+/)?.[0]) : 0;
                 const altered =
-                  page >= 1 && page <= 16 && Boolean(p.page_revisions?.[language]?.[String(page)]);
+                  page >= 1 && page <= pageCount && Boolean(p.page_revisions?.[language]?.[String(page)]);
                 const key = `${language}:${page}`;
                 const note = pageCorrections[key] || "";
                 const open = alteringPage === key;
@@ -601,7 +602,7 @@ export function MasterBookFlow({
                       <p key={`${language}-${index}-${lineIndex}`}>{line}</p>
                     ))}
                   </div>
-                  {stage === "story_ready" && block.kind === "page" && page >= 1 && page <= 16 && (
+                  {stage === "story_ready" && block.kind === "page" && page >= 1 && page <= pageCount && (
                       <div className="studio-story-actions">
                         <button
                           type="button"
@@ -1187,7 +1188,7 @@ export function MasterBookFlow({
       {stage === "book_ready" && !reviewing && (
         <div>
           <p>
-            {t.finish} {t.summary}
+            {t.finish.replace("{pages}", String(pageCount))} {t.summary}
           </p>
           {assets?.ebook_url && (
             <a href={assets.ebook_url} target="_blank" rel="noreferrer">

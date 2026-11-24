@@ -29,6 +29,17 @@ IDENTITY = (
 )
 
 
+# Livros novos têm 20 páginas de miolo; os criados antes de 24/11/2026 continuam com 16.
+LEGACY_PAGES = 16
+BOOK_PAGES = (16, 20)
+
+
+def page_count(project) -> int:
+    """Páginas do miolo deste livro, gravadas na criação (sem registro: 16)."""
+    value = (getattr(project, "book_profile", None) or {}).get("page_count")
+    return value if value in BOOK_PAGES else LEGACY_PAGES
+
+
 def enabled(project) -> bool:
     return bool((project.book_profile or {}).get("version") == VERSION)
 
@@ -216,6 +227,7 @@ def undo_page_change(project, page_no: int) -> None:
 
 
 def initial_profile(body) -> dict:
+    from app.config import settings
     from app.services import editorial_profile
 
     languages = [
@@ -232,6 +244,7 @@ def initial_profile(body) -> dict:
         "languages": [body.language or "pt-BR"],
         "editorial": editorial_profile.snapshot(),
         "current_page": 0,
+        "page_count": settings.book_pages if settings.book_pages in BOOK_PAGES else LEGACY_PAGES,
         "theme_description": (body.theme_description or body.theme or "").strip(),
         "characters": (body.characters or "").strip(),
     }

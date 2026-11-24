@@ -84,7 +84,9 @@ def _page_images(db: Session, project: Project) -> list[bytes]:
             and (row.meta or {}).get("role") == "com_texto"
             and (row.meta or {}).get("language") == project.language
         ]
-        if len(rows) != 16:
+        from app.services.book_profile import page_count
+
+        if len(rows) != page_count(project):
             return []
     ordered = sorted(rows, key=lambda row: int((row.meta or {}).get("page") or 0))
     images: list[bytes] = []
@@ -416,7 +418,7 @@ def items_price_cents(order: PrintOrder) -> int:
     if choice["fulfillment"] == DIGITAL:
         return digital_price_cents(choice["ebook"], choice["video"], theme)
     copies = max(1, int(order.quantity or 1))
-    books = book_price_cents(order.book_size, theme) * copies
+    books = book_price_cents(order.book_size, theme, order.cover_type) * copies
     return books + extras_price_cents(choice["ebook"], choice["video"], theme)
 
 
@@ -545,6 +547,6 @@ def prepare_shipping_label(db: Session, order: PrintOrder) -> None:
 
 def price_for(order: PrintOrder) -> int | None:
     try:
-        return book_price_cents(order.book_size, order.project.theme)
+        return book_price_cents(order.book_size, order.project.theme, order.cover_type)
     except ValueError:
         return None

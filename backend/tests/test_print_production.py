@@ -74,6 +74,8 @@ def _apply_spec(monkeypatch) -> None:
     monkeypatch.setattr(settings, "print_gateway", "")
     monkeypatch.setattr(settings, "print_price_p_cents", 15700)
     monkeypatch.setattr(settings, "print_price_m_cents", 17700)
+    monkeypatch.setattr(settings, "print_price_hard_cents", 17700)
+    monkeypatch.setattr(settings, "print_price_soft_cents", 17700)
 
 
 def _blank_spec(monkeypatch) -> None:
@@ -91,6 +93,8 @@ def _blank_spec(monkeypatch) -> None:
     monkeypatch.setattr(settings, "print_gateway", "")
     monkeypatch.setattr(settings, "print_price_p_cents", 15700)
     monkeypatch.setattr(settings, "print_price_m_cents", 17700)
+    monkeypatch.setattr(settings, "print_price_hard_cents", 17700)
+    monkeypatch.setattr(settings, "print_price_soft_cents", 17700)
 
 
 def _pt(mm: float) -> float:
@@ -476,3 +480,14 @@ def test_livro_teste_custa_o_minimo_do_stripe():
     assert book_price_cents("M", "livro_teste") == 50
     assert book_price_cents("M", "sport") == book_price_cents("M")
     assert book_price_cents("P") == book_price_cents("P", "birthday")
+
+
+def test_twenty_by_twenty_has_a_price_for_each_cover():
+    from app.printkit.pricing import book_price_cents, price_table
+
+    assert book_price_cents("M", "sport", "hard") == 32900
+    assert book_price_cents("M", "sport", "soft") == 30900
+    # Sem capa escolhida, nunca cobra menos que a capa dura.
+    assert book_price_cents("M", "sport") == 32900
+    assert price_table("sport")["book"] == {"hard": 32900, "soft": 30900}
+    assert book_price_cents("M", "livro_teste", "soft") == 50

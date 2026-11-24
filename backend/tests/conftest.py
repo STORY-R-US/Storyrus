@@ -81,6 +81,12 @@ def _demo_generation_in_tests(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _legacy_page_count(monkeypatch):
+    """A suíte antiga descreve livros de 16 páginas; test_book_pages cobre os de 20."""
+    monkeypatch.setattr(settings, "book_pages", 16)
+
+
+@pytest.fixture(autouse=True)
 def _disable_opik(monkeypatch):
     """Opik opt-in: testes nao enviam traces mesmo com chave no .env."""
     monkeypatch.setattr(settings, "opik_api_key", None)

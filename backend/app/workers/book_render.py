@@ -200,9 +200,9 @@ def back_cover(data: bytes) -> bytes:
 
 
 def pdf(cover: bytes, pages: list[bytes], back: bytes, *, size_cm: int) -> bytes:
-    """Capa, 16 páginas de miolo e contracapa, cada uma em sangria de 5 mm."""
-    if len(pages) != 16:
-        raise ValueError("O miolo precisa ter exatamente 16 paginas")
+    """Capa, miolo (16 ou 20 páginas) e contracapa, cada uma em sangria de 5 mm."""
+    if len(pages) not in (16, 20):
+        raise ValueError("O miolo precisa ter exatamente 16 ou 20 paginas")
     return _pages_pdf([cover, *pages, back], size_cm=size_cm)
 
 
