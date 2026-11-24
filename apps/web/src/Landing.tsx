@@ -2901,7 +2901,7 @@ export function catalogMenuSections(lang: Lang, variant: "photo" | "cartoon" = "
 /** O menu mostra só os primeiros livros de cada tema; o resto fica em "Ver todos". */
 const MENU_BOOK_LIMIT = 4;
 /** No menu do computador as capas têm o tamanho do livro do carrossel: cabem 3 lado a lado. */
-const MENU_COVER_LIMIT = 3;
+const MENU_COVER_LIMIT = 4;
 type MenuBook = { label: string; href: string; img: string };
 export type CatalogMenuCat = {
   id: string;

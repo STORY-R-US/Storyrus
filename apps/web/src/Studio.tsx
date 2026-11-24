@@ -311,6 +311,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
   const [dedicationOptionsOpen, setDedicationOptionsOpen] = useState(false);
+  const [improvingDedication, setImprovingDedication] = useState(false);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -1871,13 +1872,19 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <button
                 type="button"
                 className="kbtn kbtn-soft studio-suggest-dedication"
-                disabled={fieldsLocked}
+                disabled={fieldsLocked || improvingDedication}
                 data-testid="studio-suggest-dedication"
                 onClick={() => {
                   const suggestions = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
                   const own = dedication.trim() && !suggestions.includes(dedication);
                   if (own) {
-                    setDedication(polishDedication(dedication, childName, lang));
+                    const written = dedication;
+                    setImprovingDedication(true);
+                    void api
+                      .improveDedication(written, childName.trim(), lang === "pt" ? "pt-BR" : lang)
+                      .then((res) => setDedication(res.dedication.slice(0, 200)))
+                      .catch(() => setDedication(polishDedication(written, childName, lang)))
+                      .finally(() => setImprovingDedication(false));
                     return;
                   }
                   const next = (suggestions.indexOf(dedication) + 1) % suggestions.length;
@@ -1885,7 +1892,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   setDedicationOptionsOpen(true);
                 }}
               >
-                {dedication.trim() ? t.improveDedication : t.suggestDedication}
+                {improvingDedication ? "…" : dedication.trim() ? t.improveDedication : t.suggestDedication}
               </button>
               {dedicationOptionsOpen && (
                 <ol className="studio-dedication-options" data-testid="studio-dedication-options">

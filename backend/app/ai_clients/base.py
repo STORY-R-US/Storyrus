@@ -128,6 +128,11 @@ class TextProvider(Protocol):
     async def suggest_titles(self, *, context: dict, guidance: str = "") -> list[str]:
         """Suggest five alternative titles using the book's existing context."""
 
+    async def improve_dedication(
+        self, *, text: str, name: str = "", language: str = "pt-BR"
+    ) -> str:
+        """Rewrite the family's dedication more warmly, keeping its meaning (max 200 chars)."""
+
     async def generate_story(
         self,
         *,

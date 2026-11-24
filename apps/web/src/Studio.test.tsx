@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { App } from "./App";
@@ -162,8 +162,15 @@ describe("Studio — ordem dos campos", () => {
     await user.type(dedication, "Uma dedicatória escrita por mim.");
     await user.type(screen.getByLabelText(/nome do protagonista/i), " Souza");
     expect(dedication).toHaveValue("Uma dedicatória escrita por mim.");
+    const improve = vi.spyOn(api, "improveDedication").mockResolvedValue({ dedication: "Para Lila Souza, escrita com todo o meu amor." });
     await user.click(screen.getByRole("button", { name: "Melhorar Dedicatória" }));
-    expect((dedication as HTMLTextAreaElement).value).toMatch(/^Para Lila Souza: Uma dedicatória escrita por mim\. Com todo o amor/);
+    expect(improve).toHaveBeenCalledWith("Uma dedicatória escrita por mim.", "Lila Souza", "pt-BR");
+    await waitFor(() => expect(dedication).toHaveValue("Para Lila Souza, escrita com todo o meu amor."));
+    improve.mockRejectedValueOnce(new Error("502"));
+    await user.clear(dedication);
+    await user.type(dedication, "te amo");
+    await user.click(screen.getByRole("button", { name: "Melhorar Dedicatória" }));
+    await waitFor(() => expect((dedication as HTMLTextAreaElement).value).toMatch(/^Para Lila Souza: Te amo\. Com todo o amor/));
     expect(create).not.toHaveBeenCalled();
     expect(state.credits).toBe(10);
   });

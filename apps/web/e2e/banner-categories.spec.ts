@@ -18,7 +18,7 @@ for (const lang of ["pt", "en", "es"]) {
       if (mobile) await dinosaurs.locator("..").getByRole("button").click();
       else await dinosaurs.hover();
       const feats = mobile ? dinosaurs.locator("../..").locator(".kmobile-feats") : page.getByTestId("landing-cat-feats");
-      const featuredDinosaurs = mobile ? [18, 60, 69, 70] : [18, 60, 69];
+      const featuredDinosaurs = [18, 60, 69, 70];
       await expect(feats.locator(".kcat-feat")).toHaveCount(featuredDinosaurs.length);
       for (const id of featuredDinosaurs) await expect(feats.locator(`a[href="/livro/${id}"]`)).toBeVisible();
       await expect.poll(() => feats.locator("img").evaluateAll(images => images.every(img => (img as HTMLImageElement).naturalWidth > 0))).toBe(true);
