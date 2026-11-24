@@ -73,7 +73,9 @@ describe("approved photographic catalog publication — 2026-11-24", () => {
     for (const section of realistic) {
       for (const sub of section.subs) {
         const ids = indexes(sub.books);
-        expect(new Set(ids).size, `${lang}: ${section.id}/${sub.id}`).toBeGreaterThanOrEqual(4);
+        // The three biblical stories exclude the family book "Mamãe e Eu".
+        const minimum = sub.id === "biblico" ? 3 : 4;
+        expect(new Set(ids).size, `${lang}: ${section.id}/${sub.id}`).toBeGreaterThanOrEqual(minimum);
         expect(new Set(ids).size, `${lang}: duplicate within ${section.id}/${sub.id}`).toBe(ids.length);
       }
     }
@@ -105,6 +107,11 @@ describe("approved photographic catalog publication — 2026-11-24", () => {
     expect(catalogEntry(lang, 42)?.theme).toBe("consciencia_corporal");
     expect(occurrences(realistic, 42)).toEqual(["educativo/consciencia_corporal"]);
     expect(occurrences(cartoon, 42)).toEqual(["educativo/consciencia_corporal"]);
+    for (const sections of [realistic, cartoon]) {
+      expect(themeIndexes(sections, "educativo", "biblico")).toEqual([20, 38, 47]);
+      expect(themeIndexes(sections, "voce-e-eu", "mothers_day")).toContain(44);
+      expect(themeIndexes(sections, "voce-e-eu", "family_love")).toContain(44);
+    }
 
     const dadBooks = [14, 21, 81, 82];
     expect(themeIndexes(realistic, "voce-e-eu", "fathers_day")).toEqual(dadBooks);
