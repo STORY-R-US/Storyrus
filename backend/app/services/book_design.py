@@ -10,6 +10,8 @@ from fastapi import HTTPException
 from app.services import book_profile, cartoon_style
 
 ROOT = Path(__file__).resolve().parents[1] / "assets/composition_examples"
+CURRENT_CATALOG_VERSION = 5
+CATALOG_VERSIONS = frozenset({4, 5})
 
 
 def _signature(value):
@@ -18,9 +20,9 @@ def _signature(value):
     ).hexdigest()
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=5)
 def definitions(version=1):
-    if version not in {1, 2, 3, 4}:
+    if version not in {1, 2, 3, *CATALOG_VERSIONS}:
         raise HTTPException(409, "Versão do padrão visual indisponível")
     return json.loads((ROOT / f"book-designs-v{version}.json").read_text(encoding="utf-8"))
 
@@ -36,7 +38,13 @@ def reference(design, stage):
 
 def snapshot(model_id, *, version=None):
     if version is None:
-        version = 4 if model_id.startswith("catalog-") else 3 if model_id == "adventure" else 1
+        version = (
+            CURRENT_CATALOG_VERSION
+            if model_id.startswith("catalog-")
+            else 3
+            if model_id == "adventure"
+            else 1
+        )
     data = definitions(version)
     if model_id in data.get("unavailable", {}):
         raise HTTPException(
@@ -71,7 +79,13 @@ def select(project, requested):
         return previous
     if requested == "auto":
         requested = "cartoon" if project.style == "cartoon" else "adventure"
-    design = snapshot(requested)
+    # The Studio resends the selected ID when resuming a project. Its frozen
+    # version remains authoritative; only a new selection/project adopts v5.
+    design = (
+        previous
+        if previous and requested == previous["id"] and previous.get("version") in CATALOG_VERSIONS
+        else snapshot(requested)
+    )
     if design["style"] != project.style:
         raise HTTPException(400, "Escolha um padrão do Catálogo compatível com o estilo do livro")
     if previous != design:

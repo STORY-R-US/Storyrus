@@ -1850,9 +1850,20 @@ img.ex-tab-cover {
   letter-spacing: 0.02em;
   color: var(--yellow);
 }
+#catalogo.book-page .book-series-shot.is-page .book-series-frame {
+  overflow: visible;
+  margin-bottom: 44px;
+}
+#catalogo.book-page .book-series-shot.is-page .cat-book {
+  overflow: hidden;
+  border-radius: 10px;
+}
+#catalogo.book-page .book-series-shot.is-page .cat-flip-dots {
+  bottom: -28px;
+}
 #catalogo.book-page .book-series-shot.is-page .cat-flip-nav {
   top: auto;
-  bottom: 6px;
+  bottom: -40px;
   transform: none;
 }
 #catalogo.book-page .book-series-shot.is-page .cat-flip-nav:hover {

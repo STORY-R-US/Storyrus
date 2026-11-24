@@ -1,0 +1,1602 @@
+[
+  {
+    "catalog_index": 69,
+    "stable_slug": "sr-demo-leo-pegadas-gigante",
+    "theme_id": "dinosaurs",
+    "hero_name": "Léo",
+    "locales": {
+      "pt": {
+        "t": "Léo e as Pegadas de um Gigante",
+        "p": "Léo observa pegadas com uma guia, sem tocar, e encontra nas pistas novas perguntas para investigar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Dinossauros",
+        "quote": "Com a guia, observou sem tocar. Cada pista traz perguntas para investigar."
+      },
+      "en": {
+        "t": "Léo and the Giant's Footprints",
+        "p": "Léo examines a trail of footprints with his guide, finding clues that spark questions about the giant that left them.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Dinosaurs",
+        "quote": "With his guide, he looked with care. Clues can spark questions everywhere."
+      },
+      "es": {
+        "t": "Léo y las Huellas de un Gigante",
+        "p": "Léo observa unas huellas junto a su guía, sin tocarlas, y encuentra pistas que despiertan nuevas preguntas.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Dinosaurios",
+        "quote": "Sin tocar, comenzó a observar. ¡Había tantas pistas por investigar!"
+      }
+    }
+  },
+  {
+    "catalog_index": 70,
+    "stable_slug": "sr-demo-beatriz-museu-dinossauros",
+    "theme_id": "dinosaurs",
+    "hero_name": "Beatriz",
+    "locales": {
+      "pt": {
+        "t": "Beatriz e o Museu dos Dinossauros",
+        "p": "No museu dos dinossauros, Beatriz observa grandes esqueletos e escuta a guia. Suas perguntas abrem caminho para investigar os fósseis.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Dinossauros",
+        "quote": "Ela ouviu a guia com muita atenção. Cada pergunta acendia uma nova investigação."
+      },
+      "en": {
+        "t": "Beatriz and the Dinosaur Museum",
+        "p": "At the dinosaur museum, Beatriz studies enormous skeletons and asks her guide how fossils help us learn about the past.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Dinosaurs",
+        "quote": "She asked the guide, “How can we know?” “We study the clues those fossils show.”"
+      },
+      "es": {
+        "t": "Beatriz y el Museo de los Dinosaurios",
+        "p": "En el museo de los dinosaurios, Beatriz observa grandes esqueletos y escucha a la guía. Cada pregunta abre una nueva investigación.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Dinosaurios",
+        "quote": "Escuchó a la guía con mucha atención. Cada pregunta abría otra investigación."
+      }
+    }
+  },
+  {
+    "catalog_index": 71,
+    "stable_slug": "sr-demo-raul-recife-vida",
+    "theme_id": "underwater",
+    "hero_name": "Raul",
+    "locales": {
+      "pt": {
+        "t": "Raul e o Recife Cheio de Vida",
+        "p": "Durante uma visita ao aquário, Raul observa um recife cheio de peixes e cores e pensa no cuidado com o espaço de cada ser.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Fundo do Mar",
+        "quote": "Peixes entre as pedras, cores em cada lugar. Cada ser tem seu espaço: é preciso respeitar."
+      },
+      "en": {
+        "t": "Raul and the Reef Full of Life",
+        "p": "At the aquarium, Raul watches fish move through a colorful reef and wonders how to care for their watery home.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Under the Sea",
+        "quote": "Raul watched the fish weave, turn, and roam. “How can we care for their watery home?”"
+      },
+      "es": {
+        "t": "Raul y el Arrecife Lleno de Vida",
+        "p": "En el acuario, Raul observa un arrecife lleno de peces y colores y descubre un hogar que merece cuidado.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Fondo del Mar",
+        "quote": "Peces de colores nadaban sin parar. “Su hogar es un tesoro que debemos cuidar.”"
+      }
+    }
+  },
+  {
+    "catalog_index": 72,
+    "stable_slug": "sr-demo-camila-tartaruga-lar",
+    "theme_id": "underwater",
+    "hero_name": "Camila",
+    "locales": {
+      "pt": {
+        "t": "Camila e a Tartaruga que Procurava seu Lar",
+        "p": "Camila encontra uma tartaruguinha na praia, chama a equipe responsável e observa de longe seu caminho até o mar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Fundo do Mar",
+        "quote": "Uma tartaruguinha precisava chegar ao mar. De longe, Camila ficou a observar."
+      },
+      "en": {
+        "t": "Camila and the Turtle Looking for Home",
+        "p": "Camila spots a hatchling on the sand, calls the beach team and watches from a distance beside her mom, leaving it a quiet path to the sea.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Under the Sea",
+        "quote": "She watched from far back, beside the sea. “A safe, quiet path is what you need from me.”"
+      },
+      "es": {
+        "t": "Camila y la Tortuguita que Buscaba su Hogar",
+        "p": "Camila encuentra una tortuguita en la playa, avisa al equipo que cuida el lugar y la observa junto a su mamá, sin tocarla ni acercarse.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Fondo del Mar",
+        "quote": "Junto a su mamá, se quedó a observar. Sin tocar ni acercarse, la dejó avanzar."
+      }
+    }
+  },
+  {
+    "catalog_index": 73,
+    "stable_slug": "sr-demo-clara-praia-sorrir",
+    "theme_id": "underwater",
+    "hero_name": "Clara",
+    "locales": {
+      "pt": {
+        "t": "Clara e a Praia que Voltou a Sorrir",
+        "p": "Ao encontrar plástico na areia, Clara pede ajuda a um adulto e propõe um mutirão para cuidar da praia com colaboração.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Fundo do Mar",
+        "quote": "Chamou um adulto e propôs um mutirão. Cuidar da nossa praia pede colaboração."
+      },
+      "en": {
+        "t": "Clara and the Beach That Smiled Again",
+        "p": "Clara finds litter on the beach and asks a grown-up for help. Together, they plan how to care for the sand.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Under the Sea",
+        "quote": "She called a grown-up: “Let's lend a hand!” Together, they planned to care for the sand."
+      },
+      "es": {
+        "t": "Clara y la Playa que Volvió a Sonreír",
+        "p": "Al encontrar residuos cerca del mar, Clara pide ayuda a un adulto para empezar a limpiar la playa juntos y con cuidado.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Fondo del Mar",
+        "quote": "Pidió ayuda a un adulto para comenzar. Juntos y con cuidado, la iban a limpiar."
+      }
+    }
+  },
+  {
+    "catalog_index": 74,
+    "stable_slug": "sr-demo-tomas-viagem-planetas",
+    "theme_id": "space",
+    "hero_name": "Tomás",
+    "locales": {
+      "pt": {
+        "t": "Tomás e a Viagem pelos Planetas",
+        "p": "No planetário, Tomás observa os planetas ao lado do pai. Cada mundo desperta novas perguntas e vontade de aprender.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Espaço",
+        "quote": "Cada planeta era um mundo para conhecer. Tomás guardou perguntas: ainda tinha o que aprender."
+      },
+      "en": {
+        "t": "Tomás and the Journey Through the Planets",
+        "p": "As the planetarium sky lights up, Tomás discovers different worlds and gathers new questions about the planets.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Space",
+        "quote": "So many worlds appeared in view. Each one brought questions, bright and new."
+      },
+      "es": {
+        "t": "Tomás y el Viaje por los Planetas",
+        "p": "En el planetario, Tomás observa los planetas junto a su papá. Cada mundo despierta nuevas preguntas y ganas de aprender.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Espacio",
+        "quote": "Cada planeta era un mundo por conocer. Guardó muchas preguntas: ¡había tanto que aprender!"
+      }
+    }
+  },
+  {
+    "catalog_index": 75,
+    "stable_slug": "sr-demo-aurora-misterios-lua",
+    "theme_id": "space",
+    "hero_name": "Aurora",
+    "locales": {
+      "pt": {
+        "t": "Aurora e os Mistérios da Lua",
+        "p": "Aurora observa a Lua pela janela, desenha sua forma e, ao lado da mãe, começa a investigar como ela pode mudar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Espaço",
+        "quote": "Ao lado da mãe, olhou com atenção. Como estaria amanhã? Nasceu uma investigação."
+      },
+      "en": {
+        "t": "Aurora and the Mysteries of the Moon",
+        "p": "Aurora sketches the Moon she sees through her window and, with Mom beside her, wonders why its shape seems to change.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Space",
+        "quote": "With Mom beside her, she wondered why Its shape could seem to change up high."
+      },
+      "es": {
+        "t": "Aurora y los Misterios de la Luna",
+        "p": "Aurora observa la Luna por la ventana, la dibuja en su cuaderno y, junto a su mamá, se pregunta cómo se verá al día siguiente.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Espacio",
+        "quote": "Con su mamá, la miró con atención. “¿Y mañana cómo estará?” Así nació su investigación."
+      }
+    }
+  },
+  {
+    "catalog_index": 76,
+    "stable_slug": "sr-demo-felipe-mapa-estrelas",
+    "theme_id": "space",
+    "hero_name": "Felipe",
+    "locales": {
+      "pt": {
+        "t": "Felipe e o Mapa das Estrelas",
+        "p": "Com um mapa do céu e a companhia do pai, Felipe procura formas entre as estrelas e desenha o que reconhece.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Espaço",
+        "quote": "Um ponto, outro ponto: uma forma apareceu. No papel, fez um desenho do que reconheceu."
+      },
+      "en": {
+        "t": "Felipe and the Map of the Stars",
+        "p": "With a star chart and Dad beside him, Felipe finds a pattern in the sky, draws it carefully and looks up to find it again.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Space",
+        "quote": "He traced it on his page with care. Then looked back up to find it there."
+      },
+      "es": {
+        "t": "Felipe y el Mapa de las Estrellas",
+        "p": "Con un mapa del cielo y su papá a su lado, Felipe reconoce una forma entre las estrellas, la dibuja y vuelve a buscarla.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Espacio",
+        "quote": "Un punto, otro punto: una forma apareció. La dibujó en su hoja y de nuevo la buscó."
+      }
+    }
+  },
+  {
+    "catalog_index": 77,
+    "stable_slug": "sr-demo-helena-coragem-tentar",
+    "theme_id": "princess",
+    "hero_name": "Helena",
+    "locales": {
+      "pt": {
+        "t": "Princesa Helena e a Coragem de Tentar",
+        "p": "Quando sua torre cai, a princesa Helena faz uma pausa e tenta de novo. Uma base mais firme dá um novo começo à construção.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesas",
+        "quote": "A princesa respirou e decidiu recomeçar. Com uma base mais firme, tornou a tentar."
+      },
+      "en": {
+        "t": "Princess Helena and the Courage to Try",
+        "p": "When her block tower falls, Princess Helena pauses and tries again, building a wider base for a fresh start.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesses",
+        "quote": "She paused, then smiled: “I'll try once more!” A wider base stood firm on the floor."
+      },
+      "es": {
+        "t": "La Princesa Helena y el Valor de Intentarlo",
+        "p": "Cuando su torre se tambalea, la princesa Helena hace una pausa y vuelve a intentarlo con una base más ancha.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesas",
+        "quote": "La princesa hizo una pausa antes de recomenzar. Con una base más ancha, lo volvió a intentar."
+      }
+    }
+  },
+  {
+    "catalog_index": 78,
+    "stable_slug": "sr-demo-manuela-reino-escutar",
+    "theme_id": "princess",
+    "hero_name": "Manuela",
+    "locales": {
+      "pt": {
+        "t": "Princesa Manuela e o Reino que Aprendeu a Escutar",
+        "p": "No reino de Manuela, todos querem falar ao mesmo tempo. A princesa propõe ouvir uma voz de cada vez para que cada ideia tenha espaço.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesas",
+        "quote": "A princesa propôs: “Uma voz de cada vez!” Ouvir com atenção foi a escolha que ela fez."
+      },
+      "en": {
+        "t": "Princess Manuela and the Kingdom That Learned to Listen",
+        "p": "Everyone in Manuela’s kingdom has an idea to share. The princess suggests taking turns so they can listen and learn from one another.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesses",
+        "quote": "“Let's listen,” she said. “We will each have a turn.” From everyone's ideas, there was so much to learn."
+      },
+      "es": {
+        "t": "La Princesa Manuela y el Reino que Aprendió a Escuchar",
+        "p": "En el reino de Manuela, todos quieren hablar a la vez. La princesa propone escuchar una voz cada vez para dar espacio a cada idea.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesas",
+        "quote": "La princesa propuso: “Una voz cada vez”. Escuchar con atención fue lo que hicieron después."
+      }
+    }
+  },
+  {
+    "catalog_index": 79,
+    "stable_slug": "sr-demo-julia-castelo-ideias",
+    "theme_id": "princess",
+    "hero_name": "Júlia",
+    "locales": {
+      "pt": {
+        "t": "Princesa Júlia e o Castelo das Boas Ideias",
+        "p": "Com caixas e a ajuda dos amigos, a princesa Júlia planeja um castelo. As ideias de cada um fazem a construção crescer em cooperação.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesas",
+        "quote": "Cada um deu uma ideia para a construção. O castelo foi crescendo com a cooperação."
+      },
+      "en": {
+        "t": "Princess Júlia and the Castle of Bright Ideas",
+        "p": "Princess Júlia invites her friends to build a castle from boxes. Their shared ideas turn the project into a game of teamwork.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesses",
+        "quote": "They shared each idea, then found a way. Their castle took shape through teamwork and play."
+      },
+      "es": {
+        "t": "La Princesa Júlia y el Castillo de las Buenas Ideas",
+        "p": "La princesa Júlia invita a sus amigos a construir un castillo con cajas. Las ideas de cada uno hacen crecer la construcción en colaboración.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Princesas",
+        "quote": "Cada uno dio una idea para la construcción. El castillo fue creciendo con la colaboración."
+      }
+    }
+  },
+  {
+    "catalog_index": 80,
+    "stable_slug": "sr-demo-guilherme-forca-ajudar",
+    "theme_id": "superhero",
+    "hero_name": "Guilherme",
+    "locales": {
+      "pt": {
+        "t": "A Força de Guilherme Está em Ajudar",
+        "p": "De capa e pronto para brincar, Guilherme percebe um amigo sem dupla. Um convite e uma mão estendida revelam a força de ajudar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Super-heróis",
+        "quote": "Ofereceu companhia e estendeu a mão. Seu primeiro superpoder foi a atenção."
+      },
+      "en": {
+        "t": "Guilherme's Strength Is Helping Others",
+        "p": "Wearing his cape, Guilherme notices a friend standing apart and invites him to play, discovering strength in a kind invitation.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Superheroes",
+        "quote": "“Would you like to play?” he asked with a grin. A kind invitation let friendship begin."
+      },
+      "es": {
+        "t": "La Fuerza de Guilherme Está en Ayudar",
+        "p": "Con su capa y ganas de jugar, Guilherme ve a un amigo sin grupo. Lo invita a participar y descubre la fuerza de ayudar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Superhéroes",
+        "quote": "Lo invitó a su juego y le ofreció la mano. Su fuerza era ayudar: un poder cotidiano."
+      }
+    }
+  },
+  {
+    "catalog_index": 81,
+    "stable_slug": "sr-demo-eduardo-papai-jornadas",
+    "theme_id": "fathers_day",
+    "hero_name": "Eduardo",
+    "locales": {
+      "pt": {
+        "t": "Papai e Eduardo: De Mãos Dadas, Novas Jornadas",
+        "p": "Eduardo e papai passeiam de mãos dadas, observando folhas, nuvens e caminhos. As pequenas descobertas tornam a companhia ainda mais especial.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Papai e Eu",
+        "quote": "Uma folha, uma nuvem, um caminho diferente. Cada nova descoberta deixava os dois contentes."
+      },
+      "en": {
+        "t": "Dad and Eduardo: Hand in Hand on New Adventures",
+        "p": "Eduardo and Dad walk hand in hand, noticing leaves, clouds and a new path. Their small discoveries become moments to enjoy together.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Daddy and Me",
+        "quote": "A leaf and a cloud, a new path to see. “The best part,” said Dad, “is your company.”"
+      },
+      "es": {
+        "t": "Papá y Eduardo: De la Mano, Nuevas Aventuras",
+        "p": "Eduardo y papá pasean de la mano, atentos a una hoja, una nube y nuevos caminos. Las pequeñas cosas les dan mucho que descubrir juntos.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Papá y Yo",
+        "quote": "Una hoja, una nube: cosas para descubrir. Con papá a su lado, Eduardo volvió a sonreír."
+      }
+    }
+  },
+  {
+    "catalog_index": 82,
+    "stable_slug": "sr-demo-laura-papai-abraco-lugar",
+    "theme_id": "fathers_day",
+    "hero_name": "Laura",
+    "locales": {
+      "pt": {
+        "t": "Papai, Seu Abraço É Meu Lugar",
+        "p": "Laura volta do parque querendo contar sobre a chuva que interrompeu a brincadeira. Papai para para escutar e a acolhe em um abraço.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Papai e Eu",
+        "quote": "Ela contou da chuva e da vontade de brincar. No abraço de papai, encontrou seu lugar."
+      },
+      "en": {
+        "t": "Daddy, Your Hug Is Where I Belong",
+        "p": "Laura comes home with a story about rain interrupting her play. Dad pauses to listen, and a warm hug helps them share the moment.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Daddy and Me",
+        "quote": "She spoke of the rain that had ended her play. A hug from her daddy warmed up her day."
+      },
+      "es": {
+        "t": "Papá, Tu Abrazo Es Mi Lugar",
+        "p": "Laura vuelve del parque para contar cómo la lluvia interrumpió su juego. Papá se detiene a escucharla y la recibe con un abrazo.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Papá y Yo",
+        "quote": "La lluvia había hecho que dejara de jugar. En el abrazo de papá, encontró su lugar."
+      }
+    }
+  },
+  {
+    "catalog_index": 83,
+    "stable_slug": "sr-demo-ian-novo-amor-lar",
+    "theme_id": "recem_nascidos",
+    "hero_name": "Ian",
+    "locales": {
+      "pt": {
+        "t": "Bem-vindo, Ian: Um Novo Amor em Nosso Lar",
+        "p": "A chegada de Ian reúne a família em torno de pequenos gestos de carinho. Seguro no colo, o bebê descansa enquanto começa uma nova história no lar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recém-nascidos",
+        "quote": "No colo bem seguro, dormiu sem perceber. Quanta história de carinho estava por nascer!"
+      },
+      "en": {
+        "t": "Welcome, Ian: A New Love in Our Home",
+        "p": "Tiny Ian arrives home and is held gently as he rests. His welcome marks the beginning of a new family story filled with care.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Newborns",
+        "quote": "Held gently and safely, he rested that day. A new family story was now on its way."
+      },
+      "es": {
+        "t": "Bienvenido, Ian: Un Nuevo Amor en Nuestro Hogar",
+        "p": "La llegada de Ian reúne a la familia con cariño. Seguro en brazos, el bebé descansa mientras comienza una nueva historia en el hogar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recién Nacidos",
+        "quote": "En brazos bien seguros, se quedó a descansar. ¡Cuántas historias de cariño estaban por empezar!"
+      }
+    }
+  },
+  {
+    "catalog_index": 84,
+    "stable_slug": "sr-demo-benjamim-primeiro-sorriso",
+    "theme_id": "recem_nascidos",
+    "hero_name": "Benjamim",
+    "locales": {
+      "pt": {
+        "t": "O Primeiro Sorriso de Benjamim",
+        "p": "A família observa Benjamim no colo, cercado de cuidado. Quando um pequeno sorriso aparece, aquele instante se torna uma lembrança de carinho.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recém-nascidos",
+        "quote": "De repente, um sorrisinho apareceu. Na memória da família, aquele instante floresceu."
+      },
+      "en": {
+        "t": "Benjamim's First Smile",
+        "p": "Benjamim rests safely in loving arms while his family watches. A tiny smile becomes a sweet memory of their time together.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Newborns",
+        "quote": "A tiny smile appeared that day. They tucked that sweet memory safely away."
+      },
+      "es": {
+        "t": "La Primera Sonrisa de Benjamim",
+        "p": "La familia observa a Benjamim, abrigado y seguro en brazos. Una pequeña sonrisa convierte el momento en un recuerdo lleno de cariño.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recién Nacidos",
+        "quote": "De repente, una pequeña sonrisa apareció. En la memoria de todos, aquel momento se guardó."
+      }
+    }
+  },
+  {
+    "catalog_index": 85,
+    "stable_slug": "sr-demo-leticia-abracos-primeiros-dias",
+    "theme_id": "recem_nascidos",
+    "hero_name": "Letícia",
+    "locales": {
+      "pt": {
+        "t": "Letícia e os Abraços dos Primeiros Dias",
+        "p": "Nos primeiros dias de Letícia, vozes, cheiros e abraços calmos acompanham o cuidado da família e a chegada de novos laços.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recém-nascidos",
+        "quote": "Cada abraço vinha calmo, com apoio e atenção. A família guardou aquele carinho no coração."
+      },
+      "en": {
+        "t": "Letícia and the Cuddles of Her First Days",
+        "p": "Soft voices, gentle cuddles and time to rest surround Letícia in her first days as her family learns how to care for her.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Newborns",
+        "quote": "One quiet cuddle, then time to rest. Her family learned what helped her best."
+      },
+      "es": {
+        "t": "Letícia y los Abrazos de Sus Primeros Días",
+        "p": "En sus primeros días, Letícia conoce voces, aromas y abrazos tranquilos, rodeada del cuidado y el cariño de su familia.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recién Nacidos",
+        "quote": "En cada abrazo había calma y atención. La familia guardó aquel cariño en el corazón."
+      }
+    }
+  },
+  {
+    "catalog_index": 86,
+    "stable_slug": "sr-demo-rosa-missao-aliancas",
+    "theme_id": "casamento",
+    "hero_name": "Rosa",
+    "locales": {
+      "pt": {
+        "t": "A Grande Missão de Rosa: Levar as Alianças",
+        "p": "Rosa recebe a missão de levar as alianças na celebração. Com a caixinha fechada e um adulto por perto, ensaia cada passo com cuidado.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Casamento",
+        "quote": "Com a caixinha fechada, ensaiou devagar. Perto de um adulto, encontrou seu lugar."
+      },
+      "en": {
+        "t": "Rosa's Special Mission: Carrying the Wedding Rings",
+        "p": "Rosa prepares to carry the wedding rings. With the ring box closed and a grown-up nearby, she practices her special part with care.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Wedding",
+        "quote": "With the ring box closed, she practiced with care. A grown-up stayed close, ready to help her there."
+      },
+      "es": {
+        "t": "La Gran Misión de Rosa: Llevar los Anillos",
+        "p": "Rosa recibe la misión de llevar los anillos en la celebración. Con la cajita cerrada y un adulto cerca, ensaya cada paso con cuidado.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Boda",
+        "quote": "Con la cajita cerrada, ensayó sin apurar. Cerca de un adulto, encontró su lugar."
+      }
+    }
+  },
+  {
+    "catalog_index": 87,
+    "stable_slug": "sr-demo-catarina-joao-primeiro-olhar-lar",
+    "theme_id": "casamento",
+    "hero_name": "Catarina e João",
+    "locales": {
+      "pt": {
+        "t": "Catarina e João: Do Primeiro Olhar ao Nosso Lar",
+        "p": "Catarina e João recordam o primeiro encontro, as conversas e os planos que compartilharam até construir a vida que hoje chamam de lar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Casamento",
+        "quote": "Entre planos e caminhos, escolheram caminhar. Hoje, contam essa história no aconchego do seu lar."
+      },
+      "en": {
+        "t": "Catarina and João: From Our First Glance to Our Home",
+        "p": "Catarina and João look back on their first conversation, shared plans and the choices that helped them build a life and a home together.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Wedding",
+        "quote": "Through shared plans and places they chose to roam, They built a life together and called it home."
+      },
+      "es": {
+        "t": "Catarina y João: De la Primera Mirada a Nuestro Hogar",
+        "p": "Catarina y João recuerdan su primer encuentro, las conversaciones y los planes que compartieron hasta construir juntos su hogar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Boda",
+        "quote": "Entre planes y caminos, decidieron avanzar. Hoy comparten esa historia en la calma de su hogar."
+      }
+    }
+  },
+  {
+    "catalog_index": 88,
+    "stable_slug": "sr-demo-paula-ricardo-familia-construcao",
+    "theme_id": "casamento",
+    "hero_name": "Paula e Ricardo",
+    "locales": {
+      "pt": {
+        "t": "Dois Corações, uma Família em Construção",
+        "p": "Paula e Ricardo conversam sobre sonhos, escolhas e a vida que querem compartilhar. Com respeito e parceria, começam a construir sua família.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Casamento",
+        "quote": "Conversaram sobre sonhos e o jeito de viver. Uma família também cresce quando aprende a escolher."
+      },
+      "en": {
+        "t": "Two Hearts, a Family in the Making",
+        "p": "Paula and Ricardo share their dreams for a home, talking through choices with room for both voices as their family takes shape.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Wedding",
+        "quote": "They talked through small choices, both with a say. Their family took shape a little each day."
+      },
+      "es": {
+        "t": "Dos Corazones, una Familia en Construcción",
+        "p": "Paula y Ricardo conversan sobre sus sueños y decisiones para formar un hogar, con respeto y espacio para la voz de los dos.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Boda",
+        "quote": "Hablaron de sus planes, cada uno con su voz. Su familia iba creciendo con espacio para los dos."
+      }
+    }
+  },
+  {
+    "catalog_index": 89,
+    "stable_slug": "sr-demo-luana-irmao-amor-multiplicou",
+    "theme_id": "irmaos_primos",
+    "hero_name": "Luana",
+    "locales": {
+      "pt": {
+        "t": "Meu Irmão Chegou: o Amor se Multiplicou",
+        "p": "A chegada do irmão traz perguntas e sentimentos para Luana. Com a escuta calma da mãe, ela encontra espaço para pedir carinho e contar o que sente.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Irmãos e Primos",
+        "quote": "Podia sentir saudade e também querer carinho. Mamãe ouviu com calma: ninguém cresce sozinho."
+      },
+      "en": {
+        "t": "My Brother Is Here: Our Love Has Grown",
+        "p": "Her baby brother’s arrival brings Luana new questions and mixed feelings. Mom listens and makes room for the love and attention she needs.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Siblings and Cousins",
+        "quote": "She could feel happy and miss things, too. Mom listened: “There's love and time for you.”"
+      },
+      "es": {
+        "t": "Llegó Mi Hermano: el Amor se Multiplicó",
+        "p": "La llegada de su hermano trae nuevas preguntas para Luana. Mamá la escucha con calma y le da espacio para pedir un abrazo y contar lo que siente.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hermanos y Primos",
+        "quote": "Luana pidió un abrazo y contó lo que sentía. Mamá escuchó con calma y le hizo compañía."
+      }
+    }
+  },
+  {
+    "catalog_index": 90,
+    "stable_slug": "sr-demo-gustavo-renata-irmaos-diferentes",
+    "theme_id": "irmaos_primos",
+    "hero_name": "Gustavo e Renata",
+    "locales": {
+      "pt": {
+        "t": "Irmãos Diferentes, Companheiros para Sempre",
+        "p": "Gustavo gosta de montar e Renata prefere desenhar. Ao compartilhar ideias na mesma mesa, os irmãos descobrem como brincar juntos respeitando suas diferenças.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Irmãos e Primos",
+        "quote": "Ele pediu uma ideia; ela quis experimentar. Com respeito às diferenças, encontraram como somar."
+      },
+      "en": {
+        "t": "Different Siblings, Lifelong Companions",
+        "p": "Gustavo likes building and Renata loves drawing. By sharing ideas, the siblings find a way to bring their different interests into the same game.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Siblings and Cousins",
+        "quote": "He asked for her ideas; she gave them a try. Together, they made their bright plans fly."
+      },
+      "es": {
+        "t": "Hermanos Diferentes, Compañeros para Siempre",
+        "p": "A Gustavo le gusta construir y a Renata, dibujar. Al compartir ideas en la misma mesa, encuentran cómo colaborar respetando sus diferencias.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hermanos y Primos",
+        "quote": "Él pidió una idea; ella quiso probar. Respetando sus diferencias, encontraron cómo colaborar."
+      }
+    }
+  },
+  {
+    "catalog_index": 91,
+    "stable_slug": "sr-demo-bruna-primos-time-amigos",
+    "theme_id": "irmaos_primos",
+    "hero_name": "Bruna",
+    "locales": {
+      "pt": {
+        "t": "Bruna e os Primos: Um Time de Bons Amigos",
+        "p": "Bruna recebe os primos para um dia de brincadeiras. Antes de começar, combinam as regras e os turnos para que todos possam participar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Irmãos e Primos",
+        "quote": "Antes da brincadeira, combinaram como jogar. Com vez para todo mundo, ninguém ia ficar sem participar."
+      },
+      "en": {
+        "t": "Bruna and Her Cousins: A Team of Good Friends",
+        "p": "Bruna’s cousins arrive with plenty of ideas for a day of play. Together, they agree on a game with turns for everyone.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Siblings and Cousins",
+        "quote": "First, they agreed on a game to begin. With turns for everyone, all could join in."
+      },
+      "es": {
+        "t": "Bruna y sus Primos: Un Equipo de Buenos Amigos",
+        "p": "Los primos de Bruna llegan con ideas para pasar el día jugando. Antes de empezar, acuerdan cómo jugar y dar un turno a todos.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hermanos y Primos",
+        "quote": "Antes de empezar, acordaron cómo jugar. Con turnos para todos, nadie quedaría sin participar."
+      }
+    }
+  },
+  {
+    "catalog_index": 92,
+    "stable_slug": "sr-demo-gabriela-pascoa-partilhar",
+    "theme_id": "easter",
+    "hero_name": "Gabriela",
+    "locales": {
+      "pt": {
+        "t": "Gabriela e a Páscoa de Partilhar",
+        "p": "Diante da mesa de Páscoa, Gabriela pensa em quem mais poderia convidar. Com a família, encontra uma forma de compartilhar carinho na celebração.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Páscoa",
+        "quote": "Com a família, pensou em alguém para convidar. A Páscoa ficou mais bonita quando pôde partilhar."
+      },
+      "en": {
+        "t": "Gabriela and an Easter to Share",
+        "p": "Seeing the Easter table ready, Gabriela wonders who else could join. Her family makes room for one more and shares the joy of the day.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Easter",
+        "quote": "With her family, she made room for one more. Sharing brought joy through their open door."
+      },
+      "es": {
+        "t": "Gabriela y la Pascua de Compartir",
+        "p": "Al ver la mesa de Pascua preparada, Gabriela piensa a quién más podrían invitar. Su familia busca compartir el cariño de la celebración.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Pascua",
+        "quote": "Con su familia, pensó en alguien a quien invitar. Compartir aquella Pascua les dio más amor para dar."
+      }
+    }
+  },
+  {
+    "catalog_index": 93,
+    "stable_slug": "sr-demo-rute-jardim-pascoa",
+    "theme_id": "easter",
+    "hero_name": "Rute",
+    "locales": {
+      "pt": {
+        "t": "O Jardim de Páscoa de Rute",
+        "p": "Rute encontra um vaso vazio e decide plantar uma semente para a Páscoa. Com ajuda, aprende a regar e cuidar com atenção do que cresce.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Páscoa",
+        "quote": "Com ajuda, pôs a terra e regou com atenção. Cuidar de algo que cresce trouxe uma nova lição."
+      },
+      "en": {
+        "t": "Rute's Easter Garden",
+        "p": "Rute plants an Easter seed in a pot with a helping hand. Watering it carefully becomes the start of a small daily plan for care.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Easter",
+        "quote": "With help, she planted and watered with care. Then made a small plan: “Each day, I'll be there.”"
+      },
+      "es": {
+        "t": "El Jardín de Pascua de Rute",
+        "p": "Rute encuentra una maceta vacía y decide plantar una semilla para Pascua. Con ayuda, aprende a regar y cuidar con atención lo que crece.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Pascua",
+        "quote": "Con ayuda, puso tierra y regó con atención. Cuidar de algo que crece le trajo una nueva lección."
+      }
+    }
+  },
+  {
+    "catalog_index": 94,
+    "stable_slug": "sr-demo-diana-alegria-ressurreicao",
+    "theme_id": "easter",
+    "hero_name": "Diana",
+    "locales": {
+      "pt": {
+        "t": "Diana Descobre a Alegria da Ressurreição",
+        "p": "Diana escuta a história de Jesus na Páscoa e conversa com a família sobre amor, esperança, gratidão e o bem que pode fazer.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Páscoa",
+        "quote": "Falou de amor e esperança, do bem que pode fazer. Com a família, encontrou mais motivos para agradecer."
+      },
+      "en": {
+        "t": "Diana Discovers the Joy of the Resurrection",
+        "p": "Diana listens to the Easter story of Jesus and talks with her family about love, hope and the good she can do, finding reasons to give thanks.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Easter",
+        "quote": "She spoke of love and the good she could do. Then thanked God with her family, her hope shining through."
+      },
+      "es": {
+        "t": "Diana Descubre la Alegría de la Resurrección",
+        "p": "Diana escucha la historia de Jesús en Pascua y conversa con su familia sobre el amor, la esperanza, la gratitud y el bien que puede hacer.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Pascua",
+        "quote": "Habló de amor y esperanza, del bien que podía hacer. Junto a su familia, encontró más motivos para agradecer."
+      }
+    }
+  },
+  {
+    "catalog_index": 95,
+    "stable_slug": "sr-demo-isadora-natal-compartilhar",
+    "theme_id": "christmas",
+    "hero_name": "Isadora",
+    "locales": {
+      "pt": {
+        "t": "Isadora e o Natal de Compartilhar",
+        "p": "Os enfeites de Natal despertam em Isadora a vontade de compartilhar. Com um adulto, ela planeja um gesto de carinho para alguém.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Natal",
+        "quote": "Com um adulto, preparou um gesto de atenção. O Natal ganhou carinho em mais de um coração."
+      },
+      "en": {
+        "t": "Isadora and a Christmas to Share",
+        "p": "Christmas lights inspire Isadora to share the joy she feels. With a grown-up, she plans a simple act of kindness.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Christmas",
+        "quote": "With a grown-up, she planned one kind thing to do. Christmas felt warmer when kindness came through."
+      },
+      "es": {
+        "t": "Isadora y la Navidad de Compartir",
+        "p": "Los adornos de Navidad despiertan en Isadora las ganas de compartir. Con un adulto, prepara un gesto de cariño para alguien más.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Navidad",
+        "quote": "Con un adulto, preparó un gesto de atención. La Navidad llevó cariño a más de un corazón."
+      }
+    }
+  },
+  {
+    "catalog_index": 96,
+    "stable_slug": "sr-demo-marcela-aniversario-agradecer",
+    "theme_id": "birthday",
+    "hero_name": "Marcela",
+    "locales": {
+      "pt": {
+        "t": "O Aniversário de Marcela: Crescer, Aprender e Agradecer",
+        "p": "Ao contar as velinhas do aniversário, Marcela recorda o que aprendeu e as pessoas que a fizeram sorrir, encontrando motivos para agradecer.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Aniversário",
+        "quote": "Lembrou do que aprendeu e de quem a fez sorrir. Agradeceu com carinho, pronta para o que ia vir."
+      },
+      "en": {
+        "t": "Marcela's Birthday: Growing, Learning, and Giving Thanks",
+        "p": "As she counts her birthday candles, Marcela remembers what she has learned and the caring people who helped her grow, finding reasons to give thanks.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Birthday",
+        "quote": "She thought of all she'd learned and the kindness she'd known. Then thanked the caring people who'd helped her as she'd grown."
+      },
+      "es": {
+        "t": "El Cumpleaños de Marcela: Crecer, Aprender y Agradecer",
+        "p": "Al contar las velitas de su cumpleaños, Marcela recuerda lo aprendido y a quienes la hicieron sonreír, encontrando motivos para agradecer.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cumpleaños",
+        "quote": "Recordó lo aprendido y a quienes la hicieron sonreír. Dio las gracias con cariño, lista para lo que iba a venir."
+      }
+    }
+  },
+  {
+    "catalog_index": 97,
+    "stable_slug": "sr-demo-hugo-mistura-cores-e-descobre-novos-tons",
+    "theme_id": "cores",
+    "hero_name": "Hugo",
+    "locales": {
+      "pt": {
+        "t": "Hugo Mistura Cores e Descobre Novos Tons",
+        "p": "Hugo experimenta misturar vermelho, amarelo e azul. Observando cada combinação com atenção, descobre novos tons.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cores",
+        "quote": "Mistura devagar e observa com atenção. Um novo tom aparece: que bonita combinação!"
+      },
+      "en": {
+        "t": "Hugo Mixes Colors and Discovers New Shades",
+        "p": "Hugo experiments with red, yellow and blue paint, watching each small mixture reveal a new color.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Colors",
+        "quote": "One small dab, then a mix to try. A brand-new color catches his eye."
+      },
+      "es": {
+        "t": "Hugo Mezcla Colores y Descubre Nuevos Tonos",
+        "p": "Hugo experimenta con pintura roja, amarilla y azul. Al observar cada mezcla con atención, descubre nuevos tonos.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Colores",
+        "quote": "Mezcla despacito y presta mucha atención. Nace un tono nuevo de aquella combinación."
+      }
+    }
+  },
+  {
+    "catalog_index": 98,
+    "stable_slug": "sr-demo-lara-e-o-arco-iris-da-arrumacao",
+    "theme_id": "cores",
+    "hero_name": "Lara",
+    "locales": {
+      "pt": {
+        "t": "Lara e o Arco-Íris da Arrumação",
+        "p": "Lara organiza os blocos espalhados pelo chão usando cestas de cores diferentes, para encontrar cada peça quando a brincadeira voltar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cores",
+        "quote": "Cada bloco encontra um lugar para morar. Quando a brincadeira volta, fica fácil encontrar."
+      },
+      "en": {
+        "t": "Lara's Rainbow Cleanup",
+        "p": "Lara sorts her colorful blocks into baskets, making it easier to find each piece when it is time to play again.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Colors",
+        "quote": "Blue goes with blue in a basket today. She can find each block when it's time to play."
+      },
+      "es": {
+        "t": "Lara y el Arcoíris del Orden",
+        "p": "Lara ordena los bloques repartidos por el salón en cestas de colores, para encontrarlos más fácilmente cuando vuelva a jugar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Colores",
+        "quote": "Cada bloque tiene su sitio al guardar. Luego es más sencillo volverlo a encontrar."
+      }
+    }
+  },
+  {
+    "catalog_index": 99,
+    "stable_slug": "sr-demo-olivia-e-as-cores-da-feira",
+    "theme_id": "cores",
+    "hero_name": "Olívia",
+    "locales": {
+      "pt": {
+        "t": "Olívia e as Cores da Feira",
+        "p": "Entre frutas e verduras da feira, Olívia observa, aponta e nomeia cores, do vermelho do tomate ao verde do pimentão.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cores",
+        "quote": "Vermelho no tomate, verde no pimentão. Olívia diz as cores e aponta com a mão."
+      },
+      "en": {
+        "t": "Olívia and the Colors of the Market",
+        "p": "At the market, Olívia spots and names the colors of fruit and vegetables, from a red tomato to a green pepper.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Colors",
+        "quote": "Red on a tomato, green on a pepper too. Olívia names each color and points them out to you."
+      },
+      "es": {
+        "t": "Olívia y los Colores de la Feria",
+        "p": "Entre frutas y verduras de la feria, Olívia observa y nombra colores, desde el rojo del tomate hasta el verde del pimentón.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Colores",
+        "quote": "Rojo en el tomate, verde en el pimentón. Olívia nombra colores con mucha emoción."
+      }
+    }
+  },
+  {
+    "catalog_index": 100,
+    "stable_slug": "sr-demo-caio-e-o-sorriso-bem-cuidado",
+    "theme_id": "higiene_desfralde",
+    "hero_name": "Caio",
+    "locales": {
+      "pt": {
+        "t": "Caio e o Sorriso Bem Cuidado",
+        "p": "Com um adulto por perto, Caio aprende a cuidar do sorriso, movendo a escova com calma e atenção a cada passo.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Higiene",
+        "quote": "Sem pressa, move a escova e começa a observar. Cada cantinho do sorriso merece o seu olhar."
+      },
+      "en": {
+        "t": "Caio Takes Care of His Smile",
+        "p": "With an adult nearby, Caio practices caring for his smile, following each gentle move of his toothbrush with attention.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hygiene",
+        "quote": "Small, gentle moves, with someone close by. He follows each step and gives it a try."
+      },
+      "es": {
+        "t": "Caio y su Sonrisa Bien Cuidada",
+        "p": "Con un adulto a su lado, Caio aprende a cuidar su sonrisa, moviendo el cepillo con calma y atención en cada paso.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Higiene",
+        "quote": "Mueve el cepillo con calma y atención. Cuidar su sonrisa es parte de la misión."
+      }
+    }
+  },
+  {
+    "catalog_index": 101,
+    "stable_slug": "sr-demo-cecilia-e-as-maos-prontas-para-brincar",
+    "theme_id": "higiene_desfralde",
+    "hero_name": "Cecília",
+    "locales": {
+      "pt": {
+        "t": "Cecília e as Mãos Prontas para Brincar",
+        "p": "Depois de brincar na terra, Cecília lava as mãos com água e sabonete, esfrega, enxágua e seca para continuar cuidando de si.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Higiene",
+        "quote": "Com água e sabonete, começa a esfregar. Depois de enxaguar, é hora de secar."
+      },
+      "en": {
+        "t": "Cecília Gets Her Hands Ready to Play",
+        "p": "After playing in the garden, Cecília washes the dirt away with soap and water, rubs and rinses her hands, then reaches for her towel.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hygiene",
+        "quote": "She rubs her hands, then rinses them clean. A towel is ready, soft and green."
+      },
+      "es": {
+        "t": "Cecília y las Manos Listas para Jugar",
+        "p": "Después de jugar en el patio, Cecília se lava las manos con agua y jabón, las frota, las enjuaga y se prepara para secarlas.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Higiene",
+        "quote": "Con agua y jabón se las va a frotar. Luego las enjuaga, listas para secar."
+      }
+    }
+  },
+  {
+    "catalog_index": 102,
+    "stable_slug": "sr-demo-ravi-e-o-penico-cada-passo-no-seu-tempo",
+    "theme_id": "higiene_desfralde",
+    "hero_name": "Ravi",
+    "locales": {
+      "pt": {
+        "t": "Ravi e o Penico: Cada Passo no Seu Tempo",
+        "p": "Ravi conhece o penico com a ajuda de um adulto que escuta suas perguntas. Ele pode observar e experimentar no próprio tempo, sem pressa nem disputa.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Higiene",
+        "quote": "Ele pode conhecer, sentar e experimentar. Sem pressa nem disputa, cada passo vai contar."
+      },
+      "en": {
+        "t": "Ravi and the Potty: Every Step in His Own Time",
+        "p": "Ravi explores the potty with a grown-up who takes time for his questions. He can look or try sitting at his own pace, with help and no race.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hygiene",
+        "quote": "He can look, ask questions, or sit for a while. There is no race to win, just help and a smile."
+      },
+      "es": {
+        "t": "Ravi y el Orinal: Cada Paso a su Tiempo",
+        "p": "Ravi conoce el orinal con un adulto dispuesto a escuchar sus preguntas. Puede mirar y probar a su manera, sin prisa ni carreras.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Higiene",
+        "quote": "Puede verlo y sentarse, probar a su manera. Sin prisa ni carreras, hay alguien que lo espera."
+      }
+    }
+  },
+  {
+    "catalog_index": 103,
+    "stable_slug": "sr-demo-luiza-e-o-dia-em-que-a-raiva-chegou",
+    "theme_id": "literacia_emocional",
+    "hero_name": "Luiza",
+    "locales": {
+      "pt": {
+        "t": "Luiza e o Dia em que a Raiva Chegou",
+        "p": "Quando sua torre cai, Luiza sente o rosto esquentar e vontade de gritar. Ao dizer que está com raiva, encontra um adulto disposto a escutar e ajudar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sentimentos",
+        "quote": "«Estou com raiva!», ela consegue contar. Um adulto escuta perto e pergunta como ajudar."
+      },
+      "en": {
+        "t": "Luiza and the Day Anger Arrived",
+        "p": "When her tower falls, Luiza feels anger rising and wants to shout. She names her feeling and asks a grown-up to stay and listen.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Feelings",
+        "quote": "\"I'm angry,\" says Luiza. \"Will you stay?\" A grown-up listens to what she has to say."
+      },
+      "es": {
+        "t": "Luiza y el Día en que Llegó el Enojo",
+        "p": "Cuando su torre cae, Luiza siente calor en las mejillas. Al contar que está enojada, encuentra a un adulto dispuesto a escucharla y ayudar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sentimientos",
+        "quote": "«¡Estoy enojada!», se anima a contar. Un adulto la escucha y pregunta cómo ayudar."
+      }
+    }
+  },
+  {
+    "catalog_index": 104,
+    "stable_slug": "sr-demo-otto-e-o-medo-que-ficou-menor",
+    "theme_id": "literacia_emocional",
+    "hero_name": "Otto",
+    "locales": {
+      "pt": {
+        "t": "Otto e o Medo que Ficou Menor",
+        "p": "Otto se assusta com uma sombra e procura companhia. Junto de um adulto, observa com calma e descobre um casaco na cadeira iluminado pela luz.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sentimentos",
+        "quote": "Juntos olham de perto, com calma para entender. Era o casaco na cadeira, que a luz fez crescer."
+      },
+      "en": {
+        "t": "Otto and the Fear That Grew Smaller",
+        "p": "A long shadow frightens Otto, so he asks a grown-up to stay. Looking together in the lamplight, they discover the coat behind the shadow.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Feelings",
+        "quote": "Together they look in the lamp's soft glow. A coat makes the shadow stretch out and grow."
+      },
+      "es": {
+        "t": "Otto y el Miedo que se Hizo Más Pequeño",
+        "p": "Una sombra asusta a Otto, que pide compañía a un adulto. Al acercarse con calma, descubren que es la sombra de un abrigo.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sentimientos",
+        "quote": "Se acercan despacio, con ganas de entender. La sombra del abrigo es lo que pueden ver."
+      }
+    }
+  },
+  {
+    "catalog_index": 105,
+    "stable_slug": "sr-demo-iris-descobre-que-pode-pedir-ajuda",
+    "theme_id": "literacia_emocional",
+    "hero_name": "Íris",
+    "locales": {
+      "pt": {
+        "t": "Íris Descobre que Pode Pedir Ajuda",
+        "p": "Íris tenta abrir uma caixa e não consegue. Ao encontrar as palavras para pedir ajuda, descobre outra forma de aprender e seguir em frente.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sentimentos",
+        "quote": "«Você pode me ajudar?», ela decide dizer. Pedir apoio também é um jeito de aprender."
+      },
+      "en": {
+        "t": "Íris Discovers She Can Ask for Help",
+        "p": "Íris struggles with a tight lid and feels upset. Asking a grown-up for help gives her a way to work through the problem together.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Feelings",
+        "quote": "\"Can you help me?\" Íris asks today. A grown-up smiles: \"Let's find a way.\""
+      },
+      "es": {
+        "t": "Íris Descubre que Puede Pedir Ayuda",
+        "p": "Íris intenta abrir una caja y la tapa no se mueve. Al animarse a pedir ayuda, descubre otra manera de avanzar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sentimientos",
+        "quote": "«¿Puedes ayudarme?», se anima a preguntar. Pedir apoyo es otra manera de avanzar."
+      }
+    }
+  },
+  {
+    "catalog_index": 106,
+    "stable_slug": "sr-demo-samuel-e-o-caminho-do-boa-noite",
+    "theme_id": "rotina_dormir",
+    "hero_name": "Samuel",
+    "locales": {
+      "pt": {
+        "t": "Samuel e o Caminho do Boa-Noite",
+        "p": "Quando o céu escurece, Samuel guarda as peças e escolhe um livro. Pijama, histórias e companhia carinhosa acompanham sua preparação para deitar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hora de Dormir",
+        "quote": "De pijama, ouve histórias e começa a sossegar. Com carinho e companhia, se prepara para deitar."
+      },
+      "en": {
+        "t": "Samuel and the Path to Good Night",
+        "p": "As evening arrives, Samuel puts away his toys and gets ready for bed with pajamas, stories and a comforting cuddle.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Bedtime",
+        "quote": "Pajamas and stories, a cuddle held tight. Samuel gets ready to welcome the night."
+      },
+      "es": {
+        "t": "Samuel y el Camino de las Buenas Noches",
+        "p": "Al oscurecer, Samuel guarda sus juguetes y escoge un cuento. El pijama, la lectura y la compañía lo ayudan a prepararse para descansar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hora de Dormir",
+        "quote": "Pijama y un cuento, cariño al escuchar. Con alguien querido, se prepara a descansar."
+      }
+    }
+  },
+  {
+    "catalog_index": 107,
+    "stable_slug": "sr-demo-amelia-e-o-abraco-antes-de-dormir",
+    "theme_id": "rotina_dormir",
+    "hero_name": "Amélia",
+    "locales": {
+      "pt": {
+        "t": "Amélia e o Abraço Antes de Dormir",
+        "p": "Antes de dormir, Amélia pede companhia e escolhe receber um abraço. Uma história contada baixinho acompanha o final do dia.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hora de Dormir",
+        "quote": "Um abraço que ela escolhe ajuda o dia a terminar. Depois vem uma história, bem baixinho, para escutar."
+      },
+      "en": {
+        "t": "Amélia and the Bedtime Hug",
+        "p": "At bedtime, Amélia asks for a cuddle. Her grown-up stays close, and a quiet story helps them share the end of the day.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Bedtime",
+        "quote": "Her grown-up says, \"Of course,\" and stays near. A quiet bedtime story is lovely to hear."
+      },
+      "es": {
+        "t": "Amélia y el Abrazo Antes de Dormir",
+        "p": "Antes de dormir, Amélia pide un abrazo y compañía. El cariño que elige y un cuento tranquilo acompañan el final del día.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hora de Dormir",
+        "quote": "El abrazo que ella elige acompaña el final del día. Luego llega un cuento, contado en compañía."
+      }
+    }
+  },
+  {
+    "catalog_index": 108,
+    "stable_slug": "sr-demo-valentina-e-os-sons-da-noite",
+    "theme_id": "rotina_dormir",
+    "hero_name": "Valentina",
+    "locales": {
+      "pt": {
+        "t": "Valentina e os Sons da Noite",
+        "p": "Valentina ouve um som vindo do quintal e quer descobrir quem canta. Com um adulto ao lado, reconhece os grilos ao escutar com atenção.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hora de Dormir",
+        "quote": "Com um adulto ao lado, escuta com atenção. São grilos lá na grama, fazendo sua canção."
+      },
+      "en": {
+        "t": "Valentina and the Sounds of the Night",
+        "p": "Valentina hears a chirp outside at night. Staying beside her grown-up, she listens carefully and gets to know the sound of crickets.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Bedtime",
+        "quote": "They listen to the crickets, soft and low. Some nighttime sounds are nice to get to know."
+      },
+      "es": {
+        "t": "Valentina y los Sonidos de la Noche",
+        "p": "Valentina oye un sonido al anochecer y pregunta con curiosidad. Junto a un adulto, escucha y reconoce a los grillos del jardín.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Hora de Dormir",
+        "quote": "Escuchan a los grillos que cantan en el jardín. Valentina los distingue y sonríe al fin."
+      }
+    }
+  },
+  {
+    "catalog_index": 109,
+    "stable_slug": "sr-demo-arthur-descobre-a-vez-de-cada-um",
+    "theme_id": "compartilhar_revezar",
+    "hero_name": "Arthur",
+    "locales": {
+      "pt": {
+        "t": "Arthur Descobre a Vez de Cada Um",
+        "p": "Arthur e um amigo querem brincar com o mesmo carrinho. Ao pedir sua vez para depois, Arthur encontra com o amigo um jeito de combinar a brincadeira.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Compartilhar",
+        "quote": "«Quando acabar, você me deixa experimentar?» O amigo diz que sim; os dois conseguem combinar."
+      },
+      "en": {
+        "t": "Arthur Discovers Everyone Gets a Turn",
+        "p": "Arthur and his friend both want the same toy truck. By asking for a turn when his friend is done, he helps them agree on a way to play.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sharing",
+        "quote": "\"May I have a turn when you're done today?\" His friend says, \"Yes!\" They find a fair way to play."
+      },
+      "es": {
+        "t": "Arthur Descubre el Turno de Cada Uno",
+        "p": "Arthur y su amigo quieren jugar con el mismo camión. Al pedir un turno para después, encuentran una forma de organizar la diversión.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Compartir",
+        "quote": "«Cuando tú termines, ¿me lo puedes prestar?» «Sí», responde su amigo; ya lo pueden organizar."
+      }
+    }
+  },
+  {
+    "catalog_index": 110,
+    "stable_slug": "sr-demo-melissa-e-os-brinquedos-que-todos-cuidaram",
+    "theme_id": "compartilhar_revezar",
+    "hero_name": "Melissa",
+    "locales": {
+      "pt": {
+        "t": "Melissa e os Brinquedos que Todos Cuidaram",
+        "p": "Melissa leva brinquedos para compartilhar e convida a turma a combinar os cuidados: pedir emprestado, cuidar bem e devolver ao terminar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Compartilhar",
+        "quote": "Quem pega cuida bem e devolve ao terminar. Com respeito pelos outros, a brincadeira vai durar."
+      },
+      "en": {
+        "t": "Melissa and the Toys Everyone Cared For",
+        "p": "Melissa brings toys to share and helps her friends make a plan: ask before borrowing, handle them with care and return them after playing.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sharing",
+        "quote": "They ask before they borrow and return things when they're through. Looking after toys is something friends can do."
+      },
+      "es": {
+        "t": "Melissa y los Juguetes que Todos Cuidaron",
+        "p": "Melissa lleva juguetes para compartir y conversa con el grupo sobre cómo cuidarlos: pedirlos prestados, tratarlos bien y devolverlos al terminar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Compartir",
+        "quote": "Quien pide uno prestado lo cuida al jugar. Y luego lo devuelve al momento de terminar."
+      }
+    }
+  },
+  {
+    "catalog_index": 111,
+    "stable_slug": "sr-demo-daniel-e-a-construcao-feita-em-uniao",
+    "theme_id": "compartilhar_revezar",
+    "hero_name": "Daniel",
+    "locales": {
+      "pt": {
+        "t": "Daniel e a Construção Feita em União",
+        "p": "Daniel convida os amigos a construir com blocos. Cada um contribui com uma ideia e uma tarefa até uma ponte ganhar forma para o carrinho atravessar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Compartilhar",
+        "quote": "Um encaixa, outro observa, outro ajuda a apoiar. E a ponte ganha forma para um carrinho atravessar."
+      },
+      "en": {
+        "t": "Daniel and the Bridge They Built Together",
+        "p": "Daniel invites his friends to build with blocks. By sharing ideas and helping with different tasks, they create a bridge together.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Sharing",
+        "quote": "One stacks, one checks, one holds a piece in place. Together, they build a bridge across their play space."
+      },
+      "es": {
+        "t": "Daniel y la Construcción que Hicieron Juntos",
+        "p": "Daniel invita a sus amigos a construir con bloques. Cada uno aporta una idea y una ayuda hasta formar un puente por el que puede pasar un coche.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Compartir",
+        "quote": "Uno encaja, otro mira, otro ayuda a sujetar. El puente toma forma: un coche lo puede cruzar."
+      }
+    }
+  },
+  {
+    "catalog_index": 112,
+    "stable_slug": "sr-demo-elisa-descobre-o-corpo-da-cabeca-ao-pe",
+    "theme_id": "consciencia_corporal",
+    "hero_name": "Elisa",
+    "locales": {
+      "pt": {
+        "t": "Elisa Descobre o Corpo, da Cabeça ao Pé",
+        "p": "Elisa movimenta o corpo, aponta a cabeça, os braços e as pernas e começa a aprender o nome de cada parte.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Corpo",
+        "quote": "Cabeça, braços e pernas: ela aponta sem correr. Cada parte tem um nome que ela gosta de aprender."
+      },
+      "en": {
+        "t": "Elisa Discovers Her Body, from Head to Toe",
+        "p": "Elisa moves, points to her elbows and taps her feet, turning her curiosity about body parts into a game of learning their names.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Body",
+        "quote": "She points to her elbows, then taps her feet. Learning their names makes a game with a beat."
+      },
+      "es": {
+        "t": "Elisa Descubre su Cuerpo, de la Cabeza a los Pies",
+        "p": "Elisa mueve el cuerpo y señala la cabeza y los brazos, descubriendo que cada parte tiene un nombre que puede aprender.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cuerpo",
+        "quote": "Señala su cabeza y los brazos al mover. Cada parte tiene un nombre que ella puede aprender."
+      }
+    }
+  },
+  {
+    "catalog_index": 113,
+    "stable_slug": "sr-demo-isabel-e-a-festa-dos-cinco-sentidos",
+    "theme_id": "consciencia_corporal",
+    "hero_name": "Isabel",
+    "locales": {
+      "pt": {
+        "t": "Isabel e a Festa dos Cinco Sentidos",
+        "p": "Isabel observa uma flor, escuta um pássaro, toca um tecido e explora o cheiro e o sabor de uma fruta, com um adulto ao lado.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Corpo",
+        "quote": "Sente o cheiro de uma fruta e quer um pedacinho provar. Com um adulto ao lado, tem mais pistas para explorar."
+      },
+      "en": {
+        "t": "Isabel's Five Senses Celebration",
+        "p": "With a grown-up nearby, Isabel sees a flower, hears a bird, touches soft cloth and explores the smell and taste of a piece of fruit.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Body",
+        "quote": "A fruit smells sweet; she tastes a little, too. With a grown-up beside her, there's more to learn and do."
+      },
+      "es": {
+        "t": "Isabel y la Fiesta de los Cinco Sentidos",
+        "p": "Con un adulto cerca, Isabel mira una flor, escucha un pájaro, toca una tela suave y explora el aroma y el sabor de una fruta.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cuerpo",
+        "quote": "Huele una fruta y prueba un trocito al explorar. Con un adulto cerca, hay mucho por investigar."
+      }
+    }
+  },
+  {
+    "catalog_index": 114,
+    "stable_slug": "sr-demo-victor-e-o-corpo-que-merece-respeito",
+    "theme_id": "consciencia_corporal",
+    "hero_name": "Victor",
+    "locales": {
+      "pt": {
+        "t": "Victor e o Corpo que Merece Respeito",
+        "p": "Na festa, Victor prefere acenar em vez de abraçar. Ele explica sua escolha com tranquilidade e encontra respeito pelo seu corpo e pela sua vontade.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Corpo",
+        "quote": "«Hoje eu quero só acenar», ele pode explicar. Seu jeito é respeitado: não precisa abraçar."
+      },
+      "en": {
+        "t": "Victor's Body Deserves Respect",
+        "p": "At a party, Victor chooses a wave instead of a hug. He explains how he wants to say hello, and the people around him respect his choice.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Body",
+        "quote": "\"I'll wave hello today,\" he says with care. His choice is heard by everyone who's there."
+      },
+      "es": {
+        "t": "El Cuerpo de Victor Merece Respeto",
+        "p": "En una fiesta, Victor prefiere saludar de lejos en lugar de abrazar. Explica su elección con tranquilidad y los demás respetan su cuerpo y su voluntad.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Cuerpo",
+        "quote": "«Hoy quiero saludar así», dice con tranquilidad. Los demás respetan su cuerpo y su voluntad."
+      }
+    }
+  },
+  {
+    "catalog_index": 115,
+    "stable_slug": "sr-demo-elena-e-o-cofrinho-dos-sonhos",
+    "theme_id": "economia",
+    "hero_name": "Elena",
+    "locales": {
+      "pt": {
+        "t": "Elena e o Cofrinho dos Sonhos",
+        "p": "Elena deseja um livro e desenha um plano para guardar o que puder. Com ajuda de um adulto, aprende a acompanhar suas escolhas e esperar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Economia",
+        "quote": "Com ajuda de um adulto, separa o que pode juntar. Olha seu plano de novo e aprende a esperar."
+      },
+      "en": {
+        "t": "Elena and the Piggy Bank of Dreams",
+        "p": "Elena wants a book and makes a simple saving plan. A grown-up helps her count, set a little aside and check her progress.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Savings",
+        "quote": "A grown-up helps her count and save a little each day. She checks her plan and learns along the way."
+      },
+      "es": {
+        "t": "Elena y la Alcancía de los Sueños",
+        "p": "Elena quiere un libro y dibuja un plan sencillo para ahorrar. Con ayuda de un adulto, cuenta lo que puede guardar y aprende a esperar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Economía",
+        "quote": "Con ayuda de un adulto, cuenta lo que puede guardar. Revisa su pequeño plan y aprende a esperar."
+      }
+    }
+  },
+  {
+    "catalog_index": 116,
+    "stable_slug": "sr-demo-levi-aprende-a-escolher-querer-precisar-e-planejar",
+    "theme_id": "economia",
+    "hero_name": "Levi",
+    "locales": {
+      "pt": {
+        "t": "Levi Aprende a Escolher: Querer, Precisar e Planejar",
+        "p": "Levi vê um brinquedo que deseja, mas consulta a lista antes de escolher. Com um adulto, pensa na diferença entre querer e precisar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Economia",
+        "quote": "«Eu quero ou preciso?», pergunta antes de escolher. Com um adulto, pensa bem no que vai fazer."
+      },
+      "en": {
+        "t": "Levi Learns to Choose: Wants, Needs, and Plans",
+        "p": "Levi spots a toy he would love, then checks his shopping list. With a grown-up, he thinks about wants and needs before choosing.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Savings",
+        "quote": "\"Is it a wish or something I need today?\" A grown-up helps him think before they pay."
+      },
+      "es": {
+        "t": "Levi Aprende a Elegir: Querer, Necesitar y Planear",
+        "p": "Levi ve un juguete que quiere, pero consulta su lista antes de elegir. Con un adulto, piensa en la diferencia entre querer y necesitar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Economía",
+        "quote": "«¿Lo quiero o lo necesito?», pregunta antes de elegir. Con un adulto lo piensa y puede decidir."
+      }
+    }
+  },
+  {
+    "catalog_index": 117,
+    "stable_slug": "sr-demo-a-feirinha-de-marina-criar-trocar-e-cuidar",
+    "theme_id": "economia",
+    "hero_name": "Marina",
+    "locales": {
+      "pt": {
+        "t": "A Feirinha de Marina: Criar, Trocar e Cuidar",
+        "p": "Marina cria marcadores de papel e monta uma pequena feira. Ao conversar sobre uma troca justa, aprende que cada pessoa pode escolher participar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Economia",
+        "quote": "Combina uma troca justa e escuta com atenção. Cada escolha é conversada, sem nenhuma obrigação."
+      },
+      "en": {
+        "t": "Marina's Little Market: Create, Trade, and Care",
+        "p": "Marina makes colorful bookmarks and sets up a small stall. A conversation about fair trading leaves everyone free to accept or decline.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Savings",
+        "quote": "They plan a fair trade and take time to agree. Each person can say, \"Yes,\" or, \"Not for me.\""
+      },
+      "es": {
+        "t": "La Pequeña Feria de Marina: Crear, Intercambiar y Cuidar",
+        "p": "Marina crea marcapáginas y prepara una pequeña feria. Al conversar sobre un intercambio justo, cada persona puede elegir si quiere participar.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Economía",
+        "quote": "Acuerdan un intercambio con mucha atención. Cada cual puede elegir, sin ninguna obligación."
+      }
+    }
+  },
+  {
+    "catalog_index": 118,
+    "stable_slug": "sr-demo-noah-primeiro-colo",
+    "theme_id": "recem_nascidos",
+    "hero_name": "Noah",
+    "locales": {
+      "pt": {
+        "t": "O Primeiro Colo de Noah: Um Encontro de Amor",
+        "p": "O primeiro colo de Noah reúne a família em um encontro de carinho. Mãos cuidadosas apoiam sua cabeça enquanto nasce um novo laço.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recém-nascidos",
+        "quote": "Mãos apoiavam sua cabeça, com cuidado e atenção. Ali nasceu um novo laço, guardado no coração."
+      },
+      "en": {
+        "t": "Noah's First Cuddle: A Meeting Filled with Love",
+        "p": "Noah’s first cuddle brings the family together in a gentle welcome. Safe hands support his head as they share a new bond.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Newborns",
+        "quote": "Safe hands supported his head with care. A precious first meeting was theirs to share."
+      },
+      "es": {
+        "t": "El Primer Abrazo de Noah: Un Encuentro de Amor",
+        "p": "El primer abrazo de Noah reúne a la familia en un encuentro de cariño. Unas manos cuidadosas sostienen su cabecita mientras nace un nuevo lazo.",
+        "cover": "Hard",
+        "size": "M",
+        "tag": "Recién Nacidos",
+        "quote": "Unas manos sostenían su cabecita con atención. Allí nació un nuevo lazo, guardado en el corazón."
+      }
+    }
+  }
+]

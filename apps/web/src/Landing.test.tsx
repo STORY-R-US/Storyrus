@@ -224,7 +224,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes(localizedExample("capa-nicolas-maefilho.jpg", "pt")))).toBe(false);
     expect(srcs.some((src) => src.includes(localizedExample("capa-matteo-aniversario.png", "pt")))).toBe(false);
     expect(srcs.some((src) => src.includes(localizedExample("capa-matteo-nas-nuvens.png", "pt")))).toBe(true);
-    expect(imgs).toHaveLength(59);
+    expect(imgs).toHaveLength(109);
     expect(srcs.some((src) => src.includes("capa-maos-motores"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-nanoaventuras"))).toBe(true);
     expect(srcs.some((src) => src.includes(localizedExample("capa-feliz-natal-familia.png", "pt")))).toBe(true);
@@ -252,8 +252,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: /^SOFT/ })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: /^HARD/ })).toHaveLength(59);
-    expect(cards).toHaveLength(59);
+    expect(within(catalog).getAllByRole("button", { name: /^HARD/ })).toHaveLength(109);
+    expect(cards).toHaveLength(109);
     expect(cards.some((card) => card.textContent?.includes("Livro Teste"))).toBe(false);
     expect(within(catalog).getByText(/nano e suas aventuras/i)).toBeInTheDocument();
     expect(within(catalog).getByText(/feliz natal, família/i)).toBeInTheDocument();
@@ -419,7 +419,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-title");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(59);
+    expect(personalize).toHaveLength(109);
     expect(screen.queryAllByTestId("catalog-model-unavailable")).toHaveLength(0);
     const first = studioTarget(personalize[personalize.length - 3].getAttribute("href"));
     expect(first).toContain("tema=adventure");
@@ -799,7 +799,7 @@ describe("Landing — CTAs e links", () => {
     const dinosaurs = within(panel).getByRole("link", { name: /^dinossauros$/i });
     expect(dinosaurs).toHaveAttribute("href", "/catalogo#aventuras-dinosaurs");
     hover(/^dinossauros$/i);
-    expect(bookLinks().sort()).toEqual(["/livro/18", "/livro/60"]);
+    expect(bookLinks().sort()).toEqual(["/livro/18", "/livro/60", "/livro/69"]);
     expect(within(feats).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/catalogo#aventuras-dinosaurs");
     for (const name of [/^aventura$/i, /^esportes$/i, /^princesas$/i, /^casamento$/i]) {
       hover(name);
@@ -997,7 +997,7 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/entrar");
     expect(screen.getByRole("link", { name: /criar conta/i })).toHaveAttribute("href", "/cadastro");
     // O catálogo mostra todos os livros de uma vez, com as subcategorias dentro de cada faixa.
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(59);
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(109);
     expect(screen.queryByTestId("catalog-more")).not.toBeInTheDocument();
     expect([...document.querySelectorAll(".catalog-shelf .catalog-bar-name")].map((el) => el.textContent)).toEqual(["Ocasiões Especiais", "Temáticas", "Você e Eu", "Educativo"]);
     const subTitles = [...document.querySelectorAll("h3.catalog-subgroup-title")].map((el) => el.textContent);
@@ -1106,7 +1106,7 @@ describe("Catálogo e página do livro", () => {
 
   it("responde 404 para um livro inexistente", async () => {
     render(
-      <MemoryRouter initialEntries={["/livro/99"]}>
+      <MemoryRouter initialEntries={["/livro/9999"]}>
         <AppRoutes />
       </MemoryRouter>,
     );

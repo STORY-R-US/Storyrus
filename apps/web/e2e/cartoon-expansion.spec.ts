@@ -25,20 +25,24 @@ for (const lang of ["pt", "en", "es"]) {
       });
       let expectedCoverWidth = 0;
       for (const [index, slug, style] of books) {
+        const revisedPhoto = style === "realistic" && index >= 62 && index <= 67;
         await page.goto(`/livro/${index}${style === "cartoon" ? "?modo=cartoon" : ""}`);
         const gallery = page.getByTestId("book-series");
         const image = gallery.locator("img");
         await expect(gallery.getByRole("tab")).toHaveCount(3);
         for (const [position, role] of ["capa", "pagina", "foto"].entries()) {
           await gallery.getByRole("tab").nth(position).click();
-          const expectedFile = index === 38 && style === "cartoon" && role === "foto" && lang === "es"
+          const expectedFile = revisedPhoto
+            ? `catalog-20261124/${index}/${["cover", "page", "holding"][position]}-${lang}.webp`
+            : index === 38 && style === "cartoon" && role === "foto" && lang === "es"
             ? "cartoon-foto-amem-se-parity-es.png"
             : `${position === 0 ? "covers/" : ""}${style}-${role}-${slug}-v1-${lang}.webp`;
           await expect(image).toHaveAttribute("src", `/exemplos/${expectedFile}`);
           await image.evaluate(async el => { await (el as HTMLImageElement).decode(); await new Promise(requestAnimationFrame); });
           await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
           const ratio = await image.evaluate(el => (el as HTMLImageElement).naturalWidth / (el as HTMLImageElement).naturalHeight);
-          expect(ratio).toBeCloseTo(position === 1 ? 2 : 1, 2);
+          const squarePagePhoto = revisedPhoto && [62, 64, 67].includes(index);
+          expect(ratio).toBeCloseTo(position === 1 && !squarePagePhoto ? 2 : 1, 2);
           if (position === 0) {
             // The image canvas can extend beyond this frame to crop transparent
             // margins. Compare the displayed cover; cover-sizes also checks its pixels.

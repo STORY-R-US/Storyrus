@@ -533,7 +533,10 @@ class Pipeline:
                 + ". Avalie proporções apenas na imagem OUTPUT inteira, nunca ampliando "
                 "o recorte da reserva de texto para medir personagens."
             )
-        if getattr(self, "design", None) and self.design.get("version") in {3, 4}:
+        if getattr(self, "design", None) and self.design.get("version") in {
+            3,
+            *book_design.CATALOG_VERSIONS,
+        }:
             scenery_check = (
                 " Cenário contínuo de ponta a ponta: reprove laterais esticadas, espelhadas, "
                 "faixas borradas, texturas repetidas, emendas e objetos deformados. "
@@ -635,7 +638,8 @@ class Pipeline:
             "style_refs": self.refs
             + (
                 [book_design.reference(self.design, "cover")]
-                if getattr(self, "design", None) and self.design.get("version") == 4
+                if getattr(self, "design", None)
+                and self.design.get("version") in book_design.CATALOG_VERSIONS
                 else []
             ),
             "full_image_prompt": full_image_prompt,
@@ -1357,7 +1361,9 @@ class Pipeline:
             prompt += "\nAUTHORIZED CAST: " + json.dumps(
                 self.base["cast_contract"], ensure_ascii=False
             )
-            if title and not (self.design and self.design.get("version") == 4):
+            if title and not (
+                self.design and self.design.get("version") in book_design.CATALOG_VERSIONS
+            ):
                 prompt += "\nSINGLE FRONT COVER ONLY: one continuous square front face, no open book, spread, central gutter, diptych or two facing pages."
                 prompt += (
                     "\nRECOMPOSE THE SCENE: original photos define identity only. Use the requested story wardrobe. "
@@ -1404,7 +1410,7 @@ class Pipeline:
                     "Do not draw any title or lettering at this art stage; the server composes "
                     "the exact project title into the reserved scenery afterward."
                 )
-            if title and self.design and self.design.get("version") == 4:
+            if title and self.design and self.design.get("version") in book_design.CATALOG_VERSIONS:
                 prompt += (
                     "\nSELECTED CATALOG COVER: this exact model defines the composition and finish. "
                     + self.design["cover"]["scene_direction"]
@@ -1418,7 +1424,7 @@ class Pipeline:
             if (
                 not title
                 and self.design
-                and self.design.get("version") == 4
+                and self.design.get("version") in book_design.CATALOG_VERSIONS
                 and self.design["interior"]["region"][1] > 0.5
             ):
                 prompt += (
@@ -1546,7 +1552,10 @@ class Pipeline:
                             if self.designed
                             and (
                                 self.project.style != "cartoon"
-                                or (self.design and self.design.get("version") == 4)
+                                or (
+                                    self.design
+                                    and self.design.get("version") in book_design.CATALOG_VERSIONS
+                                )
                             )
                             else contract.art_direction(self.project.style)
                         ),

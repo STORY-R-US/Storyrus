@@ -9,6 +9,7 @@ import { CatalogBrowser } from "./CatalogBrowser";
 import { localizedExample } from "./localizedExamples";
 import coverBounds from "./coverBounds.json";
 import { catalogModel, catalogModelId, unavailableCatalogCopy } from "./catalogModel";
+import catalogPublication from "./catalogPublication20261124.json";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -26,6 +27,10 @@ function sessionDisplayName(fullName: string | null | undefined, email: string):
 }
 
 export type Lang = SiteLang;
+
+/** Approved photographic previews; numeric indexes preserve existing book URLs. */
+const publicationImage = (index: number, role: "cover" | "page" | "holding") =>
+  `catalog-20261124/${index}/${role}-pt.webp`;
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -359,13 +364,14 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-feliz-natal-familia.png", en: "capa-feliz-natal-familia-en.png", es: "capa-feliz-natal-familia-es.png" },
   { pt: "capa-enzo-dinossauro.png", en: "capa-enzo-dinossauro-en.png", es: "capa-enzo-dinossauro-es.png" },
   { pt: "" }, // Retired slot; preserve subsequent book URLs.
-  "covers/realistic-capa-sofia-princesa-v1-pt.webp",
-  "covers/realistic-capa-lia-cores-v1-pt.webp",
-  "covers/realistic-capa-bento-compartilhar-v1-pt.webp",
-  "covers/realistic-capa-nina-boa-noite-v1-pt.webp",
-  "covers/realistic-capa-theo-sentimentos-v1-pt.webp",
-  "covers/realistic-capa-clara-miguel-casamento-v1-pt.webp",
+  publicationImage(62, "cover"),
+  publicationImage(63, "cover"),
+  publicationImage(64, "cover"),
+  publicationImage(65, "cover"),
+  publicationImage(66, "cover"),
+  publicationImage(67, "cover"),
   "covers/realistic-capa-davi-brasil-v1-pt.webp",
+  ...catalogPublication.map((book) => publicationImage(book.catalog_index, "cover")),
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -596,12 +602,11 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
     page: { pt: "pagina-enzo-dinossauro.png", en: "pagina-enzo-dinossauro-en.png", es: "pagina-enzo-dinossauro-es.png" },
     photo: { pt: "foto-enzo-dinossauro.png", en: "foto-enzo-dinossauro-en.png", es: "foto-enzo-dinossauro-es.png" },
   },
-  62: { cover: "covers/realistic-capa-sofia-princesa-v1-pt.webp", page: "realistic-pagina-sofia-princesa-v1-pt.webp", photo: "realistic-foto-sofia-princesa-v1-pt.webp" },
-  63: { cover: "covers/realistic-capa-lia-cores-v1-pt.webp", page: "realistic-pagina-lia-cores-v1-pt.webp", photo: "realistic-foto-lia-cores-v1-pt.webp" },
-  64: { cover: "covers/realistic-capa-bento-compartilhar-v1-pt.webp", page: "realistic-pagina-bento-compartilhar-v1-pt.webp", photo: "realistic-foto-bento-compartilhar-v1-pt.webp" },
-  65: { cover: "covers/realistic-capa-nina-boa-noite-v1-pt.webp", page: "realistic-pagina-nina-boa-noite-v1-pt.webp", photo: "realistic-foto-nina-boa-noite-v1-pt.webp" },
-  66: { cover: "covers/realistic-capa-theo-sentimentos-v1-pt.webp", page: "realistic-pagina-theo-sentimentos-v1-pt.webp", photo: "realistic-foto-theo-sentimentos-v1-pt.webp" },
-  67: { cover: "covers/realistic-capa-clara-miguel-casamento-v1-pt.webp", page: "realistic-pagina-clara-miguel-casamento-v1-pt.webp", photo: "realistic-foto-clara-miguel-casamento-v1-pt.webp" },
+  ...Object.fromEntries([62, 63, 64, 65, 66, 67, ...catalogPublication.map((book) => book.catalog_index)].map((index) => [index, {
+    cover: publicationImage(index, "cover"),
+    page: publicationImage(index, "page"),
+    photo: publicationImage(index, "holding"),
+  }])),
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -665,7 +670,7 @@ const CATALOG_THEMES = [
   "family_love",
   "family_love",
   "birthday",
-  "recem_nascidos",
+  "consciencia_corporal",
   "underwater",
   "mothers_day",
   "christmas",
@@ -692,6 +697,7 @@ const CATALOG_THEMES = [
   "literacia_emocional",
   "casamento",
   "sport",
+  ...catalogPublication.map((book) => book.theme_id),
 ];
 /** Fora do site. O índice permanece no catálogo para não deslocar /livro dos demais. */
 const HIDDEN_BOOK_INDEXES = new Set([3, 4, 13, 16, 17, 32, 48, 50, 58, 61]);
@@ -736,7 +742,7 @@ const VIDEO_SRCS: (string | null)[] = [
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
-  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "recem_nascidos", "casamento", "pets", "tio_tia"],
+  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "irmaos_primos", "recem_nascidos", "casamento", "pets", "tio_tia"],
   ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love", "easter"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico", "economia", "cores", "literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"],
 };
@@ -749,11 +755,11 @@ const RELATED_CATALOG_THEMES: Record<number, readonly string[]> = {
   8: ["family_love"], 9: ["family_love", "grandparents_love", "grandfather_love"],
   11: ["animais_sons"], 12: ["animais_sons"],
   14: ["adventure", "family_love"], 19: ["tio_tia"],
-  21: ["family_love"], 23: ["animais_sons"],
+  21: ["family_love"], 22: ["irmaos_primos"], 23: ["animais_sons"],
   28: ["animais_sons"], 29: ["tio_tia"], 30: ["family_love"],
   33: ["pets"], 34: ["adventure"],
   37: ["family_love", "grandfather_love"], 38: ["family_love"],
-  39: ["tio_tia"], 40: ["tio_tia"], 42: ["consciencia_corporal"],
+  39: ["tio_tia"], 40: ["tio_tia"],
   44: ["family_love", "biblico"], 45: ["family_love"],
   46: ["family_love"], 51: ["grandparents_love", "family_love"],
   52: ["family_love"], 53: ["sport"], 54: ["family_love"],
@@ -792,7 +798,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=grandparents_love" },
       { href: "/app?tema=grandfather_love" },
       { href: "/app?tema=family_love" },
-      { href: "/app" },
+      { href: "/app?tema=irmaos_primos" },
       { href: "/app?tema=recem_nascidos" },
       { href: "/app?tema=casamento" },
       { href: "/app?tema=pets" },
@@ -940,6 +946,7 @@ const HERO_BY_CATALOG: Record<number, string> = {
   51: "Nonna",
   55: "Matteo",
   57: "Matteo",
+  ...Object.fromEntries(catalogPublication.map((book) => [book.catalog_index, book.hero_name])),
 };
 function personalizeHref(opts: {
   theme: string;
@@ -1463,6 +1470,7 @@ const I18N = {
       { t: "Theo e as Cores do Coração", p: "Quando sua pipa rasga, Theo aprende a contar o que sente, pedir ajuda e encontrar a calma para voltar a brincar.", cover: "Hard", size: "M", tag: "Sentimentos", quote: "Falar do que sentimos abre espaço para um novo sorriso." },
       { t: "Clara e Miguel, Nosso Sim para Sempre", p: "Clara e Miguel celebram seu casamento em um jardim, guardando os votos, os abraços e os sonhos que querem construir juntos.", cover: "Hard", size: "M", tag: "Casamento", quote: "Um sim, um abraço, uma história para construir juntos." },
       {"t": "Davi, o Craque do Brasil", "p": "Davi treina no estádio, respeita os amigos e descobre que cada passe e cada gesto de união fazem o time crescer.", "cover": "Hard", "size": "M", "tag": "Futebol", "quote": "Com dedicação e união, o time joga com o coração."},
+      ...catalogPublication.map((book) => book.locales.pt),
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1723,6 +1731,7 @@ const I18N = {
       { t: "Theo and the Colors of the Heart", p: "When his kite tears, Theo learns to say how he feels, ask for help and find the calm he needs to play again.", cover: "Hard", size: "M", tag: "Feelings", quote: "Sharing how we feel makes room for a new smile." },
       { t: "Clara and Miguel, Our Forever Yes", p: "Clara and Miguel celebrate their wedding in a garden, treasuring their vows, warm embraces and the dreams they want to build together.", cover: "Hard", size: "M", tag: "Wedding", quote: "A yes, an embrace, a story to build together." },
       {"t": "Davi, Brazil’s Soccer Star", "p": "Davi trains at the stadium, respects his friends and discovers how every pass and act of teamwork helps the team grow.", "cover": "Hard", "size": "M", "tag": "Soccer", "quote": "With dedication and teamwork, the team plays with heart."},
+      ...catalogPublication.map((book) => book.locales.en),
     ],
     promise_title: "A Personalized Gift to Preserve Unforgettable Moments.",
     promise_sub: "From the photo to the final preview, every detail is created with care, bringing a unique gift to life to treasure forever.",
@@ -1983,6 +1992,7 @@ const I18N = {
       { t: "Theo y los Colores del Corazón", p: "Cuando se rompe su cometa, Theo aprende a contar lo que siente, pedir ayuda y recuperar la calma para volver a jugar.", cover: "Hard", size: "M", tag: "Sentimientos", quote: "Contar lo que sentimos abre espacio para una nueva sonrisa." },
       { t: "Clara y Miguel, Nuestro Sí para Siempre", p: "Clara y Miguel celebran su boda en un jardín, atesorando sus votos, los abrazos y los sueños que quieren construir juntos.", cover: "Hard", size: "M", tag: "Boda", quote: "Un sí, un abrazo, una historia para construir juntos." },
       {"t": "Davi, el Crack de Brasil", "p": "Davi entrena en el estadio, respeta a sus amigos y descubre que cada pase y cada gesto de unión ayudan al equipo a crecer.", "cover": "Hard", "size": "M", "tag": "Fútbol", "quote": "Con dedicación y unión, el equipo juega con el corazón."},
+      ...catalogPublication.map((book) => book.locales.es),
     ],
     promise_title: "Un Regalo Personalizado Para Eternizar Momentos Inolvidables.",
     promise_sub: "De la foto a la vista previa final, cada detalle se crea con cariño, dando vida a un regalo único para toda la vida.",
@@ -2855,8 +2865,6 @@ export function catalogSections(lang: Lang, variant: "photo" | "cartoon" = "phot
         const card = toCatalogCard(lang, index, variant);
         return card ? [card] : [];
       }));
-      const cousin = toCatalogCard(lang, 22, variant);
-      if (cousin) subs.push({ id: "irmaos_primos", name: catCopy?.subs[5] ?? "Irmãos e Primos", books: [cousin] });
       if (books.length) subs.push({ id: "tio_tia", name: lang === "en" ? "Aunts and Uncles" : lang === "es" ? "Tíos y Tías" : "Tios e Tias", books });
     }
     if (meta.id === "educativo") {

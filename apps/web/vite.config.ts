@@ -27,9 +27,9 @@ function routeHtml(): Plugin {
       root = config.root;
     },
     buildStart() {
-      const examples = JSON.parse(readFileSync(resolve(root, "src/localizedExamples.json"), "utf8")) as Record<string, { en: string; es: string }>;
+      const examples = JSON.parse(readFileSync(resolve(root, "src/localizedExamples.json"), "utf8")) as Record<string, { pt?: string; en: string; es: string }>;
       for (const [master, versions] of Object.entries(examples)) {
-        for (const file of [master, versions.en || master, versions.es || master]) {
+        for (const file of [versions.pt || master, versions.en || master, versions.es || master]) {
           if (!file || !existsSync(resolve(root, "public/exemplos", file))) {
             throw new Error(`Missing PT/EN/ES example: ${master} (${file || "translation not supplied"})`);
           }
