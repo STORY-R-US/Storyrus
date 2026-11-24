@@ -3508,9 +3508,9 @@ img.ex-tab-cover {
 .kid .kcat-feat { position: relative; padding: 6px; }
 .kid .kcat-panel .kcat-feat-cover { max-width: 230px; }
 
-/* ---------- Menu de livros: fundo azul claro, colunas centralizadas e capas do tamanho do carrossel ---------- */
+/* ---------- Menu de livros: fundo da cor da página, colunas centralizadas e capas do tamanho do carrossel ---------- */
 .kid .kcat-panel {
-  background: #e3efff; border-color: #c5d9f6;
+  background: #0b1226; border-color: #26315a; box-shadow: 0 22px 48px rgba(0, 0, 0, .55);
   max-height: calc(100dvh - var(--khead-h, 120px) - 12px);
 }
 .kid .kcat-panel-all { gap: 14px; padding: 16px 22px 18px; justify-items: center; }
@@ -3518,12 +3518,23 @@ img.ex-tab-cover {
   grid-template-columns: repeat(var(--cols, 3), minmax(0, 250px));
   justify-content: center; align-items: start; gap: 10px 14px; width: 100%;
 }
-.kid .kcat-group { background: color-mix(in srgb, var(--group, #5aa6e8) 16%, #f4f9ff); padding: 10px 8px; }
+.kid .kcat-group { background: color-mix(in srgb, var(--group, #5aa6e8) 14%, #0b1226); padding: 10px 8px; }
 .kid .kcat-group-name { justify-content: center; margin: 0 2px 6px; }
 .kid .kcat-panel-all .kcat-subs a { text-align: center; padding: 5px 8px; }
+.kid .kcat-subs a { color: #d5def4; }
 .kid .kcat-subs a:hover,
 .kid .kcat-subs a:focus-visible,
-.kid .kcat-subs li.on a { background: #fff; }
+.kid .kcat-subs li.on a { background: #1c2748; color: #fff; }
+.kid .kcat-panel .kcat-sub-date { color: #9fabce; }
+.kid .kcat-panel .kcat-empty { color: #9fabce; }
+/* Tema claro: o painel acompanha o fundo claro da página. */
+[data-theme="light"] .kid .kcat-panel { background: #f3f8ff; border-color: #e6ebf5; box-shadow: 0 22px 48px rgba(31, 53, 104, .16); }
+[data-theme="light"] .kid .kcat-group { background: color-mix(in srgb, var(--group, #5aa6e8) 14%, #fff); }
+[data-theme="light"] .kid .kcat-subs a { color: #1f3568; }
+[data-theme="light"] .kid .kcat-subs a:hover,
+[data-theme="light"] .kid .kcat-subs a:focus-visible,
+[data-theme="light"] .kid .kcat-subs li.on a { background: #fff; color: #1f3568; }
+[data-theme="light"] .kid .kcat-panel .kcat-sub-date { color: #8a93b0; }
 .kid .kcat-groups.is-single { grid-template-columns: minmax(0, 760px); }
 .kid .kcat-groups.is-single .kcat-subs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px 6px; }
 .kid .kcat-panel-all .kcat-feats {
