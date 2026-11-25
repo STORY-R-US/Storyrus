@@ -931,8 +931,9 @@ describe("Landing — CTAs e links", () => {
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     while (screen.queryByTestId("catalog-more")) fireEvent.click(screen.getByTestId("catalog-more"));
-    const cards = within(catalog).getAllByTestId("landing-catalog-card").slice(-3);
-    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(59);
+    const cards = [25, 26, 27].map(index => within(catalog).getAllByTestId("landing-catalog-card")
+      .find(card => card.querySelector(`a[href="/livro/${index}?modo=cartoon"]`))!);
+    expect(screen.getAllByTestId("landing-catalog-card")).toHaveLength(109);
     expect(within(catalog).getByRole("img", { name: /amem-se sinceramente uns aos outros/i })).toHaveAttribute("src", expect.stringContaining(localizedExample("covers/cartoon-capa-amem-se-v1-pt.webp", "pt")));
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();

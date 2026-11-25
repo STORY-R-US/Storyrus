@@ -20,8 +20,7 @@ const newIndexes = Array.from({ length: 50 }, (_, offset) => 69 + offset);
 const revisedIndexes = [62, 63, 64, 65, 66, 67];
 const publishedIndexes = [...revisedIndexes, ...newIndexes];
 
-// Public audit before this publication: these exact 59 books must remain in
-// Cartoon. Its catalog must not acquire any of the 50 photographic additions.
+// The existing 59 books remain intact alongside the fifty reviewed Cartoon editions.
 const previousIndexes = [
   0, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 18, 19, 20, 21, 22, 23, 24,
   25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
@@ -119,8 +118,9 @@ describe("approved photographic catalog publication — 2026-11-24", () => {
     expect(publication.filter((book) => book.theme_id === "fathers_day")
       .map((book) => [book.catalog_index, book.hero_name])).toEqual([[81, "Eduardo"], [82, "Laura"]]);
 
-    expect(uniqueIndexes(cartoon)).toEqual(previousIndexes);
-    expect(uniqueIndexes(cartoon)).toHaveLength(59);
+    expect(uniqueIndexes(cartoon)).toEqual([...previousIndexes, ...newIndexes]);
+    expect(topology(cartoon)).toEqual(topology(realistic));
+    expect(uniqueIndexes(cartoon)).toHaveLength(109);
     for (const book of cartoon.flatMap((section) => section.books)) {
       expect(book.img, `${lang}: Cartoon book ${book.catalogI}`).not.toContain("catalog-20261124/");
       expect(book.img).toBe(catalogCoverFile(book.catalogI!, lang, "cartoon"));

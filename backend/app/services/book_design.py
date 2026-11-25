@@ -10,8 +10,8 @@ from fastapi import HTTPException
 from app.services import book_profile, cartoon_style
 
 ROOT = Path(__file__).resolve().parents[1] / "assets/composition_examples"
-CURRENT_CATALOG_VERSION = 5
-CATALOG_VERSIONS = frozenset({4, 5})
+CURRENT_CATALOG_VERSION = 6
+CATALOG_VERSIONS = frozenset({4, 5, 6})
 
 
 def _signature(value):
@@ -80,7 +80,7 @@ def select(project, requested):
     if requested == "auto":
         requested = "cartoon" if project.style == "cartoon" else "adventure"
     # The Studio resends the selected ID when resuming a project. Its frozen
-    # version remains authoritative; only a new selection/project adopts v5.
+    # version remains authoritative; only a new selection/project adopts the current version.
     design = (
         previous
         if previous and requested == previous["id"] and previous.get("version") in CATALOG_VERSIONS

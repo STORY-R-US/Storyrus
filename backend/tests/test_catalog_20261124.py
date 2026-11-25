@@ -50,7 +50,7 @@ def test_existing_v4_project_keeps_its_original_snapshot_and_references(index):
     assert existing.book_profile["book_design"]["version"] == 4
     assert existing.book_profile["cover_calibration"] == {"sha256": "approved-cover"}
     current = book_design.snapshot(model)
-    assert current["version"] == 5
+    assert current["version"] == book_design.CURRENT_CATALOG_VERSION
     if index in UPDATED:
         assert current["reference_files"] != frozen["reference_files"]
         assert current["reference_sha256"] != frozen["reference_sha256"]
@@ -70,7 +70,7 @@ def test_existing_cartoon_v4_project_is_not_migrated_on_auto_selection():
 @pytest.mark.parametrize("index", sorted(UPDATED | INSERTED))
 def test_approved_batch_uses_photography_and_the_rounded_navy_typography(index):
     design = book_design.snapshot(f"catalog-realistic-{index}")
-    assert design["version"] == 5
+    assert design["version"] == book_design.CURRENT_CATALOG_VERSION
     assert design["visual"]["finish"] == "premium_photographic_editorial_realism"
     assert design["interior"]["mode"] == "two_scenes"
     assert design["interior"]["font_ratio"] == 0.038
@@ -152,5 +152,5 @@ def test_new_models_do_not_claim_an_unprovided_cartoon_or_v4_edition(index):
         book_design.snapshot(f"catalog-realistic-{index}", version=4)
     assert old.value.status_code == 400
     with pytest.raises(HTTPException) as cartoon:
-        book_design.snapshot(f"catalog-cartoon-{index}")
+        book_design.snapshot(f"catalog-cartoon-{index}", version=5)
     assert cartoon.value.status_code == 400
