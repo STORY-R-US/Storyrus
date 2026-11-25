@@ -283,6 +283,7 @@ describe("Studio approval stages", () => {
       },
     };
     const approve = vi.spyOn(api, "approveStory").mockResolvedValue(ready);
+    const preview = vi.spyOn(api, "approvePreview").mockResolvedValue(ready);
     const avatar = vi.spyOn(api, "startStep").mockResolvedValue(accepted);
     vi.spyOn(api, "getProject").mockResolvedValue(ready);
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
@@ -291,6 +292,9 @@ describe("Studio approval stages", () => {
     expect(screen.queryByRole("button", { name: "Gostei, continuar com meu livro" })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Sim, aprovo" }));
     await waitFor(() => expect(approve).toHaveBeenCalledWith("master"));
+    // Um clique só: aprovar a história também aprova a prévia.
+    await waitFor(() => expect(preview).toHaveBeenCalledWith("master"));
+    expect(approve.mock.invocationCallOrder[0]).toBeLessThan(preview.mock.invocationCallOrder[0]);
     expect(avatar).not.toHaveBeenCalled();
   });
 

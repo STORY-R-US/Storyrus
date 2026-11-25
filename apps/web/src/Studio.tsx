@@ -1592,24 +1592,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               </div>
             </div>
 
-            <div className="studio-choice" role="group" aria-label={t.coverType}>
-              <span className="studio-choice-label">{t.coverType}</span>
-              <div className="studio-actions">
-                {(["hard", "soft"] as const).map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    className={coverType === choice ? "studio-pick is-on" : "studio-pick"}
-                    aria-pressed={coverType === choice}
-                    disabled={fieldsLocked}
-                    onClick={() => setCoverType(choice)}
-                  >
-                    {choice === "hard" ? t.coverHard : t.coverSoft}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+            {/* A capa (dura ou flexível) é escolhida no pedido, junto com o preço. */}
             <div className="studio-choice studio-format" role="group" aria-label={t.bookSize}>
               <span className="studio-choice-label">{t.bookSize}</span>
               <p className="studio-format-fixed" data-testid="studio-format">{FLOW[lang].format}</p>
@@ -2019,7 +2002,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 <div><dt>{FLOW[lang].tema}</dt><dd>{themeText.trim() || bookTitle.trim() || "—"}</dd></div>
                 <div><dt>{FLOW[lang].titulo}</dt><dd>{bookTitle.trim() || FLOW[lang].sumSuggest}</dd></div>
                 {!onlyName && <div><dt>{FLOW[lang].dedicatoria}</dt><dd>{dedication.trim() || "—"}</dd></div>}
-                <div><dt>{t.artStyle}</dt><dd>{artMode === "cartoon" ? t.artCartoon : t.artRealistic} · {coverType === "hard" ? t.coverHard : t.coverSoft} · {FLOW[lang].format}</dd></div>
+                <div><dt>{t.artStyle}</dt><dd>{artMode === "cartoon" ? t.artCartoon : t.artRealistic} · {FLOW[lang].format}</dd></div>
                 <div><dt>{FLOW[lang].sumPhotos}</dt><dd>{photos.length}</dd></div>
               </dl>
               <label className={missing.consent ? "studio-consent is-invalid" : "studio-consent"}>
