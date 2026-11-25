@@ -4295,3 +4295,45 @@ async def test_order_list_shows_only_the_watermarked_preview_cover(reference_stu
     assert thumb and "preview-mark" in thumb
     single = client.get(f"/v1/projects/{pid}").json()
     assert single["cover_thumb_url"] is None  # only the list carries thumbnails
+
+
+def test_preview_photos_are_listed_and_can_be_removed_but_never_the_last(studio, monkeypatch):
+    client, db, pid, store = studio
+    deleted = []
+    monkeypatch.setattr("app.storage.delete_key", lambda key: deleted.append(key))
+    second = client.post(
+        f"/v1/projects/{pid}/photos",
+        json={
+            "content_type": "image/png",
+            "ext": "png",
+            "guardian_consent": True,
+            "consent_version": "2026-10-29",
+        },
+    )
+    assert second.status_code == 201, second.text
+    store[second.json()["storage_key"]] = _png()
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="preview_ready")
+    db.commit()
+
+    photos = client.get(f"/v1/projects/{pid}/assets").json()["photos"]
+    assert len(photos) == 2
+    assert all(item["url"].startswith("https://test/") for item in photos)
+
+    first = client.delete(f"/v1/projects/{pid}/photos/{photos[0]['id']}")
+    assert first.status_code == 204, first.text
+    assert len(deleted) == 1
+    remaining = client.get(f"/v1/projects/{pid}/assets").json()["photos"]
+    assert [item["id"] for item in remaining] == [photos[1]["id"]]
+    last = client.delete(f"/v1/projects/{pid}/photos/{photos[1]['id']}")
+    assert last.status_code == 409
+    assert client.delete(f"/v1/projects/{pid}/photos/{uuid.uuid4()}").status_code in {404, 409}
+
+
+def test_preview_photos_are_locked_after_the_preview_review(studio):
+    client, db, pid, _ = studio
+    project = db.get(Project, uuid.UUID(pid))
+    book_profile.update(project, stage="story_approved")
+    db.commit()
+    photo = client.get(f"/v1/projects/{pid}/assets").json()["photos"][0]
+    assert client.delete(f"/v1/projects/{pid}/photos/{photo['id']}").status_code == 409

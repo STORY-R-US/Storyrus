@@ -248,9 +248,15 @@ const IcMoon = ({ className }: IconProps) => (
 
 
 const FLOW = {
-  pt: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Dados do protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatória", resumo: "Resumo do pedido", step: ["Quem é o herói da história?", "Envie as fotos do herói", "Sobre o que é a história?", "Qual vai ser o título?", "Quer escrever uma dedicatória?", "Confira e crie o seu livro"], sumHero: "Protagonista", sumSuggest: "Vamos sugerir", sumPhotos: "Fotos" },
-  en: { educativo: "Educational", format: "20 × 20 cm · 20 pages", dados: "Main character", tema: "Theme", titulo: "Title", dedicatoria: "Dedication", resumo: "Order summary", step: ["Who is the hero of the story?", "Send photos of the hero", "What is the story about?", "What will the title be?", "Would you like to write a dedication?", "Check and create your book"], sumHero: "Main character", sumSuggest: "We will suggest one", sumPhotos: "Photos" },
-  es: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Datos del protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatoria", resumo: "Resumen del pedido", step: ["¿Quién es el héroe de la historia?", "Envía las fotos del héroe", "¿De qué trata la historia?", "¿Cuál será el título?", "¿Quieres escribir una dedicatoria?", "Revisa y crea tu libro"], sumHero: "Protagonista", sumSuggest: "Te sugerimos uno", sumPhotos: "Fotos" },
+  pt: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Dados do protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatória", resumo: "Resumo do pedido", step: ["Quem é o herói da história?", "Envie as fotos do herói", "Sobre o que é a história?", "Qual vai ser o título?", "Quer escrever uma dedicatória?", "Confira e gere a prévia"], sumHero: "Protagonista", sumSuggest: "Vamos sugerir", sumPhotos: "Fotos" },
+  en: { educativo: "Educational", format: "20 × 20 cm · 20 pages", dados: "Main character", tema: "Theme", titulo: "Title", dedicatoria: "Dedication", resumo: "Order summary", step: ["Who is the hero of the story?", "Send photos of the hero", "What is the story about?", "What will the title be?", "Would you like to write a dedication?", "Check and generate the preview"], sumHero: "Main character", sumSuggest: "We will suggest one", sumPhotos: "Photos" },
+  es: { educativo: "Educativo", format: "20 × 20 cm · 20 páginas", dados: "Datos del protagonista", tema: "Tema", titulo: "Título", dedicatoria: "Dedicatoria", resumo: "Resumen del pedido", step: ["¿Quién es el héroe de la historia?", "Envía las fotos del héroe", "¿De qué trata la historia?", "¿Cuál será el título?", "¿Quieres escribir una dedicatoria?", "Revisa y genera la vista previa"], sumHero: "Protagonista", sumSuggest: "Te sugerimos uno", sumPhotos: "Fotos" },
+} as const;
+
+const AI_HELP = {
+  pt: { titleAi: "Sugerir Título com IA", titleAiAgain: "Outras 5 ideias", titleAiLoading: "A IA está pensando…", titleAiNeedTheme: "Escreva o tema no passo anterior para a IA sugerir um título.", titleAiFail: "Não deu para sugerir agora. Tente de novo ou escreva o título.", titleAiPick: "Toque num título para usar", use: "Usar", used: "Escolhido", dedicationAiFail: "Mostrando sugestões prontas porque a IA não respondeu agora." },
+  en: { titleAi: "Suggest Title with AI", titleAiAgain: "5 more ideas", titleAiLoading: "AI is thinking…", titleAiNeedTheme: "Write the theme in the previous step so AI can suggest a title.", titleAiFail: "Could not suggest right now. Try again or type a title.", titleAiPick: "Tap a title to use it", use: "Use", used: "Chosen", dedicationAiFail: "Showing ready-made ideas because AI did not answer right now." },
+  es: { titleAi: "Sugerir Título con IA", titleAiAgain: "Otras 5 ideas", titleAiLoading: "La IA está pensando…", titleAiNeedTheme: "Escribe el tema en el paso anterior para que la IA sugiera un título.", titleAiFail: "No se pudo sugerir ahora. Inténtalo de nuevo o escribe el título.", titleAiPick: "Toca un título para usarlo", use: "Usar", used: "Elegido", dedicationAiFail: "Mostrando ideas listas porque la IA no respondió ahora." },
 } as const;
 
 /** Melhora a dedicatória escrita pela família sem IA: arruma espaços, maiúscula e ponto, cita o nome e fecha com carinho. */
@@ -312,6 +318,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [dedication, setDedication] = useState("");
   const [dedicationOptionsOpen, setDedicationOptionsOpen] = useState(false);
   const [improvingDedication, setImprovingDedication] = useState(false);
+  const [dedicationIdeas, setDedicationIdeas] = useState<string[]>([]);
+  const [dedicationAiFailed, setDedicationAiFailed] = useState(false);
+  const [titleIdeas, setTitleIdeas] = useState<string[]>([]);
+  const [titleIdeasLoading, setTitleIdeasLoading] = useState(false);
+  const [titleIdeasError, setTitleIdeasError] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -917,6 +928,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setBookTitle("");
     setThemeText("");
     setDedication("");
+    setDedicationIdeas([]);
+    setDedicationOptionsOpen(false);
+    setTitleIdeas([]);
+    setTitleIdeasError("");
     setStoryDraft("");
     setPhotoNotes("");
     setChangesSent(false);
@@ -1850,6 +1865,58 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             {fieldAlert("title", t.errTitle)}
             <span className="muted">{lang === "pt" ? "Se deixar em branco, sugerimos um título." : lang === "en" ? "Leave blank for a suggested title." : "Déjalo vacío para recibir un título sugerido."}</span>
           </label>
+          {!fieldsLocked && !isDemo && (
+            <div className="studio-ai-help" data-testid="studio-title-ai">
+              <button
+                type="button"
+                className="kbtn kbtn-soft studio-ai-button"
+                disabled={titleIdeasLoading || (!themeText.trim() && !bookTitle.trim())}
+                data-testid="studio-suggest-title"
+                onClick={() => {
+                  setTitleIdeasLoading(true);
+                  setTitleIdeasError("");
+                  const age = Number(childAge);
+                  void api
+                    .suggestStudioTitles({
+                      theme: themeText.trim(),
+                      title: bookTitle.trim(),
+                      name: childName.trim(),
+                      age: childAge.trim() !== "" && !Number.isNaN(age) ? age : undefined,
+                      language: lang === "pt" ? "pt-BR" : lang,
+                    })
+                    .then((res) => setTitleIdeas(res.titles.map(tidyTitleCase)))
+                    .catch(() => setTitleIdeasError(AI_HELP[lang].titleAiFail))
+                    .finally(() => setTitleIdeasLoading(false));
+                }}
+              >
+                <span aria-hidden="true">✨ </span>{titleIdeasLoading ? AI_HELP[lang].titleAiLoading : titleIdeas.length ? AI_HELP[lang].titleAiAgain : AI_HELP[lang].titleAi}
+              </button>
+              {!themeText.trim() && !bookTitle.trim() && (
+                <p className="muted field-hint">{AI_HELP[lang].titleAiNeedTheme}</p>
+              )}
+              {titleIdeasError && <p className="muted field-hint" role="status">{titleIdeasError}</p>}
+              {titleIdeas.length > 0 && (
+                <>
+                  <p className="muted field-hint">{AI_HELP[lang].titleAiPick}</p>
+                  <ol className="studio-dedication-options" data-testid="studio-title-options">
+                    {titleIdeas.map((idea) => (
+                      <li key={idea}>
+                        <button type="button" className={bookTitle === idea ? "is-selected" : ""} aria-pressed={bookTitle === idea}
+                          onClick={() => {
+                            titleTouched.current = true;
+                            setBookTitle(idea);
+                            clearMissing("title");
+                          }}>
+                          <span>{idea}</span>
+                          <span className="studio-dedication-choice">{bookTitle === idea ? AI_HELP[lang].used : AI_HELP[lang].use}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              )}
+            </div>
+          )}
 
           </div>
 
@@ -1875,8 +1942,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 disabled={fieldsLocked || improvingDedication}
                 data-testid="studio-suggest-dedication"
                 onClick={() => {
-                  const suggestions = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
-                  const own = dedication.trim() && !suggestions.includes(dedication);
+                  const ready = t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200));
+                  const shown = dedicationIdeas.length ? dedicationIdeas : ready;
+                  const own = dedication.trim() && !shown.includes(dedication) && !ready.includes(dedication);
                   if (own) {
                     const written = dedication;
                     setImprovingDedication(true);
@@ -1887,16 +1955,47 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       .finally(() => setImprovingDedication(false));
                     return;
                   }
-                  const next = (suggestions.indexOf(dedication) + 1) % suggestions.length;
-                  setDedication(suggestions[next]);
-                  setDedicationOptionsOpen(true);
+                  if (dedicationOptionsOpen && shown.includes(dedication)) {
+                    const next = (shown.indexOf(dedication) + 1) % shown.length;
+                    setDedication(shown[next]);
+                    return;
+                  }
+                  const age = Number(childAge);
+                  setImprovingDedication(true);
+                  void api
+                    .suggestDedications({
+                      name: childName.trim(),
+                      age: childAge.trim() !== "" && !Number.isNaN(age) ? age : undefined,
+                      theme: themeText.trim(),
+                      title: bookTitle.trim(),
+                      draft: "",
+                      language: lang === "pt" ? "pt-BR" : lang,
+                    })
+                    .then((res) => {
+                      const ideas = res.dedications.map((text) => text.slice(0, 200));
+                      setDedicationIdeas(ideas);
+                      setDedicationAiFailed(false);
+                      setDedication(ideas[0] ?? "");
+                    })
+                    .catch(() => {
+                      setDedicationIdeas([]);
+                      setDedicationAiFailed(true);
+                      setDedication(ready[0]);
+                    })
+                    .finally(() => {
+                      setImprovingDedication(false);
+                      setDedicationOptionsOpen(true);
+                    });
                 }}
               >
-                {improvingDedication ? "…" : dedication.trim() ? t.improveDedication : t.suggestDedication}
+                {improvingDedication ? "…" : dedication.trim() && !(dedicationIdeas.length ? dedicationIdeas : t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200))).includes(dedication) ? t.improveDedication : <><span aria-hidden="true">✨ </span>{t.suggestDedication}</>}
               </button>
+              {dedicationOptionsOpen && dedicationAiFailed && (
+                <p className="muted field-hint" role="status">{AI_HELP[lang].dedicationAiFail}</p>
+              )}
               {dedicationOptionsOpen && (
                 <ol className="studio-dedication-options" data-testid="studio-dedication-options">
-                  {t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200)).map((text) => (
+                  {(dedicationIdeas.length ? dedicationIdeas : t.dedicationSuggestions(childName.trim()).map((text) => text.slice(0, 200))).map((text) => (
                     <li key={text}>
                       <button type="button" className={dedication === text ? "is-selected" : ""} aria-pressed={dedication === text}
                         disabled={fieldsLocked} onClick={() => setDedication(text)}>

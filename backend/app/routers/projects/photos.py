@@ -298,3 +298,39 @@ async def upload_extra_character(
     db.commit()
     db.refresh(asset)
     return UploadUrlOut(asset_id=asset.id, storage_key=key, upload_url="", expires_in=0)
+
+
+@router.delete("/{project_id}/photos/{asset_id}", status_code=204)
+def delete_photo(
+    project_id: uuid.UUID,
+    asset_id: uuid.UUID,
+    user: User = Depends(require_adult_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Tira uma foto do herói durante a revisão da prévia. Sempre fica pelo menos uma."""
+    from sqlalchemy import select
+
+    from .purchase import editable
+
+    project = get_owned_project(db, user, project_id)
+    editable(db, project)
+    profile = project.book_profile or {}
+    if profile.get("stage") not in {"preview_ready", "cover_ready"} or (
+        project.purchase_flow or {}
+    ).get("preview_approved_at"):
+        raise HTTPException(409, "As fotos só podem ser trocadas durante a revisão da prévia.")
+    photos = db.scalars(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+    ).all()
+    photo = next((item for item in photos if item.id == asset_id), None)
+    if photo is None:
+        raise HTTPException(404, "Foto não encontrada.")
+    if len(photos) <= 1:
+        raise HTTPException(409, "O livro precisa de pelo menos uma foto. Envie outra antes.")
+    key = photo.storage_key
+    db.delete(photo)
+    db.commit()
+    try:
+        storage.delete_key(key)
+    except Exception:  # noqa: BLE001 - a foto já saiu do livro; o objeto órfão é limpo depois
+        logger.exception("apagar objeto da foto falhou project=%s", project.id)

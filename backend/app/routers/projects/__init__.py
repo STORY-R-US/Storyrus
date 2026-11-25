@@ -393,6 +393,10 @@ def project_assets(
         "video_url": video_url,
         "narrated_video_url": narrated_video_url,
         "photo_count": len(photos),
+        "photos": [
+            {"id": str(photo.id), "url": storage.presign_get(photo.storage_key)}
+            for photo in sorted(photos, key=lambda item: (str(item.created_at), str(item.id)))
+        ],
         "photos_authorized": photos_authorized(db, project.id),
     }
 

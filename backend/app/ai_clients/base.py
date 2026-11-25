@@ -133,6 +133,9 @@ class TextProvider(Protocol):
     ) -> str:
         """Rewrite the family's dedication more warmly, keeping its meaning (max 200 chars)."""
 
+    async def write_dedications(self, *, context: dict) -> list[str]:
+        """Write three dedication options from the book's context (max 200 chars each)."""
+
     async def generate_story(
         self,
         *,
