@@ -6,6 +6,7 @@ const COPY = {
     label: "A Criação Do Seu Livro", step: "Etapa", of: "de", done: "Livro Aprovado",
     steps: ["Prévia E História", "Pedido E Criação", "Revisão E Entrega"],
     preview: ["Uma História Começa A Ganhar Vida.", "Leia a história com calma. Aprove ou peça ajustes em qualquer página."],
+    generating: ["Uma História Começa A Ganhar Vida.", "Estamos criando a capa e as imagens da prévia. Leva alguns minutos e a tela atualiza sozinha."],
     images: ["As imagens da sua prévia", "Confira as imagens. Se gostar, siga para a história completa."],
     retry: ["Sua Aprovação Vem Primeiro.", "Vamos preparar uma nova prévia com IA para você revisar. O pedido só continuará após a sua confirmação."],
     order: ["O Próximo Capítulo É Seu Livro.", "Escolha o formato, confira o endereço e finalize o pedido."],
@@ -19,6 +20,7 @@ const COPY = {
     label: "Your Book's Journey", step: "Step", of: "of", done: "Book Approved",
     steps: ["Preview And Story", "Order And Creation", "Review And Delivery"],
     preview: ["A Story Is Coming To Life.", "Read the story at your own pace. Approve it or ask for changes on any page."],
+    generating: ["A Story Is Coming To Life.", "We are creating the cover and preview images. It takes a few minutes and this screen updates by itself."],
     images: ["Your preview images", "Check the images. If you like them, move on to the full story."],
     retry: ["Your Approval Comes First.", "We will prepare a new AI preview for your review. The order will only continue after your confirmation."],
     order: ["The Next Chapter Is Your Book.", "Choose the format, check the address and complete the order."],
@@ -32,6 +34,7 @@ const COPY = {
     label: "La Creación De Tu Libro", step: "Paso", of: "de", done: "Libro Aprobado",
     steps: ["Vista Previa E Historia", "Pedido Y Creación", "Revisión Y Entrega"],
     preview: ["Una Historia Empieza A Cobrar Vida.", "Lee la historia con calma. Apruébala o pide ajustes en cualquier página."],
+    generating: ["Una Historia Empieza A Cobrar Vida.", "Estamos creando la portada y las imágenes de la vista previa. Tarda unos minutos y la pantalla se actualiza sola."],
     images: ["Las imágenes de tu vista previa", "Revisa las imágenes. Si te gustan, sigue con la historia completa."],
     retry: ["Tu Aprobación Es Lo Primero.", "Prepararemos una nueva vista previa con IA para que la revises. El pedido solo continuará después de tu confirmación."],
     order: ["El Próximo Capítulo Es Tu Libro.", "Elige el formato, revisa la dirección y finaliza el pedido."],
@@ -58,7 +61,7 @@ export function ProjectJourney({ project, lang }: { project: Project; lang: Lang
   const awaitingStory = stage === "cover_ready" || (stage === "preview_ready" && !Object.values(project.book_profile?.stories || {}).some((text) => String(text || "").trim()));
   const copy = !validPreview ? t.retry : approved ? t.approved : ready ? t.review : creating ? t.creating
     : ordering && flow?.stage === "awaiting_payment_confirmation" ? t.payment : ordering ? t.order
-    : storyReview ? t.storyReview : awaitingStory ? t.images : t.preview;
+    : storyReview ? t.storyReview : awaitingStory ? t.images : stage === "story_ready" ? t.preview : t.generating;
 
   return (
     <section className="project-journey" aria-label={t.label}>
