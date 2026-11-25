@@ -869,7 +869,7 @@ export function MasterBookFlow({
         const key = `${shot.language}:${shot.role}`;
         const label = shot.role === "01_CAPA" ? t.cover : shot.role === "02_LIVRO_ABERTO" ? t.open : t.reading;
         const note = (suggestionText[key] || "").trim();
-        const canSend = !active && !photoBusy && heroPhotos.length > 0 && (Boolean(note) || photosChanged);
+        const canSend = !active && !photoBusy && (Boolean(note) || photosChanged);
         return (
           <div className="master-change-panel" id="master-change-panel" role="region"
             aria-labelledby="master-change-heading" data-testid="studio-change-image">

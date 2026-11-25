@@ -78,7 +78,7 @@ describe("Fluxo E2E (com conta)", () => {
     await user.upload(fileInput, file);
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
+    await user.click(screen.getByRole("button", { name: /gerar prévia/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);

@@ -83,7 +83,7 @@ def test_studio_title_suggestions_use_the_typed_theme(auth_client, monkeypatch):
     assert auth_client.post("/v1/studio/title/suggest", json={}).status_code == 422
 
 
-def test_studio_title_suggestions_hide_errors_and_need_login(auth_client, client, monkeypatch):
+def test_studio_title_suggestions_hide_provider_errors(auth_client, monkeypatch):
     async def broken(self, **kwargs):
         raise ProviderError("secret upstream error")
 
@@ -91,7 +91,11 @@ def test_studio_title_suggestions_hide_errors_and_need_login(auth_client, client
     response = auth_client.post("/v1/studio/title/suggest", json={"theme": "mar"})
     assert response.status_code == 502
     assert "secret" not in response.text
-    assert client.post("/v1/studio/title/suggest", json={"theme": "mar"}).status_code in {401, 403}
+
+
+def test_studio_title_suggestions_require_an_account(client):
+    response = client.post("/v1/studio/title/suggest", json={"theme": "mar"})
+    assert response.status_code in {401, 403}
 
 
 def test_dedication_suggestions_understand_the_book(auth_client, monkeypatch):
