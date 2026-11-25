@@ -13,6 +13,7 @@ export type StudioAssets = {
   video_url: string | null;
   narrated_video_url: string | null;
   photo_count?: number;
+  photos?: { id: string; url: string }[];
   photos_authorized?: boolean;
 };
 

@@ -31,9 +31,22 @@ const COPY = {
     withText: "Com texto",
     page: "Página",
     save: "Baixar imagem",
-    suggest: "Sugerir melhoria",
-    suggestField: "O que melhorar nesta imagem?",
-    suggestSend: "Enviar sugestão",
+    suggest: "Mudar esta imagem",
+    suggestField: "O que você quer mudar?",
+    suggestPh: "Ex.: deixar o rosto mais parecido com a foto",
+    suggestSend: "Refazer esta imagem",
+    changeTitle: "Mudar",
+    changeCancel: "Cancelar",
+    photosTitle: "Fotos do herói",
+    photosHint: "Tire as fotos ruins e envie fotos nítidas do rosto. Assim o personagem fica mais parecido.",
+    photoRemove: "Remover",
+    photoAdd: "Adicionar fotos",
+    photoKeepOne: "Fica pelo menos 1 foto.",
+    photoConsent: "Sou o responsável e autorizo o uso destas fotos.",
+    photoSending: "Enviando…",
+    photoFail: "Não foi possível usar esta foto. Envie JPG ou PNG.",
+    photosChanged: "Refaça o personagem usando as fotos atualizadas.",
+    download3: "Baixar as 3 imagens",
     finish: "As {pages} páginas estão prontas.",
     download: "Abrir livro",
     approveBook: "Aprovar livro",
@@ -51,7 +64,7 @@ const COPY = {
       "Cada página tem a versão sem texto e a versão com texto, nessa ordem. A prévia está no início.",
     continue: "Continuar",
     images: "As Imagens",
-    previewImagesHint: "Confira a capa, o livro aberto e a leitura. Os ajustes ficam junto de cada imagem.",
+    previewImagesHint: "Gostou? Desça e siga para o próximo passo. Quer mudar alguma imagem? Toque em Mudar esta imagem.",
     previewTitleHeading: "Revise O Título",
     previewNextHeading: "Tudo Certo Com A Prévia?",
     previewNextHint: "No próximo passo você lê a história completa antes de fazer o pedido.",
@@ -117,9 +130,22 @@ const COPY = {
     withText: "With text",
     page: "Page",
     save: "Download image",
-    suggest: "Suggest an improvement",
-    suggestField: "What should improve in this image?",
-    suggestSend: "Send suggestion",
+    suggest: "Change this image",
+    suggestField: "What do you want to change?",
+    suggestPh: "E.g. make the face look more like the photo",
+    suggestSend: "Redo this image",
+    changeTitle: "Change",
+    changeCancel: "Cancel",
+    photosTitle: "Photos of the hero",
+    photosHint: "Remove bad photos and add clear photos of the face. This makes the character look more alike.",
+    photoRemove: "Remove",
+    photoAdd: "Add photos",
+    photoKeepOne: "At least 1 photo stays.",
+    photoConsent: "I am the guardian and I authorize the use of these photos.",
+    photoSending: "Sending…",
+    photoFail: "This photo could not be used. Send JPG or PNG.",
+    photosChanged: "Redo the character using the updated photos.",
+    download3: "Download the 3 images",
     finish: "All {pages} pages are ready.",
     download: "Open book",
     approveBook: "Approve book",
@@ -137,7 +163,7 @@ const COPY = {
       "Each page has a version without text followed by a version with text. The preview is at the start.",
     continue: "Continue",
     images: "Images",
-    previewImagesHint: "Review the cover, open book and reading scene. Adjustments are next to each image.",
+    previewImagesHint: "Like it? Scroll down to the next step. Want to change an image? Tap Change this image.",
     previewTitleHeading: "Review The Title",
     previewNextHeading: "Happy With The Preview?",
     previewNextHint: "Next you read the full story before placing the order.",
@@ -203,9 +229,22 @@ const COPY = {
     withText: "Con texto",
     page: "Página",
     save: "Descargar imagen",
-    suggest: "Sugerir mejora",
-    suggestField: "¿Qué mejorar en esta imagen?",
-    suggestSend: "Enviar sugerencia",
+    suggest: "Cambiar esta imagen",
+    suggestField: "¿Qué quieres cambiar?",
+    suggestPh: "Ej.: que la cara se parezca más a la foto",
+    suggestSend: "Rehacer esta imagen",
+    changeTitle: "Cambiar",
+    changeCancel: "Cancelar",
+    photosTitle: "Fotos del héroe",
+    photosHint: "Quita las fotos malas y envía fotos nítidas de la cara. Así el personaje se parece más.",
+    photoRemove: "Quitar",
+    photoAdd: "Añadir fotos",
+    photoKeepOne: "Queda al menos 1 foto.",
+    photoConsent: "Soy el responsable y autorizo el uso de estas fotos.",
+    photoSending: "Enviando…",
+    photoFail: "No se pudo usar esta foto. Envía JPG o PNG.",
+    photosChanged: "Rehaz el personaje con las fotos actualizadas.",
+    download3: "Descargar las 3 imágenes",
     finish: "Las {pages} páginas están listas.",
     download: "Abrir libro",
     approveBook: "Aprobar libro",
@@ -223,7 +262,7 @@ const COPY = {
       "Cada página tiene la versión sin texto y luego con texto. La vista previa está al inicio.",
     continue: "Continuar",
     images: "Las Imágenes",
-    previewImagesHint: "Revisa la portada, el libro abierto y la lectura. Los ajustes están junto a cada imagen.",
+    previewImagesHint: "¿Te gusta? Baja y sigue al próximo paso. ¿Quieres cambiar una imagen? Toca Cambiar esta imagen.",
     previewTitleHeading: "Revisa El Título",
     previewNextHeading: "¿Todo Bien Con La Vista Previa?",
     previewNextHint: "En el siguiente paso lees la historia completa antes de hacer el pedido.",
@@ -445,6 +484,14 @@ export function MasterBookFlow({
   const [pageCorrections, setPageCorrections] = useState<Record<string, string>>({});
   const [suggestionText, setSuggestionText] = useState<Record<string, string>>({});
   const suggestionField = useRef<HTMLTextAreaElement>(null);
+  const [heroPhotos, setHeroPhotos] = useState(assets?.photos ?? []);
+  const [photosChanged, setPhotosChanged] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [photoConsent, setPhotoConsent] = useState(false);
+  useEffect(() => {
+    if (assets?.photos) setHeroPhotos(assets.photos);
+  }, [assets?.photos]);
   const [editing, setEditing] = useState(false);
   const adjustmentPanel = useRef<HTMLDivElement>(null);
   const adjustmentNotes = useRef<HTMLTextAreaElement>(null);
@@ -503,6 +550,7 @@ export function MasterBookFlow({
       if (setAssets) setAssets(await api.getAssets(project.id));
       setSuggesting("");
       setSuggestionText({});
+      setPhotosChanged(false);
       setAlteringPage("");
       setPageCorrections({});
       setAdjustment("");
@@ -537,6 +585,29 @@ export function MasterBookFlow({
         interest: childDraft.interest.trim(),
       }),
     );
+  }
+  async function refreshPhotos() {
+    const next = (await api.getAssets(project.id)) as StudioAssets;
+    setHeroPhotos(next.photos ?? []);
+    if (setAssets) setAssets(next);
+  }
+  async function changePhotos(action: () => Promise<unknown>) {
+    if (active || photoBusy) return;
+    setPhotoBusy(true);
+    setPhotoError("");
+    try {
+      await action();
+      setPhotosChanged(true);
+    } catch {
+      setPhotoError(t.photoFail);
+    } finally {
+      try {
+        await refreshPhotos();
+      } catch {
+        /* Mantém a lista atual. */
+      }
+      setPhotoBusy(false);
+    }
   }
   const approveStory = async () => {
     await api.approveStory(project.id);
@@ -748,6 +819,7 @@ export function MasterBookFlow({
             <h3 id="master-preview-images-heading" className="master-section">
               {isPreviewReview && <span className="master-preview-number" aria-hidden="true">01</span>}{t.images}
             </h3>
+            {["preview_ready", "cover_ready"].includes(stage) && <p className="master-title-hint">{t.previewImagesHint}</p>}
           </div>
       <div className={`master-gallery${gallery.length === 1 ? " has-single-preview" : ""}`}>
         {gallery.map((shot) => {
@@ -757,30 +829,27 @@ export function MasterBookFlow({
             shot.role === "01_CAPA" ? "is-cover" : shot.role === "02_LIVRO_ABERTO" ? "is-open" : "is-reading";
           return (
             <figure key={`${shot.language}-${shot.role}`} className={`master-shot ${shotClass}`}>
-              <img src={shot.url} alt={severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label} />
+              <img src={shot.url} alt={severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label}
+                onClick={() => setExpandedImage({ url: shot.url, label })} />
               <figcaption>
                 <span>{severalLanguages ? `${shot.language.toUpperCase()} · ${label}` : label}</span>
                 <span className="master-shot-actions">
                   <button type="button" aria-label={`${expandLabel} ${label}`}
                     onClick={() => setExpandedImage({ url: shot.url, label })}>{expandLabel}</button>
-                  {previews.length === 3 && shot === previews[0] && <button type="button" disabled={active} onClick={() => void run(async () => {
-                    const blob = await api.downloadPreviewPackage(project.id);
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url; link.download = "Storyrus-previa.zip"; link.click();
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                  })}>{lang === "en" ? "Download 3 PNGs" : lang === "es" ? "Descargar 3 PNGs" : "Baixar 3 PNGs"}</button>}
                   {["preview_ready", "cover_ready"].includes(stage) ? (
                     <button
                       type="button"
+                      className={`master-change-button${suggesting === `${shot.language}:${shot.role}` ? " is-open" : ""}`}
                       aria-expanded={suggesting === `${shot.language}:${shot.role}`}
+                      aria-controls="master-change-panel"
                       disabled={active}
                       onClick={() => {
                         const key = `${shot.language}:${shot.role}`;
                         setSuggesting((current) => (current === key ? "" : key));
+                        setPhotoError("");
                       }}
                     >
-                      {t.suggest}
+                      <span aria-hidden="true">✏️ </span>{t.suggest}
                     </button>
                   ) : (
                     <a href={shot.url} download={shot.filename} target="_blank" rel="noreferrer">
@@ -789,45 +858,118 @@ export function MasterBookFlow({
                   )}
                 </span>
               </figcaption>
-              {["preview_ready", "cover_ready"].includes(stage) && suggesting === `${shot.language}:${shot.role}` && (
-                <div className="master-shot-suggestion">
-                  <label className="studio-field">
-                    {t.suggestField}
-                    <textarea
-                      ref={suggestionField}
-                      value={suggestionText[`${shot.language}:${shot.role}`] || ""}
-                      maxLength={500}
-                      rows={3}
-                      onChange={(event) => {
-                        const key = `${shot.language}:${shot.role}`;
-                        setSuggestionText((current) => ({ ...current, [key]: event.target.value }));
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="kbtn kbtn-soft"
-                    disabled={active || !(suggestionText[`${shot.language}:${shot.role}`] || "").trim()}
-                    onClick={() => {
-                      const key = `${shot.language}:${shot.role}`;
-                      void run(() =>
-                        api.startPreview(project.id, {
-                          language: shot.language,
-                          image: shot.role,
-                          ...(stage === "cover_ready" ? { cover_only: true } : {}),
-                          adjustment: (suggestionText[key] || "").trim(),
-                        }),
-                      );
-                    }}
-                  >
-                    {t.suggestSend}
-                  </button>
-                </div>
-              )}
             </figure>
           );
         })}
       </div>
+      {(() => {
+        if (!["preview_ready", "cover_ready"].includes(stage)) return null;
+        const shot = gallery.find((item) => `${item.language}:${item.role}` === suggesting);
+        if (!shot) return null;
+        const key = `${shot.language}:${shot.role}`;
+        const label = shot.role === "01_CAPA" ? t.cover : shot.role === "02_LIVRO_ABERTO" ? t.open : t.reading;
+        const note = (suggestionText[key] || "").trim();
+        const canSend = !active && !photoBusy && heroPhotos.length > 0 && (Boolean(note) || photosChanged);
+        return (
+          <div className="master-change-panel" id="master-change-panel" role="region"
+            aria-labelledby="master-change-heading" data-testid="studio-change-image">
+            <div className="master-change-head">
+              <img src={shot.url} alt="" />
+              <h4 id="master-change-heading">{t.changeTitle}: {label}</h4>
+            </div>
+            <label className="studio-field master-change-step">
+              <span className="master-change-label"><b aria-hidden="true">1</b>{t.suggestField}</span>
+              <textarea
+                ref={suggestionField}
+                value={suggestionText[key] || ""}
+                maxLength={500}
+                rows={3}
+                placeholder={t.suggestPh}
+                onChange={(event) => setSuggestionText((current) => ({ ...current, [key]: event.target.value }))}
+              />
+            </label>
+            {heroPhotos.length > 0 && (
+              <div className="master-change-step" data-testid="studio-hero-photos">
+                <p className="master-change-label"><b aria-hidden="true">2</b>{t.photosTitle}</p>
+                <p className="master-title-hint">{t.photosHint}</p>
+                <ul className="master-hero-photos" aria-label={t.photosTitle}>
+                  {heroPhotos.map((photo, index) => (
+                    <li key={photo.id}>
+                      <img src={photo.url} alt={`${t.photosTitle} ${index + 1}`} />
+                      <button type="button" disabled={active || photoBusy || heroPhotos.length <= 1}
+                        aria-label={`${t.photoRemove} ${index + 1}`}
+                        onClick={() => void changePhotos(() => api.deletePhoto(project.id, photo.id))}>
+                        {t.photoRemove}
+                      </button>
+                    </li>
+                  ))}
+                  <li className="master-hero-photo-add">
+                    <label className={photoConsent && !active && !photoBusy ? "" : "is-disabled"}>
+                      <span aria-hidden="true">＋</span>
+                      <span>{photoBusy ? t.photoSending : t.photoAdd}</span>
+                      <input type="file" accept="image/*" multiple data-testid="studio-hero-photo-input"
+                        disabled={!photoConsent || active || photoBusy}
+                        onChange={(event) => {
+                          const files = Array.from(event.target.files ?? []);
+                          event.target.value = "";
+                          if (!files.length) return;
+                          void changePhotos(async () => {
+                            for (const file of files) {
+                              await api.uploadPhoto(project.id, file, {
+                                language: project.language || "pt-BR",
+                                finalize: true,
+                                guardianConsent: true,
+                              });
+                            }
+                          });
+                        }} />
+                    </label>
+                  </li>
+                </ul>
+                {heroPhotos.length <= 1 && <p className="master-title-hint">{t.photoKeepOne}</p>}
+                <label className="studio-consent master-hero-consent">
+                  <input type="checkbox" checked={photoConsent} onChange={(event) => setPhotoConsent(event.target.checked)} />
+                  <span>{t.photoConsent}</span>
+                </label>
+                {photoError && <p className="studio-error" role="alert">{photoError}</p>}
+              </div>
+            )}
+            <div className="master-change-actions">
+              <button
+                type="button"
+                className="kbtn kbtn-primary"
+                disabled={!canSend}
+                onClick={() => {
+                  void run(() =>
+                    api.startPreview(project.id, {
+                      language: shot.language,
+                      image: shot.role,
+                      ...(stage === "cover_ready" ? { cover_only: true } : {}),
+                      adjustment: note || t.photosChanged,
+                    }),
+                  );
+                }}
+              >
+                {t.suggestSend}
+              </button>
+              <button type="button" className="kbtn kbtn-soft" disabled={active} onClick={() => setSuggesting("")}>
+                {t.changeCancel}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+      {previews.length === 3 && (
+        <p className="master-preview-download">
+          <button type="button" className="master-link-button" disabled={active} onClick={() => void run(async () => {
+            const blob = await api.downloadPreviewPackage(project.id);
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url; link.download = "Storyrus-previa.zip"; link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          })}>{t.download3}</button>
+        </p>
+      )}
         </section>
       )}
       {stage === "cover_ready" && (

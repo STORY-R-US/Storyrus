@@ -151,12 +151,13 @@ describe("Studio — ordem dos campos", () => {
     await openBook(user);
     await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     const dedication = screen.getByLabelText(/dedicatória/i);
-    const suggest = screen.getByRole("button", { name: "Sugerir Dedicatória" });
+    const suggest = screen.getByRole("button", { name: "Sugerir Dedicatória com IA" });
 
     await user.click(suggest);
-    expect((dedication as HTMLInputElement).value).toContain("Para Lila,");
+    // Sem a IA, usa as sugestões prontas.
+    await waitFor(() => expect((dedication as HTMLInputElement).value).toContain("Para Lila,"));
     const first = (dedication as HTMLInputElement).value;
-    await user.click(suggest);
+    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória com IA" }));
     expect(dedication).not.toHaveValue(first);
     await user.clear(dedication);
     await user.type(dedication, "Uma dedicatória escrita por mim.");
@@ -175,7 +176,42 @@ describe("Studio — ordem dos campos", () => {
     expect(state.credits).toBe(10);
   });
 
-  it("mostra detalhes, dados com foto, tema, título, dedicatória, resumo e gerar nessa ordem", async () => {
+  it("sugere dedicatórias com IA usando o tema e o título do livro", async () => {
+    const suggest = vi.spyOn(api, "suggestDedications").mockResolvedValue({
+      dedications: ["Para Lila, que voa entre as estrelas.", "Lila, brilhe sempre.", "Com amor, para Lila."],
+    });
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Lila viaja pelas estrelas");
+    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória com IA" }));
+    const dedication = screen.getByLabelText(/dedicatória/i);
+    await waitFor(() => expect(dedication).toHaveValue("Para Lila, que voa entre as estrelas."));
+    expect(suggest).toHaveBeenCalledWith(expect.objectContaining({ name: "Lila", theme: "Lila viaja pelas estrelas" }));
+    expect(within(screen.getByTestId("studio-dedication-options")).getAllByRole("button")).toHaveLength(3);
+  });
+
+  it("sugere títulos com IA a partir do tema", async () => {
+    const suggest = vi.spyOn(api, "suggestStudioTitles").mockResolvedValue({
+      titles: ["Lila e as estrelas", "A viagem de Lila", "Lila no céu", "Lila e a lua", "O voo de Lila"],
+    });
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    const button = screen.getByTestId("studio-suggest-title");
+    expect(button).toBeDisabled();
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Lila viaja pelas estrelas");
+    await user.click(button);
+    const options = await screen.findByTestId("studio-title-options");
+    expect(suggest).toHaveBeenCalledWith(expect.objectContaining({ theme: "Lila viaja pelas estrelas" }));
+    await user.click(within(options).getByRole("button", { name: /A Viagem De Lila|A viagem de Lila/i }));
+    expect((screen.getByLabelText(/título do livro/i) as HTMLInputElement).value).toMatch(/viagem de lila/i);
+    expect(screen.getByTestId("studio-generate-book")).toHaveTextContent("Gerar prévia");
+  });
+
+  it("mostra detalhes, dados com foto, tema, título, dedicatória, resumo e gerar nessa ordem", async () => {
+
     const user = userEvent.setup();
     render(<Studio />);
     await openBook(user);
@@ -252,7 +288,8 @@ describe("Studio — avisos nos campos", () => {
     expect(screen.getByTestId("studio-error-name")).toBeInTheDocument();
 
     await fillStory(user);
-    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória" }));
+    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória com IA" }));
+    await waitFor(() => expect((screen.getByLabelText(/dedicatória/i) as HTMLInputElement).value).not.toBe(""));
     const dedication = (screen.getByLabelText(/dedicatória/i) as HTMLInputElement).value;
     expect(screen.queryByTestId("studio-error-name")).not.toBeInTheDocument();
     expect(screen.queryByTestId("studio-error-photo")).not.toBeInTheDocument();

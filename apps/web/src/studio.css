@@ -2446,3 +2446,66 @@
 @media (max-width: 540px) {
   .studio-app .studio-page > .studio-intro { display: block; }
 }
+
+/* 25/11 — Prévia pronta simples: um botão claro por imagem e um painel único para mudar. */
+.studio-app .master-shot-actions .master-change-button,
+.studio-app .is-preview-review .master-shot-actions .master-change-button {
+  background: var(--studio-accent);
+  border-color: var(--studio-accent);
+  color: #14213d;
+  font-weight: 800;
+  text-align: center;
+}
+.studio-app .master-shot-actions .master-change-button.is-open { outline: 3px solid var(--studio-accent); outline-offset: 2px; }
+.studio-app .master-shot > img { cursor: zoom-in; }
+.studio-app .master-change-panel {
+  display: grid;
+  gap: 18px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 2px solid var(--studio-accent);
+  border-radius: 14px;
+  background: var(--studio-soft);
+}
+.studio-app .master-change-head { display: flex; align-items: center; gap: 14px; }
+.studio-app .master-change-head img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; flex: none; }
+.studio-app .master-change-head h4 { margin: 0; font-size: 1.1rem; }
+.studio-app .master-change-step { display: grid; gap: 8px; margin: 0; }
+.studio-app .master-change-label { display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 800; }
+.studio-app .master-change-label b {
+  display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%;
+  background: var(--studio-accent); color: #14213d; font-size: .8rem;
+}
+.studio-app .master-hero-photos {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px;
+  margin: 0; padding: 0; list-style: none;
+}
+.studio-app .master-hero-photos li { display: grid; gap: 6px; }
+.studio-app .master-hero-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
+.studio-app .master-hero-photos li > button {
+  min-height: 34px; border: 1px solid var(--studio-input-border); border-radius: 8px;
+  background: transparent; color: var(--ink); font-size: .75rem; cursor: pointer;
+}
+.studio-app .master-hero-photos li > button:disabled { opacity: .45; cursor: not-allowed; }
+.studio-app .master-hero-photo-add label {
+  display: grid; place-items: center; align-content: center; gap: 4px; aspect-ratio: 1;
+  border: 2px dashed var(--studio-accent); border-radius: 10px; color: var(--studio-accent);
+  font-weight: 800; font-size: .8rem; text-align: center; cursor: pointer; position: relative;
+}
+.studio-app .master-hero-photo-add label > span:first-child { font-size: 1.8rem; line-height: 1; }
+.studio-app .master-hero-photo-add label.is-disabled { opacity: .5; cursor: not-allowed; }
+.studio-app .master-hero-photo-add input { position: absolute; inset: 0; opacity: 0; cursor: inherit; }
+.studio-app .master-hero-consent { font-size: .8rem; }
+.studio-app .master-change-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.studio-app .master-change-actions .kbtn-primary { min-height: 50px; padding-inline: 24px; }
+.studio-app .master-preview-download { margin: 12px 0 0; }
+.studio-app .master-link-button {
+  border: 0; background: none; padding: 0; color: var(--studio-link); font-size: .8rem;
+  text-decoration: underline; text-underline-offset: 4px; cursor: pointer;
+}
+.studio-app .studio-ai-help { display: grid; gap: 10px; margin-top: 12px; justify-items: start; }
+.studio-app .studio-ai-help .studio-dedication-options { width: 100%; }
+@media (max-width: 540px) {
+  .studio-app .master-change-panel { padding: 14px; }
+  .studio-app .master-change-actions .kbtn { width: 100%; }
+}

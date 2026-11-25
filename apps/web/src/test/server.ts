@@ -224,6 +224,9 @@ function advance(job: Job, project: Project) {
 
 export const handlers = [
   http.get("*/health", () => HttpResponse.json({ status: "ok" })),
+  // IA do Estúdio: por padrão indisponível nos testes, para exercitar o plano B local.
+  http.post("*/v1/studio/dedication/suggest", () => HttpResponse.json({ detail: "IA indisponível" }, { status: 503 })),
+  http.post("*/v1/studio/title/suggest", () => HttpResponse.json({ detail: "IA indisponível" }, { status: 503 })),
   http.get(/https?:\/\/viacep\.com\.br\/ws\/(\d{8})\/json\/?/, ({ request }) => {
     const cep = request.url.match(/ws\/(\d{8})/)?.[1] ?? "";
     if (cep === "00000000" || cep === "99999999") {

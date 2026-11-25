@@ -475,6 +475,15 @@ export const api = {
   async improveDedication(text: string, name: string, language: string) {
     return req<{ dedication: string }>(`/v1/studio/dedication/improve`, { method: "POST", body: JSON.stringify({ text, name, language }) });
   },
+  async suggestStudioTitles(body: { theme: string; title: string; name: string; age?: number; language: string }) {
+    return req<{ titles: string[] }>(`/v1/studio/title/suggest`, { method: "POST", body: JSON.stringify(body) });
+  },
+  async suggestDedications(body: { name: string; age?: number; theme: string; title: string; draft: string; language: string }) {
+    return req<{ dedications: string[] }>(`/v1/studio/dedication/suggest`, { method: "POST", body: JSON.stringify(body) });
+  },
+  async deletePhoto(id: string, photoId: string) {
+    return req<void>(`/v1/projects/${id}/photos/${photoId}`, { method: "DELETE" });
+  },
   async suggestPreviewTitles(id: string, guidance: string) {
     return req<{ titles: string[] }>(`/v1/projects/${id}/preview/title-suggestions`, { method: "POST", body: JSON.stringify({ guidance }) });
   },
@@ -499,6 +508,8 @@ export const api = {
       previews?: import("./studio/assets").BookImage[];
       photos_authorized?: boolean;
       photo_count?: number;
+      photos?: { id: string; url: string }[];
+      book_cover_url?: string | null;
       page_versions?: import("./studio/assets").BookImage[];
       character_url: string | null;
       realistic_url: string | null;

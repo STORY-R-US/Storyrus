@@ -319,18 +319,19 @@ describe("Studio approval stages", () => {
     expect(story).not.toHaveBeenCalled();
   });
 
-  it("abre a sugestão de melhoria no lugar de baixar a imagem", async () => {
+  it("abre o painel de mudar a imagem no lugar de baixar a imagem", async () => {
     const regenerate = vi.spyOn(api, "startPreview").mockResolvedValue(accepted);
     vi.spyOn(api, "getProject").mockResolvedValue(project);
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     expect(screen.queryByRole("link", { name: "Baixar imagem" })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("O que melhorar nesta imagem?")).not.toBeInTheDocument();
-    await userEvent.click(screen.getAllByRole("button", { name: "Sugerir melhoria" })[0]);
-    const note = screen.getByLabelText("O que melhorar nesta imagem?");
-    expect(screen.getByRole("button", { name: "Enviar sugestão" })).toBeDisabled();
+    expect(screen.queryByLabelText(/O que você quer mudar/)).not.toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button", { name: "Mudar esta imagem" })[0]);
+    expect(screen.getByTestId("studio-change-image")).toHaveTextContent("Mudar: Capa");
+    const note = screen.getByLabelText(/O que você quer mudar/);
+    expect(screen.getByRole("button", { name: "Refazer esta imagem" })).toBeDisabled();
     await userEvent.type(note, "Mais estrelas na capa");
-    await userEvent.click(screen.getByRole("button", { name: "Enviar sugestão" }));
+    await userEvent.click(screen.getByRole("button", { name: "Refazer esta imagem" }));
     await waitFor(() => expect(regenerate).toHaveBeenCalledWith("master", {
       language: "pt-BR", image: "01_CAPA", adjustment: "Mais estrelas na capa",
     }));
@@ -355,7 +356,34 @@ describe("Studio approval stages", () => {
     expect(screen.queryByRole("button", { name: "Gerar novamente" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Ajuste desta imagem")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Aplicar ajuste" })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Sugerir melhoria" })).toHaveLength(3);
+    expect(screen.getAllByRole("button", { name: "Mudar esta imagem" })).toHaveLength(3);
+  });
+
+  it("mostra as fotos do herói para tirar ou adicionar antes de refazer a imagem", async () => {
+    const withPhotos: StudioAssets = { ...assets, photos: [{ id: "f1", url: "/foto/1" }, { id: "f2", url: "/foto/2" }] };
+    const remove = vi.spyOn(api, "deletePhoto").mockResolvedValue(undefined);
+    const upload = vi.spyOn(api, "uploadPhoto").mockResolvedValue({});
+    vi.spyOn(api, "getAssets").mockResolvedValue({ ...withPhotos, photos: [{ id: "f2", url: "/foto/2" }] });
+    const regenerate = vi.spyOn(api, "startPreview").mockResolvedValue(accepted);
+    vi.spyOn(api, "getProject").mockResolvedValue(project);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    render(<MasterBookFlow project={project} assets={withPhotos} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.click(screen.getAllByRole("button", { name: "Mudar esta imagem" })[1]);
+    const photos = screen.getByTestId("studio-hero-photos");
+    expect(photos.querySelectorAll("img")).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: "Remover 1" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledWith("master", "f1"));
+    await waitFor(() => expect(photos.querySelectorAll("img")).toHaveLength(1));
+    expect(screen.getByRole("button", { name: "Remover 1" })).toBeDisabled();
+    const input = screen.getByTestId("studio-hero-photo-input");
+    expect(input).toBeDisabled();
+    await userEvent.click(screen.getByLabelText(/autorizo o uso destas fotos/));
+    await userEvent.upload(input, new File(["x"], "rosto.jpg", { type: "image/jpeg" }));
+    await waitFor(() => expect(upload).toHaveBeenCalledWith("master", expect.any(File), expect.objectContaining({ guardianConsent: true })));
+    await userEvent.click(screen.getByRole("button", { name: "Refazer esta imagem" }));
+    await waitFor(() => expect(regenerate).toHaveBeenCalledWith("master", expect.objectContaining({
+      image: "02_LIVRO_ABERTO", adjustment: "Refaça o personagem usando as fotos atualizadas.",
+    })));
   });
 
   it("atualiza o título da prévia e conserva a história", async () => {

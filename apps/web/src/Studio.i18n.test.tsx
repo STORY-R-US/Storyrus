@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setToken } from "./api";
 import { ProgressList, Studio } from "./Studio";
@@ -63,7 +63,7 @@ describe("Studio i18n", () => {
 
     expect(await screen.findByRole("heading", { name: /create your story/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/protagonist's name/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Suggest Dedication" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Suggest Dedication with AI" })).toBeInTheDocument();
     expect(screen.queryByText(/credits:/i)).not.toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en");
   });
@@ -79,8 +79,8 @@ describe("Studio i18n", () => {
 
     expect(await screen.findByRole("heading", { name: /crea tu historia/i })).toBeInTheDocument();
     await user.type(screen.getByLabelText(/nombre del protagonista/i), "Lila");
-    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatoria" }));
-    expect((screen.getByLabelText(/dedicatoria/i) as HTMLInputElement).value).toContain("Para Lila,");
+    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatoria con IA" }));
+    await waitFor(() => expect((screen.getByLabelText(/dedicatoria/i) as HTMLInputElement).value).toContain("Para Lila,"));
     expect(localStorage.getItem(LANG_STORAGE_KEY)).toBe("es");
     expect(document.documentElement.lang).toBe("es");
   });
