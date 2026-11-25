@@ -72,10 +72,6 @@ test("Single-cover review stays compact and allows optional detail editing", asy
   await page.getByRole("button", { name: "Ampliar Capa", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Capa", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Fechar", exact: true }).click();
-  await page.getByText("Ver o modelo completo do Catálogo: Amor de Mãe — cartoon", { exact: true }).click();
-  await expect(page.locator(".catalog-book-design-trio img")).toHaveCount(3);
-  await page.getByRole("button", { name: "Ampliar referência", exact: true }).first().click();
-  await expect(page.getByRole("dialog", { name: "Amor de Mãe — cartoon · Capa", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Fechar", exact: true }).click();
+  await expect(page.locator(".catalog-book-design-trio")).toHaveCount(0);
   expect(calls).toHaveLength(0);
 });

@@ -108,12 +108,24 @@ def photo_manifest(project, photos):
     ]
 
 
+# Filtro de pessoa repetida (pedido do André, 25/11): na mesma imagem, e em cada
+# página do livro aberto, cada pessoa aparece uma vez só. Páginas diferentes
+# do livro aberto podem mostrar a mesma pessoa.
+NO_DUPLICATE_PEOPLE = (
+    "\nNO DUPLICATE PEOPLE: inside this one image, and inside each single page of an open "
+    "book, every real person appears exactly once. Never draw the same person twice in the "
+    "same scene, not as a twin, a reflection, a background copy, a second smaller version or "
+    "a photo on the wall. Count the people before finishing: the number of people in each "
+    "scene must match the cast, with one body per person."
+)
+
+
 def multi_photo_note(photos) -> str:
     """Tell the image model how to use several original photos of the cast."""
     count = len(photos or [])
     if count < 2:
-        return ""
-    return (
+        return NO_DUPLICATE_PEOPLE
+    return NO_DUPLICATE_PEOPLE + (
         f"\nMULTIPLE ORIGINAL PHOTOS: the {count} original identity photographs may show the "
         "same real person more than once, in different angles, expressions, lighting or "
         "moments. Photos of the same person are ONE individual: study all of them together "

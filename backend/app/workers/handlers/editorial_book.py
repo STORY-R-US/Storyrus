@@ -591,6 +591,8 @@ class Pipeline:
                 "For ANATOMY identify a concrete visible defect rather than a speculative one. "
                 "In an open book, two sequential scenes may reuse the same child, props and "
                 "setting: button pressed then rocket rising is a visible change of action. "
+                "Reject as IDENTITY when the same real person appears twice inside one page or "
+                "inside one single scene (twin, clone or second copy of the same face). "
                 "Each page may have its own coherent scene; a physical gutter is not a seam "
                 "defect and a continuous panorama across both pages is not required. "
                 "Judge physical page shape with perspective and curvature, not raw pixel "
