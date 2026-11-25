@@ -352,6 +352,13 @@ describe("Studio approval stages", () => {
     await waitFor(() => expect(save).toHaveBeenCalledWith("master", "As estrelas com Lia"));
   });
 
+  it("não prende o cliente quando a história veio vazia", () => {
+    const empty = { ...project, book_profile: { ...project.book_profile!, stories: { "pt-BR": "" } } };
+    render(<MasterBookFlow project={empty} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    expect(screen.getByTestId("studio-write-story")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-master-story")).not.toBeInTheDocument();
+  });
+
   it("não mostra o ajuste solto da imagem na prévia pronta", () => {
     render(<MasterBookFlow project={project} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     expect(screen.queryByRole("button", { name: "Gerar novamente" })).not.toBeInTheDocument();

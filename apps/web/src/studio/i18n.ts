@@ -418,7 +418,7 @@ const pt: StudioCopy = {
   themeFree: "Insira o tema desejado",
   themeFreePh: "Ex.: Matteo e seu Herói Favorito",
   themeHint:
-    "Quer incluir mais alguém, como a mãe ou o irmão? Conte aqui e envie a foto dessa pessoa no bloco 1.",
+    "Quer incluir mais alguém, como a mãe ou o irmão? Conte aqui e envie a foto dessa pessoa no passo 2.",
   photoField: "Foto do protagonista",
   photoFieldHint: "Envie mais de uma foto.",
   photoCharacters: "Foto de um ou mais personagens",
@@ -714,7 +714,7 @@ const en: StudioCopy = {
   themeFree: "Enter the desired theme",
   themeFreePh: "e.g. Matteo and his Favorite Hero",
   themeHint:
-    "Want to include someone else, like mom or a brother? Tell us here and add their photo in block 1.",
+    "Want to include someone else, like mom or a brother? Tell us here and add their photo in step 2.",
   photoField: "Hero photo",
   photoFieldHint: "Send more than one photo.",
   photoCharacters: "Photo of one or more characters",
@@ -1010,7 +1010,7 @@ const es: StudioCopy = {
   themeFree: "Ingresa el tema deseado",
   themeFreePh: "Ej.: Matteo y su Héroe Favorito",
   themeHint:
-    "¿Quieres incluir a alguien más, como mamá o un hermano? Cuéntalo aquí y sube su foto en el bloque 1.",
+    "¿Quieres incluir a alguien más, como mamá o un hermano? Cuéntalo aquí y sube su foto en el paso 2.",
   photoField: "Foto del protagonista",
   photoFieldHint: "Envía más de una foto.",
   photoCharacters: "Foto de uno o más personajes",

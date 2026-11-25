@@ -2509,3 +2509,13 @@
   .studio-app .master-change-panel { padding: 14px; }
   .studio-app .master-change-actions .kbtn { width: 100%; }
 }
+
+/* 25/11 — Celular: menos caixas dentro de caixas e etapas numa linha só. */
+@media (max-width: 540px) {
+  .studio-app .studio-card.studio-review { padding: 14px 10px; }
+  .studio-app .project-journey-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .studio-app .project-journey-steps li { padding: 8px 6px; font-size: .68rem; line-height: 1.25; text-align: center; flex-direction: column; gap: 4px; }
+  .studio-app .master-preview-panel { padding: 12px 10px; }
+  .studio-app .master-gallery .master-shot > img { padding: 6px; }
+}
+.studio-app .studio-intro-start { justify-self: start; margin-top: 18px; }
