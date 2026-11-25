@@ -186,6 +186,8 @@ const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: stri
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
 };
 const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
+  ...Object.fromEntries(catalogPublication.map(({ catalog_index }) =>
+    [catalog_index, `cartoon-20261124/${catalog_index}/cover-pt.webp`])),
   68: "covers/cartoon-capa-davi-brasil-v1-pt.webp",
   57: "covers/cartoon-capa-matteo-trator-v1-pt.webp",
   59: "covers/cartoon-capa-natal-familia-v1-pt.webp",

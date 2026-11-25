@@ -52,7 +52,7 @@ for (const width of [390, 1440]) {
         })));
         for (const card of cards) books.set(card.href, card.image);
       }
-      expect(books.size).toBe(route === "/cartoon" ? 59 : 109);
+      expect(books.size).toBe(109);
       expect(books.has("/livro/58")).toBe(false);
       for (const [href, cover] of books) {
         await page.goto(href);

@@ -55,10 +55,14 @@ for (const lang of ["pt", "en", "es"]) {
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
           if (position === 1) {
-            const bounds = (await image.boundingBox())!;
-            const artworkBottom = bounds.y + (bounds.height + bounds.width / ratio) / 2;
             for (const arrow of await gallery.locator(".cat-flip-nav").all()) {
-              expect((await arrow.boundingBox())!.y).toBeGreaterThan(artworkBottom);
+              // Switching from the cover animates the arrow transform; measure the
+              // current artwork and arrow together after the layout settles.
+              await expect.poll(async () => {
+                const bounds = (await image.boundingBox())!;
+                const artworkBottom = bounds.y + (bounds.height + bounds.width / ratio) / 2;
+                return (await arrow.boundingBox())!.y - artworkBottom;
+              }).toBeGreaterThan(0);
             }
           }
           if (position === 1) await gallery.screenshot({ path: `test-results/${style}-${index}-${lang}-${width}-open.png` });

@@ -41,8 +41,8 @@ for (const lang of ["pt", "en", "es"]) {
       if (mobile) await cartoonDinosaurs.locator("..").getByRole("button").click();
       else await cartoonDinosaurs.hover();
       const cartoonFeats = mobile ? cartoonDinosaurs.locator("../..").locator(".kmobile-feats") : page.getByTestId("landing-cat-feats");
-      await expect(cartoonFeats.locator(".kcat-feat")).toHaveCount(2);
-      for (const id of [18, 60]) await expect(cartoonFeats.locator(`a[href="/livro/${id}?modo=cartoon"]`)).toBeVisible();
+      await expect(cartoonFeats.locator(".kcat-feat")).toHaveCount(featuredDinosaurs.length);
+      for (const id of featuredDinosaurs) await expect(cartoonFeats.locator(`a[href="/livro/${id}?modo=cartoon"]`)).toBeVisible();
       const adventure = panel.locator('a[href="/catalogo?modo=cartoon#aventuras-adventure"]').first();
       await adventure.click();
       await expect(page.locator(".catalog-sub-title")).toHaveAttribute("id", "aventuras-adventure");
