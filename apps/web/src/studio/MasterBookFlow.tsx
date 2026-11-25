@@ -1,5 +1,5 @@
 import { InternalReviewNotice } from "./InternalReviewNotice";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { PreviewImageViewer } from "./PreviewImageViewer";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { TitleSuggestions } from "./TitleSuggestions";
@@ -23,6 +23,9 @@ const COPY = {
     adjust: "Ajuste desta imagem",
     send: "Aplicar ajuste",
     waiting: "Gerando…",
+    writingStory: "Escrevendo a sua história… Leva cerca de 1 minuto e a tela atualiza sozinha.",
+    showImages: "Ver as imagens da prévia",
+    showStory: "Ler a história",
     cover: "Capa",
     open: "Livro Aberto",
     reading: "Segurando o livro",
@@ -122,6 +125,9 @@ const COPY = {
     adjust: "Adjustment to this image",
     send: "Apply adjustment",
     waiting: "Generating…",
+    writingStory: "Writing your story… It takes about 1 minute and this screen updates by itself.",
+    showImages: "See the preview images",
+    showStory: "Read the story",
     cover: "Cover",
     open: "Open Book",
     reading: "Holding the book",
@@ -221,6 +227,9 @@ const COPY = {
     adjust: "Ajuste de esta imagen",
     send: "Aplicar ajuste",
     waiting: "Generando…",
+    writingStory: "Escribiendo tu historia… Tarda cerca de 1 minuto y la pantalla se actualiza sola.",
+    showImages: "Ver las imágenes de la vista previa",
+    showStory: "Leer la historia",
     cover: "Portada",
     open: "Libro Abierto",
     reading: "Sosteniendo el libro",
@@ -588,8 +597,10 @@ export function MasterBookFlow({
       setPhotoBusy(false);
     }
   }
+  // Um clique só: aprovar a história já aprova a prévia e leva ao pedido.
   const approveStory = async () => {
     await api.approveStory(project.id);
+    await api.approvePreview(project.id);
   };
   const approveFace = async () => {
     await api.approveCharacter(project.id);
@@ -611,6 +622,11 @@ export function MasterBookFlow({
     (image) => image.language === bookLanguage && image.role === "com_texto" && image.page,
   );
   const reviewing = ["page_ready", "book_ready"].includes(stage) && finishedPages.length > 0;
+  // No pedido, imagens e história ficam recolhidas para o pagamento aparecer logo.
+  const ordering = !!project.purchase_flow?.preview_approved_at && !reviewing;
+  const foldWhenOrdering = (label: string, content: ReactNode) => ordering
+    ? <details className="master-child-edit master-ordering-fold"><summary>{label}</summary>{content}</details>
+    : content;
   const gallery = previews.flatMap((shot) => {
     const cleanCover = reviewing && shot.role === "01_CAPA" ? assets?.book_cover_url : null;
     const url = cleanCover || shot.url;
@@ -745,7 +761,9 @@ export function MasterBookFlow({
           onClick={() => void run(() => api.retryRealPreview(project.id))}>{t.exitTest}</button>}
       </section>}
       {error && <p className="studio-error" role="alert">{generationError(studioCopy, error)}</p>}
-      {active && <p className="master-status" role="status">{t.waiting}</p>}
+      {active && <p className="master-status" role="status">
+        {jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) ? t.writingStory : t.waiting}
+      </p>}
       {!active && failed?.error && <p className="studio-error" role="alert">{generationError(studioCopy, failed.error, failed)}</p>}
       {storyReview && (
         <section className="master-story-review" aria-labelledby="story-review-heading" data-testid="studio-story-review">
@@ -794,7 +812,7 @@ export function MasterBookFlow({
           )}
         </section>
       )}
-      {!storyReview && gallery.length > 0 && (
+      {!storyReview && gallery.length > 0 && foldWhenOrdering(t.showImages,
         <section className={isPreviewReview ? "master-preview-panel master-preview-images" : undefined}
           aria-labelledby="master-preview-images-heading">
           <div className="master-preview-panel-heading">
@@ -952,7 +970,7 @@ export function MasterBookFlow({
           })}>{t.download3}</button>
         </p>
       )}
-        </section>
+        </section>,
       )}
       {stage === "cover_ready" && (
         <section className="master-preview-panel master-cover-decision" data-testid="studio-cover-calibration">
@@ -1160,9 +1178,9 @@ export function MasterBookFlow({
       )}
       {!storyReview && stage !== "cover_ready" && hasStory && (
         <div data-testid="studio-master-story">
-          {reviewing ? (
+          {reviewing || ordering ? (
             <details>
-              <summary className="master-section">{t.storyHeading}</summary>
+              <summary className="master-section">{reviewing ? t.storyHeading : t.showStory}</summary>
               {storyView}
             </details>
           ) : (

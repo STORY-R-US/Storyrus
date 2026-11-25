@@ -370,7 +370,8 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /15 × 15 cm/i })).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-format")).toHaveTextContent("20 × 20 cm · 20 páginas");
-    expect(screen.getByRole("button", { name: /capa flexível/i, pressed: true })).toBeInTheDocument();
+    // A capa é escolhida só no pedido, junto com o preço.
+    expect(screen.queryByRole("button", { name: /capa flexível/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
     expect(screen.queryByLabelText(/^quantidade de livros$/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();

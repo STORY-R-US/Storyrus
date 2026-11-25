@@ -77,10 +77,9 @@ test("Studio requires preview, story and face approvals in the browser", async (
   await mobileViewer.getByRole("button", { name: "Fechar", exact: true }).click();
   await expect(mobileViewer).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath("studio-mobile.png"), fullPage: true });
+  // Aprovar a história já aprova a prévia e abre o pedido (um clique só).
   await page.getByRole("button", { name: "Sim, aprovo", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Gostei, continuar com meu livro" })).toBeVisible();
   expect(calls.some((call) => call.endsWith("/avatar"))).toBe(false);
-  await page.getByRole("button", { name: "Gostei, continuar com meu livro" }).click();
   await expect(page.getByText("Pedido em cotação", { exact: true })).toBeVisible();
   expect(calls.some((call) => call.endsWith("/story"))).toBe(false);
   paid = true;
