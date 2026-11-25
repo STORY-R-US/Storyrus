@@ -37,6 +37,7 @@ def _order(auth_client):
 
 def test_regenerate_uses_same_order_and_reuses_story(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "owner-test")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "offline_fallback", False)
     ticket_id, project_id = _order(auth_client)
     headers = {"X-Usage-Password": "owner-test"}
@@ -58,6 +59,7 @@ def test_regenerate_uses_same_order_and_reuses_story(auth_client, monkeypatch):
 
 def test_master_book_order_starts_preview_not_avatar(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "owner-test")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "offline_fallback", False)
     ticket_id, project_id = _order(auth_client)
     db = _session(auth_client)
@@ -194,6 +196,7 @@ def test_failed_job_shows_up_on_the_error_report(auth_client):
 
 def test_regeneration_rejects_demo_mode(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "owner-test")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     ticket_id, _ = _order(auth_client)
     result = auth_client.post(
         f"/v1/usage/orders/{ticket_id}/generate",

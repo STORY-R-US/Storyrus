@@ -97,6 +97,9 @@ class Settings(BaseSettings):
     # Politica de negocio
     # Limite de jobs PENDING/RUNNING por usuario (inclui VIDEO / NARRATED_VIDEO).
     max_concurrent_jobs_per_user: int = 4
+    # Teto de gerações por conta em 24h (prévia grátis tem custo de IA). 0 = desligado.
+    # Livro pago, continuação da cadeia e conta admin não entram na conta.
+    max_jobs_per_user_per_day: int = 60
     # Kling image2video aceita só 5s ou 10s; default alinhado ao provedor.
     default_video_duration_s: int = 5
     signup_bonus_credits: int = 10
@@ -127,7 +130,10 @@ class Settings(BaseSettings):
     owner_emails: str = "eng.andrevitor89@gmail.com"
     # true = a senha compartilhada (X-Usage-Password) ainda abre os painéis.
     # false = só conta com is_admin (ou e-mail em OWNER_EMAILS).
-    owner_password_fallback: bool = True
+    owner_password_fallback: bool = False
+    # Teto global de senhas erradas na janela (todos os IPs somados). O IP vem do
+    # X-Forwarded-For, que o cliente pode trocar; este teto não depende dele.
+    usage_lockout_global_max_attempts: int = 20
     # Lockout apos N senhas erradas por IP (0 = desliga). Janela em segundos.
     usage_lockout_max_attempts: int = 5
     usage_lockout_window_s: int = 900

@@ -144,6 +144,7 @@ async def test_worker_blocks_vendor_when_usd_ceiling_hit(auth_client, monkeypatc
 
 def test_usage_surfaces_anomalies(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "daily_spend_usd_ceiling", 1.0)
     monkeypatch.setattr(settings, "spend_anomaly_warn_ratio", 0.5)

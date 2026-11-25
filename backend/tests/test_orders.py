@@ -97,6 +97,7 @@ def test_order_summary_shows_the_dedication_typed_in_the_studio(auth_client, mon
     """A dedicatória escrita no "Gerar o livro" aparece no pedido do dono e do cliente."""
     monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(auth_client, dedication="Para a Lia, com amor.")
     up = _photo(auth_client, pid)
@@ -212,6 +213,7 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
     monkeypatch.setattr("app.storage.presign_get", lambda key: f"https://fotos.test/{key}")
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(auth_client)
 
@@ -252,6 +254,7 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
 def test_realista_order_uses_typed_theme_and_site_language(auth_client, monkeypatch):
     monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(
         auth_client,
@@ -286,6 +289,7 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
     monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
     monkeypatch.setattr("app.storage.presign_get", lambda key: f"https://fotos.test/{key}")
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     from tests.conftest import signup_and_verify
 
@@ -318,6 +322,7 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
 
 def test_guest_cannot_create_project_or_order(guest_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     r = guest_client.post("/v1/projects", json={})
     assert r.status_code == 403
@@ -330,6 +335,7 @@ def test_several_photos_count_together_on_one_order(auth_client, monkeypatch):
     monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
     monkeypatch.setattr("app.storage.presign_get", lambda key: f"https://fotos.test/{key}")
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(auth_client)
     first = _photo(auth_client, pid, finalize="0")
@@ -366,6 +372,7 @@ def test_unreadable_photo_is_rejected(auth_client, monkeypatch):
 
     monkeypatch.setattr("app.storage.put_bytes", _forbid_put)
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(auth_client)
     up = auth_client.post(
@@ -388,6 +395,7 @@ def test_unreadable_photo_is_rejected(auth_client, monkeypatch):
 
 def test_empty_photo_does_not_open_an_order(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(auth_client, style="cgi_3d", child_name="Lila")
     up = auth_client.post(

@@ -74,6 +74,10 @@ app = FastAPI(
     version="0.1.0",
     description="Foto -> personagem -> ebook -> video. Pipeline assincrono.",
     lifespan=lifespan,
+    # Swagger/OpenAPI só fora de produção: não publicar o mapa da API.
+    docs_url=None if settings.app_env in {"prod", "staging"} else "/docs",
+    redoc_url=None if settings.app_env in {"prod", "staging"} else "/redoc",
+    openapi_url=None if settings.app_env in {"prod", "staging"} else "/openapi.json",
 )
 
 register_exception_handlers(app)

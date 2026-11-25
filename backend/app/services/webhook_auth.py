@@ -92,6 +92,22 @@ def claim_nonce(nonce: str, ttl_s: float | None = None) -> bool:
     return _claim_nonce_memory(nonce, ttl)
 
 
+def nonce_seen(nonce: str) -> bool:
+    """True se o nonce já foi marcado (sem marcar)."""
+    try:
+        from app import queue
+
+        client = queue._redis()
+        if client is not None:
+            return bool(client.exists(f"stories:webhook:nonce:{nonce}"))
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("nonce Redis peek falhou (%s); usando memoria", exc)
+    now = time.monotonic()
+    with _lock:
+        _prune_memory(now)
+        return nonce in _seen
+
+
 def parse_timestamp(raw: str | None) -> int | None:
     if raw is None:
         return None

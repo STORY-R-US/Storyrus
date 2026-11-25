@@ -99,12 +99,12 @@ services:
         sync: false
       - key: OWNER_EMAILS
         value: "eng.andrevitor89@gmail.com"
-      # true = senha compartilhada ainda abre os painéis. false = só conta admin.
+      # false = só conta admin abre os painéis (auditoria 25/11). true reabre a senha compartilhada.
       - key: OWNER_PASSWORD_FALLBACK
-        value: "true"
+        value: "false"
       # STO-18: teto diario da plataforma (0 = desligado)
       - key: DAILY_SPEND_USD_CEILING
-        value: "0"
+        value: "40"
       - key: DAILY_CREDITS_CEILING
         value: "0"
       # Checkout do livro. As chaves ficam no painel, fora do git.
@@ -177,7 +177,7 @@ services:
       - key: OWNER_EMAILS
         value: "eng.andrevitor89@gmail.com"
       - key: DAILY_SPEND_USD_CEILING
-        value: "0"
+        value: "40"
       - key: DAILY_CREDITS_CEILING
         value: "0"
 

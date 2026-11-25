@@ -155,22 +155,28 @@ def require_owner_password(
             "Painel de gastos nao configurado",
         )
 
-    provided = (x_usage_password or "").strip()
-    # Senha correta sempre libera, mesmo durante lockout (evita trancar o dono).
-    if accepted and password_matches(provided, accepted):
-        rate_limit.clear_key(lock_key)
-        return
-
     if not accepted:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Senha invalida")
 
-    if rate_limit.blocked(lock_key, max_attempts, window):
+    # O bloqueio vem antes da senha: senão a força bruta segue durante o
+    # bloqueio e passa quando acerta. O dono entra pela conta admin (Bearer).
+    global_key = "usage:fail:global"
+    global_max = int(settings.usage_lockout_global_max_attempts)
+    if rate_limit.blocked(lock_key, max_attempts, window) or rate_limit.blocked(
+        global_key, global_max, window
+    ):
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
             "Muitas tentativas; tente mais tarde",
         )
 
+    provided = (x_usage_password or "").strip()
+    if password_matches(provided, accepted):
+        rate_limit.clear_key(lock_key)
+        return
+
     rate_limit.hit(lock_key, window)
+    rate_limit.hit(global_key, window)
     if rate_limit.blocked(lock_key, max_attempts, window):
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,

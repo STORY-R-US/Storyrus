@@ -152,6 +152,19 @@ def set_clerk_email(clerk_user_id: str, email: str) -> None:
     )
 
 
+def delete_clerk_user(clerk_user_id: str) -> None:
+    """Apaga a conta de login no Clerk (exclusão pedida pelo titular)."""
+    if not (settings.clerk_secret_key or "").strip() or settings.app_env == "test":
+        return
+    response = httpx.delete(
+        f"{_CLERK_API}/users/{clerk_user_id}",
+        headers={"Authorization": f"Bearer {settings.clerk_secret_key}"},
+        timeout=15.0,
+    )
+    if response.status_code not in (200, 404):
+        response.raise_for_status()
+
+
 def fetch_clerk_user(user_id: str) -> dict:
     response = httpx.get(
         f"{_CLERK_API}/users/{user_id}",

@@ -163,16 +163,51 @@ def update_user(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(
+async def delete_user(
     user_id: uuid.UUID,
     _: Annotated[None, Depends(require_owner_password)],
     db: Annotated[Session, Depends(get_db)],
 ) -> Response:
-    """Apaga a conta cadastrada e os projetos ligados a ela."""
+    """Apaga a conta, os projetos, os arquivos guardados e as vozes (LGPD).
+
+    Antes só a linha do banco saía: as fotos ficavam no storage.
+    """
+    from app import storage
+    from app.media.tts import delete_cloned_voice
+    from app.routers.projects.common import purge_project
+
     user = _registered_user(db, user_id)
-    # Carrega filhos para o cascade ORM apagar projetos/vozes no SQLite.
-    _ = user.projects
-    _ = user.voices
+    clerk_user_id = user.clerk_user_id
+    # Fotos, páginas e PDFs no storage + registros filhos de cada projeto.
+    for project_id in [project.id for project in user.projects]:
+        purge_project(db, project_id)
+    db.flush()
+    voices = list(user.voices)
+    for voice in voices:
+        try:
+            storage.delete_key(voice.sample_storage_key)
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(
+                503, "Não foi possível apagar a amostra de voz. Tente novamente."
+            ) from exc
+    for voice in voices:
+        await delete_cloned_voice(voice.elevenlabs_voice_id)
+    db.expire(user, ["projects"])
     db.delete(user)
     db.commit()
+    if clerk_user_id:
+        _delete_clerk_account(clerk_user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _delete_clerk_account(clerk_user_id: str) -> None:
+    """Encerra o login no Clerk. Falha aqui não desfaz a exclusão local."""
+    import logging
+
+    from app.services.clerk_identity import delete_clerk_user
+
+    try:
+        delete_clerk_user(clerk_user_id)
+    except Exception:  # noqa: BLE001
+        logging.getLogger(__name__).exception("clerk_delete_failed clerk_user_id=%s", clerk_user_id)

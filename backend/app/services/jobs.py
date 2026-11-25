@@ -11,6 +11,7 @@ Regras (do documento de arquitetura):
 import logging
 import uuid
 from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
@@ -69,6 +70,28 @@ def _clean_key(value: str | None, limit: int) -> str | None:
         return None
     cleaned = str(_json_value(value)).strip()
     return cleaned[:limit] or None
+
+
+def _check_daily_user_jobs(db: Session, user: User) -> None:
+    limit = int(settings.max_jobs_per_user_per_day or 0)
+    if limit <= 0:
+        return
+    from app.owner_auth import user_is_admin
+
+    if user_is_admin(user):
+        return
+    since = datetime.now(UTC) - timedelta(hours=24)
+    used = db.scalar(
+        select(func.count(Job.id))
+        .join(Project, Project.id == Job.project_id)
+        .where(Project.user_id == user.id, Job.created_at >= since)
+    )
+    if (used or 0) >= limit:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Você chegou ao limite de gerações de hoje. Tente novamente amanhã "
+            "ou fale com a Story R Us.",
+        )
 
 
 def _active_jobs(db: Session, user: User, *, exclude_job_id: uuid.UUID | None = None) -> int:
@@ -176,6 +199,10 @@ def _enqueue_job_once(
             f"Há {settings.max_concurrent_jobs_per_user} gerações em andamento na sua conta. "
             "Aguarde uma delas terminar e tente novamente.",
         )
+
+    # 2b) Teto de gerações por conta em 24h (abuso de prévias grátis).
+    if completing_job is None and not (payload or {}).get("purchase_full_book"):
+        _check_daily_user_jobs(db, user)
 
     # 3) Teto diario da plataforma (USD/creditos) ANTES do vendor (STO-18).
     try:

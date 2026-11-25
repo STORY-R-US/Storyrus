@@ -6,6 +6,10 @@ on:
     branches: [main]
   pull_request:
 
+# Token do GITHUB só leitura (auditoria 25/11).
+permissions:
+  contents: read
+
 jobs:
   backend:
     name: Backend (ruff + pytest + coverage)
@@ -26,6 +30,9 @@ jobs:
         run: ruff format --check app tests
       - name: Tests
         run: pytest -q --cov=app --cov-report=term-missing:skip-covered --cov-fail-under=70
+      - name: Dependency audit (aviso, não bloqueia)
+        continue-on-error: true
+        run: pip install pip-audit && pip-audit --skip-editable
 
   frontend:
     name: Frontend (lint + typecheck + vitest + build)
