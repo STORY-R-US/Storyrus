@@ -617,7 +617,10 @@ export function MasterBookFlow({
     if (reviewing && url.includes("preview-mark")) return [];
     return [{ ...shot, url }];
   });
-  const storyView = p.stories ? (
+  // Só conta como história quando há texto de verdade num idioma do livro.
+  // Um objeto vazio deixava a prévia sem o botão de seguir (cliente preso).
+  const hasStory = p.languages.some((language) => storyBlocks(p.stories?.[language] || "").length > 0);
+  const storyView = hasStory ? (
     <>
       {p.languages.map((language) => {
         const blocks = storyBlocks(p.stories?.[language] || "");
@@ -783,7 +786,7 @@ export function MasterBookFlow({
               })}
             </div>
           )}
-          {p.stories && (
+          {hasStory && (
             <details className="master-review-story">
               <summary>{t.reviewStory}</summary>
               {storyView}
@@ -1023,7 +1026,7 @@ export function MasterBookFlow({
           </details>
         );
       })()}
-      {stage === "preview_ready" && !p.stories && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
+      {stage === "preview_ready" && !hasStory && !jobs.some((job) => job.type === "STORY" && (job.status === "PENDING" || job.status === "RUNNING")) && (
         <section className="master-preview-next" aria-labelledby="master-preview-next-heading">
           <div>
             <h3 id="master-preview-next-heading">{t.previewNextHeading}</h3>
@@ -1155,7 +1158,7 @@ export function MasterBookFlow({
           }}>{t.cancelAdjust}</button>
         </div>
       )}
-      {!storyReview && stage !== "cover_ready" && p.stories && (
+      {!storyReview && stage !== "cover_ready" && hasStory && (
         <div data-testid="studio-master-story">
           {reviewing ? (
             <details>
