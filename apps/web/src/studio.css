@@ -2302,7 +2302,7 @@
 .purchase-option-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
 .purchase-option { display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.8rem 0.9rem; border: 1px solid var(--studio-input-border); border-radius: 12px; background: var(--studio-input-bg); cursor: pointer; }
 .purchase-option:has(input:checked) { border-color: var(--studio-accent, #3F8FD8); box-shadow: 0 0 0 1px var(--studio-accent, #3F8FD8); }
-.purchase-option input { margin-top: 0.2rem; flex: none; }
+.purchase-option input { margin-top: 0.2rem; flex: none; width: 18px; height: 18px; accent-color: var(--studio-accent, #f5b942); }
 .purchase-option span { display: grid; gap: 0.2rem; }
 .purchase-option small, .purchase-options > small { color: var(--studio-muted); font-size: 0.85rem; margin: 0; }
 .purchase-options-title { font-weight: 700; margin: 0.6rem 0 0; }
