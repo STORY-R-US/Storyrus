@@ -2523,3 +2523,13 @@
 .studio-app :is(.studio-dedication-options, .master-title-options) button > span:first-child { text-transform: none; }
 .studio-app .master-ordering-fold { margin: 12px 0; }
 .studio-app .master-ordering-fold > section { margin-top: 12px; }
+
+/* 25/11 — Celular: o formulário usa a largura da tela (antes sobravam ~60 px de cada lado
+   e a caixa "Os Detalhes do Seu Livro" passava da borda). */
+@media (max-width: 540px) {
+  .studio-app .studio-page { padding-left: 10px; padding-right: 10px; }
+  .studio-app .studio-page > .studio-card { margin-left: 0; margin-right: 0; padding-left: 12px; padding-right: 12px; }
+  .studio-app .studio-details-box { padding: 14px 12px; }
+  .studio-app .studio-details-box .studio-choice { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .studio-app .studio-details-box .studio-actions { flex-wrap: wrap; }
+}
