@@ -52,6 +52,7 @@ def test_usage_without_password_still_rejects_anonymous(client, monkeypatch):
 
 def test_usage_wrong_password_is_401(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "usage_lockout_max_attempts", 10)
     r = client.get("/v1/usage", headers={"X-Usage-Password": "errada"})
@@ -60,6 +61,7 @@ def test_usage_wrong_password_is_401(client, monkeypatch):
 
 def test_usage_accepts_previous_password_during_rotation(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "nova")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", "antiga")
     monkeypatch.setattr(settings, "usage_lockout_max_attempts", 10)
     r = client.get("/v1/usage", headers={"X-Usage-Password": "antiga"})
@@ -70,6 +72,7 @@ def test_usage_lockout_after_failed_attempts(client, monkeypatch):
     from app import rate_limit
 
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "usage_lockout_max_attempts", 3)
     monkeypatch.setattr(settings, "usage_lockout_window_s", 900)
@@ -80,9 +83,13 @@ def test_usage_lockout_after_failed_attempts(client, monkeypatch):
         assert r.status_code in (401, 429)
     locked = client.get("/v1/usage", headers={"X-Usage-Password": "errada"})
     assert locked.status_code == 429
-    # Senha correta libera mesmo durante o lockout.
+    # Durante o lockout nem a senha correta passa (senão a força bruta segue).
     still = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
-    assert still.status_code == 200, still.text
+    assert still.status_code == 429, still.text
+    # Depois da janela, a senha correta volta a abrir.
+    rate_limit.reset()
+    after = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert after.status_code == 200, after.text
 
 
 def test_usage_owner_jwt_bypasses_password(auth_client, monkeypatch):
@@ -91,6 +98,7 @@ def test_usage_owner_jwt_bypasses_password(auth_client, monkeypatch):
     from app.models import User
 
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "owner_emails", "auth@example.com")
     rate_limit.reset()
@@ -117,6 +125,7 @@ def test_usage_owner_jwt_rejects_non_owner(auth_client, monkeypatch):
     from app import rate_limit
 
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "owner_emails", "dono@storyrus.ai")
     rate_limit.reset()
@@ -129,6 +138,7 @@ def test_usage_success_clears_lockout_counter(client, monkeypatch):
     from app import rate_limit
 
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "usage_lockout_max_attempts", 3)
     monkeypatch.setattr(settings, "usage_lockout_window_s", 900)
@@ -146,6 +156,7 @@ def test_usage_success_clears_lockout_counter(client, monkeypatch):
 
 def test_usage_sums_seeded_jobs(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     _seed_job(auth_client, cost_usd=1.25, job_type="EBOOK")
     _seed_job(auth_client, cost_usd=0.25, job_type="STORY")
@@ -171,6 +182,7 @@ def test_usage_sums_seeded_jobs(auth_client, monkeypatch):
 
 def test_usage_lists_named_image_events(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     project_id = _seed_job(auth_client, cost_usd=0.078, job_type="EBOOK")
     db = _session(auth_client)
@@ -213,6 +225,7 @@ def test_usage_lists_named_image_events(auth_client, monkeypatch):
 def test_orders_scope_skips_spend_scan_and_print_files(auth_client, monkeypatch):
     """Listar Pedidos não pode ler imagens nem varrer os jobs de gasto."""
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     calls = {"prepare": 0, "bytes": 0}
 
@@ -286,6 +299,7 @@ def test_orders_scope_skips_spend_scan_and_print_files(auth_client, monkeypatch)
 def test_orders_scope_survives_bad_page_meta_and_service_order(auth_client, monkeypatch):
     """Metadado que não é dict, e falha ao abrir a OS, não podem responder 500."""
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
 
     def _boom(*_args, **_kwargs):
@@ -331,6 +345,7 @@ def test_orders_scope_survives_bad_page_meta_and_service_order(auth_client, monk
 
 def test_owner_edits_the_order(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     db = _session(auth_client)
     try:
@@ -401,6 +416,7 @@ def test_owner_edits_the_order(auth_client, monkeypatch):
 def test_delete_order_apaga_o_pedido_e_o_projeto(auth_client, monkeypatch):
     """Excluir o pedido remove o projeto (fotos, arquivos, OS) e não recria."""
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
 
     db = _session(auth_client)
@@ -452,6 +468,7 @@ def test_delete_order_apaga_o_pedido_e_o_projeto(auth_client, monkeypatch):
 
 def test_delete_order_desconhecido_responde_404(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
 
     import uuid as _uuid

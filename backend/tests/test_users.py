@@ -13,6 +13,7 @@ def _session(client):
 
 def _owner_headers(monkeypatch, password: str = "segredo") -> dict[str, str]:
     monkeypatch.setattr(settings, "usage_dashboard_password", password)
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     monkeypatch.setattr(settings, "usage_lockout_max_attempts", 10)
     return {"X-Usage-Password": password}

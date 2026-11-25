@@ -137,9 +137,16 @@ async def clerk_user_webhook(
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, err)
     if err:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, err)
+    # Anti-replay: o mesmo svix-id assinado não é aplicado duas vezes
+    # (ex.: reenviar um user.updated antigo para voltar o e-mail).
+    nonce_key = f"svix:{svix_id}"
+    if webhook_auth.nonce_seen(nonce_key):
+        return {"ok": True, "duplicate": True}
     payload = json.loads(raw or b"{}")
     data = payload.get("data") or {}
     if not isinstance(data, dict):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Payload invalido")
     apply_clerk_event(db, str(payload.get("type") or ""), data)
+    # Só marca depois de aplicar: um reenvio após falha ainda é processado.
+    webhook_auth.claim_nonce(nonce_key, ttl_s=600)
     return {"ok": True}

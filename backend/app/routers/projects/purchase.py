@@ -109,6 +109,12 @@ def start_test_preview(
     user: User = Depends(require_adult_user),
     db: Session = Depends(get_db),
 ):
+    from app.config import settings
+    from app.owner_auth import user_is_admin
+
+    # Modo teste gera prévia sem IA: em produção é ferramenta da equipe, não do cliente.
+    if settings.app_env == "prod" and not user_is_admin(user):
+        raise HTTPException(403, "Prévia de teste disponível só para a equipe.")
     project = get_owned_project(db, user, project_id)
     return _restart_preview(db, user, project, test_mode=True)
 

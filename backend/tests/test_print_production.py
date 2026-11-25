@@ -245,6 +245,7 @@ def test_print_request_without_spec_does_not_publish_files(auth_client, monkeypa
     assert body["book_price_cents"] == 17700
     assert "bleed_mm" in body["block_reason"]
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     packed = auth_client.get(
         f"/v1/print-orders/{body['id']}/package",
         headers={"X-Usage-Password": "segredo"},
@@ -255,6 +256,7 @@ def test_print_request_without_spec_does_not_publish_files(auth_client, monkeypa
 def test_package_when_spec_is_filled(auth_client, monkeypatch):
     _apply_spec(monkeypatch)
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
     pid = _ready(auth_client, cover="hard", pages=16)
     opened = auth_client.post(f"/v1/projects/{pid}/print-request")
     assert opened.json()["print_status"] == "files_ready"
