@@ -36,7 +36,8 @@ describe("Sugestão de título pelo tema", () => {
     expect(options.slice(0, 5).every((option) => /desenhar e pintar/i.test(option))).toBe(true);
     expect(options[0]).toBe("Desenhar e Pintar com Ana Clara");
     expect(options).not.toContain("A Grande Aventura de Ana Clara");
-    expect(extraTitleOptions("pt", "Lia", "Uma história especial", "")).toContain("A Grande Aventura de Lia");
+    // Título sem o nome e sem tema: nada de opções genéricas, só a IA.
+    expect(extraTitleOptions("pt", "Carlos", "Feliz dia das Mãe Regina", "")).toEqual([]);
   });
 
   it("mantém o tema quando ele já contém o nome uma vez", () => {

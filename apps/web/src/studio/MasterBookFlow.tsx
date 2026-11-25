@@ -1,6 +1,5 @@
 import { InternalReviewNotice } from "./InternalReviewNotice";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { CatalogDesignSamples } from "./CatalogBookDesign";
 import { PreviewImageViewer } from "./PreviewImageViewer";
 import { PostPreviewFlow } from "./PostPreviewFlow";
 import { TitleSuggestions } from "./TitleSuggestions";
@@ -351,29 +350,6 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
   const candidate = topicMentions ? topic
     : lang === "en" ? `${name} and ${topic}` : lang === "es" ? `${name} y ${topic}` : `${name} e ${topic}`;
   const themedTitle = topic ? (topicMentions > 1 || comparable(candidate) === comparable(title) ? fallback : candidate) : "";
-  const generic = lang === "en"
-    ? [
-        `The Story of ${name}`,
-        `The Great Adventure of ${name}`,
-        `${name} and a World of Discoveries`,
-        `A Book About ${name}`,
-        `A Story for ${name}`,
-      ]
-    : lang === "es"
-      ? [
-          `La historia de ${name}`,
-          `La gran aventura de ${name}`,
-          `${name} y un mundo de descubrimientos`,
-          `El libro de ${name}`,
-          `Una historia para ${name}`,
-        ]
-      : [
-          `A História de ${name}`,
-          `A Grande Aventura de ${name}`,
-          `${name} e um Mundo de Descobertas`,
-          `O Livro de ${name}`,
-          `Uma História para ${name}`,
-        ];
   // As opções acompanham o assunto do livro (tema ou título atual, sem o nome),
   // para não oferecer títulos genéricos que não condizem com o livro.
   const nameWords = comparable(name).split(" ");
@@ -424,7 +400,10 @@ export function extraTitleOptions(lang: "pt" | "en" | "es", childName: string, t
     return true;
   });
   const last = themedTitle && comparable(themedTitle) !== current ? [themedTitle] : [];
-  return [...unique([...themed, ...generic]).slice(0, 6 - last.length), ...last].map(tidyTitleCase);
+  // Sem assunto do livro não há opção pronta: os títulos genéricos ("A História de X")
+  // não combinam com o tema. Nesse caso ficam só as sugestões da IA.
+  if (!themed.length) return [];
+  return [...unique(themed).slice(0, 6 - last.length), ...last].map(tidyTitleCase);
 }
 
 function verseLines(text: string): string[] {
@@ -1339,7 +1318,6 @@ export function MasterBookFlow({
           )}
         </div>
       )}
-      {p.book_design && isPreviewReview && <CatalogDesignSamples model={p.book_design} lang={lang} />}
       {!storyReview && (
       <details className="master-child-edit">
       <summary>{t.childHeading}</summary>
