@@ -120,6 +120,8 @@ input {
   font: inherit;
 }
 input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(88, 166, 145, 0.18); }
+/* Bolinhas e caixinhas de marcar não esticam: senão o cartão fica vazio e o texto espremido. */
+input[type="radio"], input[type="checkbox"] { width: auto; padding: 0; }
 input[type="file"] { padding: 0.5rem; background: #fff; }
 
 button {
