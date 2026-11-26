@@ -47,6 +47,7 @@ const COPY = {
     photoConsent: "Sou o responsável e autorizo o uso destas fotos.",
     photoSending: "Enviando…",
     photoFail: "Não foi possível usar esta foto. Envie JPG ou PNG.",
+    photoRetry: "Não deu para enviar agora. Tente de novo em instantes.",
     photosChanged: "Refaça o personagem usando as fotos atualizadas.",
     download3: "Baixar as 3 imagens",
     finish: "As {pages} páginas estão prontas.",
@@ -149,6 +150,7 @@ const COPY = {
     photoConsent: "I am the guardian and I authorize the use of these photos.",
     photoSending: "Sending…",
     photoFail: "This photo could not be used. Send JPG or PNG.",
+    photoRetry: "We couldn't send it right now. Please try again in a moment.",
     photosChanged: "Redo the character using the updated photos.",
     download3: "Download the 3 images",
     finish: "All {pages} pages are ready.",
@@ -251,6 +253,7 @@ const COPY = {
     photoConsent: "Soy el responsable y autorizo el uso de estas fotos.",
     photoSending: "Enviando…",
     photoFail: "No se pudo usar esta foto. Envía JPG o PNG.",
+    photoRetry: "No se pudo enviar ahora. Inténtalo de nuevo en unos instantes.",
     photosChanged: "Rehaz el personaje con las fotos actualizadas.",
     download3: "Descargar las 3 imágenes",
     finish: "Las {pages} páginas están listas.",
@@ -586,8 +589,11 @@ export function MasterBookFlow({
     try {
       await action();
       setPhotosChanged(true);
-    } catch {
-      setPhotoError(t.photoFail);
+    } catch (err) {
+      // Queda da API (502/503/504) ou da rede não é problema da foto: pede para tentar de novo.
+      const code = (err as { status?: number } | null)?.status
+        ?? Number(/^(\d{3}):/.exec(String((err as Error | null)?.message ?? ""))?.[1]);
+      setPhotoError(code > 0 && code < 500 ? t.photoFail : t.photoRetry);
     } finally {
       try {
         await refreshPhotos();

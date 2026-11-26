@@ -398,6 +398,35 @@ describe("Studio approval stages", () => {
     })));
   });
 
+  it("queda da API ao enviar foto pede para tentar de novo, sem culpar a foto", async () => {
+    const withPhotos: StudioAssets = { ...assets, photos: [{ id: "f1", url: "/foto/1" }] };
+    const down = new Error("502: Bad Gateway");
+    vi.spyOn(api, "uploadPhoto").mockRejectedValue(down);
+    vi.spyOn(api, "getAssets").mockResolvedValue(withPhotos);
+    vi.spyOn(api, "getProject").mockResolvedValue(project);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    render(<MasterBookFlow project={project} assets={withPhotos} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.click(screen.getAllByRole("button", { name: "Mudar esta imagem" })[0]);
+    await userEvent.click(screen.getByLabelText(/autorizo o uso destas fotos/));
+    await userEvent.upload(screen.getByTestId("studio-hero-photo-input"), new File(["x"], "rosto.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não deu para enviar agora. Tente de novo em instantes.");
+    expect(screen.queryByText(/Envie JPG ou PNG/)).not.toBeInTheDocument();
+  });
+
+  it("foto recusada pela API continua com o aviso de formato", async () => {
+    const withPhotos: StudioAssets = { ...assets, photos: [{ id: "f1", url: "/foto/1" }] };
+    const bad = new Error("415: Formato inválido");
+    vi.spyOn(api, "uploadPhoto").mockRejectedValue(bad);
+    vi.spyOn(api, "getAssets").mockResolvedValue(withPhotos);
+    vi.spyOn(api, "getProject").mockResolvedValue(project);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    render(<MasterBookFlow project={project} assets={withPhotos} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
+    await userEvent.click(screen.getAllByRole("button", { name: "Mudar esta imagem" })[0]);
+    await userEvent.click(screen.getByLabelText(/autorizo o uso destas fotos/));
+    await userEvent.upload(screen.getByTestId("studio-hero-photo-input"), new File(["x"], "rosto.jpg", { type: "image/jpeg" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível usar esta foto. Envie JPG ou PNG.");
+  });
+
   it("atualiza o título da prévia e conserva a história", async () => {
     const ready = {
       ...project,
