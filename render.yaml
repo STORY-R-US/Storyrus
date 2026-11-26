@@ -44,6 +44,10 @@ services:
         sync: false
       - key: CLERK_WEBHOOK_SECRET
         sync: false
+      # Só durante a troca do Clerk (dev → produção): sk_live_ para preparar as
+      # contas. Ver docs/P0_ESTABILIDADE_AUTENTICACAO.md.
+      - key: CLERK_PRODUCTION_SECRET_KEY
+        sync: false
       - key: WEBHOOK_SIGNING_SECRET
         generateValue: true
       - key: OPENAI_API_KEY

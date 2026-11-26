@@ -397,3 +397,35 @@ class Asset(Base):
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
     project: Mapped[Project] = relationship(back_populates="assets")
+
+
+class ClerkAccountMap(Base):
+    """Troca da instância do Clerk (desenvolvimento → produção) sem perder contas.
+
+    Uma linha por conta local. `prod_clerk_user_id` é a conta criada na instância
+    de produção com `external_id = users.id`. O vínculo em `users.clerk_user_id`
+    só passa para o id novo no primeiro login com a chave de produção.
+
+    status:
+    - staged: conta criada na produção, aguardando o primeiro login lá.
+    - active: o login de produção já assumiu a conta.
+    - pending_email: conta sem e-mail verificado; não foi criada na produção.
+      Só religa no login de produção com o mesmo e-mail verificado.
+    - active_email: pending_email que religou pelo e-mail verificado.
+    - conflict: já havia conta de produção com esse e-mail e outro external_id.
+      Fica para conferência manual.
+    - rolled_back: vínculo devolvido ao id antigo; só um novo preparo arma a linha.
+    """
+
+    __tablename__ = "clerk_account_map"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    dev_clerk_user_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    prod_clerk_user_id: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="staged")
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
+    activated_at: Mapped[datetime | None] = mapped_column(nullable=True)

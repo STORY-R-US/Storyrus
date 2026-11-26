@@ -15,6 +15,7 @@ from app.observability import opik_trace
 from app.observability.logging_setup import configure_logging
 from app.routers import (
     auth,
+    clerk_cutover,
     credits,
     jobs,
     local_storage,
@@ -117,6 +118,7 @@ app.include_router(users.router)
 app.include_router(print_orders.router)
 app.include_router(local_storage.router)
 app.include_router(studio_text.router)
+app.include_router(clerk_cutover.router)
 
 
 @app.get("/health", tags=["meta"])

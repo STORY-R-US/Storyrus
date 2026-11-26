@@ -3,7 +3,8 @@
 O `users.id` (UUID) continua dono de projetos, créditos e pedidos. O token do
 Clerk só identifica a pessoa. No primeiro acesso, um e-mail já cadastrado e
 ainda sem `clerk_user_id` reaproveita essa linha. Contas convidadas não entram
-nessa ligação.
+nessa ligação. Na troca da instância do Clerk (dev → produção), o id novo vem
+do mapa explícito em `clerk_cutover`, não do e-mail.
 
 Fora de `APP_ENV=test` o Bearer é um session token RS256, conferido nas chaves
 do Clerk. O e-mail vem da Backend API, não de um claim do token. Em teste, o
@@ -331,9 +332,23 @@ def _save(db: Session, user: User) -> User:
     return user
 
 
+def _claim_mapped(db: Session, identity: ClerkIdentity) -> User | None:
+    """Troca de instância do Clerk: conta de produção já mapeada (clerk_cutover)."""
+    from app.services.clerk_cutover import claim_mapped_user
+
+    return claim_mapped_user(
+        db,
+        clerk_user_id=identity.clerk_user_id,
+        email=identity.email,
+        email_verified=identity.email_verified,
+    )
+
+
 def resolve_local_user(db: Session, identity: ClerkIdentity) -> User:
     """Acha, liga pelo e-mail ou cria a linha local. Não reatribui um id já gravado."""
     linked = db.scalar(select(User).where(User.clerk_user_id == identity.clerk_user_id))
+    if linked is None:
+        linked = _claim_mapped(db, identity)
     if linked is not None:
         _mark_verified(linked, identity)
         return _save(db, linked)
@@ -388,6 +403,8 @@ def linked_user(db: Session, identity: ClerkIdentity) -> User | None:
     pessoa só porque a rota também aceita senha de dono.
     """
     user = db.scalar(select(User).where(User.clerk_user_id == identity.clerk_user_id))
+    if user is None:
+        user = _claim_mapped(db, identity)
     if user is None:
         return None
     _mark_verified(user, identity)
