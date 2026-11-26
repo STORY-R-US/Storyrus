@@ -1381,7 +1381,7 @@ const I18N = {
     chloe_title: "A História de Chloe",
     fmt_title: "Escolha O Formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
-      { t: "Livro Em PDF", p: "Capa e páginas ilustradas, prontas na plataforma. O impresso é sob consulta.", feats: ["Capa + páginas ilustradas", "PDF na hora", "Personagem fiel à foto"], cta: "Criar Meu Livro", badge: "Mais Amado" },
+      { t: "Livro Em PDF", p: "Capa e páginas ilustradas, prontas na plataforma. O impresso tem o frete calculado pela Melhor Envio.", feats: ["Capa + páginas ilustradas", "PDF na hora", "Personagem fiel à foto"], cta: "Criar Meu Livro", badge: "Mais Amado" },
       { t: "Vídeo Narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar Meu Vídeo", badge: "" },
       { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar Animação", badge: "" },
     ],
@@ -1480,7 +1480,7 @@ const I18N = {
       { t: "Privacidade Da Foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
       { t: "Impressão Pensada como Presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
       { t: "Prévia Antes De Avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
-      { t: "Entrega Sem Complicação", p: "O e-book e a história animada, se você escolher, ficam prontos na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
+      { t: "Entrega Sem Complicação", p: "O e-book e a história animada, se você escolher, ficam prontos na plataforma. No livro impresso, o frete e o prazo são calculados pelo CEP com a Melhor Envio, antes de pagar." },
     ],
     faq_title: "Perguntas Frequentes", faq_sub: "Tudo o que você precisa saber.",
     faq: [
@@ -1642,7 +1642,7 @@ const I18N = {
     chloe_title: "Chloe's Story",
     fmt_title: "Choose The Format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
-      { t: "PDF Book", p: "Cover and illustrated pages, ready on the platform. Print is quoted on request.", feats: ["Cover + illustrated pages", "PDF right away", "Character true to the photo"], cta: "Create My Book", badge: "Most Loved" },
+      { t: "PDF Book", p: "Cover and illustrated pages, ready on the platform. Print shipping is calculated by Melhor Envio.", feats: ["Cover + illustrated pages", "PDF right away", "Character true to the photo"], cta: "Create My Book", badge: "Most Loved" },
       { t: "Narrated Video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create My Video", badge: "" },
       { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create Animation", badge: "" },
     ],
@@ -1741,7 +1741,7 @@ const I18N = {
       { t: "Photo Privacy", p: "The photo you upload is used only to create the book — never for promotion. The examples on this page are platform demos." },
       { t: "Print Made as a Gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
       { t: "Preview Before You Continue", p: "You see the cover and pages and understand what you're creating before finishing." },
-      { t: "Hassle-Free Delivery", p: "The e-book and the animated story, if you choose them, are ready on the platform. Printed books are quoted on request — we send price and timing within 24 hours." },
+      { t: "Hassle-Free Delivery", p: "The e-book and the animated story, if you choose them, are ready on the platform. For the printed book, shipping cost and delivery time are calculated from your postal code with Melhor Envio, before you pay." },
     ],
     faq_title: "Frequently Asked Questions", faq_sub: "Everything you need to know.",
     faq: [
@@ -1903,7 +1903,7 @@ const I18N = {
     chloe_title: "La Historia De Chloe",
     fmt_title: "Elige El Formato", fmt_sub: "Del mismo personaje, tres formas de guardar la historia.",
     formats: [
-      { t: "Libro En PDF", p: "Portada y páginas ilustradas, listas en la plataforma. El impreso es bajo consulta.", feats: ["Portada + páginas ilustradas", "PDF al instante", "Personaje fiel a la foto"], cta: "Crear Mi Libro", badge: "Más Querido" },
+      { t: "Libro En PDF", p: "Portada y páginas ilustradas, listas en la plataforma. El impreso tiene el envío calculado por Melhor Envio.", feats: ["Portada + páginas ilustradas", "PDF al instante", "Personaje fiel a la foto"], cta: "Crear Mi Libro", badge: "Más Querido" },
       { t: "Video Narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear Mi Video", badge: "" },
       { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear Animación", badge: "" },
     ],
@@ -2002,7 +2002,7 @@ const I18N = {
       { t: "Privacidad de la Foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
       { t: "Impresión Pensada como Regalo", p: "Preparado para verse hermoso en las manos, en la lectura en familia y al momento de entregarlo." },
       { t: "Vista Previa antes de Avanzar", p: "Ves la portada y las páginas y entiendes lo que estás creando antes de finalizar." },
-      { t: "Entrega sin Complicaciones", p: "El e-book y la historia animada, si los eliges, quedan listos en la plataforma. El libro impreso es bajo consulta — en hasta 24h enviamos la cotización y el plazo." },
+      { t: "Entrega sin Complicaciones", p: "El e-book y la historia animada, si los eliges, quedan listos en la plataforma. En el libro impreso, el envío y el plazo se calculan por el código postal con Melhor Envio, antes de pagar." },
     ],
     faq_title: "Preguntas Frecuentes", faq_sub: "Todo lo que necesitas saber.",
     faq: [

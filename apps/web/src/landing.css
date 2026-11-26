@@ -3549,9 +3549,10 @@ img.ex-tab-cover {
 .kid .kcat-groups.is-single { grid-template-columns: minmax(0, 760px); }
 .kid .kcat-groups.is-single .kcat-subs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px 6px; }
 .kid .kcat-panel-all .kcat-feats {
-  /* 4 capas por tema, cada uma do tamanho da capa do carrossel (1/4 da faixa de até 1080px):
-     as 4 juntas têm a largura do carrossel. Encolhe em telas baixas. */
-  --menu-cover: min(270px, calc(min(1080px, 100vw - 2 * var(--page-gutter)) / 4), calc(100dvh - var(--khead-h, 120px) - 360px));
+  /* 4 capas por tema, cada uma do mesmo tamanho da capa do carrossel (1/4 da faixa de até 1080px,
+     menos os filetes de 2px): as 4 juntas têm a largura do carrossel. Não encolhe pela altura da tela;
+     em telas baixas o painel rola. */
+  --menu-cover: calc((min(1080px, 100vw - 2 * var(--page-gutter)) - 6px) / 4);
   display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 10px 2px; width: 100%;
 }
 /* Quebra de linha: o botão "Ver todos" fica sozinho, centralizado, embaixo das capas. */
