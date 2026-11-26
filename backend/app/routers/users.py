@@ -7,11 +7,11 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Project, User
+from app.models import ClerkAccountMap, Project, User
 from app.owner_auth import require_owner_password
 from app.schemas import OwnerUserOut, OwnerUsersOut, OwnerUserUpdateIn
 
@@ -175,9 +175,12 @@ async def delete_user(
     from app import storage
     from app.media.tts import delete_cloned_voice
     from app.routers.projects.common import purge_project
+    from app.services.clerk_cutover import delete_production_user, staged_production_id
 
     user = _registered_user(db, user_id)
     clerk_user_id = user.clerk_user_id
+    # Conta já criada na produção do Clerk para a troca de instância.
+    staged_prod_id = staged_production_id(db, user.id)
     # Fotos, páginas e PDFs no storage + registros filhos de cada projeto.
     for project_id in [project.id for project in user.projects]:
         purge_project(db, project_id)
@@ -194,10 +197,13 @@ async def delete_user(
     for voice in voices:
         await delete_cloned_voice(voice.elevenlabs_voice_id)
     db.expire(user, ["projects"])
+    db.execute(delete(ClerkAccountMap).where(ClerkAccountMap.user_id == user.id))
     db.delete(user)
     db.commit()
     if clerk_user_id:
         _delete_clerk_account(clerk_user_id)
+    if staged_prod_id:
+        delete_production_user(staged_prod_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

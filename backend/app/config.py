@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-prod"
     clerk_secret_key: str = ""
     clerk_webhook_secret: str = ""
+    # Só para a troca da instância do Clerk (desenvolvimento → produção): chave
+    # sk_live_ usada para criar as contas atuais na produção antes de trocar a
+    # CLERK_SECRET_KEY. Depois da troca, pode sair do ambiente.
+    clerk_production_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     access_token_ttl_min: int = 60 * 24
     # Janela extra apos o exp do JWT em que POST /v1/auth/resume ainda reemite

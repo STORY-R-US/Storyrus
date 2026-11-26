@@ -83,6 +83,38 @@ Para concluir o corte:
 O P0 de autenticação permanece aberto até concluir essas dependências e a
 validação real após o corte. As correções de código não substituem essa etapa.
 
+### Mapa das contas (passo 4), em código desde 26/11/2026
+
+Tabela `clerk_account_map` (migração `0032`), serviço `app/services/clerk_cutover.py`
+e painel admin `/v1/admin/clerk-cutover` (só conta admin):
+
+1. `GET /v1/admin/clerk-cutover`: plano, sem chamar o Clerk. Mostra quantas contas
+   serão criadas na produção, quantas nunca verificaram o e-mail e os conflitos.
+2. Colocar no Render `CLERK_PRODUCTION_SECRET_KEY` = `sk_live_…` da instância de
+   produção. A `CLERK_SECRET_KEY` continua a de desenvolvimento. Deploy.
+3. `POST /v1/admin/clerk-cutover/stage?limit=50`, repetindo até `remaining = 0`.
+   Cria na produção uma conta por e-mail verificado, com `external_id = users.id`,
+   sem senha, e grava o par dev → produção. Nenhum login atual muda. Contas de
+   teste (`@example.com`) e convidadas ficam de fora. Se já existir na produção uma
+   conta com o mesmo e-mail e outro `external_id`, a linha fica `conflict` para
+   conferência manual (só volta a ser tentada com `retry_conflicts=true`).
+4. Rodar o `stage` de novo logo antes da troca, para pegar contas novas.
+5. Troca das chaves: `CLERK_SECRET_KEY` = `sk_live_…` e `CLERK_WEBHOOK_SECRET` da
+   produção no Render; publishable key `pk_live_…` na Vercel e no mobile. Deploy.
+6. No primeiro login na produção, a conta mapeada assume o vínculo (`active`):
+   mesmo `users.id`, livros, pedidos e créditos. O admin entra no painel logo
+   depois da troca, porque a conta dele também está no mapa. Os clientes entram
+   com código por e-mail ou Google (a senha da instância de dev não passa).
+7. Conta que nunca verificou o e-mail (`pending_email`) não é criada na produção
+   e só religa quando alguém entra lá com o mesmo e-mail já verificado.
+   Conta já ligada nunca religa por coincidência de e-mail.
+8. Para voltar às chaves de dev: `POST /v1/admin/clerk-cutover/rollback` com
+   `{"confirm": "VOLTAR"}` e depois recolocar a `sk_test_` (deploy). Os vínculos
+   voltam aos ids antigos e as linhas ficam `rolled_back`, sem reassumir nada
+   enquanto a chave de produção ainda estiver no ar. Um novo `stage` arma o mapa
+   de novo para outra tentativa, reaproveitando as contas já criadas.
+9. Depois de tudo conferido, a `CLERK_PRODUCTION_SECRET_KEY` pode sair do Render.
+
 Referências oficiais verificadas:
 - https://clerk.com/docs/guides/development/deployment/production
 - https://clerk.com/docs/guides/development/migrating/overview
