@@ -169,10 +169,12 @@ async function ownerFetch(
   password: string | null | undefined,
   init: RequestInit,
 ): Promise<Response> {
-  return backendFetch(`${BASE}${path}`, {
-    ...init,
-    headers: ownerHeaders(password, init.headers),
-  }, ownerFetchTimeoutMs);
+  const headers = ownerHeaders(password, init.headers);
+  // Sem Content-Type, a API não lê o JSON do PATCH/POST (o "Salvar pedido" dava erro 500).
+  if (typeof init.body === "string" && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  return backendFetch(`${BASE}${path}`, { ...init, headers }, ownerFetchTimeoutMs);
 }
 
 async function readOwnerError(resp: Response): Promise<Error> {
