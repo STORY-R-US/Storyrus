@@ -98,7 +98,9 @@ def reclaim_stale_jobs(db: Session) -> int:
     stale = list(db.scalars(stmt).all())
     reclaimed: list[Job] = []
     for job in stale:
-        limit = preview if _is_preview_job(job) else general
+        # Prévia e páginas do livro pago voltam em 3 min se a instância reiniciar;
+        # antes o cliente esperava 15 min parado na última página.
+        limit = preview if (_is_preview_job(job) or _is_paid_page_job(job)) else general
         if limit <= 0 or job.updated_at is None:
             continue
         updated = job.updated_at
@@ -132,6 +134,13 @@ def _is_preview_job(job: Job) -> bool:
     result = job.result if isinstance(job.result, dict) else {}
     payload = result.get("payload") if isinstance(result, dict) else None
     return bool(isinstance(payload, dict) and payload.get("preview_chain"))
+
+
+def _is_paid_page_job(job: Job) -> bool:
+    """Página do livro pago: cada uma leva ~1 min e manda pulso a cada 30 s."""
+    result = job.result if isinstance(job.result, dict) else {}
+    payload = result.get("payload") if isinstance(result, dict) else None
+    return bool(isinstance(payload, dict) and payload.get("purchase_full_book"))
 
 
 def _touch_heartbeat(job_id: uuid.UUID) -> None:

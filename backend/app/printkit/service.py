@@ -276,6 +276,32 @@ def open_print_order(
     return order
 
 
+_FLOW_STAGES = {"awaiting_payment", "generating_book", "awaiting_customer_approval"}
+
+
+def refresh_stage(project: Project, order: PrintOrder) -> bool:
+    """Acompanha o andamento do livro sem montar arquivo nenhum.
+
+    Antes o painel de Pedidos mostrava "Pedido em cotação" para um pedido já
+    pago e com o livro pronto, porque o status só mudava quando a OS era
+    preparada de novo.
+    """
+    if order.status not in _FLOW_STAGES:
+        return False
+    flow = project.purchase_flow or {}
+    if flow.get("full_book_ready_at") and not project.book_approved_at:
+        stage = "awaiting_customer_approval"
+    elif flow.get("preview_ready_at") and not flow.get("full_book_ready_at"):
+        stage = "awaiting_payment" if order.payment_status != "paid" else "generating_book"
+    else:
+        return False
+    if stage == order.status:
+        return False
+    order.status = stage
+    _sync(project, order)
+    return True
+
+
 def attach_service_orders(
     db: Session,
     projects: list[Project],
@@ -290,6 +316,8 @@ def attach_service_orders(
             open_print_order(db, project, requested=False, prepare=prepare)
             changed = True
             continue
+        if refresh_stage(project, order):
+            changed = True
         if prepare and order.status == "awaiting_pages":
             prepare_files(db, project, order)
             changed = True

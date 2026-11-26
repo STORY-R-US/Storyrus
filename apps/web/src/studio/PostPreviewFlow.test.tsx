@@ -218,6 +218,29 @@ describe("continuação da prévia", () => {
     ).toBeInTheDocument();
   });
 
+  it("mostra no topo da revisão um atalho para a aprovação, que fica depois das páginas", async () => {
+    const complete = {
+      ...project,
+      purchase_flow: {
+        ...project.purchase_flow,
+        preview_approved_at: "2026-10-15",
+        full_book_ready_at: "2026-10-15",
+        stage: "book_ready",
+      },
+    };
+    vi.spyOn(api, "printOrder").mockResolvedValue({ ...order, payment_status: "paid" });
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    render(<Harness initial={complete} />);
+    const user = userEvent.setup();
+    expect(screen.getByText("Marque a caixa acima para liberar o botão.")).toBeInTheDocument();
+    await user.click(screen.getByTestId("purchase-go-approve"));
+    expect(scroll).toHaveBeenCalledOnce();
+    await user.click(screen.getByRole("checkbox", { name: /revisei todas/i }));
+    expect(screen.queryByText("Marque a caixa acima para liberar o botão.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /aprovar livro para impressão/i })).toBeEnabled();
+  });
+
   it("mostra a capa, a dedicatória e seis páginas enquanto o livro é produzido", () => {
     const generating = {
       ...project,

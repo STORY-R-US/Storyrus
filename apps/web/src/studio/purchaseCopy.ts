@@ -76,6 +76,8 @@ const pt = {
   confirm:
     "Revisei todas as páginas e entendo que, depois de aprovado, não dá para voltar atrás.",
   final: "Aprovar livro para impressão",
+  goApprove: "Já conferi, ir para a aprovação ↓",
+  confirmFirst: "Marque a caixa acima para liberar o botão.",
   approved: "Livro Aprovado Para Impressão",
   approvedHint: "Acompanhe a preparação e o envio em Meus pedidos.",
   notes: "O que precisa ser ajustado no livro?",
@@ -203,6 +205,8 @@ const en: Copy = {
   confirm:
     "I reviewed every page and understand that, once approved, this cannot be undone.",
   final: "Approve book for printing",
+  goApprove: "Done reviewing, go to approval ↓",
+  confirmFirst: "Tick the box above to enable the button.",
   approved: "Book Approved For Printing",
   approvedHint: "Track preparation and shipping in My orders.",
   notes: "What needs to change in the book?",
@@ -329,6 +333,8 @@ const es: Copy = {
   confirm:
     "Revisé todas las páginas y entiendo que, después de aprobar, no se puede volver atrás.",
   final: "Aprobar libro para impresión",
+  goApprove: "Ya lo revisé, ir a la aprobación ↓",
+  confirmFirst: "Marca la casilla de arriba para activar el botón.",
   approved: "Libro Aprobado Para Impresión",
   approvedHint: "Sigue la preparación y el envío en Mis pedidos.",
   notes: "¿Qué necesitas ajustar en el libro?",

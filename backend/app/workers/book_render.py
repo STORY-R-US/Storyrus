@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import itertools
 import math
 from collections.abc import Iterable
 from pathlib import Path
@@ -199,11 +200,23 @@ def back_cover(data: bytes) -> bytes:
     return out.getvalue()
 
 
-def pdf(cover: bytes, pages: list[bytes], back: bytes, *, size_cm: int) -> bytes:
-    """Capa, miolo (16 ou 20 páginas) e contracapa, cada uma em sangria de 5 mm."""
-    if len(pages) not in (16, 20):
+def pdf(
+    cover: bytes,
+    pages: Iterable[bytes],
+    back: bytes,
+    *,
+    size_cm: int,
+    page_count: int | None = None,
+) -> bytes:
+    """Capa, miolo (16 ou 20 páginas) e contracapa, cada uma em sangria de 5 mm.
+
+    `pages` pode ser um gerador (com `page_count`): cada página é lida e
+    gravada no PDF uma de cada vez, sem segurar o miolo inteiro na memória.
+    """
+    count = len(pages) if page_count is None else page_count  # type: ignore[arg-type]
+    if count not in (16, 20):
         raise ValueError("O miolo precisa ter exatamente 16 ou 20 paginas")
-    return _pages_pdf([cover, *pages, back], size_cm=size_cm)
+    return _pages_pdf(itertools.chain([cover], pages, [back]), size_cm=size_cm)
 
 
 def covers_pdf(back: bytes, front: bytes, *, size_cm: int, title: str = "") -> bytes:

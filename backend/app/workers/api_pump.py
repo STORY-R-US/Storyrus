@@ -15,33 +15,20 @@ instância tem só 512 MB.
 from __future__ import annotations
 
 import asyncio
-import ctypes
-import gc
 import logging
-import sys
 import threading
 
 from app.config import settings
 from app.database import SessionLocal
 from app.services import process_lifecycle
 from app.workers import runner
+from app.workers.memory import release_memory
 
 logger = logging.getLogger("api.job_pump")
 
 _wake = threading.Event()
 _thread: threading.Thread | None = None
 _thread_lock = threading.Lock()
-
-
-def release_memory() -> None:
-    """Devolve ao sistema a memória dos buffers grandes do último job."""
-    gc.collect()
-    if not sys.platform.startswith("linux"):
-        return
-    try:
-        ctypes.CDLL("libc.so.6").malloc_trim(0)
-    except Exception:  # noqa: BLE001 — só um alívio; sem glibc segue igual
-        pass
 
 
 def _run_thread() -> None:
