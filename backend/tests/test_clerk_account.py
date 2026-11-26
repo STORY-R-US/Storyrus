@@ -267,6 +267,72 @@ def test_clerk_jwt_creates_user_from_backend_email(client, monkeypatch, session)
     assert me.json()["credits"] == settings.signup_bonus_credits
 
 
+def _rs256_session(monkeypatch, email: str = "Cache@Example.com"):
+    private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    numbers = private.public_key().public_numbers()
+    jwk = {
+        "kty": "RSA",
+        "kid": "kid-cache",
+        "alg": "RS256",
+        "use": "sig",
+        "n": _b64u(numbers.n),
+        "e": _b64u(numbers.e),
+    }
+    pem = private.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    claims = {"sub": "user_cache", "iat": int(time.time()), "exp": int(time.time()) + 600}
+    token = jwt.encode(claims, pem.decode(), algorithm="RS256", headers={"kid": "kid-cache"})
+    calls = []
+    profile = {"email": email}
+
+    def fetch(user_id):
+        calls.append(user_id)
+        return {
+            "id": user_id,
+            "primary_email_address_id": "idn_1",
+            "email_addresses": [
+                {
+                    "id": "idn_1",
+                    "email_address": profile["email"],
+                    "verification": {"status": "verified"},
+                }
+            ],
+        }
+
+    monkeypatch.setattr(settings, "app_env", "prod")
+    monkeypatch.setattr(settings, "clerk_secret_key", "sk_test_clerk")
+    monkeypatch.setattr("app.services.clerk_identity.fetch_jwks", lambda: [jwk])
+    monkeypatch.setattr("app.services.clerk_identity.fetch_clerk_user", fetch)
+    return token, calls, profile
+
+
+def test_clerk_profile_is_cached_between_requests(client, monkeypatch):
+    """O perfil do Clerk não é buscado de novo em cada chamada da mesma sessão."""
+    token, calls, _ = _rs256_session(monkeypatch)
+    for _ in range(3):
+        me = client.get("/v1/auth/me", headers=_auth(token))
+        assert me.status_code == 200, me.text
+        assert me.json()["email"] == "cache@example.com"
+    assert calls == ["user_cache"]
+
+
+def test_clerk_profile_cache_expires_and_is_forgotten(client, monkeypatch):
+    from app.services import clerk_identity
+
+    token, calls, profile = _rs256_session(monkeypatch)
+    assert client.get("/v1/auth/me", headers=_auth(token)).status_code == 200
+    profile["email"] = "Novo@Example.com"
+    clerk_identity.forget_clerk_user("user_cache")
+    assert client.get("/v1/auth/me", headers=_auth(token)).status_code == 200
+    assert len(calls) == 2
+    monkeypatch.setattr(clerk_identity, "_PROFILE_TTL_S", 0.0)
+    assert client.get("/v1/auth/me", headers=_auth(token)).status_code == 200
+    assert len(calls) == 3
+
+
 def _sign_svix(secret: str, body: bytes, svix_id: str, timestamp: str) -> str:
     raw = secret.removeprefix("whsec_")
     key = base64.b64decode(raw + "=" * (-len(raw) % 4))

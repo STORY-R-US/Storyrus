@@ -18,6 +18,7 @@ import binascii
 import hashlib
 import hmac
 import logging
+import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -41,6 +42,12 @@ _CLERK_API = "https://api.clerk.com/v1"
 _JWKS_TTL_S = 600.0
 _TEST_PURPOSE = "clerk_test"
 _jwks_cache: tuple[float, list[dict]] | None = None
+# E-mail da conta por 60 s. O token continua conferido em todo request; só a
+# consulta do perfil (Backend API do Clerk) deixa de ir à rede em cada chamada.
+_PROFILE_TTL_S = 60.0
+_PROFILE_CACHE_MAX = 2000
+_profile_cache: dict[str, tuple[float, str, bool]] = {}
+_profile_lock = threading.Lock()
 
 
 @dataclass(frozen=True)
@@ -53,6 +60,31 @@ class ClerkIdentity:
 def reset_jwks_cache() -> None:
     global _jwks_cache
     _jwks_cache = None
+
+
+def reset_profile_cache() -> None:
+    with _profile_lock:
+        _profile_cache.clear()
+
+
+def forget_clerk_user(clerk_user_id: str) -> None:
+    """Esquece o e-mail guardado (troca de e-mail, exclusão, webhook)."""
+    with _profile_lock:
+        _profile_cache.pop(clerk_user_id, None)
+
+
+def _cached_primary_email(clerk_user_id: str) -> tuple[str, bool]:
+    now = time.monotonic()
+    with _profile_lock:
+        hit = _profile_cache.get(clerk_user_id)
+    if hit is not None and now - hit[0] < _PROFILE_TTL_S:
+        return hit[1], hit[2]
+    email, verified = primary_email(fetch_clerk_user(clerk_user_id))
+    with _profile_lock:
+        if len(_profile_cache) >= _PROFILE_CACHE_MAX:
+            _profile_cache.clear()
+        _profile_cache[clerk_user_id] = (now, email, verified)
+    return email, verified
 
 
 def _norm_email(value: str) -> str:
@@ -150,10 +182,12 @@ def set_clerk_email(clerk_user_id: str, email: str) -> None:
             "primary": True,
         },
     )
+    forget_clerk_user(clerk_user_id)
 
 
 def delete_clerk_user(clerk_user_id: str) -> None:
     """Apaga a conta de login no Clerk (exclusão pedida pelo titular)."""
+    forget_clerk_user(clerk_user_id)
     if not (settings.clerk_secret_key or "").strip() or settings.app_env == "test":
         return
     response = httpx.delete(
@@ -261,11 +295,10 @@ def _identity_from_clerk_jwt(token: str) -> ClerkIdentity:
     if not sub.startswith("user_") or payload.get("sts") == "pending":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nao autenticado")
     try:
-        profile = fetch_clerk_user(sub)
+        email, verified = _cached_primary_email(sub)
     except httpx.HTTPError as exc:
         logger.warning("clerk_user_unavailable sub=%s", sub)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nao autenticado") from exc
-    email, verified = primary_email(profile)
     return ClerkIdentity(clerk_user_id=sub, email=email, email_verified=verified)
 
 
@@ -415,6 +448,7 @@ def apply_clerk_event(db: Session, event_type: str, data: dict) -> None:
     clerk_user_id = str(data.get("id") or "")
     if not clerk_user_id:
         return
+    forget_clerk_user(clerk_user_id)
     user = db.scalar(select(User).where(User.clerk_user_id == clerk_user_id))
     if user is None or is_guest_user(email=user.email, password_hash=user.password_hash):
         return

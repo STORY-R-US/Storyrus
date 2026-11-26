@@ -49,6 +49,16 @@ def _reset_guest_rate_limit():
 
 
 @pytest.fixture(autouse=True)
+def _reset_clerk_profile_cache():
+    """O e-mail guardado de um teste não vaza para o próximo."""
+    from app.services import clerk_identity
+
+    clerk_identity.reset_profile_cache()
+    yield
+    clerk_identity.reset_profile_cache()
+
+
+@pytest.fixture(autouse=True)
 def _reset_webhook_nonces():
     """Evita 401 de nonce reutilizado cruzado entre testes."""
     webhook_auth.reset()
