@@ -36,6 +36,7 @@ export function PostPreviewFlow({
   const t = purchaseCopy(lang);
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
+  const approveRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [notes, setNotes] = useState("");
@@ -224,6 +225,20 @@ export function PostPreviewFlow({
                     ? t.fullHintDigital
                     : t.fullHint}
               </p>
+              {!project.book_approved_at && (
+                // O botão de aprovar fica depois das 20 miniaturas: sem este atalho
+                // o cliente abre a tela e não vê como continuar.
+                <button
+                  type="button"
+                  className="kbtn kbtn-primary"
+                  data-testid="purchase-go-approve"
+                  onClick={() =>
+                    approveRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+                  }
+                >
+                  {t.goApprove}
+                </button>
+              )}
               <div className="purchase-pages">
                 {(project.book_profile
                   ? assets?.page_versions
@@ -302,7 +317,7 @@ export function PostPreviewFlow({
                 </div>
               )}
               {!project.book_approved_at && (
-                <>
+                <div className="purchase-approve" ref={approveRef} data-testid="purchase-approve">
                   <label className="purchase-confirm">
                     <input
                       type="checkbox"
@@ -323,6 +338,7 @@ export function PostPreviewFlow({
                   >
                     {digital ? t.finalDigital : t.final}
                   </button>
+                  {!confirmed && <p className="master-title-hint">{t.confirmFirst}</p>}
                   {!project.book_profile && (
                     <details>
                       <summary>{t.adjust}</summary>
@@ -350,7 +366,7 @@ export function PostPreviewFlow({
                       </button>
                     </details>
                   )}
-                </>
+                </div>
               )}
             </>
           )}

@@ -493,3 +493,30 @@ def test_twenty_by_twenty_has_a_price_for_each_cover():
     assert book_price_cents("M", "sport") == 25900
     assert price_table("sport")["book"] == {"hard": 25900, "soft": 22900}
     assert book_price_cents("M", "livro_teste", "soft") == 50
+
+
+def test_painel_acompanha_o_livro_pago_e_pronto_sem_montar_arquivos():
+    """Pago e com o livro pronto não pode continuar como "Pedido em cotação"."""
+    from types import SimpleNamespace
+
+    from app.printkit.service import refresh_stage
+
+    project = SimpleNamespace(
+        purchase_flow={"preview_ready_at": "x", "preview_approved_at": "x"},
+        book_approved_at=None,
+        print_status="awaiting_payment",
+    )
+    order = SimpleNamespace(status="awaiting_payment", payment_status="paid")
+    assert refresh_stage(project, order) is True
+    assert order.status == project.print_status == "generating_book"
+
+    project.purchase_flow = {**project.purchase_flow, "full_book_ready_at": "y"}
+    assert refresh_stage(project, order) is True
+    assert order.status == "awaiting_customer_approval"
+    assert refresh_stage(project, order) is False
+
+    project.book_approved_at = "z"
+    assert refresh_stage(project, order) is False
+    approved = SimpleNamespace(status="sent_for_validation", payment_status="paid")
+    assert refresh_stage(project, approved) is False
+    assert approved.status == "sent_for_validation"

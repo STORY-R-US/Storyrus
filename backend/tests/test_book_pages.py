@@ -87,3 +87,22 @@ def test_print_pdf_takes_sixteen_or_twenty_pages():
         assert book_render.pdf(page, [page] * total, page, size_cm=20)
     with pytest.raises(ValueError):
         book_render.pdf(page, [page] * 18, page, size_cm=20)
+
+
+def test_print_pdf_aceita_paginas_lidas_uma_a_uma():
+    """A montagem final lê cada página só quando vai gravá-la no PDF."""
+    page = _png()
+    read = []
+
+    def lazy():
+        for number in range(20):
+            read.append(number)
+            yield page
+
+    pages = lazy()
+    assert read == []
+    blob = book_render.pdf(page, pages, page, size_cm=20, page_count=20)
+    assert blob.startswith(b"%PDF")
+    assert read == list(range(20))
+    with pytest.raises(ValueError):
+        book_render.pdf(page, iter([page] * 18), page, size_cm=20, page_count=18)

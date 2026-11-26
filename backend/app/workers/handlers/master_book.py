@@ -1425,7 +1425,12 @@ async def page(db, job, project):
             f"paid-page-{project.id}-{current + 1}",
         )
     if current == total:
+        from app.workers.memory import release_memory
+
         size_cm = 15 if project.book_size == "P" else 20
+        # Montagem final na instância de 512 MB: solta o que sobrou da página 20
+        # antes de abrir capa, contracapa e miolo.
+        release_memory()
         for language in profile["languages"]:
             cover = _assets(db, project, workflow=1, language=language, role="01_CAPA")[-1]
             pages = sorted(
@@ -1478,9 +1483,10 @@ async def page(db, job, project):
             title = profile["locales"][language]["title"]
             blob = book_render.pdf(
                 cover_bytes,
-                [storage.get_bytes(a.storage_key) for a in pages],
+                (storage.get_bytes(a.storage_key) for a in pages),
                 back_bytes,
                 size_cm=size_cm,
+                page_count=len(pages),
             )
             key = _store(
                 db,
@@ -1504,6 +1510,8 @@ async def page(db, job, project):
             )
             if language == project.language:
                 project.ebook_url = key
+            del blob
+            release_memory()
     if current == total:
         purchase_flow.update(
             project, full_book_ready_at=purchase_flow.timestamp(), stage="book_ready"

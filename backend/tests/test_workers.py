@@ -267,6 +267,30 @@ def test_reclaim_preview_job_antes_do_timeout_geral(db, monkeypatch):
     assert other.status == JobStatus.RUNNING.value
 
 
+def test_reclaim_pagina_do_livro_pago_em_3_min(db, monkeypatch):
+    """Se a instância reinicia na montagem, a página paga volta em 3 min, não em 15."""
+    from datetime import datetime, timedelta
+
+    monkeypatch.setattr(runner.settings, "job_stale_timeout_s", 900.0)
+    monkeypatch.setattr(runner.settings, "preview_stale_timeout_s", 180.0)
+    _, project = _seed(db)
+    page = _job(db, project, "EBOOK")
+    page.status = JobStatus.RUNNING.value
+    page.updated_at = datetime.now(UTC) - timedelta(seconds=200)
+    page.result = {"payload": {"master_page": True, "page": 20, "purchase_full_book": True}}
+    fresh = _job(db, project, "EBOOK")
+    fresh.status = JobStatus.RUNNING.value
+    fresh.updated_at = datetime.now(UTC) - timedelta(seconds=60)
+    fresh.result = {"payload": {"master_page": True, "page": 19, "purchase_full_book": True}}
+    db.commit()
+
+    assert runner.reclaim_stale_jobs(db) == 1
+    db.refresh(page)
+    db.refresh(fresh)
+    assert page.status == JobStatus.PENDING.value
+    assert fresh.status == JobStatus.RUNNING.value
+
+
 def test_reclaim_skips_fresh_running_jobs(db, monkeypatch):
     from datetime import datetime
 

@@ -83,11 +83,11 @@ def test_pump_libera_memoria_depois_de_cada_job(monkeypatch):
 
 
 def test_release_memory_nao_quebra_sem_glibc(monkeypatch):
-    from app.workers import api_pump
+    from app.workers import memory
 
     def boom(_name):
         raise OSError("sem libc")
 
-    monkeypatch.setattr(api_pump.ctypes, "CDLL", boom)
-    monkeypatch.setattr(api_pump.sys, "platform", "linux")
-    api_pump.release_memory()
+    monkeypatch.setattr(memory.ctypes, "CDLL", boom)
+    monkeypatch.setattr(memory.sys, "platform", "linux")
+    memory.release_memory()
