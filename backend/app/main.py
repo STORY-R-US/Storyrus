@@ -43,17 +43,18 @@ jobs_svc.enqueue_fn = queue.notify
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    task: asyncio.Task[None] | None = None
+    pump_started = False
     privacy_task = None
     if settings.app_env == "prod" and settings.privacy_retention_enabled:
         from app.services.privacy_retention import retention_loop
 
         privacy_task = asyncio.create_task(retention_loop())
     if settings.job_pump_enabled():
-        from app.workers.api_pump import bind, pump_forever
+        # Thread própria: montar um livro não trava as respostas do site.
+        from app.workers import api_pump
 
-        task = asyncio.create_task(pump_forever())
-        bind(asyncio.get_running_loop(), task)
+        api_pump.start()
+        pump_started = True
     try:
         yield
     finally:
@@ -63,10 +64,10 @@ async def lifespan(_app: FastAPI):
                 await privacy_task
             except asyncio.CancelledError:
                 pass
-        if task is not None:
+        if pump_started:
             from app.workers.api_pump import shutdown
 
-            await shutdown(task)
+            await shutdown()
 
 
 app = FastAPI(

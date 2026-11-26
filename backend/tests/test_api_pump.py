@@ -51,3 +51,43 @@ def test_job_pump_respeita_override():
     forced_on = Settings(app_env="dev", api_job_pump=True)
     assert forced_off.job_pump_enabled() is False
     assert forced_on.job_pump_enabled() is True
+
+
+def test_pump_libera_memoria_depois_de_cada_job(monkeypatch):
+    import asyncio
+
+    from app.services import process_lifecycle
+    from app.workers import api_pump
+
+    calls = []
+    ticks = iter([1, 0])
+
+    async def run_once(_db):
+        value = next(ticks, 0)
+        if value == 0:
+            process_lifecycle.begin_shutdown()
+        return value
+
+    monkeypatch.setattr(api_pump.runner, "run_once", run_once)
+    monkeypatch.setattr(api_pump, "release_memory", lambda: calls.append("free"))
+    monkeypatch.setattr(
+        api_pump, "SessionLocal", lambda: type("S", (), {"close": lambda self: None})()
+    )
+    monkeypatch.setattr(api_pump.settings, "worker_poll_interval_s", 0.01)
+    process_lifecycle.reset()
+    try:
+        asyncio.run(api_pump.pump_forever())
+    finally:
+        process_lifecycle.reset()
+    assert calls == ["free"]
+
+
+def test_release_memory_nao_quebra_sem_glibc(monkeypatch):
+    from app.workers import api_pump
+
+    def boom(_name):
+        raise OSError("sem libc")
+
+    monkeypatch.setattr(api_pump.ctypes, "CDLL", boom)
+    monkeypatch.setattr(api_pump.sys, "platform", "linux")
+    api_pump.release_memory()
