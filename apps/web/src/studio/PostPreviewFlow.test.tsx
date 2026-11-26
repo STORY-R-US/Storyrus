@@ -218,6 +218,56 @@ describe("continuação da prévia", () => {
     ).toBeInTheDocument();
   });
 
+  it("mostra miniaturas leves na revisão e abre a página inteira no clique", () => {
+    const complete = {
+      ...project,
+      language: "pt-BR",
+      book_profile: {
+        version: 1,
+        stage: "book_ready",
+        title: "Lila e as estrelas",
+        gender: "girl",
+        languages: ["pt-BR"],
+        current_page: 20,
+      },
+      purchase_flow: {
+        ...project.purchase_flow,
+        preview_approved_at: "2026-10-15",
+        full_book_ready_at: "2026-10-15",
+        stage: "book_ready",
+      },
+    } satisfies Project;
+    const full: StudioAssets = {
+      ...assets,
+      page_versions: [
+        { url: "/p2.png", thumb_url: "/p2_MINIATURA.jpg", language: "pt-BR", role: "com_texto", filename: "p2.png", page: 2 },
+        { url: "/p1.png", thumb_url: "/p1_MINIATURA.jpg", language: "pt-BR", role: "com_texto", filename: "p1.png", page: 1 },
+        { url: "/p3.png", thumb_url: null, language: "pt-BR", role: "com_texto", filename: "p3.png", page: 3 },
+        { url: "/p1-sem.png", language: "pt-BR", role: "sem_texto", filename: "p1s.png", page: 1 },
+      ],
+    };
+    vi.spyOn(api, "printOrder").mockResolvedValue({ ...order, payment_status: "paid" });
+    const { container } = render(
+      <PostPreviewFlow
+        project={complete}
+        assets={full}
+        jobs={[]}
+        isDemo={false}
+        dirty={false}
+        onProject={vi.fn()}
+        onJobs={vi.fn()}
+        onAdjust={vi.fn()}
+      />,
+    );
+    const links = [...container.querySelectorAll(".purchase-pages a")];
+    expect(links.map((a) => a.getAttribute("href"))).toEqual(["/p1.png", "/p2.png", "/p3.png"]);
+    expect(links.map((a) => a.querySelector("img")?.getAttribute("src"))).toEqual([
+      "/p1_MINIATURA.jpg",
+      "/p2_MINIATURA.jpg",
+      "/p3.png",
+    ]);
+  });
+
   it("mostra no topo da revisão um atalho para a aprovação, que fica depois das páginas", async () => {
     const complete = {
       ...project,

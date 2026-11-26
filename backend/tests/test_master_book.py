@@ -1138,6 +1138,18 @@ async def test_complete_flow_requires_each_approval_and_keeps_16_paired_pages(st
         await _run(studio, "pages/next", key=f"page-{number}")
     assets = client.get(f"/v1/projects/{pid}/assets").json()
     assert len(assets["page_versions"]) == 32
+    # Revisão: cada página com texto tem uma miniatura JPEG leve ao lado do PNG.
+    for item in assets["page_versions"]:
+        assert "thumb_key" not in item
+        if item["role"] != "com_texto":
+            assert item["thumb_url"] is None
+            continue
+        thumb = store[item["thumb_url"].removeprefix("https://test/")]
+        full = store[item["url"].removeprefix("https://test/")]
+        image = Image.open(io.BytesIO(thumb))
+        assert image.format == "JPEG"
+        assert max(image.size) <= 480
+        assert len(thumb) < len(full)
     assert (
         next(a for a in assets["previews"] if a["role"] == "01_CAPA")["url"]
         == f"https://test/{cover_key}"

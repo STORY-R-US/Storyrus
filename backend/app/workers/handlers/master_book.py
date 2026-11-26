@@ -62,6 +62,11 @@ def _store(db, project, kind, data: bytes, *, language: str, role: str, name: st
     key = f"{key.rsplit('.', 1)[0]}/{name}"
     mime = "application/pdf" if role == "ebook" else "image/png"
     storage.put_bytes(key, data, mime)
+    # Só a página com texto aparece na revisão das 20 páginas.
+    if kind == AssetKind.PAGE_IMAGE.value and role == "com_texto":
+        thumb = _store_thumbnail(key, data)
+        if thumb:
+            metadata["thumb_key"] = thumb
     # Replace just this shot/locale/page, preserving all other approved assets.
     identity = {"page": metadata["page"]} if "page" in metadata else {}
     for old in _assets(db, project, workflow=1, language=language, role=role, **identity):
@@ -82,6 +87,17 @@ def _store(db, project, kind, data: bytes, *, language: str, role: str, name: st
     db.add(asset)
     db.flush()
     return key
+
+
+def _store_thumbnail(key: str, data: bytes) -> str | None:
+    """Miniatura da página ao lado do PNG. Falha aqui não derruba a página."""
+    try:
+        thumb_key = f"{key.rsplit('.', 1)[0]}_MINIATURA.jpg"
+        storage.put_bytes(thumb_key, book_render.thumbnail(data), "image/jpeg")
+        return thumb_key
+    except Exception:  # noqa: BLE001
+        logger.warning("page_thumbnail_failed key=%s", key, exc_info=True)
+        return None
 
 
 def _account(db, job, result, label):
