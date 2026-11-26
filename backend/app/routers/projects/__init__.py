@@ -373,7 +373,12 @@ def project_assets(
             for a in preview_assets
         ],
         "page_versions": [
-            {**(a.meta or {}), "url": url_for(a.storage_key)}
+            {
+                **{key: value for key, value in (a.meta or {}).items() if key != "thumb_key"},
+                "url": url_for(a.storage_key),
+                # Miniatura leve para a revisão; páginas antigas não têm.
+                "thumb_url": url_for((a.meta or {}).get("thumb_key")),
+            }
             for a in pages
             if (a.meta or {}).get("workflow") == 1
             and (a.meta or {}).get("role") in {"sem_texto", "com_texto"}

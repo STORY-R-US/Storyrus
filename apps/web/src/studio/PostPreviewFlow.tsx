@@ -186,7 +186,12 @@ export function PostPreviewFlow({
                   )}
                   {readyPages.map((page) => (
                     <figure key={`${page.language}-${page.page}`}>
-                      <img src={page.url} alt={`${t.readyPage} ${page.page}`} />
+                      <img
+                        src={page.thumb_url || page.url}
+                        alt={`${t.readyPage} ${page.page}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
                       <figcaption>
                         {t.readyPage} {page.page}
                       </figcaption>
@@ -248,14 +253,16 @@ export function PostPreviewFlow({
                           item.language === project.language,
                       )
                       .sort((a, b) => (a.page || 0) - (b.page || 0))
-                      .map((item) => item.url)
-                  : assets?.page_images
-                )?.map((url, i) => (
+                      .map((item) => ({ url: item.url, thumb: item.thumb_url || item.url }))
+                  : assets?.page_images?.map((url) => ({ url, thumb: url }))
+                )?.map(({ url, thumb }, i) => (
+                  // A miniatura carrega rápido; o clique abre a página inteira.
                   <a href={url} key={url} target="_blank" rel="noreferrer">
                     <img
-                      src={url}
+                      src={thumb}
                       alt={`${t.steps[3]} ${i + 1}`}
                       loading="lazy"
+                      decoding="async"
                     />
                     <span>{i + 1}</span>
                   </a>

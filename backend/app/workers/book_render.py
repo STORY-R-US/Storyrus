@@ -88,6 +88,19 @@ def preview_watermark(data: bytes) -> bytes:
     return out.getvalue()
 
 
+THUMB_EDGE = 480
+
+
+def thumbnail(data: bytes, *, edge: int = THUMB_EDGE) -> bytes:
+    """Miniatura JPEG para a revisão das 20 páginas (o PNG inteiro tem ~1,5 MB)."""
+    with Image.open(io.BytesIO(data)) as source:
+        image = source.convert("RGB")
+        image.thumbnail((edge, edge), Image.Resampling.LANCZOS)
+        out = io.BytesIO()
+        image.save(out, "JPEG", quality=80, optimize=True, progressive=True)
+        return out.getvalue()
+
+
 def png(data: bytes, *, spread: bool = False, square: bool = False) -> bytes:
     with Image.open(io.BytesIO(data)) as source:
         image = ImageOps.exif_transpose(source).convert("RGB")

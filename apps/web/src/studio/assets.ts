@@ -23,6 +23,8 @@ export type BookImage = {
   role: string;
   filename: string;
   page?: number;
+  /** Miniatura JPEG da página (revisão do livro completo). Páginas antigas não têm. */
+  thumb_url?: string | null;
 };
 
 export function mergeStudioAssets(prev: StudioAssets | null, next: StudioAssets): StudioAssets {
