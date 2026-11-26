@@ -1,15 +1,24 @@
 """A API também consome a fila.
 
-No Render free o worker dorme e não acorda quando um job entra no Postgres.
-O navegador mantém a API acordada (polling da prévia). Cada livro enfileirado
-acorda este loop na hora — ele não espera o intervalo se há trabalho.
+No Render não há worker separado: a API processa a fila sozinha. O navegador
+mantém a API acordada (polling da prévia). Cada livro enfileirado acorda este
+loop na hora — ele não espera o intervalo se há trabalho.
 `SKIP LOCKED` impede dois processos de pegarem o mesmo job.
+
+A fila roda numa thread própria, com o seu próprio event loop. Antes ela
+dividia o loop do uvicorn: enquanto um livro era montado (imagens, revisão,
+PDF), o site respondia em 8–20 s e o health check do Render falhava.
+Depois de cada job a memória volta ao sistema (gc + malloc_trim), porque a
+instância tem só 512 MB.
 """
 
 from __future__ import annotations
 
 import asyncio
+import ctypes
+import gc
 import logging
+import sys
 import threading
 
 from app.config import settings
@@ -20,39 +29,52 @@ from app.workers import runner
 logger = logging.getLogger("api.job_pump")
 
 _wake = threading.Event()
-_loop: asyncio.AbstractEventLoop | None = None
-_task: asyncio.Task[None] | None = None
+_thread: threading.Thread | None = None
+_thread_lock = threading.Lock()
 
 
-def bind(loop: asyncio.AbstractEventLoop, task: asyncio.Task[None]) -> None:
-    global _loop, _task
-    process_lifecycle.reset()
-    _loop = loop
-    _task = task
+def release_memory() -> None:
+    """Devolve ao sistema a memória dos buffers grandes do último job."""
+    gc.collect()
+    if not sys.platform.startswith("linux"):
+        return
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:  # noqa: BLE001 — só um alívio; sem glibc segue igual
+        pass
+
+
+def _run_thread() -> None:
+    try:
+        asyncio.run(pump_forever())
+    except Exception:
+        logger.exception("api job pump thread crashed")
+
+
+def start() -> threading.Thread:
+    """Sobe a thread da fila (uma só por processo)."""
+    global _thread
+    with _thread_lock:
+        if _thread is not None and _thread.is_alive():
+            return _thread
+        process_lifecycle.reset()
+        _thread = threading.Thread(target=_run_thread, name="api-job-pump", daemon=True)
+        _thread.start()
+        return _thread
 
 
 def kick() -> None:
-    """Acorda o pump agora. Se a tarefa morreu, sobe outra no loop da API."""
+    """Acorda o pump agora. Se a thread morreu, sobe outra."""
     if process_lifecycle.draining():
         return
     _wake.set()
-    loop = _loop
-    if loop is None or not settings.job_pump_enabled():
+    if not settings.job_pump_enabled():
         return
-
-    def _ensure() -> None:
-        global _task
-        if process_lifecycle.draining():
-            return
-        if _task is not None and not _task.done():
-            return
-        _task = asyncio.create_task(pump_forever())
+    with _thread_lock:
+        alive = _thread is not None and _thread.is_alive()
+    if _thread is not None and not alive:
         logger.warning("api job pump restarted")
-
-    try:
-        loop.call_soon_threadsafe(_ensure)
-    except RuntimeError:
-        logger.exception("api job pump kick failed")
+        start()
 
 
 async def pump_forever() -> None:
@@ -67,26 +89,24 @@ async def pump_forever() -> None:
             processed = 0
         finally:
             db.close()
-        if processed == 0:
+        if processed:
+            release_memory()
+        else:
             await asyncio.to_thread(_wake.wait, settings.worker_poll_interval_s)
             _wake.clear()
 
 
-async def shutdown(task: asyncio.Task | None = None, *, timeout: float = 270) -> None:
-    """Let the current paid response be saved; do not start another request."""
+def stop(timeout: float = 270) -> None:
+    """Deixa o job atual salvar a resposta paga; não começa outro."""
     process_lifecycle.begin_shutdown()
     _wake.set()
-    current = _task if _task is not None and not _task.done() else task
-    if current is None:
+    current = _thread
+    if current is None or not current.is_alive():
         return
-    try:
-        await asyncio.wait_for(asyncio.shield(current), timeout=timeout)
-    except TimeoutError:
+    current.join(timeout)
+    if current.is_alive():
         logger.error("job pump exceeded shutdown grace; paid journal preserves uncertainty")
-        current.cancel()
-        try:
-            await current
-        except asyncio.CancelledError:
-            pass
-    except asyncio.CancelledError:
-        pass
+
+
+async def shutdown(timeout: float = 270) -> None:
+    await asyncio.to_thread(stop, timeout)
