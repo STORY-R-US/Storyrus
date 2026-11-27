@@ -64,7 +64,7 @@ const IcInstagram = ({ className }: IconProps) => (
 );
 const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
-const CONTACT_INSTA = "storyr.us";
+const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 type CoverFont = "fredoka" | "baloo" | "lilita";
 type HeroAsset = Record<Lang, string>;
