@@ -3112,7 +3112,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
-  const promiseWord = lang === "en" ? "Gift" : "Regalo";
+  const promiseWord = lang === "en" ? "Gift" : "regalo";
   const [promiseBefore, promiseAfter] = t.promise_title.split(promiseWord);
   const [session, setSession] = useState<LandingSession>(() =>
     getToken() || clerkWillProvideSession() ? { status: "loading" } : { status: "out" },
@@ -3778,7 +3778,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <h2 className="ktitle reveal promise-heading">
           {lang === "pt" ? (
             <>
-              Um <span className="promise-mark">Presente</span> Personalizado para Eternizar Momentos Inesquecíveis.
+              Um <span className="promise-mark">presente</span> personalizado para eternizar momentos inesquecíveis.
             </>
           ) : (
             <>{promiseBefore}<span className="promise-mark">{promiseWord}</span>{promiseAfter}</>
