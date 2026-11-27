@@ -56,7 +56,7 @@ export { ProgressList } from "./studio/ProgressList";
 
 const PHOTO_LIMIT = 8;
 
-const ORDER_HEADLINE = { pt: "Seu Pedido", en: "Your Order", es: "Tu Pedido" } as const;
+const ORDER_HEADLINE = { pt: "Seu pedido", en: "Your Order", es: "Tu pedido" } as const;
 
 function previewStepLabel(t: StudioCopy, id: PreviewStepId): string {
   if (id === "AVATAR") return t.previewStepCharacter;
@@ -254,9 +254,9 @@ const FLOW = {
 } as const;
 
 const AI_HELP = {
-  pt: { titleAi: "Sugerir Título com IA", titleAiAgain: "Outras 5 ideias", titleAiLoading: "A IA está pensando…", titleAiNeedTheme: "Escreva o tema no passo anterior para a IA sugerir um título.", titleAiFail: "Não deu para sugerir agora. Tente de novo ou escreva o título.", titleAiPick: "Toque num título para usar", use: "Usar", used: "Escolhido", dedicationAiFail: "Mostrando sugestões prontas porque a IA não respondeu agora." },
+  pt: { titleAi: "Sugerir título com IA", titleAiAgain: "Outras 5 ideias", titleAiLoading: "A IA está pensando…", titleAiNeedTheme: "Escreva o tema no passo anterior para a IA sugerir um título.", titleAiFail: "Não deu para sugerir agora. Tente de novo ou escreva o título.", titleAiPick: "Toque num título para usar", use: "Usar", used: "Escolhido", dedicationAiFail: "Mostrando sugestões prontas porque a IA não respondeu agora." },
   en: { titleAi: "Suggest Title with AI", titleAiAgain: "5 more ideas", titleAiLoading: "AI is thinking…", titleAiNeedTheme: "Write the theme in the previous step so AI can suggest a title.", titleAiFail: "Could not suggest right now. Try again or type a title.", titleAiPick: "Tap a title to use it", use: "Use", used: "Chosen", dedicationAiFail: "Showing ready-made ideas because AI did not answer right now." },
-  es: { titleAi: "Sugerir Título con IA", titleAiAgain: "Otras 5 ideas", titleAiLoading: "La IA está pensando…", titleAiNeedTheme: "Escribe el tema en el paso anterior para que la IA sugiera un título.", titleAiFail: "No se pudo sugerir ahora. Inténtalo de nuevo o escribe el título.", titleAiPick: "Toca un título para usarlo", use: "Usar", used: "Elegido", dedicationAiFail: "Mostrando ideas listas porque la IA no respondió ahora." },
+  es: { titleAi: "Sugerir título con IA", titleAiAgain: "Otras 5 ideas", titleAiLoading: "La IA está pensando…", titleAiNeedTheme: "Escribe el tema en el paso anterior para que la IA sugiera un título.", titleAiFail: "No se pudo sugerir ahora. Inténtalo de nuevo o escribe el título.", titleAiPick: "Toca un título para usarlo", use: "Usar", used: "Elegido", dedicationAiFail: "Mostrando ideas listas porque la IA no respondió ahora." },
 } as const;
 
 /** Melhora a dedicatória escrita pela família sem IA: arruma espaços, maiúscula e ponto, cita o nome e fecha com carinho. */
@@ -1601,7 +1601,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           </section>
 
           {selectedCatalogId && catalogModel(selectedCatalogId) && <section className="studio-chosen" data-testid="studio-selected-catalog-model">
-            <p>{lang === "pt" ? "Modelo do Catálogo" : lang === "en" ? "Catalog model" : "Modelo del Catálogo"}: <strong>{catalogModel(selectedCatalogId)!.titles[lang]}</strong></p>
+            <p>{lang === "pt" ? "Modelo do catálogo" : lang === "en" ? "Catalog model" : "Modelo del catálogo"}: <strong>{catalogModel(selectedCatalogId)!.titles[lang]}</strong></p>
             <p className="muted">{lang === "pt" ? "O modelo define o visual. Você pode mudar o título inteiro e o tema." : lang === "en" ? "The model defines the visual style. You can change the full title and theme." : "El modelo define el estilo visual. Puedes cambiar el título completo y el tema."}</p>
             <button type="button" className="kbtn kbtn-soft" disabled={busy || previewChainActive} data-testid="studio-leave-catalog" onClick={() => {
               if (project) { resetProject(); return; }

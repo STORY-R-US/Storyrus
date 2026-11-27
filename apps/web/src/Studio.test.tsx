@@ -151,26 +151,26 @@ describe("Studio — ordem dos campos", () => {
     await openBook(user);
     await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     const dedication = screen.getByLabelText(/dedicatória/i);
-    const suggest = screen.getByRole("button", { name: "Sugerir Dedicatória com IA" });
+    const suggest = screen.getByRole("button", { name: "Sugerir dedicatória com IA" });
 
     await user.click(suggest);
     // Sem a IA, usa as sugestões prontas.
     await waitFor(() => expect((dedication as HTMLInputElement).value).toContain("Para Lila,"));
     const first = (dedication as HTMLInputElement).value;
-    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória com IA" }));
+    await user.click(screen.getByRole("button", { name: "Sugerir dedicatória com IA" }));
     expect(dedication).not.toHaveValue(first);
     await user.clear(dedication);
     await user.type(dedication, "Uma dedicatória escrita por mim.");
     await user.type(screen.getByLabelText(/nome do protagonista/i), " Souza");
     expect(dedication).toHaveValue("Uma dedicatória escrita por mim.");
     const improve = vi.spyOn(api, "improveDedication").mockResolvedValue({ dedication: "Para Lila Souza, escrita com todo o meu amor." });
-    await user.click(screen.getByRole("button", { name: "Melhorar Dedicatória" }));
+    await user.click(screen.getByRole("button", { name: "Melhorar dedicatória" }));
     expect(improve).toHaveBeenCalledWith("Uma dedicatória escrita por mim.", "Lila Souza", "pt-BR");
     await waitFor(() => expect(dedication).toHaveValue("Para Lila Souza, escrita com todo o meu amor."));
     improve.mockRejectedValueOnce(new Error("502"));
     await user.clear(dedication);
     await user.type(dedication, "te amo");
-    await user.click(screen.getByRole("button", { name: "Melhorar Dedicatória" }));
+    await user.click(screen.getByRole("button", { name: "Melhorar dedicatória" }));
     await waitFor(() => expect((dedication as HTMLTextAreaElement).value).toMatch(/^Para Lila Souza: Te amo\. Com todo o amor/));
     expect(create).not.toHaveBeenCalled();
     expect(state.credits).toBe(10);
@@ -185,7 +185,7 @@ describe("Studio — ordem dos campos", () => {
     await openBook(user);
     await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Lila viaja pelas estrelas");
-    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória com IA" }));
+    await user.click(screen.getByRole("button", { name: "Sugerir dedicatória com IA" }));
     const dedication = screen.getByLabelText(/dedicatória/i);
     await waitFor(() => expect(dedication).toHaveValue("Para Lila, que voa entre as estrelas."));
     expect(suggest).toHaveBeenCalledWith(expect.objectContaining({ name: "Lila", theme: "Lila viaja pelas estrelas" }));
@@ -288,7 +288,7 @@ describe("Studio — avisos nos campos", () => {
     expect(screen.getByTestId("studio-error-name")).toBeInTheDocument();
 
     await fillStory(user);
-    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatória com IA" }));
+    await user.click(screen.getByRole("button", { name: "Sugerir dedicatória com IA" }));
     await waitFor(() => expect((screen.getByLabelText(/dedicatória/i) as HTMLInputElement).value).not.toBe(""));
     const dedication = (screen.getByLabelText(/dedicatória/i) as HTMLInputElement).value;
     expect(screen.queryByTestId("studio-error-name")).not.toBeInTheDocument();
@@ -607,7 +607,7 @@ describe("Revisão do projeto", () => {
 
     expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
     expect(screen.getByRole("heading", { name: /prévia pronta/i })).toBeInTheDocument();
-    expect(document.title).toBe("Story R Us - Prévia Pronta");
+    expect(document.title).toBe("Story R Us - Prévia pronta");
     expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/noé/i);
@@ -658,7 +658,7 @@ describe("Prévia automática", () => {
     expect(screen.getByTestId("studio-preview-elapsed")).toHaveTextContent(/já se passaram 0:0/i);
     expect(screen.queryByTestId("studio-preview-must-move")).not.toBeInTheDocument();
     expect(screen.getByText(/a foto vira o personagem ilustrado/i)).toBeInTheDocument();
-    expect(document.title).toBe("Story R Us - Projeto Criado");
+    expect(document.title).toBe("Story R Us - Projeto criado");
   });
 
   it("mantém falha interna 500 em revisão sem pedir repetição", async () => {

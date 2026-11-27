@@ -153,7 +153,7 @@ describe("Studio approval stages", () => {
     vi.spyOn(api, "listJobs").mockResolvedValue([]);
     render(<MasterBookFlow project={ready} assets={assets} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     await userEvent.click(screen.getByRole("button", { name: "Quero ajustar" }));
-    expect(screen.getByRole("region", { name: "Ajustar Minha Prévia" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Ajustar minha prévia" })).toBeInTheDocument();
     const notes = screen.getByLabelText("O que você quer melhorar?");
     expect(notes).toHaveFocus();
     expect(screen.getByRole("button", { name: "Gostei, continuar com meu livro" })).toBeDisabled();
@@ -164,7 +164,7 @@ describe("Studio approval stages", () => {
       title: "Lia e as estrelas", theme_description: "space", photo_notes: "Mais estrelas na capa", story_text: "",
     }));
     expect(approve).not.toHaveBeenCalled();
-    await waitFor(() => expect(screen.queryByRole("region", { name: "Ajustar Minha Prévia" })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Ajustar minha prévia" })).not.toBeInTheDocument());
   });
 
   it("cancela os ajustes sem alterar o livro e libera a aprovação", async () => {
@@ -174,7 +174,7 @@ describe("Studio approval stages", () => {
     await userEvent.click(screen.getByRole("button", { name: "Quero ajustar" }));
     await userEvent.type(screen.getByLabelText("O que você quer melhorar?"), "Mais luz");
     await userEvent.click(screen.getByRole("button", { name: "Cancelar ajustes" }));
-    expect(screen.queryByRole("region", { name: "Ajustar Minha Prévia" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Ajustar minha prévia" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gostei, continuar com meu livro" })).toBeEnabled();
     expect(save).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: "Quero ajustar" }));
@@ -317,7 +317,7 @@ describe("Studio approval stages", () => {
     expect(screen.queryByRole("list", { name: "Resumo do pedido" })).not.toBeInTheDocument();
     const labels = screen.getAllByRole("figure").map((el) => el.textContent);
     expect(labels[0]).toContain("Capa");
-    expect(labels[1]).toContain("Livro Aberto");
+    expect(labels[1]).toContain("Livro aberto");
     expect(labels[2]).toContain("Segurando o livro");
     await userEvent.click(screen.getByRole("button", { name: "Gostei, continuar com meu livro" }));
     await waitFor(() => expect(approve).toHaveBeenCalledWith("master"));
@@ -459,7 +459,7 @@ describe("Studio approval stages", () => {
     const avatar = { ...project, book_profile: { ...project.book_profile!, stage: "avatar_ready" } };
     render(<MasterBookFlow project={avatar} assets={{ ...assets, character_url: "/avatar" }} jobs={[]} setProject={vi.fn()} setJobs={vi.fn()} />);
     expect(page).not.toHaveBeenCalled();
-    expect(screen.getByText("Este É O Rosto?")).toBeInTheDocument();
+    expect(screen.getByText("Este é o rosto?")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Sim, aprovo" }));
     await waitFor(() => expect(page).toHaveBeenCalledWith("master"));
     expect(approve.mock.invocationCallOrder[0]).toBeLessThan(page.mock.invocationCallOrder[0]);
@@ -488,7 +488,7 @@ describe("Studio approval stages", () => {
         setAssets={vi.fn()}
       />,
     );
-    expect(screen.getByRole("heading", { name: "Páginas Do Livro" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Páginas do livro" })).toBeInTheDocument();
     expect(screen.getByText(/não dá para voltar atrás/i)).toBeInTheDocument();
     const note = screen.getByLabelText("O que melhorar nesta página");
     await userEvent.type(note, "Mais luz na janela");

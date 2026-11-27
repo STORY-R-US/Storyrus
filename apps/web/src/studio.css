@@ -1483,19 +1483,6 @@
 .studio-app .studio-card { max-width: 960px; margin: 0 auto 28px; border-radius: 26px; padding: clamp(24px,4vw,44px); box-shadow: 0 16px 40px #00000012; }
 [data-theme="light"] .studio-app .studio-card { box-shadow: 0 16px 40px #233c5410; }
 .studio-app .studio-card h2 { font-size: 1.95rem; line-height: 1.2; letter-spacing: -.02em; }
-.studio-app :is(
-  h1,
-  h2,
-  h3,
-  .studio-section-title,
-  .project-journey-steps li,
-  .purchase-steps li,
-  .preview-step-copy > span:first-child,
-  .master-shot figcaption > span:first-child,
-  .studio-preview-shot figcaption
-) {
-  text-transform: capitalize;
-}
 .studio-app .studio-card > .studio-slogan { max-width: 74ch; font-size: .92rem; line-height: 1.75; margin-top: 12px; }
 .studio-app .studio-card > .how { margin-top: 26px; padding-top: 0; }
 .studio-app .how > h3 { font-family: inherit; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--studio-muted); margin-bottom: 12px; }
@@ -1866,25 +1853,17 @@
   .studio-app .purchase-confirm { padding: 16px; }
 }
 
-/* Capitalização da interface, sem modificar os textos do livro ou dos campos. */
+/* Textos da interface como foram escritos: só a primeira letra maiúscula (sem Cada Palavra Maiúscula).
+   Estes rótulos pequenos continuam como escritos, sem caixa alta. */
 .studio-app :is(
-  h1, h2, h3, h4, h5, h6,
   .how > h3,
-  .how strong,
   .master-page-card h4,
-  button,
-  .kbtn,
-  summary,
-  .field-label,
-  .studio-field,
   .studio-choice-label,
-  .studio-chosen > span,
+  .studio-chosen span,
   .studio-eyebrow,
-  .preview-step-state,
-  .purchase-fields label,
-  .purchase-checkout label
+  .preview-step-state
 ) {
-  text-transform: capitalize;
+  text-transform: none;
 }
 
 .studio-app :is(input, textarea, select, option),
