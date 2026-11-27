@@ -52,10 +52,10 @@ test("Studio requires preview, story and face approvals in the browser", async (
     return json({ detail: "Unexpected test endpoint" }, 404);
   });
   await page.goto("/app?project=master-browser", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("Aprovo A História?", { exact: true })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Aprovo a história?", { exact: true })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("button", { name: "Gostei, continuar com meu livro" })).toHaveCount(0);
   expect(calls).toHaveLength(0);
-  for (const label of ["Capa", "Livro Aberto", "Segurando o livro"]) {
+  for (const label of ["Capa", "Livro aberto", "Segurando o livro"]) {
     const trigger = page.getByRole("button", { name: `Ampliar ${label}`, exact: true });
     await trigger.click();
     const viewer = page.getByRole("dialog", { name: label, exact: true });
@@ -70,8 +70,8 @@ test("Studio requires preview, story and face approvals in the browser", async (
   expect(calls).toHaveLength(0); // Enlarging never requests generation or approval.
   await page.screenshot({ path: testInfo.outputPath("studio-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "Ampliar Livro Aberto", exact: true }).click();
-  const mobileViewer = page.getByRole("dialog", { name: "Livro Aberto", exact: true });
+  await page.getByRole("button", { name: "Ampliar Livro aberto", exact: true }).click();
+  const mobileViewer = page.getByRole("dialog", { name: "Livro aberto", exact: true });
   await expect(mobileViewer).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("preview-expanded-mobile.png") });
   await mobileViewer.getByRole("button", { name: "Fechar", exact: true }).click();
@@ -88,11 +88,11 @@ test("Studio requires preview, story and face approvals in the browser", async (
   p.book_profile.stage = "avatar_ready";
   character = image;
   await page.reload();
-  await expect(page.getByText("Este É O Rosto?", { exact: true })).toBeVisible();
+  await expect(page.getByText("Este é o rosto?", { exact: true })).toBeVisible();
   expect(calls.some((call) => call.endsWith("/pages/next"))).toBe(false);
   await page.getByRole("button", { name: "Sim, aprovo", exact: true }).click();
   await expect(page.getByText("Próxima?", { exact: true })).toBeVisible();
-  const pages = page.getByRole("region", { name: "Páginas Do Livro", exact: true });
+  const pages = page.getByRole("region", { name: "Páginas do livro", exact: true });
   await expect(pages.getByRole("img", { name: "Página 1", exact: true })).toHaveCount(1);
   expect(calls.filter((call) => call.endsWith("/pages/next"))).toHaveLength(1);
   await expect(pages.getByRole("button", { name: "Melhorar esta página" })).toHaveCount(1);

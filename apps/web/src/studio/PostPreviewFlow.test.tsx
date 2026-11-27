@@ -213,7 +213,7 @@ describe("continuação da prévia", () => {
     expect(approve).toHaveBeenCalledOnce();
     expect(
       await screen.findByRole("heading", {
-        name: "Livro Aprovado Para Impressão",
+        name: "Livro aprovado para impressão",
       }),
     ).toBeInTheDocument();
   });
@@ -364,16 +364,16 @@ describe("continuação da prévia", () => {
       });
     const user = userEvent.setup();
     render(<Harness initial={approved} />);
-    await user.click(await screen.findByRole("checkbox", { name: /e-book em pdf/i }));
+    await user.click(await screen.findByRole("checkbox", { name: /e-book \(pdf\)/i }));
     expect(choose).toHaveBeenCalledWith("p1", { fulfillment: "print", ebook: true, video: false });
-    expect(await screen.findByText("E-book em PDF")).toBeInTheDocument();
+    expect(await screen.findByText("E-Book (PDF)")).toBeInTheDocument();
     expect(screen.getByText("Levando os dois, sai por + R$ 59,00 em vez de + R$ 68,00.")).toBeInTheDocument();
     expect(screen.getByText("R$ 206,00")).toBeInTheDocument();
     await user.click(screen.getByRole("radio", { name: /só digital/i }));
     expect(choose).toHaveBeenLastCalledWith("p1", { fulfillment: "digital", ebook: true, video: false });
     expect(await screen.findByText("Sem frete")).toBeInTheDocument();
     expect(screen.queryByText("Endereço de entrega")).not.toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /e-book em pdf/i })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /e-book \(pdf\)/i })).toBeDisabled();
   });
 
   it("libera o PDF só para quem comprou o e-book", () => {

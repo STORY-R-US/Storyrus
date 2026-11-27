@@ -79,7 +79,7 @@ describe("Studio i18n", () => {
 
     expect(await screen.findByRole("heading", { name: /crea tu historia/i })).toBeInTheDocument();
     await user.type(screen.getByLabelText(/nombre del protagonista/i), "Lila");
-    await user.click(screen.getByRole("button", { name: "Sugerir Dedicatoria con IA" }));
+    await user.click(screen.getByRole("button", { name: "Sugerir dedicatoria con IA" }));
     await waitFor(() => expect((screen.getByLabelText(/dedicatoria/i) as HTMLInputElement).value).toContain("Para Lila,"));
     expect(localStorage.getItem(LANG_STORAGE_KEY)).toBe("es");
     expect(document.documentElement.lang).toBe("es");

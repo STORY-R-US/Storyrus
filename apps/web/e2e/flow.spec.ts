@@ -423,7 +423,7 @@ test("avisos ficam nos campos e titulo opcional permite criar a previa", async (
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Projeto Criado" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projeto criado" })).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {
@@ -466,7 +466,7 @@ test("após gerar o livro mostra Projeto criado sem botões de crédito", async 
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Projeto Criado" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projeto criado" })).toBeVisible();
   await expect(page.getByTestId("studio-preview-eta")).toContainText("Previsão: cerca de");
   await expect(page.getByText("Esta tela atualiza sozinha. Se precisar sair, acompanhe em Meus pedidos.")).toBeVisible();
   await expect(page.getByTestId("studio-preview-step-AVATAR")).toBeVisible();
@@ -482,11 +482,11 @@ test("exemplo pronto mostra Prévia pronta", async ({ page }) => {
     }
   });
   await page.goto("/app?exemplo=dinosaurs");
-  await expect(page.getByRole("heading", { name: "Prévia Pronta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Prévia pronta" })).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toHaveCount(0);
   await expect(page.getByTestId("studio-story-result")).toBeVisible();
   await expect(page.getByTestId("studio-preview-trio")).toBeVisible();
-  await expect(page).toHaveTitle("Story R Us - Prévia Pronta");
+  await expect(page).toHaveTitle("Story R Us - Prévia pronta");
 });
 
 test("path inexistente mostra 404", async ({ page }) => {
