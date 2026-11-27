@@ -135,6 +135,17 @@ describe("Landing — promessa", () => {
       screen.getByText(/da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida\./i),
     ).toBeInTheDocument();
   });
+
+  it("destaca regalo uma vez só no título em ES", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    await screen.findByTestId("landing-hero-title");
+    await user.click(screen.getByTestId("landing-lang-es"));
+    const heading = screen.getByRole("heading", { name: /un regalo personalizado para eternizar momentos inolvidables\./i });
+    expect(heading.textContent).toBe("Un regalo personalizado para eternizar momentos inolvidables.");
+    expect(within(heading).getByText(/^regalo$/i)).toHaveClass("promise-mark");
+  });
 });
 
 describe("Landing — avaliações", () => {
