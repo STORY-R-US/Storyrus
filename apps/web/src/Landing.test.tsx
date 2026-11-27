@@ -750,7 +750,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(videos).getAllByRole("heading", { level: 3 })).toHaveLength(3);
   });
 
-  it("ordena as seções e aponta o Instagram para storyr.us", async () => {
+  it("ordena as seções e aponta o Instagram para storyrusbr", async () => {
     renderLanding();
     await screen.findByTestId("landing-hero-title");
 
@@ -761,7 +761,7 @@ describe("Landing — CTAs e links", () => {
       expect(nodes[i]!.compareDocumentPosition(nodes[i + 1]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
 
-    expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
+    expect(screen.getByRole("link", { name: /@storyrusbr/i })).toHaveAttribute("href", "https://www.instagram.com/storyrusbr/");
     expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
